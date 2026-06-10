@@ -1,16 +1,16 @@
 /**
  * Helpers for PropertyAnalysis; extracted to satisfy max-lines-per-function.
- * Section building logic lives in packages/utils/propertyDetails.
+ * Section building logic lives in packages/utils/transaction/propertyDetails.
  */
 import React from "react";
 
-import { renderReportSectionIcon } from "packages/ui/components/icons/renderReportSectionIcon";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
-import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
-import { buildPropertyAnalysisSections } from "packages/utils/propertyDetails";
-import { getSectionIconName } from "packages/utils/propertyDetails/analysis/sectionIconNames";
+import { renderReportSectionIcon } from "packages/ui/components/media/icons/renderReportSectionIcon";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
+import { DEFAULT_REPORT_SECTIONS } from "packages/utils/product/domain/defaultReportSections";
+import { buildPropertyAnalysisSections } from "packages/utils/transaction/propertyDetails";
+import { getSectionIconName } from "packages/utils/transaction/propertyDetails/analysis/sectionIconNames";
 
 export function renderPropertyAnalysisSectionContent(
   _sectionKey: string,

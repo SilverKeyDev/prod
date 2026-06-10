@@ -1,7 +1,7 @@
 import type { DocumentData, SavedHomesSurfaceViewType } from "packages/features/documents";
 import type { LibraryPersistSection } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import type { SavedHome } from "packages/types";
-import { dateParseISO } from "packages/utils/date";
+import { dateParseISO } from "packages/utils/core/date";
 
 export const LIBRARY_HOMES_SORT_DEFAULT = "date_desc";
 export const LIBRARY_DOCUMENTS_SORT_DEFAULT = "date_desc";

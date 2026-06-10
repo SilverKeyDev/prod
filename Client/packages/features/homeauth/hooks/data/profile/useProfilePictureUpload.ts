@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UserProfile } from "packages/types";
-import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
+import { prefetchRemoteImage } from "packages/utils/product/media/prefetchRemoteImage";
 
 import { userApi } from "@/features/homeauth/api/user";
 
@@ -40,14 +40,10 @@ export function useProfilePictureUpload(): UseProfilePictureUploadReturn {
         if (url == null && s3Key == null) {
           return prev;
         }
-        log.debug(
-          LOG_CATEGORIES.API,
-          "Profile picture: merged upload response into profile cache",
-          {
-            hasUrl: Boolean(url),
-            hasKey: Boolean(s3Key),
-          }
-        );
+        log.debug("API", "Profile picture: merged upload response into profile cache", {
+          hasUrl: Boolean(url),
+          hasKey: Boolean(s3Key),
+        });
         return {
           ...prev,
           ...(s3Key != null ? { profile_picture: s3Key } : {}),

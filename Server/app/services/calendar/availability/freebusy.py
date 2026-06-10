@@ -8,15 +8,10 @@ from typing import Any
 
 from googleapiclient.discovery import build
 
-from app.utils.security.app_logging import get_logger
-from app.utils.security.security import (
-    log_oauth_event,
-    sanitize_error_message,
-)
+from app.utils.security.security import log_oauth_event, sanitize_error_message
+from logger import log
 
 from ..core.credentials import load_credentials
-
-logger = get_logger()
 
 
 def query_freebusy(
@@ -49,12 +44,8 @@ def query_freebusy(
     try:
         creds = load_credentials(user_id, client_id, client_secret, token_endpoint, scopes)
         service = build("calendar", "v3", credentials=creds, cache_discovery=False)
-
-        # Default to primary calendar if not specified
         if not calendar_ids:
             calendar_ids = ["primary"]
-
-        # Resolve calendar IDs if resolve function provided (for restricted scope handling)
         resolved_calendar_ids = []
         if resolve_calendar_id_func:
             for cal_id in calendar_ids:
@@ -62,30 +53,23 @@ def query_freebusy(
                     resolved_id = resolve_calendar_id_func(user_id, cal_id)
                     resolved_calendar_ids.append(resolved_id)
                 except RuntimeError as e:
-                    # If resolution fails (e.g., restricted scope can't access primary),
-                    # log and skip this calendar
                     error_msg = sanitize_error_message(e)
-                    logger.warning(
-                        f"Failed to resolve calendar ID {cal_id} for user {user_id}: {error_msg}"
+                    log.warn(
+                        "CALENDAR",
+                        f"Failed to resolve calendar ID {cal_id} for user {user_id}: {error_msg}",
                     )
-                    # Skip this calendar - don't include it in the query
                     continue
         else:
             resolved_calendar_ids = calendar_ids
-
-        # If no valid calendars after resolution, return empty result
         if not resolved_calendar_ids:
-            logger.warning(f"No valid calendars to query for user {user_id} after resolution")
+            log.warn("CALENDAR", f"No valid calendars to query for user {user_id} after resolution")
             return {}
-
         freebusy_request = {
             "timeMin": time_min,
             "timeMax": time_max,
             "items": [{"id": cal_id} for cal_id in resolved_calendar_ids],
         }
-
         freebusy_response = service.freebusy().query(body=freebusy_request).execute()
-
         log_oauth_event(
             "freebusy_queried",
             user_id,
@@ -94,9 +78,8 @@ def query_freebusy(
             calendar_count=len(resolved_calendar_ids),
         )
         return freebusy_response.get("calendars", {})
-
     except Exception as e:
         error_msg = sanitize_error_message(e)
         log_oauth_event("freebusy_query_error", user_id, error=error_msg)
-        logger.error(f"Error querying freebusy for user {user_id}: {error_msg}", exc_info=True)
+        log.error("ERRORS", f"Error querying freebusy for user {user_id}: {error_msg}")
         raise

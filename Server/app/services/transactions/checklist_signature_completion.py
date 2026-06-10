@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from sqlalchemy import select
+
+from app import db
 from app.models import Agreement, AgreementLink, ChecklistForm, ChecklistItemDispatchSetting
 from app.services.documents.forms_service import FormsService
 from app.services.transactions.checklist_dispatch_automation import (
@@ -14,9 +17,7 @@ from app.services.transactions.checklist_support.checklist_rules import (
     evaluate_checklist_condition,
     sort_task_checklist_items,
 )
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 _SIGNATURE_BASED = "signature_based"
 
@@ -39,32 +40,13 @@ def links_for_step(
 ) -> list[AgreementLink]:
     """AgreementLinks for a checklist step on this transaction."""
     lid = _linked_item_key(category, item_id)
-    return AgreementLink.query.filter_by(
-        transaction_id=str(transaction_id),
-        linked_item_type="checklist_item",
-        linked_item_id=lid,
+    return db.session.scalars(
+        select(AgreementLink).where(
+            AgreementLink.transaction_id == str(transaction_id),
+            AgreementLink.linked_item_type == "checklist_item",
+            AgreementLink.linked_item_id == lid,
+        )
     ).all()
-
-
-def links_for_step_by_buyer(
-    *,
-    buyer_user_id: str,
-    category: str,
-    item_id: int,
-) -> list[AgreementLink]:
-    """Legacy buyer-scoped link lookup (prefer transaction_id)."""
-    lid = _linked_item_key(category, item_id)
-    rows = AgreementLink.query.filter_by(
-        linked_item_type="checklist_item",
-        linked_item_id=lid,
-    ).all()
-    out: list[AgreementLink] = []
-    buyer = str(buyer_user_id)
-    for link in rows:
-        ag = link.agreement
-        if ag is not None and str(ag.buyer_id) == buyer:
-            out.append(link)
-    return out
 
 
 def step_has_non_void_agreement(
@@ -150,7 +132,7 @@ def apply_signature_based_checked_ids(
 def _first_resolved_checklist_form(item: dict[str, Any]) -> ChecklistForm | None:
     suggested = item.get("suggested_form_ids") or []
     for key in suggested:
-        form = ChecklistForm.query.filter_by(form_key=key).first()
+        form = db.session.scalar(select(ChecklistForm).where(ChecklistForm.form_key == key))
         if form is not None:
             return form
     return None
@@ -170,8 +152,8 @@ def run_signature_step_auto_send(
     tx_id = transaction_id or ensure_transaction(buyer_id=str(buyer_user_id)).id
     agent_id = resolve_agent_id_for_buyer(str(buyer_user_id))
     if not agent_id:
-        logger.debug(
-            LOG_CATEGORIES["API"],
+        log.debug(
+            "API",
             "signature_auto_send_skipped_no_agent",
             {"buyer_user_id": buyer_user_id, "category": checklist_category},
         )
@@ -204,12 +186,14 @@ def run_signature_step_auto_send(
         if form is None:
             continue
 
-        setting = ChecklistItemDispatchSetting.query.filter_by(
-            agent_user_id=str(agent_id),
-            client_user_id=str(buyer_user_id),
-            category=str(checklist_category),
-            item_id=int(iid),
-        ).first()
+        setting = db.session.scalar(
+            select(ChecklistItemDispatchSetting).where(
+                ChecklistItemDispatchSetting.agent_user_id == str(agent_id),
+                ChecklistItemDispatchSetting.client_user_id == str(buyer_user_id),
+                ChecklistItemDispatchSetting.category == str(checklist_category),
+                ChecklistItemDispatchSetting.item_id == int(iid),
+            )
+        )
 
         note = None
         if setting and setting.enabled:
@@ -226,8 +210,8 @@ def run_signature_step_auto_send(
                         optional_message=note,
                     )
                 except Exception as e:
-                    logger.error(
-                        LOG_CATEGORIES["ERRORS"],
+                    log.error(
+                        "ERRORS",
                         "signature_auto_send_messaging_failed",
                         e,
                     )
@@ -241,8 +225,8 @@ def run_signature_step_auto_send(
                 transaction_id=str(tx_id),
             )
         except Exception as e:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 "signature_auto_send_docusign_failed",
                 e,
             )
@@ -256,7 +240,9 @@ def sync_checklist_for_completed_agreement(agreement: Agreement) -> None:
         recompute_and_persist_buyer_checklist,
     )
 
-    links = AgreementLink.query.filter_by(agreement_id=agreement.id).all()
+    links = db.session.scalars(
+        select(AgreementLink).where(AgreementLink.agreement_id == agreement.id)
+    ).all()
     categories: set[str] = set()
     for link in links:
         if str(link.linked_item_type) != "checklist_item":
@@ -274,8 +260,8 @@ def sync_checklist_for_completed_agreement(agreement: Agreement) -> None:
         try:
             recompute_and_persist_buyer_checklist(tx_id, category)
         except Exception as e:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 f"checklist_sync_after_agreement_failed buyer={buyer_id} category={category}",
                 e,
             )

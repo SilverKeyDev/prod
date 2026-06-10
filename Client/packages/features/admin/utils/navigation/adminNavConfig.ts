@@ -6,6 +6,7 @@ export const ADMIN_ROUTE_SEGMENTS = {
   partners: "partners",
   superadmin: "superadmin",
   devPersona: "dev-persona",
+  supportMessaging: "support-messaging",
 } as const;
 
 export type AdminRouteSegment = (typeof ADMIN_ROUTE_SEGMENTS)[keyof typeof ADMIN_ROUTE_SEGMENTS];
@@ -30,6 +31,13 @@ export const ADMIN_NAV_SPEC: readonly AdminNavSpecItem[] = [
     key: ADMIN_ROUTE_SEGMENTS.partners,
     label: "Partners",
     iconName: "handshake",
+    superadminOnly: true,
+  },
+  {
+    key: ADMIN_ROUTE_SEGMENTS.supportMessaging,
+    label: "Support messaging",
+    iconName: "message-square",
+    superadminOnly: true,
   },
   {
     key: ADMIN_ROUTE_SEGMENTS.devPersona,
@@ -59,4 +67,8 @@ export function visibleAdminNavSpec(includeSuperadmin: boolean): readonly AdminN
     return [...ADMIN_NAV_SPEC];
   }
   return ADMIN_NAV_SPEC.filter((row) => !row.superadminOnly);
+}
+
+export function superadminOnlyRouteSegments(): readonly AdminRouteSegment[] {
+  return ADMIN_NAV_SPEC.filter((row) => row.superadminOnly).map((row) => row.key);
 }

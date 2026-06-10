@@ -1,8 +1,11 @@
 """AgreementLink model - links agreements to transactions and checklist items."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -22,10 +25,9 @@ class AgreementLink(db.Model):
     linked_item_type: Mapped[str] = mapped_column(db.String(50))  # e.g. "checklist_item"
     linked_item_id: Mapped[str] = mapped_column(db.String(100))  # e.g. "escrow.2"
 
-    # Relationships
-    agreement = db.relationship(
+    agreement: Mapped["Agreement"] = relationship(
         "Agreement",
-        backref=db.backref("agreement_links", lazy="select"),
+        back_populates="agreement_links",
         foreign_keys=[agreement_id],
     )
 

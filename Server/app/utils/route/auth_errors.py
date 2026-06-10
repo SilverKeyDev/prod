@@ -4,10 +4,8 @@ from flask import jsonify, request
 
 from app.services.auth import SecurityException
 from app.utils.security import security_error_response
-from app.utils.security.app_logging import get_logger
 from app.utils.security.secure_errors import SecureErrorHandler
-
-logger = get_logger()
+from logger import log
 
 
 def parse_security_exception_tuple(exc: SecurityException) -> tuple | list | None:
@@ -18,10 +16,13 @@ def parse_security_exception_tuple(exc: SecurityException) -> tuple | list | Non
 
 def security_exception_response(exc: SecurityException, *, route_name: str):
     err = parse_security_exception_tuple(exc)
-    logger.warning(
-        "Unauthorized request to %s: %s",
-        route_name,
-        err[1] if err else "authentication required",
+    log.warn(
+        "AUTH",
+        "Unauthorized request",
+        {
+            "route": route_name,
+            "reason": err[1] if err else "authentication required",
+        },
     )
     if err:
         return security_error_response(err)
@@ -34,7 +35,11 @@ def unexpected_auth_error_response(
     route_name: str,
     log_prefix: str = "Authentication error",
 ):
-    logger.error("%s in %s: %s", log_prefix, route_name, str(exc))
+    log.error(
+        "AUTH",
+        log_prefix,
+        {"route": route_name, "endpoint": request.endpoint, "error": str(exc)},
+    )
     return SecureErrorHandler.handle_database_error(
         exc, {"function": route_name, "endpoint": request.endpoint}
     )

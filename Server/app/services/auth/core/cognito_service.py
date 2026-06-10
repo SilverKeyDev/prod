@@ -3,50 +3,25 @@ AWS Cognito Service
 Thin facade delegating to cognito_crypto, cognito_auth_flows, cognito_admin.
 """
 
-import logging
 import os
 
 import boto3
 
-from .cognito_admin import (
-    admin_create_user as _admin_create_user,
-)
-from .cognito_admin import (
-    admin_delete_user as _admin_delete_user,
-)
-from .cognito_admin import (
-    admin_get_user as _admin_get_user,
-)
-from .cognito_admin import (
-    admin_get_user_status as _admin_get_user_status,
-)
-from .cognito_admin import (
-    admin_reset_user_password as _admin_reset_user_password,
-)
-from .cognito_admin import (
-    admin_set_user_password as _admin_set_user_password,
-)
-from .cognito_auth_flows import (
-    confirm_forgot_password as _confirm_forgot_password,
-)
-from .cognito_auth_flows import (
-    confirm_sign_up as _confirm_sign_up,
-)
-from .cognito_auth_flows import (
-    forgot_password as _forgot_password,
-)
-from .cognito_auth_flows import (
-    refresh_access_token as _refresh_access_token,
-)
-from .cognito_auth_flows import (
-    sign_in as _sign_in,
-)
-from .cognito_auth_flows import (
-    sign_up as _sign_up,
-)
-from .cognito_crypto import get_secret_hash as _get_secret_hash_impl
+from logger import log
 
-logger = logging.getLogger(__name__)
+from .cognito_admin import admin_create_user as _admin_create_user
+from .cognito_admin import admin_delete_user as _admin_delete_user
+from .cognito_admin import admin_get_user as _admin_get_user
+from .cognito_admin import admin_get_user_status as _admin_get_user_status
+from .cognito_admin import admin_reset_user_password as _admin_reset_user_password
+from .cognito_admin import admin_set_user_password as _admin_set_user_password
+from .cognito_auth_flows import confirm_forgot_password as _confirm_forgot_password
+from .cognito_auth_flows import confirm_sign_up as _confirm_sign_up
+from .cognito_auth_flows import forgot_password as _forgot_password
+from .cognito_auth_flows import refresh_access_token as _refresh_access_token
+from .cognito_auth_flows import sign_in as _sign_in
+from .cognito_auth_flows import sign_up as _sign_up
+from .cognito_crypto import get_secret_hash as _get_secret_hash_impl
 
 
 def _redact(value: str) -> str:
@@ -84,16 +59,17 @@ class CognitoService:
         self.client = boto3.client(
             "cognito-idp",
             region_name=self.region,
-            config=boto3.session.Config(  # type: ignore[attr-defined]; boto3.session not fully typed
+            config=boto3.session.Config(
                 read_timeout=Config.AWS_COGNITO_TIMEOUT,
                 connect_timeout=Config.AWS_COGNITO_TIMEOUT,
                 retries={"max_attempts": 3},
             ),
         )
         if pool_region and pool_region != Config.AWS_REGION:
-            logger.warning(
+            log.warn(
+                "AUTH",
                 "AWS_COGNITO_REGION_MISMATCH",
-                extra={
+                {
                     "aws_region": Config.AWS_REGION,
                     "cognito_region": self.region,
                     "pool_region": pool_region,

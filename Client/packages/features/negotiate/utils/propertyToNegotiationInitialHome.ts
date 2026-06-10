@@ -2,7 +2,7 @@ import type { NegotiationInitialHome } from "packages/features/negotiate/types/n
 import {
   formatLotSize,
   formatStructuredAddress,
-} from "packages/utils/format/property/addressFormatting";
+} from "packages/utils/core/format/property/addressFormatting";
 
 import { getAddressFromHome } from "./addressUtils";
 

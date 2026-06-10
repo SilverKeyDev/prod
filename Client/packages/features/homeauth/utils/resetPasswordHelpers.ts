@@ -1,5 +1,5 @@
 import type { ResetPasswordStores } from "packages/features/homeauth/types/auth/resetPassword";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import type { UserProfile } from "@/features/homeauth/types";
 
@@ -9,7 +9,7 @@ type ResetResultUser = {
   email: string;
   name?: string;
   phone?: string;
-  is_agent?: boolean;
+  roles?: string[];
   auth_method?: string;
 };
 
@@ -28,7 +28,7 @@ export function mapResultUserToProfile(resultUser: ResetResultUser, _email: stri
     created_at: null,
     is_active: true,
     has_preferences: false,
-    is_agent: ("is_agent" in resultUser ? (resultUser.is_agent ?? false) : false) ?? false,
+    roles: "roles" in resultUser && Array.isArray(resultUser.roles) ? resultUser.roles : [],
     auth_method: ("auth_method" in resultUser ? resultUser.auth_method : undefined) as
       | "cognito"
       | "google"
@@ -55,7 +55,7 @@ export function applyStoresAfterReset(
     ...mappedUser,
     name: mappedUser.name ?? "Unknown User",
   });
-  log.info(LOG_CATEGORIES.AUTH, "Password reset and auto-login successful", {
+  log.info("AUTH", "Password reset and auto-login successful", {
     email,
     userId: mappedUser.id,
     storageMethod: "http_only_cookies",

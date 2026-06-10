@@ -12,6 +12,7 @@
 
 - Setup: `make setup`
 - Refresh after pull: `make refresh`
+- Reset/init local DB: `make dev-db-init`
 - Run full stack: `make dev`
 - Run web only: `make dev-web`
 - Run backend only: `make dev-backend`
@@ -30,7 +31,14 @@
 - `Server/`: Flask application, services, models, routes, tests
 - `openapi/`: API contract source, downstream generation entrypoint
 - `documentation/`: canonical long-form documentation
-- `.claude/`: Claude skills, agents, rules, and settings
+- `.claude/`: Claude Code adapter (stubs → `.cursor/`)
+- `.codex/`, `.agents/skills/`: Codex adapter (`rules/`, TOML subagents, repo skills → `.cursor/`)
+
+## Documentation
+
+- Index: [documentation/README.md](documentation/README.md)
+- Client: [documentation/client/README.md](documentation/client/README.md)
+- Server: [documentation/server/README.md](documentation/server/README.md)
 
 ## Universal Conventions
 

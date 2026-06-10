@@ -8,7 +8,6 @@ A point-in-time audit of the SilverKey repository against a standard infrastruct
 
 - **Logging with PII scrubbing** — **Built.** Centralized loggers and scrubbers on both [`Client/packages/logger`](../../Client/packages/logger) (e.g. `pii.ts`) and [`Server/logger`](../../Server/logger) (e.g. `pii.py`); rules in [`.cursor/rules/shared/logging.mdc`](../../.cursor/rules/shared/logging.mdc). Server client-error ingestion also limits keys and size in [`Server/app/routes/client_errors.py`](../../Server/app/routes/client_errors.py).
 - **Health / liveness endpoint** — **Built.** `GET` `/healthz`, `/readyz` (DB + Redis), `/livez` (process only) in [`Server/app/http/flask_runtime_routes.py`](../../Server/app/http/flask_runtime_routes.py); used in deploy healthchecks in [`.github/scripts/ec2-deploy.sh`](../../.github/scripts/ec2-deploy.sh).
-- **Error tracking and uptime alert scripts** — **Built in repo, external scheduling required.** Backend PostHog emits `api_request` and sanitized `backend_error` events; [`scripts/ops/check_health_alert.py`](../../scripts/ops/check_health_alert.py) alerts Slack on `/healthz` failure, and [`Server/scripts/monitoring/alert_5xx_spike.py`](../../Server/scripts/monitoring/alert_5xx_spike.py) alerts on PostHog 5xx spikes. See [`ops/monitoring-alerts.md`](./ops/monitoring-alerts.md).
 - **Scale-readiness (runtime)** — **Built in repo.** Env-driven Gunicorn (`gthread`), Redis-backed rate limits, Celery Beat deploy, task queues, DB pool env vars, PostHog capacity properties, k6 smoke harness — see [`ops/scaling-playbook.md`](./ops/scaling-playbook.md).
 - **Load test harness (smoke)** — **Built.** [`scripts/load/`](../../scripts/load/) k6 scripts; baseline template in README (no CI gate on prod).
 - **Scaling playbook** — **Built.** [`ops/scaling-playbook.md`](./ops/scaling-playbook.md) documents tuning and multi-instance prerequisites (AWS automation still out of repo).
@@ -19,19 +18,19 @@ A point-in-time audit of the SilverKey repository against a standard infrastruct
 - **Automated DB backups** — **Documented, not implementable in app code.** [`aws-resources.md`](./aws-resources.md) states RDS automated daily backups and retention. **No Terraform** (`.tf`) in this repository, so backup policy is **not defined as code here.**
 - **Tested restore procedures** — **Not evidenced in repo.** The same doc states RTO/RPO and snapshot restore in prose; there are **no** restore drill scripts, scheduled restore tests, or runbooks that prove periodic validation. The bar “untested backups don’t count” is **not satisfied** by anything in this repository.
 - **Monitoring and alerting (Sentry, Datadog/New Relic, Pingdom-style uptime)**:
-  - **PostHog error tracking** — **Built for backend.** `POSTHOG_PROJECT_TOKEN` enables PostHog exception autocapture and sanitized `backend_error` events from Flask 5xx handlers. Client Sentry remains a placeholder; client errors still flow through `clientErrorsApi`.
-  - **APM (Datadog / New Relic)** — **Not built** in app; [`Client/packages/services/security/secureLogger.ts`](../../Client/packages/services/security/secureLogger.ts) labels security monitoring as a **placeholder** with Datadog/Splunk as examples only.
+  - **Sentry (errors)** — **Not built.** [`Client/packages/services/security/errorReporter/ErrorReporterClass.ts`](../../Client/packages/services/security/errorReporter/ErrorReporterClass.ts) calls `initializeSentry` a **“placeholder”**; it only logs. The `@sentry` SDK is not present in the client dependency set used for this audit. “External” reporting is `sendToExternalService` → `clientErrorsApi` (your API), not Sentry. **No Sentry in Server** (no `sentry` / `datadog` / `newrelic` in `Server/requirements/runtime.txt` for this purpose).
+  - **APM (Datadog / New Relic)** — **Not built** in app; client logging uses `packages/logger` (PostHog sink when configured). External APM integration is not wired in production paths today.
   - **CloudWatch / alarms in docs** — [`aws-resources.md`](./aws-resources.md) lists log groups and alarms, but that is **not** wired in this repository; treat as **target or external** unless confirmed in AWS.
-  - **Uptime / synthetic monitoring (e.g. Pingdom)** — **Scripted in repo, scheduler external.** `make monitor-health-alert` posts Slack when `/healthz` fails; it must run from a separate monitor host or external scheduler to satisfy box-down detection.
+  - **Uptime / synthetic monitoring (e.g. Pingdom)** — **Not present** in repo (no check definitions, no integration code). May exist outside the repository; **not** verifiable from git.
 - **Staging that mirrors production** — **Partially improved.** [`scripts/deploy/prod-parity/docker-compose.yml`](../../scripts/deploy/prod-parity/docker-compose.yml) provides local app+redis+worker+beat parity; no second AWS stack in CI.
 - **Rollback plan for deployments** — **Partially improved in repo.** Prod deploy (`.github/workflows/ci_web.yml`) uses immutable **git-SHA tags** and **digest-pinned** pulls; EC2 captures a local `cre-rollback:predeploy-*` image before pull and attempts automatic rollback on failure (see `.github/scripts/ec2-deploy.sh`). There is still **no** blue/green or “deploy previous N from ECR” button in CI; recovery from a half-failed migration may require DB inspection (`alembic_version`). [openapi-adoption-checklist.md](../dev/cursor-legacy/openapi-adoption-checklist.md) may still list “Rollback procedure tested” as unchecked until ops validates end-to-end.
-- **CDN for static assets** — **Not clearly built as a CDN in the deploy path.** Front-end is **synced to `/var/www/html` on the EC2 host** in [`scripts/deploy/ec2/06-sync-frontend.sh`](../../scripts/deploy/ec2/06-sync-frontend.sh). Product docs (e.g. [`documentation/reels/04-current-infrastructure.md`](../reels/04-current-infrastructure.md)) list **“CDN + video optimizations”** as a **gap** vs “standard HTTP delivery.” [`aws-resources.md`](./aws-resources.md) mentions deploying to a “CDN bucket” in CI user permissions, but the **active** `ci_web` path is EC2 + tar extract, not a CloudFront+S3 static pipeline defined in this repository.
+- **CDN for static assets** — **Not clearly built as a CDN in the deploy path.** Front-end is **synced to `/var/www/html` on the EC2 host** during [`.github/scripts/ec2-deploy.sh`](../../.github/scripts/ec2-deploy.sh) (invoked from `ci_web`). Product docs (e.g. [`documentation/reels/04-current-infrastructure.md`](../reels/04-current-infrastructure.md)) list **“CDN + video optimizations”** as a **gap** vs “standard HTTP delivery.” [`aws-resources.md`](./aws-resources.md) mentions deploying to a “CDN bucket” in CI user permissions, but the **active** `ci_web` path is EC2 + tar extract, not a CloudFront+S3 static pipeline defined in this repository.
 
 ## Not built (or not present in repository)
 
-- **Client-side Sentry SDK** (DSN + releases) — **Not built.** Backend uses PostHog error tracking instead.
+- **End-to-end error monitoring with Sentry** (SDK + DSN + releases) — **Not built.**
 - **Full-stack APM (Datadog, New Relic, or similar)** — **Not built** in code.
-- **Externally hosted one-minute scheduler** — **Not in repo.** The Slack alert scripts exist, but the separate host/vendor runner that executes them every minute is operator-owned.
+- **External uptime / SLO-style synthetic monitoring** — **Not in repo.**
 - **Proven, repeatable DB restore test** (automation or scheduled drill) — **Not in repo.**
 - **Recorded breaking-point load results** — **Not in repo** (k6 smoke harness exists; operators fill baseline template locally).
 - **Auto-scaling as code (ASG/ECS)** — **Not in repo.** Manual scale steps and env tuning documented in [`ops/scaling-playbook.md`](./ops/scaling-playbook.md).
@@ -44,7 +43,6 @@ flowchart LR
     logPII[Logger plus PII scrub]
     healthz[healthz readyz livez]
     clientErr[Client errors to API]
-    posthogErr[PostHog backend error events]
     scalePrep[Gunicorn gthread Redis rate limits]
     loadSmoke[k6 smoke scripts]
     scaleDoc[Scaling playbook]
@@ -55,6 +53,7 @@ flowchart LR
     stagingUrl[Staging URL in OpenAPI]
   end
   subgraph notRepo [Not in repo or placeholder]
+    sentry[Sentry SDK]
     apm[Datadog or NewRelic APM]
     uptime[Pingdom or synthetic checks]
     restoreTest[Restore drill automation]
@@ -70,9 +69,9 @@ flowchart LR
 |------|------------------------|
 | Automated DB backups | Relying on AWS; described in docs, not as code; restore testing not in repo |
 | Tested restore | Not built / not evidenced |
-| Error tracking | Backend PostHog built; client Sentry placeholder remains |
+| Sentry for errors | Not built (placeholder + API logging only) |
 | Datadog / New Relic | Not built |
-| Uptime (Pingdom-like) | Slack alert script built; external one-minute scheduling required |
+| Uptime (Pingdom-like) | Not in repo |
 | Staging mirroring prod | Partially referenced; parity not provable from repo |
 | Proper logging, PII scrubbed | Built |
 | Load tests / breaking points | Smoke harness in repo; recorded baselines operator-owned |

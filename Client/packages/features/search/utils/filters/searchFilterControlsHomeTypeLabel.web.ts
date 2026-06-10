@@ -1,4 +1,4 @@
-import { HOUSING_TYPE_OPTIONS } from "@/features/profile/utils";
+import { HOUSING_TYPE_OPTIONS } from "packages/features/profile";
 
 export function getSearchFilterHomeTypeLabel(value: string): string {
   if (!value) return "Any";

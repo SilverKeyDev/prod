@@ -1,9 +1,8 @@
 import React from "react";
 
+import type { OnboardingData } from "packages/features/profile";
 import { useSearchContextStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
-
-import type { OnboardingData } from "@/features/profile/utils";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import BedBathFilter from "./BedBathFilter.web";
 import OtherFilterDropdown from "./OtherFilterDropdown.web";
@@ -21,7 +20,7 @@ export default function SearchFiltersPanel({
   return (
     <Box className="space-y-4 pb-8">
       <PriceRangeFilter
-        minValue={formData.home_budget_min ?? 100000}
+        minValue={formData.home_budget_min ?? 0}
         maxValue={formData.home_budget_max ?? 2000000}
         onChange={(minVal, maxVal) => {
           updateFormData("home_budget_min", minVal);

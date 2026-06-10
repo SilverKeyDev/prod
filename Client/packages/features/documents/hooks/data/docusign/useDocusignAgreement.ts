@@ -5,9 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { docusignApi } from "packages/features/documents/api/docusign";
 import type { Agreement } from "packages/features/documents/types/docusign";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type UseDocusignAgreementReturn = {
   agreement: Agreement | null;
@@ -48,7 +48,7 @@ export function useDocusignAgreement(agreementId?: string): UseDocusignAgreement
         const response = await docusignApi.getAgreement(agreementId);
         if (!response.success) {
           const errorMessage = resolveApiResultErrorMessage(response, "Failed to fetch agreement");
-          log.error(LOG_CATEGORIES.API, "Failed to fetch agreement", {
+          log.error("API", "Failed to fetch agreement", {
             agreementId,
             error: errorMessage,
           });
@@ -56,7 +56,7 @@ export function useDocusignAgreement(agreementId?: string): UseDocusignAgreement
         }
         return response.agreement ?? null;
       } catch (err) {
-        log.error(LOG_CATEGORIES.ERRORS, "Error fetching agreement", {
+        log.error("ERRORS", "Error fetching agreement", {
           agreementId,
           error: err,
         });

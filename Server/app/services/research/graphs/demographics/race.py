@@ -1,6 +1,6 @@
 """Race and ethnicity distribution data retrieval and processing."""
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from .census_client import fetch_census_data_by_zip
 from .constants import RACE_KEYS
@@ -17,7 +17,7 @@ def get_race_distribution(address: str) -> dict:
         dict: Race/ethnicity labels mapped to percentage values, or error dict
     """
     try:
-        log.info(LOG_CATEGORIES["API"], "Starting Race Distribution Lookup", {"address": address})
+        log.info("API", "Starting Race Distribution Lookup", {"address": address})
 
         zip_code = get_zip_from_address(address)
         variable_keys = list(RACE_KEYS.values())
@@ -32,17 +32,17 @@ def get_race_distribution(address: str) -> dict:
             value = float(row_dict.get(key, 0))
             race_distribution[label] = int(round(value))
             log.debug(
-                LOG_CATEGORIES["API"],
+                "API",
                 "Race percentage",
                 {"group": label, "percentage": race_distribution[label]},
             )
 
-        log.info(LOG_CATEGORIES["API"], "Final Race Distribution", race_distribution)
+        log.info("API", "Final Race Distribution", race_distribution)
         return race_distribution
 
     except Exception as e:
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             "Failed to get race distribution",
             {"address": address, "error": str(e)},
         )

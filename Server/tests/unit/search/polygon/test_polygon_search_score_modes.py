@@ -281,3 +281,93 @@ class TestPolygonSearchScoreModes:
         props = payload.get("properties") or []
         assert len(props) == 1
         assert props[0].get("score") == 61.5
+
+    def test_only_cached_includes_home_id(self, memory_db) -> None:
+        from app.extensions import db
+        from app.models import PropertyCache, UserPropertyLink
+
+        user_id = f"home-id-{uuid.uuid4().hex[:8]}"
+        prop_id = str(uuid.uuid4())
+        prop = PropertyCache(
+            id=prop_id,
+            zpid="z-home-id",
+            address="9 Home Id Way",
+            address_normalized=f"home_id_{uuid.uuid4().hex[:6]}",
+            price="500000",
+        )
+        db.session.add(prop)
+        db.session.flush()
+        db.session.add(
+            UserPropertyLink(
+                user_id=user_id,
+                property_id=prop.id,
+                current=True,
+                ranking=1,
+                score=80.0,
+            )
+        )
+        db.session.commit()
+
+        payload, status = run_polygon_search(user_id, {"onlyCached": True})
+        assert status == 200
+        props = payload.get("properties") or []
+        assert len(props) == 1
+        assert props[0].get("home_id") == prop_id
+        assert props[0].get("id") == "z-home-id"
+        assert props[0].get("score") == 80.0
+
+    def test_hydrate_listings_refreshes_price_preserves_score(self, memory_db) -> None:
+        from app.extensions import db
+        from app.models import PropertyCache, UserPropertyLink
+
+        user_id = f"hydrate-{uuid.uuid4().hex[:8]}"
+        prop_id = str(uuid.uuid4())
+        prop = PropertyCache(
+            id=prop_id,
+            zpid="z-hydrate",
+            address="10 Hydrate Ln",
+            address_normalized=f"hydrate_{uuid.uuid4().hex[:6]}",
+            price="400000",
+            listing_status="FOR_SALE",
+        )
+        db.session.add(prop)
+        db.session.flush()
+        db.session.add(
+            UserPropertyLink(
+                user_id=user_id,
+                property_id=prop.id,
+                current=True,
+                ranking=1,
+                score=77.5,
+            )
+        )
+        db.session.commit()
+
+        fresh_listing = {
+            "zpid": "z-hydrate",
+            "address": "10 Hydrate Ln, Atlanta, GA",
+            "price": 425000,
+            "bedrooms": 4,
+            "bathrooms": 3,
+            "livingArea": 2100,
+            "latitude": 33.75,
+            "longitude": -84.39,
+            "listingStatus": "PENDING",
+            "imgSrc": "https://example.com/fresh.jpg",
+        }
+
+        with patch(
+            "app.services.search.db.hydrate_cached_listings.get_property_detail",
+            return_value=(fresh_listing, None),
+        ):
+            payload, status = run_polygon_search(
+                user_id, {"onlyCached": True, "hydrateListings": True}
+            )
+
+        assert status == 200
+        props = payload.get("properties") or []
+        assert len(props) == 1
+        assert props[0].get("home_id") == prop_id
+        assert props[0].get("score") == 77.5
+        assert props[0].get("financials", {}).get("price") == 425000
+        assert props[0].get("metadata", {}).get("listingStatus") == "PENDING"

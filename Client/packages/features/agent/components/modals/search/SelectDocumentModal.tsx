@@ -4,11 +4,11 @@ import { Icon } from "@ui/icons";
 
 import { type DocumentData, useDocumentsData } from "packages/features/documents";
 import { Button, CancelButton } from "packages/ui";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box } from "packages/ui/components/primitives";
-import { dateParseISO } from "packages/utils/date";
-import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/structure/primitives";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
+import { dateParseISO } from "packages/utils/core/date";
+import { filterDocumentLibraryExcludingAgreements } from "packages/utils/transaction/documents";
 
 import { BodyText, Title } from "@/components/ui";
 import { useSingleSelectionModal } from "@/features/agent/hooks/ui/useSingleSelectionModal";
@@ -78,7 +78,7 @@ export default function SelectDocumentModal({
                 className={`h-auto min-h-0 w-full justify-start rounded-lg border p-3 text-left ${
                   selectedDocumentId === document.id
                     ? "border-border bg-primary-muted"
-                    : "border-border hover:border-border hover:bg-primary-muted"
+                    : "border-border hover:border-border hover:bg-neutral-100"
                 }`}
               >
                 <Box className="flex w-full items-start gap-3">

@@ -1,11 +1,12 @@
 """User membership in a brokerage org (agent, admin, or member buyer)."""
 
+# pyright: reportUndefinedVariable=false
 from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -30,9 +31,9 @@ class UserOrgMembership(db.Model):
         default=lambda: datetime.now(timezone.utc), nullable=False
     )
 
-    user = db.relationship("User", backref=db.backref("org_memberships", lazy="dynamic"))
-    brokerage_org = db.relationship(
-        "BrokerageOrg", backref=db.backref("memberships", lazy="dynamic")
+    user: Mapped["User"] = relationship("User", back_populates="org_memberships")
+    brokerage_org: Mapped["BrokerageOrg"] = relationship(
+        "BrokerageOrg", back_populates="memberships"
     )
 
     def __init__(self, **kwargs):

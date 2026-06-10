@@ -3,7 +3,7 @@ import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { searchApi } from "@/features/search/api/search";
 import type { SearchResult } from "@/features/search/types";
@@ -73,7 +73,7 @@ export function useIsochroneFlow(params: {
         queryClient.setQueryData(isoQueryKey, data);
         return data;
       } else {
-        log.warn(LOG_CATEGORIES.SEARCH, "Invalid isochrone response structure", {
+        log.warn("SEARCH", "Invalid isochrone response structure", {
           success: response.success,
           hasData: !!response.data,
         });
@@ -81,7 +81,7 @@ export function useIsochroneFlow(params: {
       }
     } catch (error: unknown) {
       const err = error as Error;
-      log.error(LOG_CATEGORIES.ERRORS, "Error fetching isochrone polygon", {
+      log.error("ERRORS", "Error fetching isochrone polygon", {
         message: err.message,
         name: err.name,
       });
@@ -100,18 +100,14 @@ export function useIsochroneFlow(params: {
         queryClient.setQueryData(isoQueryKey, normalized);
         return normalized as unknown as Record<string, unknown>;
       }
-      log.warn(
-        LOG_CATEGORIES.SEARCH,
-        "Isochrone API returned unsuccessful response (map overlay)",
-        {
-          success: response.success,
-          hasData: !!response.data,
-        }
-      );
+      log.warn("SEARCH", "Isochrone API returned unsuccessful response (map overlay)", {
+        success: response.success,
+        hasData: !!response.data,
+      });
       return null;
     } catch (error: unknown) {
       const err = error as Error;
-      log.error(LOG_CATEGORIES.ERRORS, "Error fetching isochrone for map overlay", {
+      log.error("ERRORS", "Error fetching isochrone for map overlay", {
         message: err.message,
         name: err.name,
       });
@@ -170,13 +166,13 @@ export function useIsochroneFlow(params: {
 
         return isochroneData;
       } else {
-        log.warn(LOG_CATEGORIES.SEARCH, "Isochrone API returned unsuccessful response", response);
+        log.warn("SEARCH", "Isochrone API returned unsuccessful response", response);
         params.setIsSearching(false);
         params.setSearchStage("");
       }
     } catch (error: unknown) {
       const err = error as Error;
-      log.error(LOG_CATEGORIES.ERRORS, "Error fetching isochrone polygon", {
+      log.error("ERRORS", "Error fetching isochrone polygon", {
         message: err.message,
         name: err.name,
       });
@@ -208,10 +204,7 @@ export function useIsochroneFlow(params: {
         params.renderIsochronePolygon(data);
         await params.renderImportantLocationMarkers(data);
       } else {
-        log.warn(
-          LOG_CATEGORIES.SEARCH,
-          "No isochrone data received, polygon will not be displayed"
-        );
+        log.warn("SEARCH", "No isochrone data received, polygon will not be displayed");
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -225,7 +218,7 @@ export function useIsochroneFlow(params: {
   );
 
   const runIsochroneSearch = useCallback(async () => {
-    log.info(LOG_CATEGORIES.SEARCH, "Search begins", {});
+    log.info("SEARCH", "Search begins", {});
     await fetchIsochronePolygon();
   }, [fetchIsochronePolygon]);
 

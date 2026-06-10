@@ -3,9 +3,9 @@
 from app.services.search.home_matching.mcda.criteria.user_feature_match import (
     listing_satisfies_all_must_haves,
 )
-from logger import LOG_CATEGORIES, log
+from logger import log
 
-_POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
+_POLY = "POLYGON_SEARCH"
 
 
 def apply_must_have_filter(

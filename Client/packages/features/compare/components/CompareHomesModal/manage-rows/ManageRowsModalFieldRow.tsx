@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { CompareHomesComparisonField } from "packages/features/compare/types/compareHomes";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Input, Label } from "@/components/ui";
 type ManageRowsModalFieldRowProps = {

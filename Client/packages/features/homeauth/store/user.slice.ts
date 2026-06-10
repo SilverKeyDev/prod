@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
 
 export type UserPreferences = {
   preferences_version?: string;
@@ -27,7 +27,7 @@ export type UserProfile = {
   email: string;
   name?: string;
   username?: string;
-  is_agent?: boolean;
+  roles?: string[];
   [key: string]: unknown;
 };
 
@@ -87,7 +87,7 @@ const withPersist = persistSafe<UserState>(withReset, {
           email: state.userProfile.email,
           name: state.userProfile.name,
           username: state.userProfile.username,
-          is_agent: state.userProfile.is_agent,
+          roles: state.userProfile.roles,
         }
       : null,
     userPreferences: state.userPreferences,

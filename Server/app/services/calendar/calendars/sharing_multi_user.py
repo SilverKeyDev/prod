@@ -2,14 +2,14 @@
 Share a calendar with multiple users.
 """
 
-from app.utils.security.app_logging import get_logger
+from sqlalchemy import select
+
 from app.utils.security.security import sanitize_error_message
+from logger import log
 
 from ..core.credentials import load_credentials
 from ..permissions import check_permission
 from .sharing import add_calendar_acl
-
-logger = get_logger()
 
 
 def share_calendar_with_users(
@@ -45,12 +45,10 @@ def share_calendar_with_users(
         from app import db
 
         db_session = db.session
-
     from app.models import User
     from app.models.calendar.calendar_share import CalendarShare
 
     result = {"success": True, "shared_with": [], "errors": []}
-
     try:
         if not check_permission(calendar_owner_id, "calendar_app_created"):
             result["errors"].append(
@@ -58,35 +56,35 @@ def share_calendar_with_users(
             )
             result["success"] = False
             return result
-
-        owner = User.query.filter_by(id=calendar_owner_id).first()
+        owner = db_session.scalar(select(User).where(User.id == calendar_owner_id))
         if not owner:
             result["errors"].append(f"Calendar owner {calendar_owner_id} not found")
             result["success"] = False
             return result
-
-        shared_users = User.query.filter(User.id.in_(shared_with_user_ids)).all()
+        shared_users = db_session.scalars(
+            select(User).where(User.id.in_(shared_with_user_ids))
+        ).all()
         user_email_map = {user.id: user.email for user in shared_users}
-
         for shared_user_id in shared_with_user_ids:
             if shared_user_id not in user_email_map:
                 result["errors"].append(f"User {shared_user_id} not found")
                 continue
-
             shared_user_email = user_email_map[shared_user_id]
-
             try:
-                existing_share = CalendarShare.query.filter_by(
-                    calendar_owner_id=calendar_owner_id,
-                    shared_with_user_id=shared_user_id,
-                    calendar_id=calendar_id,
-                ).first()
-
+                existing_share = db_session.scalar(
+                    select(CalendarShare).where(
+                        CalendarShare.calendar_owner_id == calendar_owner_id,
+                        CalendarShare.shared_with_user_id == shared_user_id,
+                        CalendarShare.calendar_id == calendar_id,
+                    )
+                )
                 if existing_share:
                     result["shared_with"].append(shared_user_id)
-                    logger.info(f"Calendar {calendar_id} already shared with user {shared_user_id}")
+                    log.info(
+                        "CALENDAR",
+                        f"Calendar {calendar_id} already shared with user {shared_user_id}",
+                    )
                     continue
-
                 if client_id_oauth and client_secret and token_endpoint and scopes:
                     try:
                         creds = load_credentials(
@@ -99,13 +97,11 @@ def share_calendar_with_users(
                         from googleapiclient.discovery import build
 
                         service = build("calendar", "v3", credentials=creds, cache_discovery=False)
-
                         existing_acls = service.acl().list(calendarId=calendar_id).execute()
                         acl_exists = any(
                             rule.get("scope", {}).get("value") == shared_user_email
                             for rule in existing_acls.get("items", [])
                         )
-
                         if not acl_exists:
                             add_calendar_acl(
                                 calendar_owner_id,
@@ -122,8 +118,7 @@ def share_calendar_with_users(
                         result["errors"].append(
                             f"Failed to set up ACL for user {shared_user_id}: {error_msg}"
                         )
-                        logger.error(f"Error setting up ACL: {error_msg}", exc_info=True)
-
+                        log.error("ERRORS", f"Error setting up ACL: {error_msg}")
                 try:
                     calendar_share = CalendarShare(
                         calendar_owner_id=calendar_owner_id,
@@ -133,7 +128,9 @@ def share_calendar_with_users(
                     )
                     db_session.add(calendar_share)
                     result["shared_with"].append(shared_user_id)
-                    logger.info(f"Shared calendar {calendar_id} with user {shared_user_id}")
+                    log.info(
+                        "CALENDAR", f"Shared calendar {calendar_id} with user {shared_user_id}"
+                    )
                 except Exception as db_error:
                     error_str = str(db_error).lower()
                     if (
@@ -142,42 +139,36 @@ def share_calendar_with_users(
                         or "duplicate" in error_str
                     ):
                         result["shared_with"].append(shared_user_id)
-                        logger.info(
-                            f"Calendar {calendar_id} already shared with user {shared_user_id} (race condition handled)"
+                        log.info(
+                            "CALENDAR",
+                            f"Calendar {calendar_id} already shared with user {shared_user_id} (race condition handled)",
                         )
                     else:
                         raise
-
             except Exception as e:
                 error_msg = sanitize_error_message(e)
                 result["errors"].append(f"Failed to share with user {shared_user_id}: {error_msg}")
-                logger.error(
-                    f"Error sharing calendar with user {shared_user_id}: {error_msg}", exc_info=True
+                log.error(
+                    "ERRORS", f"Error sharing calendar with user {shared_user_id}: {error_msg}"
                 )
-
         try:
             db_session.commit()
         except Exception as e:
             db_session.rollback()
             error_msg = sanitize_error_message(e)
             result["errors"].append(f"Failed to commit calendar shares: {error_msg}")
-            logger.error(f"Error committing calendar shares: {error_msg}", exc_info=True)
+            log.error("ERRORS", f"Error committing calendar shares: {error_msg}")
             result["success"] = False
             return result
-
-        if result["errors"] and not result["shared_with"]:
+        if result["errors"] and (not result["shared_with"]):
             result["success"] = False
         elif result["shared_with"]:
             result["success"] = True
-
         return result
-
     except Exception as e:
         db_session.rollback()
         error_msg = sanitize_error_message(e)
         result["errors"].append(f"Unexpected error: {error_msg}")
         result["success"] = False
-        logger.error(
-            f"Unexpected error sharing calendar with multiple users: {error_msg}", exc_info=True
-        )
+        log.error("ERRORS", f"Unexpected error sharing calendar with multiple users: {error_msg}")
         return result

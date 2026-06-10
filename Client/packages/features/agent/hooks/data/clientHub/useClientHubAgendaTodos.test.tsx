@@ -22,12 +22,21 @@ const otherClientTodo: TodoItem = {
   client_id: "client-2",
 };
 
+const completedClientTodo: TodoItem = {
+  ...clientTodo,
+  id: "todo-done",
+  completed: true,
+  title: "Done for client",
+};
+
 const updateTodo = vi.fn();
+const deleteTodo = vi.fn();
 
 vi.mock("./useAgentTodos", () => ({
   useAgentTodos: () => ({
-    todos: [clientTodo, otherClientTodo],
+    todos: [clientTodo, otherClientTodo, completedClientTodo],
     updateTodo,
+    deleteTodo,
   }),
 }));
 
@@ -35,7 +44,7 @@ vi.mock("packages/features/documents", () => ({
   useDocumentsData: () => ({ documents: [] }),
 }));
 
-vi.mock("packages/hooks/data/agenda/signingAgendaFromDocuments", () => ({
+vi.mock("packages/features/documents/hooks/data/agenda/signingAgendaFromDocuments", () => ({
   pendingSigningAgendaTodosAsClient: () => [],
   completedSigningAgendaTodosForViewer: () => [],
 }));
@@ -51,20 +60,20 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 describe("useClientHubAgendaTodos", () => {
-  it("returns agenda todos filtered to the given client", async () => {
+  it("returns agenda todos filtered to the given client including completed", async () => {
     const { result } = renderHook(() => useClientHubAgendaTodos("client-1"), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.agendaTodos).toHaveLength(1);
+      expect(result.current.agendaTodos).toHaveLength(2);
     });
-    expect(result.current.agendaTodos[0]?.id).toBe("todo-1");
+    expect(result.current.agendaTodos.map((t) => t.id).sort()).toEqual(["todo-1", "todo-done"]);
   });
 
   it("onToggleAgendaTodo updates todo completion for matching client todo", async () => {
     updateTodo.mockResolvedValue({ ...clientTodo, completed: true });
 
     const { result } = renderHook(() => useClientHubAgendaTodos("client-1"), { wrapper });
-    await waitFor(() => expect(result.current.agendaTodos).toHaveLength(1));
+    await waitFor(() => expect(result.current.agendaTodos).toHaveLength(2));
 
     await result.current.onToggleAgendaTodo("todo-1");
     expect(updateTodo).toHaveBeenCalledWith("todo-1", { completed: true });

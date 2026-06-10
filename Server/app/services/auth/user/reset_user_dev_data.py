@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import os
 
+from sqlalchemy import delete, select
+
 from app import db
 from app.models import (
     Document,
@@ -26,7 +28,7 @@ from app.services.auth.user.user_s3_cleanup import (
 )
 from app.services.transactions.checklist_progress_reset import clear_checklist_progress_for_user
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 VALID_SCOPES = frozenset(
     {
@@ -55,7 +57,7 @@ def reset_user_dev_data(user_id: str, scopes: set[str]) -> dict[str, bool] | Non
         Dict mapping each requested scope to True if applied, or None if user not found.
     """
     if not user_id or not str(user_id).strip():
-        log.warn(LOG_CATEGORIES["API"], "reset_user_dev_data: empty user_id")
+        log.warn("API", "reset_user_dev_data: empty user_id")
         return None
 
     unknown = scopes - VALID_SCOPES
@@ -63,9 +65,9 @@ def reset_user_dev_data(user_id: str, scopes: set[str]) -> dict[str, bool] | Non
         raise ValueError(f"Invalid scopes: {sorted(unknown)}")
 
     uid = str(user_id).strip()
-    user = User.query.filter_by(id=uid).one_or_none()
+    user = db.session.scalar(select(User).where(User.id == uid))
     if user is None:
-        log.info(LOG_CATEGORIES["API"], "reset_user_dev_data: user not found", {"user_id": uid})
+        log.info("API", "reset_user_dev_data: user not found", {"user_id": uid})
         return None
 
     cleared: dict[str, bool] = {}
@@ -97,7 +99,7 @@ def reset_user_dev_data(user_id: str, scopes: set[str]) -> dict[str, bool] | Non
 
         db.session.commit()
         log.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "reset_user_dev_data: completed",
             {"user_id": uid, "scopes": sorted(cleared.keys())},
         )
@@ -105,7 +107,7 @@ def reset_user_dev_data(user_id: str, scopes: set[str]) -> dict[str, bool] | Non
     except Exception as exc:
         db.session.rollback()
         log.error(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             f"reset_user_dev_data failed user_id={uid}",
             exc,
         )
@@ -114,7 +116,7 @@ def reset_user_dev_data(user_id: str, scopes: set[str]) -> dict[str, bool] | Non
 
 def _reset_profile(uid: str, user: User) -> None:
     profile_picture_key = user.profile_picture
-    UserAgentProfile.query.filter_by(user_id=uid).delete(synchronize_session=False)
+    db.session.execute(delete(UserAgentProfile).where(UserAgentProfile.user_id == uid))
     user.mls_id = None
     user.public_profile_slug = None
     user.profile_picture = None
@@ -127,13 +129,13 @@ def _reset_preferences(uid: str, user: User) -> None:
 
 
 def _reset_docusign(uid: str) -> None:
-    DocusignOAuthToken.query.filter_by(user_id=uid).delete(synchronize_session=False)
+    db.session.execute(delete(DocusignOAuthToken).where(DocusignOAuthToken.user_id == uid))
     delete_agreements_for_user(uid)
 
 
 def _reset_s3(uid: str, user: User) -> None:
     extra_keys = collect_user_s3_keys(uid, user=user)
-    for doc in Document.query.filter_by(user_id=uid).all():
+    for doc in db.session.scalars(select(Document).where(Document.user_id == uid)).all():
         li_id = doc.library_item_id
         db.session.delete(doc)
         if li_id:

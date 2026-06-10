@@ -6,8 +6,6 @@ Reference JSON for a single-home ``/ws/listings/get`` response:
 
 from .client import get_slipstream_headers, slipstream_get, slipstream_post, validate_token
 from .config import SLIPSTREAM_BASE, SLIPSTREAM_MARKET, SLIPSTREAM_PRIVATE
-from .listings.listings_active import search_active_listings
-from .listings.listings_inactive import search_inactive_listings
 from .neighborhood_boundaries import geojson_to_viewport_ring, get_area_boundary, search_areas
 from .normalizer import normalize_listing, normalize_listings
 from .property.property_comps import get_property_comps
@@ -28,9 +26,7 @@ __all__ = [
     "get_slipstream_headers",
     "normalize_listing",
     "normalize_listings",
-    "search_active_listings",
     "search_areas",
-    "search_inactive_listings",
     "slipstream_get",
     "slipstream_post",
     "validate_token",

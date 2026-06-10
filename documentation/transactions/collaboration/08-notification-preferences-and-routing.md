@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [messaging.md](../../client/features/messaging.md).
+
 ## Notification preferences and routing
 
 **In-app messaging unread counts** and realtime SSE are shipped. Per-event notification preferences and multi-channel routing (email/push/digest) for transaction events are **not**.

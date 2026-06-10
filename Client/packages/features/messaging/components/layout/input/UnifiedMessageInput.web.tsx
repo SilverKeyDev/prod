@@ -1,7 +1,7 @@
 import { Icon } from "@ui/icons";
 
 import { Button } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { AutoExpandingTextarea } from "@/components/ui";
 import AttachmentMenu from "@/features/agent/components/messaging/menus/AttachmentMenu";

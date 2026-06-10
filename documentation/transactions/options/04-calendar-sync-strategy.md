@@ -30,4 +30,6 @@ Sync transaction milestones and user events with external calendars without losi
 
 ## v1 behavior (when milestones ship)
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [docusign-integration.md](../../client/features/docusign-integration.md).
+
 One-way push: internal milestone change → Google event create/update; edits in Google are ignored or narrowly reconciled later.

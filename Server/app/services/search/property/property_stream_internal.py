@@ -2,11 +2,8 @@
 
 import json
 import os
-import traceback
 from datetime import datetime, timedelta, timezone
 from typing import Any
-
-from flask import current_app
 
 from app import db
 from app.services.aggregation import get_preferences_dict_optional
@@ -27,7 +24,6 @@ from app.services.property_cache import (
 from app.services.property_cache.section_cache import get_cached_sections
 from app.services.research.perplexity import (
     analyze_property_with_sonar_pro,
-    generate_report_sections_for_property,
     generate_report_sections_for_property_streaming,
 )
 from app.services.research.property.property_analysis import (
@@ -35,6 +31,7 @@ from app.services.research.property.property_analysis import (
     prepare_user_preferences_dict,
 )
 from app.services.research.property.property_analysis_payload import (
+    enrich_neighborhood_overview_with_census,
     finalize_property_analysis_payload,
 )
 from app.services.search.scoring import (
@@ -45,6 +42,7 @@ from app.services.search.scoring import (
     public_property_analysis,
     resolve_highlights_counts_and_signature,
 )
+from logger import log
 
 from .property_stream_internal_tail import iter_stream_tail_after_analysis
 from .property_stream_steps import (
@@ -61,6 +59,23 @@ _BASIC_DATA_MAX_AGE = timedelta(days=1)
 
 def _sse(type_name: str, data: dict) -> str:
     return f"data: {json.dumps({'type': type_name, 'data': data})}\n\n"
+
+
+def _property_analysis_section_sse_data(
+    section_name: str,
+    section_data: Any,
+    property_address: str | None,
+    *,
+    enrich_neighborhood: bool,
+) -> dict[str, Any]:
+    """Build SSE payload for one analysis section; neighborhood includes census charts when enabled."""
+    if enrich_neighborhood and section_name == "neighborhood" and isinstance(section_data, dict):
+        return {
+            "neighborhood_overview": enrich_neighborhood_overview_with_census(
+                section_data, property_address
+            )
+        }
+    return {section_name: section_data}
 
 
 def _is_stale(timestamp: datetime | None, max_age: timedelta) -> bool:
@@ -103,7 +118,7 @@ def _generate_property_stream_internal(
             # If we have a shared cache hit, use cached raw_data as fallback
             if cached_prop and cached_prop.raw_data:
                 data = cached_prop.raw_data
-                current_app.logger.info("[PROPERTY] API fetch failed but using cached raw_data")
+                log.info("PROPERTY_DETAILS", "Using cached raw_data after API fetch failure")
             else:
                 yield _sse("error", err)
                 return
@@ -124,9 +139,7 @@ def _generate_property_stream_internal(
             update_property_price(prop_record, fresh_price)
             db.session.commit()
         except Exception as cache_err:
-            current_app.logger.warning(
-                "[PROPERTY] Failed to upsert PropertyCache: %s", cache_err, exc_info=True
-            )
+            log.warn("ERRORS", "Failed to upsert PropertyCache", cache_err)
             db.session.rollback()
             prop_record = cached_prop  # fall back to whatever we found earlier
 
@@ -138,7 +151,7 @@ def _generate_property_stream_internal(
             cached_commute = get_user_commute(user_id_str, prop_record.id)
             if cached_commute and cached_commute.commute_data:
                 commute_data = cached_commute.commute_data
-                current_app.logger.info("[PROPERTY] Using cached commute for user")
+                log.info("PROPERTY_DETAILS", "Using cached commute for user")
             else:
                 commute_prefs = (analysis_options.preferences if analysis_options else None) or None
                 try:
@@ -151,7 +164,7 @@ def _generate_property_stream_internal(
                     if not commute_data and property_address:
                         commute_data["property_address"] = property_address
                 except Exception as e:
-                    current_app.logger.error("[PROPERTY] Error calculating commute: %s", e)
+                    log.error("ERRORS", "Error calculating commute", e)
                     commute_data = {"error": "Failed to calculate commute data"}
                 # persist
                 try:
@@ -171,7 +184,7 @@ def _generate_property_stream_internal(
                 if not commute_data and property_address:
                     commute_data["property_address"] = property_address
             except Exception as e:
-                current_app.logger.error("[PROPERTY] Error calculating commute: %s", e)
+                log.error("ERRORS", "Error calculating commute", e)
                 commute_data = {"error": "Failed to calculate commute data"}
 
         yield _sse("commute_data", commute_data)
@@ -255,9 +268,7 @@ def _generate_property_stream_internal(
                                         "highlights_context"
                                     ] = cached_hl.highlights_context
                                 highlights_from_cache = True
-                                current_app.logger.info(
-                                    "[PROPERTY] Using cached highlights for user"
-                                )
+                                log.info("PROPERTY_DETAILS", "Using cached highlights for user")
 
                     if not highlights_from_cache:
                         home_object = {
@@ -321,9 +332,12 @@ def _generate_property_stream_internal(
                         public_property_analysis(property_analysis).copy(),
                     )
 
-                    # Shared analysis sections
+                    # Shared analysis sections (stream each section as it completes)
                     section_names = DEFAULT_SECTION_ORDER
                     sections_to_generate_normal: list[str] = []
+                    section_address = property_address or data.get(
+                        "streetAddress", "Unknown address"
+                    )
                     for sn in section_names:
                         if sn in cached_sections:
                             section_row = None
@@ -332,39 +346,51 @@ def _generate_property_stream_internal(
                                     section_row = s
                                     break
                             if not should_regenerate_section(section_row):
-                                property_analysis[sn] = cached_sections[sn]
+                                sd = cached_sections[sn]
+                                property_analysis[sn] = sd
+                                yield _sse(
+                                    "property_analysis_section",
+                                    _property_analysis_section_sse_data(
+                                        sn,
+                                        sd,
+                                        section_address,
+                                        enrich_neighborhood=True,
+                                    ),
+                                )
                                 continue
                         sections_to_generate_normal.append(sn)
 
-                    if sections_to_generate_normal:
-                        additional_sections = generate_report_sections_for_property(
+                    if sections_to_generate_normal and data:
+                        for section_result in generate_report_sections_for_property_streaming(
                             section_names=sections_to_generate_normal,
-                            address=property_address
-                            or data.get("streetAddress", "Unknown address"),
+                            address=section_address,
                             user_preferences=user_prefs_dict,
                             property_data=data,
-                        )
-                        if additional_sections:
-                            property_analysis.update(additional_sections)
-                            # Persist new shared sections
+                            existing_sections=property_analysis,
+                        ):
+                            sn = section_result["section_name"]
+                            sd = section_result["section_data"]
+                            property_analysis[sn] = sd
+                            yield _sse(
+                                "property_analysis_section",
+                                _property_analysis_section_sse_data(
+                                    sn,
+                                    sd,
+                                    section_address,
+                                    enrich_neighborhood=True,
+                                ),
+                            )
                             if prop_record:
                                 try:
-                                    for sn, sd in additional_sections.items():
-                                        save_section(prop_record.id, sn, sd)
+                                    save_section(prop_record.id, sn, sd)
                                     db.session.commit()
                                 except Exception:
                                     db.session.rollback()
 
-                    # Merge cached sections that were not regenerated
-                    for sn, sd in cached_sections.items():
-                        if sn not in property_analysis:
-                            property_analysis[sn] = sd
-
                     if property_analysis and "error" not in property_analysis:
                         property_analysis = attach_analysis_cache_meta(property_analysis, adj_sig)
             except Exception as e:
-                current_app.logger.error("[PROPERTY] Error during property analysis: %s", e)
-                current_app.logger.error(traceback.format_exc())
+                log.error("ERRORS", "Error during property analysis", e)
                 property_analysis = {"error": "Failed to analyze property"}
 
         property_analysis = finalize_property_analysis_payload(
@@ -390,6 +416,5 @@ def _generate_property_stream_internal(
         )
 
     except Exception as e:
-        current_app.logger.error("[PROPERTY] Streaming error: %s", e, exc_info=True)
-        current_app.logger.error(traceback.format_exc())
+        log.error("ERRORS", "Property streaming error", e)
         yield _sse("error", {"error": str(e)})

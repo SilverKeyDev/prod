@@ -1,0 +1,20 @@
+type: object
+required:
+  - success
+properties:
+  success:
+    type: boolean
+  message_id:
+    type: string
+    nullable: true
+    description: Messaging attachment message id when messaging succeeded.
+  agreement_id:
+    type: string
+    nullable: true
+    description: DocuSign agreement id when signing flow succeeded.
+  partial_errors:
+    type: array
+    nullable: true
+    description: Per-step failures when method is both and one leg failed.
+    items:
+      $ref: "./ChecklistFormPartialStepError.yaml"

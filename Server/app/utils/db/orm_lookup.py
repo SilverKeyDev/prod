@@ -1,4 +1,4 @@
-"""SQLAlchemy 2.0–friendly ORM lookups (replaces legacy Model.query.get)."""
+"""SQLAlchemy 2.0–friendly ORM lookups (replaces legacy session query primary-key get)."""
 
 from __future__ import annotations
 

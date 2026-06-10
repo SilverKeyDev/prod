@@ -1,12 +1,14 @@
 import os
 
+from sqlalchemy import select
+
 from app import create_app, db
 from app.models import PropertyCache, User, UserPropertyLink
 from app.services.email.format_email_content import EmailFormatter
 from app.services.email.last_logged_in import get_recently_logged_in_users_with_preferences
 from app.services.email.send_test_emails_via_ses import send_personalized_emails_via_ses
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 HAVE_SA_HELPERS = True
 
@@ -42,21 +44,21 @@ def build_messages_for_recent_users(
         ]
         if not users:
             log.info(
-                LOG_CATEGORIES["API"],
+                "API",
                 "TEST_EMAIL specified but no matching user found. Looking up by email directly...",
                 {"test_email": test_email},
             )
-            user = User.query.filter_by(email=test_email).first()
+            user = db.session.scalar(select(User).where(User.email == test_email))
             if user and user.has_preferences:
                 users = [{"user_id": user.id, "email": user.email}]
                 log.info(
-                    LOG_CATEGORIES["API"],
+                    "API",
                     "Found user by direct email lookup",
                     {"email": user.email},
                 )
             else:
                 log.info(
-                    LOG_CATEGORIES["API"],
+                    "API",
                     "User with email not found or does not have preferences",
                     {"test_email": test_email},
                 )
@@ -70,7 +72,10 @@ def build_messages_for_recent_users(
         if not user_id or not email:
             continue
 
-        q = UserPropertyLink.query.filter_by(user_id=user_id, current=True)
+        q = select(UserPropertyLink).where(
+            UserPropertyLink.user_id == user_id,
+            UserPropertyLink.current.is_(True),
+        )
         if HAVE_SA_HELPERS:
             try:
                 from sqlalchemy import desc, nullslast
@@ -87,7 +92,7 @@ def build_messages_for_recent_users(
                 UserPropertyLink.score.desc().nullslast(), UserPropertyLink.updated_at.desc()
             )
 
-        links = q.limit(max_items_per_user).all()
+        links = db.session.scalars(q.limit(max_items_per_user)).all()
 
         if not links:
             continue
@@ -112,7 +117,7 @@ def build_messages_for_recent_users(
             messages.append(message)
         except Exception as e:
             log.error(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Failed to format email",
                 {"email": email, "error": str(e)},
             )
@@ -124,9 +129,9 @@ def build_messages_for_recent_users(
 def run_orchestrator():
     """Orchestrates: fetch users -> update searches -> email listings."""
     try:
-        log.info(LOG_CATEGORIES["API"], "DB URL", {"url": str(db.engine.url)})
+        log.info("API", "DB URL", {"url": str(db.engine.url)})
     except Exception as e:
-        log.warn(LOG_CATEGORIES["ERRORS"], "DB engine not available", {"error": str(e)})
+        log.warn("ERRORS", "DB engine not available", {"error": str(e)})
 
     pause_seconds = float(os.getenv("POLY_SEARCH_PAUSE_SECONDS", "1.0"))
     per_bucket_pages = int(os.getenv("POLY_SEARCH_PER_BUCKET_PAGES", "5"))
@@ -143,7 +148,7 @@ def run_orchestrator():
         )
     except Exception as exc:
         log.warn(
-            LOG_CATEGORIES["ERRORS"],
+            "ERRORS",
             "Polygon search run failed or unavailable",
             {"error": str(exc)},
         )
@@ -153,7 +158,7 @@ def run_orchestrator():
     messages = build_messages_for_recent_users(max_items_per_user=max_items, use_html=use_html)
 
     if not messages:
-        log.info(LOG_CATEGORIES["API"], "No messages to send (no eligible users or no listings)")
+        log.info("API", "No messages to send (no eligible users or no listings)")
         if os.getenv("FAIL_ON_EMPTY", "false").lower() in ("1", "true", "yes"):
             raise SystemExit(2)
         return
@@ -168,18 +173,18 @@ def run_orchestrator():
                 f"[DRY_RUN] Would send {len(messages)} emails. First 1 preview:\n"
                 f"To: {msg[0]}\nSubject: {msg[1]}\n\nText Body: {msg[2][:500]}{html_preview}"
             )
-            log.info(LOG_CATEGORIES["API"], preview_text)
+            log.info("API", preview_text)
         return
 
     try:
         sent_ids = send_personalized_emails_via_ses(messages)
         log.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "Sent emails via SES",
             {"count": len(sent_ids), "message_ids": sent_ids},
         )
     except Exception as e:
-        log.error(LOG_CATEGORIES["ERRORS"], "SES send failed", {"error": str(e)})
+        log.error("ERRORS", "SES send failed", {"error": str(e)})
         raise SystemExit(1) from e
 
 

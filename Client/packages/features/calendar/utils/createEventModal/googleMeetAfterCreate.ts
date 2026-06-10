@@ -3,7 +3,7 @@ import {
   copyTextToClipboard,
   isGoogleMeetProvisioningPending,
   pollGoogleMeetHangoutLink as pollGoogleMeetHangoutLinkBase,
-} from "packages/utils/calendar/createEvent/googleMeetAfterCreate";
+} from "packages/utils/comms/calendar/createEvent/googleMeetAfterCreate";
 
 export { copyTextToClipboard, isGoogleMeetProvisioningPending };
 

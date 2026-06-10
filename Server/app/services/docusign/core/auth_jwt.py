@@ -16,14 +16,12 @@ from docusign_esign.client.api_client import OAuth
 from docusign_esign.client.api_exception import ApiException
 
 from app.config import Config
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..errors import DocusignAuthError
 from .api_client_rest import configure_rest_api_root
 from .auth_jwt_pem import normalize_private_key_pem
 from .types import parse_jwt_token_response, parse_user_info
-
-logger = get_logger()
 
 
 class DocusignJWTAuth:
@@ -76,11 +74,11 @@ class DocusignJWTAuth:
             error_msg = (
                 f"DocuSign JWT service missing required configuration: {', '.join(missing_vars)}"
             )
-            logger.error(LOG_CATEGORIES["ERRORS"], error_msg)
+            log.error("ERRORS", error_msg)
             raise DocusignAuthError(error_msg)
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "DocuSign JWT configuration validated",
             {
                 "has_integration_key": bool(self.integration_key),
@@ -93,8 +91,8 @@ class DocusignJWTAuth:
         )
 
         if not self.account_id:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "DOCUSIGN_ACCOUNT_ID not configured, will fetch from user info",
             )
 
@@ -103,16 +101,16 @@ class DocusignJWTAuth:
         try:
             if not self.private_key:
                 raise DocusignAuthError("No private key configured")
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Using DocuSign private key from environment",
             )
             return normalize_private_key_pem(self.private_key)
         except DocusignAuthError:
             raise
         except Exception as e:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 "Failed to read DocuSign private key",
                 {"error": str(e)},
             )
@@ -177,8 +175,8 @@ class DocusignJWTAuth:
             DocusignAuthError: If authentication fails
         """
         if not force_refresh and self._is_token_valid():
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Using cached JWT token",
                 {
                     "expires_at": self._token_expires_at.isoformat()
@@ -189,8 +187,8 @@ class DocusignJWTAuth:
             assert self._access_token is not None
             return self._access_token
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "JWT token refresh needed",
             {"force_refresh": force_refresh, "token_valid": self._is_token_valid()},
         )
@@ -201,8 +199,8 @@ class DocusignJWTAuth:
     def _request_jwt_token(self) -> str:
         """Request new JWT access token from DocuSign"""
         try:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Requesting DocuSign JWT token",
                 {
                     "impersonated_user_id": self.impersonated_user_id,
@@ -244,8 +242,8 @@ class DocusignJWTAuth:
                 seconds=oauth_response.expires_in
             )
 
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "DocuSign JWT token obtained successfully",
                 {
                     "expires_in": oauth_response.expires_in,
@@ -259,8 +257,8 @@ class DocusignJWTAuth:
             return token
 
         except ApiException as e:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 "DocuSign JWT authentication failed",
                 {
                     "error": str(e),
@@ -272,8 +270,8 @@ class DocusignJWTAuth:
             # Check for consent required error
             if hasattr(e, "body") and "consent_required" in str(e.body):
                 consent_url = self._get_consent_url()
-                logger.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                log.warn(
+                    "DOCUSIGN",
                     "DocuSign consent required",
                     {"consent_url": consent_url},
                 )
@@ -282,9 +280,7 @@ class DocusignJWTAuth:
             raise DocusignAuthError(f"JWT authentication failed: {str(e)}") from e
 
         except Exception as e:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"], "Unexpected JWT authentication error", {"error": str(e)}
-            )
+            log.error("ERRORS", "Unexpected JWT authentication error", {"error": str(e)})
             raise DocusignAuthError(f"JWT authentication failed: {str(e)}") from e
 
     def _get_consent_url(self) -> str:
@@ -305,9 +301,7 @@ class DocusignJWTAuth:
         Returns:
             Configured ApiClient
         """
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"], "Creating DocuSign API client", {"base_url": self.base_url}
-        )
+        log.debug("DOCUSIGN", "Creating DocuSign API client", {"base_url": self.base_url})
 
         access_token = self.get_access_token()
 
@@ -315,7 +309,7 @@ class DocusignJWTAuth:
         configure_rest_api_root(api_client, self.base_url)
         api_client.set_default_header("Authorization", f"Bearer {access_token}")
 
-        logger.info(LOG_CATEGORIES["DOCUSIGN"], "DocuSign API client created successfully")
+        log.info("DOCUSIGN", "DocuSign API client created successfully")
 
         return api_client
 
@@ -327,8 +321,8 @@ class DocusignJWTAuth:
             Account ID
         """
         if self.account_id:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Using cached account ID",
                 {"account_id": self.account_id},
             )
@@ -336,7 +330,7 @@ class DocusignJWTAuth:
 
         # Fetch from user info
         try:
-            logger.debug(LOG_CATEGORIES["DOCUSIGN"], "Fetching DocuSign account ID from user info")
+            log.debug("DOCUSIGN", "Fetching DocuSign account ID from user info")
 
             api_client = self.get_api_client()
             raw_user_info = api_client.get_user_info(self.get_access_token())
@@ -349,8 +343,8 @@ class DocusignJWTAuth:
             account = user_info.accounts[0]
             self.account_id = account.account_id
 
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "DocuSign account ID fetched successfully",
                 {
                     "account_id": self.account_id,
@@ -362,9 +356,7 @@ class DocusignJWTAuth:
             return self.account_id
 
         except Exception as e:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"], "Failed to fetch DocuSign account ID", {"error": str(e)}
-            )
+            log.error("ERRORS", "Failed to fetch DocuSign account ID", {"error": str(e)})
             raise DocusignAuthError(f"Failed to fetch account ID: {str(e)}") from e
 
 

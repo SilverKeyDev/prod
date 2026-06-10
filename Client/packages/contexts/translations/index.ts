@@ -11,10 +11,12 @@ import { DASHBOARD_TRANSLATIONS } from "packages/features/dashboard/types/transl
 import { DOCUMENTS_TRANSLATIONS } from "packages/features/documents/types/translations";
 import { FEED_TRANSLATIONS } from "packages/features/feed/types/translations";
 import { AUTH_TRANSLATIONS } from "packages/features/homeauth/types/translations";
+import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
 import { NEGOTIATE_TRANSLATIONS } from "packages/features/negotiate/types/translations";
 import { partnersFeatureTranslations } from "packages/features/partners/types/translations";
 import { PROFILE_TRANSLATIONS } from "packages/features/profile/types/i18n/translations";
 import { PROPERTY_DETAILS_TRANSLATIONS } from "packages/features/propertyDetails/types/translations";
+import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
 import { SAVED_TRANSLATIONS } from "packages/features/saved/types/translations";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
@@ -30,6 +32,8 @@ export const TRANSLATIONS: Record<string, string> = {
   ...BROKERAGE_TRANSLATIONS,
   ...WORKSPACE_TRANSLATIONS,
   ...SELLER_TRANSLATIONS,
+  ...RENTER_TRANSLATIONS,
+  ...INTEGRATION_PARTNER_TRANSLATIONS,
   ...ADMIN_TRANSLATIONS,
   ...SEARCH_TRANSLATIONS,
   ...PROPERTY_DETAILS_TRANSLATIONS,

@@ -9,9 +9,7 @@ import os
 import re
 
 from app.config import Config
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 _ALLOWED_RESOURCE_STATES = frozenset({"sync", "exists", "not_exists"})
 _CHANNEL_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
@@ -40,31 +38,34 @@ def verify_calendar_webhook(
     Returns True when the request should be accepted.
     """
     if not resource_state or not resource_id:
-        logger.warn(
-            LOG_CATEGORIES["SECURITY"],
+        log.warn(
+            "SECURITY",
             "Calendar webhook missing required headers",
-            {"has_resource_state": bool(resource_state), "has_resource_id": bool(resource_id)},
+            {
+                "has_resource_state": bool(resource_state),
+                "has_resource_id": bool(resource_id),
+            },
         )
         return False
 
     if resource_state not in _ALLOWED_RESOURCE_STATES:
-        logger.security(
-            LOG_CATEGORIES["SECURITY"],
+        log.security(
+            "SECURITY",
             "Calendar webhook invalid resource state",
             {"resource_state": resource_state},
         )
         return False
 
     if not _RESOURCE_ID_RE.match(resource_id):
-        logger.security(
-            LOG_CATEGORIES["SECURITY"],
+        log.security(
+            "SECURITY",
             "Calendar webhook invalid resource id format",
         )
         return False
 
     if channel_id and not _CHANNEL_ID_RE.match(channel_id):
-        logger.security(
-            LOG_CATEGORIES["SECURITY"],
+        log.security(
+            "SECURITY",
             "Calendar webhook invalid channel id format",
         )
         return False
@@ -72,20 +73,20 @@ def verify_calendar_webhook(
     expected_token = (getattr(Config, "GOOGLE_CALENDAR_WEBHOOK_TOKEN", None) or "").strip()
     if not expected_token:
         if _is_strict_webhook_env():
-            logger.security(
-                LOG_CATEGORIES["SECURITY"],
+            log.security(
+                "SECURITY",
                 "GOOGLE_CALENDAR_WEBHOOK_TOKEN not configured in non-development environment",
             )
             return False
-        logger.warn(
-            LOG_CATEGORIES["SECURITY"],
+        log.warn(
+            "SECURITY",
             "GOOGLE_CALENDAR_WEBHOOK_TOKEN not configured, skipping channel token check",
         )
         return True
 
     if not channel_token or not _constant_time_equal(channel_token, expected_token):
-        logger.security(
-            LOG_CATEGORIES["SECURITY"],
+        log.security(
+            "SECURITY",
             "Calendar webhook channel token mismatch",
             {"has_token": bool(channel_token)},
         )

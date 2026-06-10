@@ -10,7 +10,6 @@ def mock_client_user_single_agent():
     """Create a mock client user with a single agent"""
     user = Mock()
     user.id = "client-456"
-    user.is_agent = False
     return user
 
 
@@ -19,7 +18,6 @@ def mock_client_user_multiple_agents():
     """Create a mock client user with multiple agents"""
     user = Mock()
     user.id = "client-789"
-    user.is_agent = False
     return user
 
 
@@ -28,7 +26,6 @@ def mock_client_user_no_agent():
     """Create a mock client user without an agent"""
     user = Mock()
     user.id = "client-999"
-    user.is_agent = False
     return user
 
 

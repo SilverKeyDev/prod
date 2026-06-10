@@ -4,8 +4,8 @@ import { View } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
-import { Box, Text } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 import { styles } from "./propertyCommuteMapLegend.native.styles";
 

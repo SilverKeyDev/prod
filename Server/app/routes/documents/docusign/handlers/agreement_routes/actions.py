@@ -1,10 +1,12 @@
 """Agreement action routes: revision, send, void."""
 
 from app.schemas import (
+    CreateRevisionResponse,
     DocusignResendRecipientRequest,
     DocusignResendRecipientResponse,
     DocusignUpdateEnvelopeNotificationRequest,
     DocusignUpdateEnvelopeNotificationResponse,
+    EmptyRequest,
     SendAgreementRequest,
     SendAgreementResponse,
     VoidAgreementRequest,
@@ -28,7 +30,9 @@ def register_action_routes(bp):
     @bp.route("/agreements/<agreement_id>/revisions", methods=["POST"])
     @rate_limit(max_requests=20, window_seconds=60)
     @require_authenticated_user
-    def create_revision(user, agreement_id):
+    @validate_request(EmptyRequest)
+    @validate_response(CreateRevisionResponse)
+    def create_revision(user, agreement_id, data: EmptyRequest | None = None):
         return create_revision_action(user, agreement_id)
 
     @bp.route("/agreements/<agreement_id>/send", methods=["POST"])

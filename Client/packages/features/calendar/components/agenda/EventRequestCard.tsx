@@ -3,13 +3,13 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import type { EventRequestPayload } from "packages/features/messaging";
 import { Button } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import { formatEventRequestRangeSummaryEnUs } from "packages/utils/date";
+import { Box } from "packages/ui/components/structure/primitives";
+import { formatEventRequestRangeSummaryEnUs } from "packages/utils/core/date";
 
 import BodyText from "@/components/ui/text/BodyText";
 import Title from "@/components/ui/text/Title";
-import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 export type EventRequestStatus = "pending" | "accepted" | "cancelled";
 type EventRequestCardProps = {
   payload: EventRequestPayload;

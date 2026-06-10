@@ -4,9 +4,9 @@ import { StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
-import { Icon } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Icon } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 export type MapControlsNativeProps = {
   page: number;

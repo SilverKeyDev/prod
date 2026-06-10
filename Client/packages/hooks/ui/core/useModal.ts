@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { getDocument } from "packages/utils/platform";
+import { getDocument } from "packages/utils/core/platform";
 
 export type UseModalReturn = {
   isOpen: boolean;

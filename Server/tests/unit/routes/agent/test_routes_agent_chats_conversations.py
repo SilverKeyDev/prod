@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import jwt as pyjwt
 
-from app.models import User
+from app.models import User, UserRole
 from tests.jwt_test_secret import TEST_JWT_HMAC_SECRET
 
 MOCK_JWT_TOKEN = pyjwt.encode(
@@ -22,9 +22,9 @@ class TestAgentChatsRoutesConversations:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -65,9 +65,9 @@ class TestAgentChatsRoutesConversations:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -107,9 +107,9 @@ class TestAgentChatsRoutesConversations:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -142,9 +142,9 @@ class TestAgentChatsRoutesConversations:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:

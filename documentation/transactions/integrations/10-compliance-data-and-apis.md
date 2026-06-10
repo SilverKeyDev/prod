@@ -28,4 +28,6 @@ Treat vendor or compliance APIs as **advisory inputs** to update internal rule t
 
 ### Related timeline docs
 
+> **Shipped feature docs:** [partners.md](../../client/features/partners.md), [rev-share-partners.md](../../client/features/rev-share-partners.md).
+
 State variation and compliance inputs: `documentation/transactions/timeline/09-state-variation-model.md`, `documentation/transactions/timeline/10-compliance-data-and-apis.md`.

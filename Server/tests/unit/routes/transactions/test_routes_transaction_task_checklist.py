@@ -8,29 +8,34 @@ from unittest.mock import patch
 
 import pytest
 from flask import Flask
+from sqlalchemy import select
 
+from app import db
 from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
+from tests.support.user_roles import create_user_with_roles
 
 
 def _seed_agent_buyer_tx(db_session):
-    from app.models import Transaction, User, UserRole
+    from app.models import Transaction
 
-    agent = User(
+    agent = create_user_with_roles(
+        db_session.session,
+        roles=("agent",),
         cognito_id=f"cognito-agent-{uuid.uuid4().hex[:8]}",
         email=f"agent-{uuid.uuid4().hex[:8]}@example.com",
         name="Agent Tasks",
         is_active=True,
+        commit=False,
     )
-    buyer = User(
+    buyer = create_user_with_roles(
+        db_session.session,
+        roles=("buyer",),
         cognito_id=f"cognito-buyer-{uuid.uuid4().hex[:8]}",
         email=f"buyer-{uuid.uuid4().hex[:8]}@example.com",
         name="Buyer Tasks",
         is_active=True,
+        commit=False,
     )
-    db_session.session.add_all([agent, buyer])
-    db_session.session.flush()
-    db_session.session.add(UserRole(user_id=str(agent.id), role="agent"))
-    db_session.session.add(UserRole(user_id=str(buyer.id), role="buyer"))
     tx_id = str(uuid.uuid4())
     db_session.session.add(
         Transaction(
@@ -56,7 +61,7 @@ def test_get_transaction_tasks_forbidden_when_agent_does_not_manage_client(
     with (
         patch("app.services.auth.get_current_user", return_value=actor),
         patch(
-            "app.routes.transactions.build_task_checklist_data",
+            "app.routes.transactions.handlers.checklist.build_task_checklist_data",
             side_effect=AssertionError("GET must not run when forbidden"),
         ),
     ):
@@ -68,6 +73,8 @@ def test_get_transaction_tasks_forbidden_when_agent_does_not_manage_client(
         body = resp.get_json()
         assert body is not None
         assert body.get("success") is False
+        assert body.get("error") == "FORBIDDEN"
+        assert body.get("message") == "Access denied"
 
 
 @pytest.mark.api
@@ -83,7 +90,7 @@ def test_put_transaction_tasks_forbidden_when_agent_does_not_manage_client(
     with (
         patch("app.services.auth.get_current_user", return_value=actor),
         patch(
-            "app.routes.transactions.perform_task_checklist_put",
+            "app.routes.transactions.handlers.checklist.perform_task_checklist_put",
             side_effect=AssertionError("PUT must not run when forbidden"),
         ),
     ):
@@ -110,7 +117,11 @@ def test_put_transaction_tasks_ok_when_agent_manages_client(client, app: Flask, 
         assert get_transaction_by_id(tx_id) is not None
         assert get_user_if_agent(agent_id) is not None
         assert (
-            AgentConnections.query.filter_by(agent_id=agent_id, client_id=buyer_id).first()
+            db.session.scalar(
+                select(AgentConnections).where(
+                    AgentConnections.agent_id == agent_id, AgentConnections.client_id == buyer_id
+                )
+            )
             is not None
         )
         assert agent_may_access_client(agent_id, buyer_id) is True
@@ -131,7 +142,10 @@ def test_put_transaction_tasks_ok_when_agent_manages_client(client, app: Flask, 
 
     with (
         patch("app.services.auth.get_current_user", return_value=actor),
-        patch("app.routes.transactions.perform_task_checklist_put", return_value=(payload, None)),
+        patch(
+            "app.routes.transactions.handlers.checklist.perform_task_checklist_put",
+            return_value=(payload, None),
+        ),
     ):
         resp = client.put(
             f"/api/v1/transactions/{tx_id}/tasks?type=closing",

@@ -2,13 +2,12 @@ import React from "react";
 
 import type { BuyerPriceFinancing } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { FIELD_LABELS, PROFILE_NOT_SPECIFIED_LABEL } from "packages/features/profile/utils";
+import { profileFieldValueClassName } from "packages/features/profile/utils";
 import { Input } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { EditModeCheckbox as ProfileCheckbox, FormFieldLabel as Label } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import AlignedRow from "@/components/layout/AlignedRow";
-import Label from "@/features/profile/components/settings/inputs/Label";
-import { ProfileCheckbox } from "@/features/profile/components/settings/inputs/ProfileCheckbox";
-import { profileFieldValueClassName } from "@/features/profile/utils";
 
 import type { PatchBuyerPreferenceExtensions } from "./types";
 import { withBuyerExtV1 } from "./withBuyerExtV1";

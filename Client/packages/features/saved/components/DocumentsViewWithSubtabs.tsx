@@ -5,10 +5,10 @@
 import { useLocalization } from "packages/contexts";
 import type { DocumentData } from "packages/features/documents";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
-import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
-import DocumentListRow from "packages/ui/components/cards/document/DocumentListRow";
-import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import DocumentCard from "packages/ui/components/surfaces/cards/document/DocumentCard";
+import DocumentListRow from "packages/ui/components/surfaces/cards/document/DocumentListRow";
+import type { DocumentCardExternalActionHandlers } from "packages/ui/components/surfaces/cards/document/types";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
 

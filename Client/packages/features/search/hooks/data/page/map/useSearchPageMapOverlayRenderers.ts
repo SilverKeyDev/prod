@@ -9,7 +9,7 @@ import {
   clearIsochroneOverlays,
   renderIsochronePolygon,
 } from "packages/features/search/types/search/map/isochroneRenderer";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { IsochroneData } from "packages/types/domain/api";
 
 type OverlayRefs = {
@@ -48,7 +48,7 @@ export function useSearchPageMapOverlayRenderers({
       }
     ) => {
       if (!googleMapRef.current) {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Map not initialized yet");
+        log.warn("MAP_RENDERING", "Google Map not initialized yet");
         return;
       }
       const map = googleMapRef.current;
@@ -75,10 +75,7 @@ export function useSearchPageMapOverlayRenderers({
   const renderImportantLocationMarkersWrapper = useCallback(
     async (data: unknown) => {
       if (!googleMapRef.current) {
-        log.warn(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Cannot render important location markers: map not available"
-        );
+        log.warn("MAP_RENDERING", "Cannot render important location markers: map not available");
         return;
       }
       if (!showCommuteOverlayRef.current) {

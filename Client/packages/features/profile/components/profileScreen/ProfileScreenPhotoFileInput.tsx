@@ -1,6 +1,6 @@
 import React from "react";
 
-import { isWeb } from "packages/utils/platform";
+import { isWeb } from "packages/utils/core/platform";
 
 import { PROFILE_PHOTO_ACCEPT } from "./profilePhotoValidation";
 

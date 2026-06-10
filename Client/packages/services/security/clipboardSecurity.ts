@@ -2,8 +2,8 @@
  * Secure clipboard operations
  */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { getDocument, getNavigator, getWindow } from "packages/utils/platform";
+import { log } from "packages/logger";
+import { getDocument, getNavigator, getWindow } from "packages/utils/core/platform";
 
 /**
  * Securely copy text to clipboard with fallback
@@ -30,7 +30,7 @@ export async function secureClipboardCopy(text: string): Promise<boolean> {
     doc.body.removeChild(textArea);
     return result;
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.API, "Failed to copy to clipboard", error);
+    log.error(`API.${error}`, "Failed to copy to clipboard");
     return false;
   }
 }

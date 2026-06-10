@@ -16,6 +16,10 @@ export const PROFILE_STEP_IDS = [
   "agent_profile",
   "availability",
   "privacy_data",
+  "seller_shell_setup",
+  "renter_shell_setup",
+  "brokerage_shell_setup",
+  "integration_partner_shell_setup",
 ] as const;
 
 export type ProfileStepId = (typeof PROFILE_STEP_IDS)[number];

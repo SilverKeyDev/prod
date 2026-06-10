@@ -12,6 +12,48 @@ DEPS_CMD_TIMEOUT="${DEPS_CMD_TIMEOUT:-600}" # seconds for brew/corepack/network 
 deps_die() { echo "deps: $*" >&2; exit 1; }
 deps_have() { command -v "$1" >/dev/null 2>&1; }
 
+# Classify the current shell environment so we can fail early with a clear
+# explanation instead of letting bash/make/redis/venv steps blow up confusingly.
+# Echoes one of: macos | wsl | linux | windows | unknown
+deps_detect_platform() {
+  local kernel
+  kernel="$(uname -s 2>/dev/null || echo unknown)"
+  case "$kernel" in
+    Darwin) echo macos ;;
+    MINGW*|MSYS*|CYGWIN*) echo windows ;;
+    Linux)
+      # WSL reports Linux but advertises itself in /proc/version and env vars.
+      if [[ -n "${WSL_DISTRO_NAME:-}" || -n "${WSL_INTEROP:-}" ]] ||
+         grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; then
+        echo wsl
+      else
+        echo linux
+      fi
+      ;;
+    *) echo unknown ;;
+  esac
+}
+
+# Gate setup on a supported environment. Returns non-zero on native Windows.
+deps_assert_supported_platform() {
+  local plat
+  plat="$(deps_detect_platform)"
+  case "$plat" in
+    macos) deps_log "Platform: macOS" ;;
+    wsl)   deps_log "Platform: WSL2 (${WSL_DISTRO_NAME:-Linux})" ;;
+    linux) deps_log "Platform: Linux" ;;
+    windows)
+      echo "deps: native Windows shell detected ($(uname -s 2>/dev/null))" >&2
+      echo "deps: use WSL2 (Ubuntu) — see ${DEPS_SETUP_DOC} (Windows WSL2 section)" >&2
+      return 1
+      ;;
+    *)
+      deps_log "Platform: unrecognized ($(uname -s 2>/dev/null)) — proceeding; setup expects macOS, Linux, or WSL2"
+      ;;
+  esac
+  return 0
+}
+
 # Avoid Corepack blocking on "about to download" with no visible progress.
 deps_init_env() {
   export COREPACK_ENABLE_DOWNLOAD_PROMPT="${COREPACK_ENABLE_DOWNLOAD_PROMPT:-0}"
@@ -327,6 +369,9 @@ deps_ensure_one() {
 # Setup phase 1: install or print commands for node, pnpm, python, aws CLI (binary only).
 deps_ensure_prerequisites() {
   deps_init_env
+  if ! deps_assert_supported_platform; then
+    return 1
+  fi
   DEPS_ENSURE_MODE=true
   local failed=false tools=(node pnpm python redis libmagic)
   [[ "$DEPS_SKIP_AWS_SETUP" != true ]] && tools+=(aws)
@@ -365,6 +410,9 @@ deps_run_scan() {
   deps_init_env
   local failed=false
   echo "==> Checking prerequisites (${DEPS_SETUP_DOC})"
+  if ! deps_assert_supported_platform; then
+    return 1
+  fi
   deps_log_step node "checking…"
   if deps_check_node; then
     deps_log_step node "OK $(deps_node_version)"
@@ -400,6 +448,8 @@ deps_run_scan() {
   deps_log_step redis "checking…"
   if deps_check_redis_ping; then
     deps_log_step redis "OK (PONG)"
+  elif deps_check_redis_binaries && deps_try_start_redis; then
+    deps_log_step redis "OK (started redis-server, redis-cli ping → PONG)"
   elif deps_check_redis_binaries; then
     deps_log_step redis "installed but not running — try: brew services start redis  OR  redis-server --daemonize yes"
     failed=true

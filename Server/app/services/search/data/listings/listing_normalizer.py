@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 def _csv_to_list(val: str | list | None) -> list[str]:
@@ -38,7 +38,7 @@ def _normalize_schools(schools: dict | list | None) -> list[dict]:
         return []
 
     log.debug(
-        LOG_CATEGORIES["API"],
+        "API",
         "Raw Slipstream schools data",
         {"schools_keys": list(schools.keys()), "schools": schools},
     )

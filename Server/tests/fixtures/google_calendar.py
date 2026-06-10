@@ -80,7 +80,8 @@ def mock_google_calendar():
     )
 
     freebusy_mock = Mock()
-    freebusy_mock.query.return_value.execute.return_value = {
+    freebusy_query = Mock()
+    freebusy_query.execute.return_value = {
         "calendars": {
             "primary": {
                 "busy": [
@@ -92,6 +93,7 @@ def mock_google_calendar():
             }
         }
     }
+    freebusy_mock.query = Mock(return_value=freebusy_query)
 
     service_mock.events = Mock(return_value=events_mock)
     service_mock.calendars = Mock(return_value=calendars_mock)

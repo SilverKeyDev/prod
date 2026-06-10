@@ -8,14 +8,14 @@ import {
 } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { StatChip } from "packages/features/propertyDetails/components/visualizations";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
-import { formatPrice } from "packages/utils/format/property";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
+import { formatPrice } from "packages/utils/core/format/property";
 import {
   formatLotSize,
   formatStructuredAddress,
-} from "packages/utils/format/property/addressFormatting";
+} from "packages/utils/core/format/property/addressFormatting";
 
 function getDisplayAddress(addr: unknown, notAvailable: string): string {
   if (!addr) return notAvailable;

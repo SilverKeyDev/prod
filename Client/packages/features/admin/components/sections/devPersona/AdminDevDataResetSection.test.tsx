@@ -13,7 +13,7 @@ vi.mock("packages/config/env", async (importOriginal) => {
   };
 });
 
-vi.mock("packages/hooks/data/admin/useResetDevUserDataMutation", () => ({
+vi.mock("packages/features/admin/hooks/data/useResetDevUserDataMutation", () => ({
   useResetDevUserDataMutation: () => ({
     mutateAsync,
     isPending: false,

@@ -10,9 +10,9 @@ import type {
 import { queryKeys } from "packages/config/query/keys";
 import { googleCalendarApi } from "packages/features/calendar/api";
 import { showErrorToast } from "packages/hooks/ui/toast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import { buildEventsListQueryFn } from "./useGoogleEventsHelpers";
 
@@ -71,7 +71,7 @@ function useGoogleEventsCore(
         queryKey: queryKeys.googleCalendar.events(),
       });
     }
-    log.debug(LOG_CATEGORIES.CALENDAR, "Refreshed Google Calendar events");
+    log.debug("CALENDAR", "Refreshed Google Calendar events");
   }, [calendarId, timeMin, timeMax, queryClient]);
 
   return {
@@ -121,7 +121,7 @@ export function useGoogleEvents(params?: {
     },
     onSuccess: invalidateEvents,
     onError: (error) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Create calendar event failed", error);
+      log.error("ERRORS", "Create calendar event failed", error);
       showErrorToast("Failed to create event. Please try again.");
     },
   });
@@ -143,7 +143,7 @@ export function useGoogleEvents(params?: {
     },
     onSuccess: invalidateEvents,
     onError: (error) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Update calendar event failed", error);
+      log.error("ERRORS", "Update calendar event failed", error);
       showErrorToast("Failed to update event. Please try again.");
     },
   });
@@ -157,7 +157,7 @@ export function useGoogleEvents(params?: {
     },
     onSuccess: invalidateEvents,
     onError: (error) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Delete calendar event failed", error);
+      log.error("ERRORS", "Delete calendar event failed", error);
       showErrorToast("Failed to delete event. Please try again.");
     },
   });

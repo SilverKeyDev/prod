@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { useHealthCheck, useSessionTimeout } from "packages/hooks/ui";
 import { useAuthStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 // Note: StrictMode is disabled for cleaner development logs
 // Re-enable by wrapping App with <StrictMode> in main.tsx when debugging React issues

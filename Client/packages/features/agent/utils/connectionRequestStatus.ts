@@ -1,4 +1,4 @@
-import { dateParseLenient } from "packages/utils/date";
+import { dateParseLenient } from "packages/utils/core/date";
 
 import type { AgentConnectionRequest } from "@/features/agent/api/agent";
 

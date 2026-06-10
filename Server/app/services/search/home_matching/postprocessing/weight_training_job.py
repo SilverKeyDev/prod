@@ -3,17 +3,18 @@ Background job for periodic weight retraining.
 Can be run via Celery or as a scheduled task.
 """
 
-import logging
 from typing import Any
 
+from sqlalchemy import select
+
+from app import db
 from app.models import User
+from logger import log
 
 from .cohort_assigner import cohort_assigner
 from .weight_learner import weight_learner
 from .weight_service import weight_service
 from .weight_training_data import training_data_extractor
-
-logger = logging.getLogger(__name__)
 
 
 class WeightTrainingJob:
@@ -72,7 +73,7 @@ class WeightTrainingJob:
                 return {"success": False, "message": "Training failed", "user_id": user_id}
 
         except Exception as e:
-            logger.error(f"Error training weights for user {user_id}: {e}", exc_info=True)
+            log.error("ERRORS", f"Error training weights for user {user_id}: {e}")
             return {"success": False, "message": str(e), "user_id": user_id}
 
     def train_cohort_weights(self, cohort_id: str, user_ids: list[str]) -> dict[str, Any]:
@@ -121,7 +122,7 @@ class WeightTrainingJob:
                 return {"success": False, "message": "Training failed", "cohort_id": cohort_id}
 
         except Exception as e:
-            logger.error(f"Error training weights for cohort {cohort_id}: {e}", exc_info=True)
+            log.error("ERRORS", f"Error training weights for cohort {cohort_id}: {e}")
             return {"success": False, "message": str(e), "cohort_id": cohort_id}
 
     def train_all_eligible_users(self, limit: int = 100) -> dict[str, Any]:
@@ -136,7 +137,9 @@ class WeightTrainingJob:
         """
         try:
             # Get all users
-            users = User.query.filter(User.has_preferences.is_(True)).limit(limit).all()
+            users = db.session.scalars(
+                select(User).where(User.has_preferences.is_(True)).limit(limit)
+            ).all()
 
             results = {
                 "total_users": len(users),
@@ -160,15 +163,16 @@ class WeightTrainingJob:
                 else:
                     results["skipped"] += 1
 
-            logger.info(
+            log.info(
+                "SEARCH",
                 f"Trained weights for {results['trained']} users, "
-                f"skipped {results['skipped']}, failed {results['failed']}"
+                f"skipped {results['skipped']}, failed {results['failed']}",
             )
 
             return results
 
         except Exception as e:
-            logger.error(f"Error in train_all_eligible_users: {e}", exc_info=True)
+            log.error("ERRORS", f"Error in train_all_eligible_users: {e}")
             return {"total_users": 0, "trained": 0, "skipped": 0, "failed": 0, "error": str(e)}
 
     def initialize_cohort_weights(self, cohort_id: str | None = None) -> dict[str, Any]:
@@ -190,7 +194,9 @@ class WeightTrainingJob:
             # Get users in cohort (simplified - would need better cohort querying)
             # For default cohort, get users without preferences
             if cohort_id == cohort_assigner.DEFAULT_COHORT:
-                users = User.query.filter(User.has_preferences.is_(False)).all()
+                users = db.session.scalars(
+                    select(User).where(User.has_preferences.is_(False))
+                ).all()
             else:
                 # For other cohorts, we'd need to query based on cohort characteristics
                 # This is a placeholder
@@ -209,7 +215,7 @@ class WeightTrainingJob:
             return result
 
         except Exception as e:
-            logger.error(f"Error initializing cohort weights: {e}", exc_info=True)
+            log.error("ERRORS", f"Error initializing cohort weights: {e}")
             return {"success": False, "message": str(e), "cohort_id": cohort_id}
 
 

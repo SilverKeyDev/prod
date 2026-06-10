@@ -7,7 +7,7 @@ import {
   DEFAULT_ZOOM,
   SEARCH_MAP_LISTING_FOCUS_ZOOM,
 } from "packages/features/search/utils/googleMaps";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { SearchResult } from "packages/types";
 
 export type MapZoomControllerProps = {
@@ -53,7 +53,7 @@ export const useMapZoomController = ({
 
     if (center && currentProperty) {
       log.debug(
-        LOG_CATEGORIES.MAP_RENDERING,
+        "MAP_RENDERING",
         "🗺️ [MAP FOCUS] Switched to home - coordinates being rendered at",
         {
           propertyId: currentProperty.id,

@@ -79,6 +79,7 @@ def test_non_admin_forbidden(client, reset_enabled, mock_reset_service) -> None:
         )
 
     assert response.status_code == 403
+    assert response.get_json()["error"] == "FORBIDDEN"
     mock_reset_service.assert_not_called()
 
 
@@ -144,6 +145,7 @@ def test_user_not_found(client, reset_enabled) -> None:
             )
 
     assert response.status_code == 404
+    assert response.get_json()["error"] == "RESOURCE_NOT_FOUND"
 
 
 def test_disabled_in_production_without_flag(client, mock_reset_service) -> None:
@@ -158,5 +160,9 @@ def test_disabled_in_production_without_flag(client, mock_reset_service) -> None
                 json=_BODY,
             )
 
-    assert response.status_code == 403
+    assert response.status_code == 503
+    data = response.get_json()
+    assert data["success"] is False
+    assert data["error"] == "configuration_error"
+    assert "error_id" in data
     mock_reset_service.assert_not_called()

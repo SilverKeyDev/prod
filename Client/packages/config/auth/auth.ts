@@ -2,8 +2,8 @@
    Authentication Configuration Constants
    ========================= */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { getLocalStorage, getSessionStorage } from "packages/utils/storage/platformStorage";
+import { log } from "packages/logger";
+import { getLocalStorage, getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 /**
  * Authentication configuration that matches existing patterns
@@ -165,11 +165,11 @@ export const AUTH_CONFIG = {
 
   // Default redirect routes
   REDIRECTS: {
-    AFTER_LOGIN: "/search",
+    AFTER_LOGIN: "/dashboard",
     AFTER_LOGOUT: "/login",
     AFTER_SIGNUP: "/verification",
-    AFTER_VERIFICATION: "/search",
-    AFTER_ONBOARDING: "/search",
+    AFTER_VERIFICATION: "/onboarding",
+    AFTER_ONBOARDING: "/dashboard",
     UNAUTHORIZED: "/login",
   },
 } as const;
@@ -326,7 +326,7 @@ export const authUtils = {
         (AUTH_CONFIG.SECURE_STORAGE.FORBIDDEN_LOCALSTORAGE_KEYS as readonly string[]).includes(key)
       ) {
         log.warn(
-          LOG_CATEGORIES.AUTH,
+          "AUTH",
           "[AUTH_CONFIG] Attempted to store forbidden key in localStorage. Use sessionStorage instead.",
           { key }
         );

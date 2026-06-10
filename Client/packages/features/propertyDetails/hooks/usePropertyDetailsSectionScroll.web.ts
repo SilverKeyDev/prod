@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { PropertyDetailsSectionId } from "packages/features/propertyDetails/types/sectionOrder";
 import { PROPERTY_DETAILS_SECTION_ORDER } from "packages/features/propertyDetails/types/sectionOrder";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 export interface PropertyDetailsSectionRefs {
   overview: React.RefObject<HTMLElement>;

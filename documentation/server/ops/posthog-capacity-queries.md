@@ -2,7 +2,37 @@
 
 Copy-paste templates for the SilverKey project ingest (`api_request` events). Requires PostHog query access (`POSTHOG_QUERY_API_KEY` for CI dead-endpoint checks uses the same API).
 
-Project id is hardcoded in [`Server/app/services/analytics/posthog_constants.py`](../../Server/app/services/analytics/posthog_constants.py).
+Project id is hardcoded in [`Server/app/services/analytics/posthog_constants.py`](../../../Server/app/services/analytics/posthog_constants.py).
+
+## Dead routes (latest CI sync)
+
+CI posts `endpoint_dead_route` (one row per dead route) and `endpoint_inventory_sync` (summary + `dead_endpoints` array) after merges to `main` and weekly. Filter by deploy:
+
+```sql
+SELECT
+  properties.endpoint AS endpoint,
+  properties.deploy_sha AS deploy_sha,
+  timestamp
+FROM events
+WHERE event = 'endpoint_dead_route'
+  AND timestamp > now() - INTERVAL 14 DAY
+ORDER BY timestamp DESC, endpoint
+LIMIT 200
+```
+
+Dead-route count over time:
+
+```sql
+SELECT
+  toDate(timestamp) AS day,
+  properties.deploy_sha AS deploy_sha,
+  count() AS dead_routes
+FROM events
+WHERE event = 'endpoint_dead_route'
+  AND timestamp > now() - INTERVAL 30 DAY
+GROUP BY day, deploy_sha
+ORDER BY day DESC
+```
 
 ## p50 / p95 / p99 latency by endpoint (7 days)
 
@@ -68,6 +98,84 @@ GROUP BY endpoint
 HAVING errors_5xx > 0
 ORDER BY error_rate DESC
 LIMIT 30
+```
+
+## Incident rate by route (`error_kind = server`, 7 days)
+
+Preferred SLO after `error_kind` ships. See [posthog-api-error-semantics.md](./posthog-api-error-semantics.md).
+
+```sql
+SELECT
+  properties.endpoint AS endpoint,
+  countIf(properties.error_kind = 'server') AS errors_server,
+  count() AS total,
+  errors_server / total AS incident_rate
+FROM events
+WHERE event = 'api_request'
+  AND timestamp > now() - INTERVAL 7 DAY
+GROUP BY endpoint
+HAVING errors_server > 0
+ORDER BY incident_rate DESC
+LIMIT 30
+```
+
+## Legacy `is_error` rate vs incident rate (7 days)
+
+Surfaces routes that look red only because of 4xx auth/forbidden noise.
+
+```sql
+SELECT
+  properties.endpoint AS endpoint,
+  countIf(properties.is_error = true) AS errors_legacy,
+  countIf(properties.error_kind = 'server') AS errors_server,
+  countIf(properties.expected_client_error = true) AS expected_client,
+  count() AS total,
+  errors_legacy / total AS legacy_error_rate,
+  errors_server / total AS incident_rate
+FROM events
+WHERE event = 'api_request'
+  AND timestamp > now() - INTERVAL 7 DAY
+GROUP BY endpoint
+HAVING errors_legacy > 0
+ORDER BY legacy_error_rate DESC
+LIMIT 30
+```
+
+## Status breakdown by endpoint (7 days)
+
+```sql
+SELECT
+  properties.endpoint AS endpoint,
+  properties.status_code AS status_code,
+  properties.error_kind AS error_kind,
+  count() AS requests
+FROM events
+WHERE event = 'api_request'
+  AND timestamp > now() - INTERVAL 7 DAY
+GROUP BY endpoint, status_code, error_kind
+ORDER BY endpoint, requests DESC
+LIMIT 200
+```
+
+## Unexpected client errors (7 days)
+
+4xx that are not marked expected — candidates for fixes.
+
+```sql
+SELECT
+  properties.endpoint AS endpoint,
+  properties.status_code AS status_code,
+  properties.error_kind AS error_kind,
+  count() AS requests
+FROM events
+WHERE event = 'api_request'
+  AND timestamp > now() - INTERVAL 7 DAY
+  AND properties.is_error = true
+  AND properties.expected_client_error = false
+  AND properties.error_kind != 'server'
+GROUP BY endpoint, status_code, error_kind
+ORDER BY requests DESC
+LIMIT 50
 ```
 
 ## Latency after deploy (by `deploy_image_tag`)

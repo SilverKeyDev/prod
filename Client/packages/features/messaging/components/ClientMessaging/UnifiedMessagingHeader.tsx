@@ -1,5 +1,5 @@
-import { Box } from "packages/ui/components/primitives";
-import { SIDEBAR_INSET_HEADER_SHELL } from "packages/ui/components/sidebar/sidebarTheme";
+import { Box } from "packages/ui/components/structure/primitives";
+import { SIDEBAR_INSET_HEADER_SHELL } from "packages/ui/components/structure/sidebar/sidebarTheme";
 
 import { UnifiedMessagingHeaderLeft } from "./unifiedMessagingHeader/UnifiedMessagingHeaderLeft";
 import { UnifiedMessagingHeaderRight } from "./unifiedMessagingHeader/UnifiedMessagingHeaderRight";

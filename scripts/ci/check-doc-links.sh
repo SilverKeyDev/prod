@@ -12,6 +12,7 @@ scanned=0
 scan_files=(
   documentation
   AGENTS.md
+  CODEX.md
   README.md
   ARCHITECTURE.md
   setup.md

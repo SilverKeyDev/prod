@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
 import { Link, ROUTES } from "packages/navigation";
-import Region from "packages/ui/components/accessibility/Region";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import Region from "packages/ui/components/system/accessibility/Region";
 
 import { BodyText, Title } from "@/components/ui";
 

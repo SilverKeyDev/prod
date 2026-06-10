@@ -5,9 +5,9 @@ import Button from "@ui/button/Button";
 import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
 import { librarySortOptionsForView } from "packages/features/saved/utils/librarySort";
-import { BaseModal } from "packages/ui/components/modals";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
 
 type LibrarySortControlNativeProps = {
   viewType: SavedPageViewType;

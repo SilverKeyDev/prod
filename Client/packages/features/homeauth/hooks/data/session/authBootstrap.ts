@@ -6,9 +6,9 @@
 
 import { authUtils } from "packages/config/auth/auth";
 import type { SessionVerifyResult } from "packages/features/homeauth/api/handlers/session";
-import { secureLogger } from "packages/services/security/secureLogger";
-import { dateNow } from "packages/utils/date";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { log } from "packages/logger";
+import { dateNow } from "packages/utils/core/date";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 import type { UserProfile } from "@/features/homeauth/types";
 
@@ -49,15 +49,11 @@ function applySessionResult(
 
   if (sessionResult.success) {
     if (!sessionResult.user || !isCompleteUserProfile(sessionResult.user)) {
-      secureLogger.warn(
-        "🔍 FRONTEND_AUTH_BOOTSTRAP_INCOMPLETE_USER",
-        "Session valid but user profile incomplete",
-        {
-          requestId,
-          currentPath,
-          hasUser: !!sessionResult.user,
-        }
-      );
+      log.warn("AUTH", "Auth bootstrap incomplete user profile", {
+        requestId,
+        currentPath,
+        hasUser: !!sessionResult.user,
+      });
       setStoreUser(null);
       setIsAuthenticated(false);
       setStoreAuthStatus("unauthenticated");
@@ -65,18 +61,14 @@ function applySessionResult(
     }
 
     const user = sessionResult.user;
-    secureLogger.info(
-      "🔍 FRONTEND_AUTH_BOOTSTRAP_SUCCESS",
-      "Session verified successfully, user authenticated",
-      {
-        requestId,
-        userId: user.id,
-        userEmail: user.email
-          ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
-          : "missing",
-        isAgent: user.is_agent || false,
-      }
-    );
+    log.info("AUTH", "Auth bootstrap success", {
+      requestId,
+      userId: user.id,
+      userEmail: user.email
+        ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
+        : "missing",
+      isAgent: (user.roles ?? []).includes("agent"),
+    });
     setStoreUser(user);
     try {
       storage.setItem("auth_last_verify_at", String(Date.now()));
@@ -91,41 +83,23 @@ function applySessionResult(
   setStoreUser(null);
   setIsAuthenticated(false);
   setStoreAuthStatus("unauthenticated");
-  secureLogger.info(
-    "🔍 FRONTEND_AUTH_BOOTSTRAP_NO_SESSION",
-    "No valid session found - user is not authenticated",
-    {
-      requestId,
-      sessionSuccess: sessionResult.success,
-      transient: sessionResult.transient,
-      hasUser: !!sessionResult.user,
-      currentPath,
-    }
-  );
+  log.info("AUTH", "Auth bootstrap no session", {
+    requestId,
+    sessionSuccess: sessionResult.success,
+    transient: sessionResult.transient,
+    hasUser: !!sessionResult.user,
+    currentPath,
+  });
 }
 
 async function attemptVerifyAndRefresh(
-  requestId: string,
-  currentPath: string,
-  isPublicRoute: boolean
+  _requestId: string,
+  _currentPath: string,
+  _isPublicRoute: boolean
 ): Promise<SessionVerifyResult> {
   const { authApi } = await import("packages/config/http/api");
-  secureLogger.info(
-    "🔍 FRONTEND_AUTH_BOOTSTRAP_VERIFYING",
-    "Verifying session with server (all routes)",
-    { requestId, currentPath, isPublicRoute }
-  );
 
-  const verifyStart = Date.now();
   let sessionResult = await authApi.verifySession();
-  const verifyMs = Date.now() - verifyStart;
-  secureLogger.info("🔍 FRONTEND_AUTH_VERIFY_RESPONSE", "Session verification response received", {
-    requestId,
-    success: sessionResult.success,
-    hasUser: !!sessionResult.user,
-    transient: sessionResult.transient,
-    durationMs: verifyMs,
-  });
 
   if (sessionResult.success) {
     return sessionResult;
@@ -135,29 +109,15 @@ async function attemptVerifyAndRefresh(
     return sessionResult;
   }
 
-  secureLogger.info(
-    "🔍 FRONTEND_AUTH_SESSION_INVALID",
-    "Session invalid, attempting silent refresh",
-    { requestId, currentPath }
-  );
   const refreshResult = await authApi.refreshToken();
   if (refreshResult.transient) {
     return { success: false, transient: true };
   }
   if (refreshResult.success) {
-    secureLogger.info(
-      "🔍 FRONTEND_AUTH_REFRESH_SUCCESS",
-      "Token refresh successful, retrying session verification",
-      { requestId }
-    );
     sessionResult = await authApi.verifySession();
     return sessionResult;
   }
 
-  secureLogger.info("🔍 FRONTEND_AUTH_REFRESH_FAILED", "Token refresh failed, user must log in", {
-    requestId,
-    error: refreshResult.error,
-  });
   return sessionResult;
 }
 
@@ -178,15 +138,11 @@ async function verifyAndApplySession(
 
     if (sessionResult.transient && attempt < BOOTSTRAP_MAX_ATTEMPTS) {
       const delay = BOOTSTRAP_RETRY_DELAYS_MS[attempt - 1] ?? 1000;
-      secureLogger.warn(
-        "🔍 FRONTEND_AUTH_BOOTSTRAP_RETRY",
-        "Transient bootstrap failure; retrying",
-        {
-          requestId,
-          attempt,
-          delayMs: delay,
-        }
-      );
+      log.warn("AUTH", "Auth bootstrap retry", {
+        requestId,
+        attempt,
+        delayMs: delay,
+      });
       await sleep(delay);
       continue;
     }
@@ -221,23 +177,19 @@ export async function runAuthBootstrap(
     getAuthStatusRef,
   } = setters;
 
-  secureLogger.info(
-    "🔍 FRONTEND_AUTH_BOOTSTRAP_START",
-    "Starting auth bootstrap (always verifying session)",
-    {
-      requestId,
-      currentPath,
-      isPublicRoute,
-      timestamp: dateNow().toISOString(),
-    }
-  );
+  log.info("AUTH", "Auth bootstrap start", {
+    requestId,
+    currentPath,
+    isPublicRoute,
+    timestamp: dateNow().toISOString(),
+  });
   setStoreAuthStatus("checking");
   setStoreAuthReady(false);
   try {
     await verifyAndApplySession(requestId, currentPath, isPublicRoute, setters, storage);
   } catch (error) {
     const err = error as Error;
-    secureLogger.error("🔍 FRONTEND_AUTH_BOOTSTRAP_ERROR", "Auth bootstrap failed with error", {
+    log.error("AUTH", "Auth bootstrap error", {
       requestId,
       currentPath,
       error: err?.message || "Unknown error",
@@ -254,7 +206,7 @@ export async function runAuthBootstrap(
     } catch {
       /* ignore */
     }
-    secureLogger.info("🔍 FRONTEND_AUTH_BOOTSTRAP_COMPLETE", "Auth bootstrap finished", {
+    log.info("AUTH", "Auth bootstrap complete", {
       requestId,
       currentPath,
       finalStatus: getAuthStatusRef(),

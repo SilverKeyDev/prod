@@ -4,6 +4,7 @@ export * from "./financials/payingCashFinancials";
 export * from "./financials/propertyTax";
 export * from "./onboarding/role/agentFormSelection";
 export * from "./onboarding/role/onboardingRoleSelection";
+export * from "./onboarding/role/onboardingToWorkspace";
 export * from "./onboarding/steps/fieldContract";
 export * from "./onboarding/steps/housingOptions";
 export * from "./onboarding/steps/onboardingStepCompletion";

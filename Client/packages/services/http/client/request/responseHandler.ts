@@ -1,9 +1,9 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { isAuthEndpoint } from "packages/services/http/client/auth/authRecovery";
 import { AuthenticationError, HttpError } from "packages/services/http/client/errors";
-import { dateNow } from "packages/utils/date";
-import { asError } from "packages/utils/errorHandling/error";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { asError } from "packages/utils/core/errorHandling/error";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 export function handleHttpResponse<T>(
   response: Response,
@@ -89,9 +89,9 @@ export function handleHttpResponse<T>(
               : {}),
           };
           if (isExpectedUnauthenticated) {
-            log.debug(LOG_CATEGORIES.HTTP, "Auth endpoint 401 (no session - expected)", logPayload);
+            log.debug("HTTP", "Auth endpoint 401 (no session - expected)", logPayload);
           } else {
-            log.error(LOG_CATEGORIES.HTTP, "❌ AUTH_ERROR_401", logPayload);
+            log.error("HTTP", "❌ AUTH_ERROR_401", logPayload);
           }
 
           const credentialsIncluded = requestOptions.credentials === "include";
@@ -124,7 +124,7 @@ export function handleHttpResponse<T>(
     }
 
     if (response.status === 502) {
-      log.error(LOG_CATEGORIES.HTTP, "HTTP_502_BAD_GATEWAY", {
+      log.error("HTTP", "HTTP_502_BAD_GATEWAY", {
         method,
         url,
         status: response.status,

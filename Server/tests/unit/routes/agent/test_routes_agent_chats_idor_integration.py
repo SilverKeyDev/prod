@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import jwt as pyjwt
 
-from app.models import AgentConnections, User
+from app.models import AgentConnections, User, UserRole
 from tests.jwt_test_secret import TEST_JWT_HMAC_SECRET
 
 MOCK_JWT_TOKEN = pyjwt.encode(
@@ -21,24 +21,23 @@ class TestAgentChatsIdorIntegration:
             cognito_id="cog-agent-a",
             email="agent-a-idor@example.com",
             name="Agent A",
-            is_agent=True,
         )
         client_b = User(
             id="client-b",
             cognito_id="cog-client-b",
             email="client-b-idor@example.com",
             name="Client B",
-            is_agent=False,
         )
         intruder = User(
             id="client-x",
             cognito_id="cog-client-x",
             email="intruder-idor@example.com",
             name="Intruder",
-            is_agent=False,
         )
         conv = AgentConnections(id="conv-idor-1", agent_id=agent.id, client_id=client_b.id)
         db_session.session.add_all([agent, client_b, intruder, conv])
+
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_user:
@@ -56,24 +55,23 @@ class TestAgentChatsIdorIntegration:
             cognito_id="cog-agent-a2",
             email="agent-a2-idor@example.com",
             name="Agent A2",
-            is_agent=True,
         )
         client_b = User(
             id="client-b2",
             cognito_id="cog-client-b2",
             email="client-b2-idor@example.com",
             name="Client B2",
-            is_agent=False,
         )
         intruder = User(
             id="client-x2",
             cognito_id="cog-client-x2",
             email="intruder2-idor@example.com",
             name="Intruder2",
-            is_agent=False,
         )
         conv = AgentConnections(id="conv-idor-2", agent_id=agent.id, client_id=client_b.id)
         db_session.session.add_all([agent, client_b, intruder, conv])
+
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_user:
@@ -92,24 +90,23 @@ class TestAgentChatsIdorIntegration:
             cognito_id="cog-agent-a3",
             email="agent-a3-idor@example.com",
             name="Agent A3",
-            is_agent=True,
         )
         client_b = User(
             id="client-b3",
             cognito_id="cog-client-b3",
             email="client-b3-idor@example.com",
             name="Client B3",
-            is_agent=False,
         )
         intruder = User(
             id="client-x3",
             cognito_id="cog-client-x3",
             email="intruder3-idor@example.com",
             name="Intruder3",
-            is_agent=False,
         )
         conv = AgentConnections(id="conv-idor-3", agent_id=agent.id, client_id=client_b.id)
         db_session.session.add_all([agent, client_b, intruder, conv])
+
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_user:
@@ -128,16 +125,16 @@ class TestAgentChatsIdorIntegration:
             cognito_id="cog-agent-unlinked",
             email="agent-unlinked@example.com",
             name="Lonely Agent",
-            is_agent=True,
         )
         orphan = User(
             id="client-orphan",
             cognito_id="cog-orphan",
             email="orphan@example.com",
             name="Orphan Client",
-            is_agent=False,
         )
         db_session.session.add_all([agent, orphan])
+
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_user:
@@ -150,4 +147,5 @@ class TestAgentChatsIdorIntegration:
         assert response.status_code == 400
         data = response.get_json()
         assert data["success"] is False
-        assert "linked" in data["error"].lower() or "connection" in data["error"].lower()
+        message = (data.get("message") or "").lower()
+        assert "connect" in message or "connection" in message

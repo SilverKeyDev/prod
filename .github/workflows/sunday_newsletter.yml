@@ -165,6 +165,8 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip >/dev/null
+          # CPU-only torch first — bare torch==2.10.0 on Linux PyPI is the multi-GB CUDA wheel.
+          pip install --no-cache-dir torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
           # Use --no-cache-dir to avoid filling disk with pip cache
           pip install --no-cache-dir -r Server/requirements/runtime.txt
           pip install --no-cache-dir boto3 >/dev/null

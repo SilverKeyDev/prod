@@ -4,15 +4,14 @@ import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useAdminPartnersList } from "packages/features/partners/hooks/useAdminPartners";
 import { useRevShareAnalytics } from "packages/features/partners/hooks/useRevShareAnalytics";
-import { DonutChart } from "packages/features/propertyDetails/components/visualizations/DonutChart";
-import { VerticalBarChart } from "packages/features/propertyDetails/components/visualizations/VerticalBarChart";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
+import { DonutChart, VerticalBarChart } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
 import {
   formatCtrPercent,
   formatEstimatedRevenue,
-} from "packages/utils/revShare/revShareRedirectUrl";
+} from "packages/utils/transaction/revShare/revShareRedirectUrl";
 
 import Card from "@/components/layout/Card.web";
 import { Dropdown, Label } from "@/components/ui";
@@ -27,10 +26,7 @@ const DEVICE_CHART_COLORS = [
 export function AdminPartnersAnalyticsTab() {
   const { t } = useLocalization();
   const { data: partners = [] } = useAdminPartnersList();
-  const defaultId = useMemo(
-    () => partners.find((p) => p.slug === "move-concierge")?.id ?? partners[0]?.id,
-    [partners]
-  );
+  const defaultId = useMemo(() => partners[0]?.id, [partners]);
   const [partnerId, setPartnerId] = useState<string | undefined>(undefined);
   const selectedId = partnerId ?? defaultId;
   const { data: analytics, isLoading } = useRevShareAnalytics(selectedId);

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { EventRequestPayload } from "packages/features/messaging";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import {
   createHandleAcceptEventRequest,
@@ -212,7 +212,7 @@ describe("useMessagingEventHandlers - Event Request Logic", () => {
       await handleAccept(messageId, payload);
 
       expect(log.error).toHaveBeenCalledWith(
-        LOG_CATEGORIES.CALENDAR,
+        "CALENDAR",
         "Error creating event from request",
         expect.any(Error)
       );
@@ -330,7 +330,7 @@ describe("useMessagingEventHandlers - Event Request Logic", () => {
       await handleCancel(messageId);
 
       expect(log.error).toHaveBeenCalledWith(
-        LOG_CATEGORIES.CALENDAR,
+        "CALENDAR",
         "Error cancelling event request",
         expect.any(Error)
       );

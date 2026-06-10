@@ -3,23 +3,24 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import {
-  SERVER_CORE_LOGGER_BOOLEAN_KEYS,
-  SERVER_EXTRA_LOGGER_BOOLEAN_KEYS,
-} from "packages/logger/config/adminLoggerKeys.generated";
+  ADMIN_LOGGER_UI_GROUPS,
+  LOGGER_CONFIG_KEY_TO_LOG_PATH,
+} from "packages/logger/config/adminLoggerUiMeta.generated";
 import type { components } from "packages/types/api.generated";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { AccessibleCheckboxInput, BodyText, Dropdown, Label, Title } from "@/components/ui";
 
+import { AdminLoggerCategoryGroup } from "./adminLoggerCategoryGroup";
+
 type ServerLoggerConfig = components["schemas"]["ServerLoggerConfig"];
+type ServerLoggerConfigPatch = components["schemas"]["ServerLoggerConfigPatch"];
 type DeploymentLoggerConfig = components["schemas"]["DeploymentLoggerConfig"];
 type DeploymentLoggerConfigUpdates = components["schemas"]["DeploymentLoggerConfigUpdates"];
 
-const CORE_BOOL_KEYS =
-  SERVER_CORE_LOGGER_BOOLEAN_KEYS satisfies readonly (keyof ServerLoggerConfig)[];
-
-const LEVELS: ServerLoggerConfig["logLevel"][] = ["DEBUG", "INFO", "WARN", "ERROR"];
+const LOG_LEVELS: ServerLoggerConfig["logLevel"][] = ["DEBUG", "INFO", "WARN", "ERROR"];
+const ALWAYS_ON_KEYS = new Set(ADMIN_LOGGER_UI_GROUPS.alwaysEnabled.keys);
 
 type AdminBackendLoggerSectionProps = AdminSectionBaseProps & {
   serverConfig: ServerLoggerConfig;
@@ -36,59 +37,65 @@ export function AdminBackendLoggerSection({
   serverConfig,
   mutation,
 }: AdminBackendLoggerSectionProps) {
-  const extras = SERVER_EXTRA_LOGGER_BOOLEAN_KEYS.filter(
-    (key) => typeof serverConfig[key] === "boolean"
-  );
+  const applyServerPatch = (partial: ServerLoggerConfigPatch) => {
+    mutation.mutate({ server: partial });
+  };
 
-  const toggle = (key: keyof ServerLoggerConfig) => {
+  const handleToggle = (key: string) => {
+    if (ALWAYS_ON_KEYS.has(key)) return;
     if (typeof serverConfig[key] !== "boolean") return;
-    mutation.mutate({ server: { [key]: !serverConfig[key] } as Partial<ServerLoggerConfig> });
+    applyServerPatch({ [key]: !serverConfig[key] } as ServerLoggerConfigPatch);
   };
 
   return (
     <Card border="light" padding="lg" className="w-full">
       <Title size="lg" as="h2" className="mb-2">
-        Server logger
+        Server logger (API process)
       </Title>
       <BodyText size="sm" muted className="mb-4">
-        Deployment logger settings for the API process. Changes persist to the database and apply on
-        the next server restart (and immediately in this running process). PostHog receives all
-        server log categories when POSTHOG_PROJECT_TOKEN is set.
+        Debugging toggles for the Flask API process. Changes persist to the deployment store and
+        apply immediately in this running process (also reloaded on server startup). PostHog
+        receives server logs when POSTHOG_PROJECT_TOKEN is set.
       </BodyText>
 
-      <Box className="grid gap-4 md:grid-cols-2">
-        <Box className="space-y-3">
-          <Title size="sm" as="h3" className="mb-1">
-            Categories
-          </Title>
-          {CORE_BOOL_KEYS.map((key) => (
-            <Label key={key} size="sm" className="flex items-center gap-2">
+      <Box className="grid gap-6 md:grid-cols-2">
+        <Box className="space-y-6">
+          <AdminLoggerCategoryGroup
+            groupKey="core"
+            config={serverConfig}
+            isPending={mutation.isPending}
+            onToggle={handleToggle}
+          />
+          <Box className="space-y-3">
+            <Title size="sm" as="h3" className="mb-1">
+              {LOGGER_CONFIG_KEY_TO_LOG_PATH.api ?? "API"}
+            </Title>
+            <Label size="sm" className="flex items-center gap-2">
               <AccessibleCheckboxInput
-                checked={Boolean(serverConfig[key])}
+                checked={Boolean(serverConfig.api)}
                 disabled={mutation.isPending}
                 className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
-                label={`Toggle server ${String(key)}`}
-                onChange={() => toggle(key)}
-              />
-              <BodyText as="span" size="sm" className="capitalize">
-                {String(key)}
-              </BodyText>
-            </Label>
-          ))}
-          {extras.map((key) => (
-            <Label key={key} size="sm" className="flex items-center gap-2">
-              <AccessibleCheckboxInput
-                checked={Boolean(serverConfig[key])}
-                disabled={mutation.isPending}
-                className="border-border accent-primary focus:ring-primary/30 h-4 w-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-0"
-                label={`Toggle server ${String(key)}`}
-                onChange={() => toggle(key)}
+                label="Toggle API"
+                onChange={() => handleToggle("api")}
               />
               <BodyText as="span" size="sm">
-                {String(key)}
+                {LOGGER_CONFIG_KEY_TO_LOG_PATH.api ?? "API"}
               </BodyText>
             </Label>
-          ))}
+          </Box>
+          <AdminLoggerCategoryGroup
+            groupKey="features"
+            config={serverConfig}
+            isPending={mutation.isPending}
+            onToggle={handleToggle}
+          />
+          <AdminLoggerCategoryGroup
+            groupKey="alwaysEnabled"
+            config={serverConfig}
+            readOnlyKeys={ALWAYS_ON_KEYS}
+            isPending={mutation.isPending}
+            onToggle={handleToggle}
+          />
         </Box>
         <Box>
           <Label size="sm">Log level</Label>
@@ -98,13 +105,10 @@ export function AdminBackendLoggerSection({
             hideLabel
             size="sm"
             disabled={mutation.isPending}
-            options={LEVELS.map((lvl) => ({ value: lvl, label: lvl }))}
+            options={LOG_LEVELS.map((lvl) => ({ value: lvl, label: lvl }))}
             value={serverConfig.logLevel}
-            onChange={(value) => mutation.mutate({ server: { logLevel: value } })}
+            onChange={(value) => applyServerPatch({ logLevel: value })}
           />
-          <BodyText size="xs" muted className="mt-3">
-            Checkbox and level changes persist to deployment config when toggled.
-          </BodyText>
         </Box>
       </Box>
       {mutation.isError ? (

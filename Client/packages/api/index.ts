@@ -3,7 +3,6 @@ export { dashboardApi } from "./dashboard";
 export { mapsApi } from "./maps";
 export { offerApi } from "./offer";
 export { publicApi } from "./public";
-export { buildViewingNavigateLink, buildViewingRoute, viewingsApi } from "./viewings";
 export { agentApi } from "packages/features/agent/api/agent";
 export { googleCalendarApi } from "packages/features/calendar/api";
 export { reportApi } from "packages/features/documents/api/report";
@@ -42,13 +41,6 @@ export type {
   NegotiationStrategyResponse,
   PropertyComplete,
 } from "./offer";
-export type {
-  BuildRouteRequest,
-  ViewingBuildRouteApiResponse,
-  ViewingItinerary,
-  ViewingNavigateApiResponse,
-  ViewingStop,
-} from "./viewings";
 export type {
   AgentChatHistoryResponse,
   AgentChatMessage,

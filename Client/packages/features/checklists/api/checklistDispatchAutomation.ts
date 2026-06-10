@@ -2,7 +2,7 @@
  * Agent-only: checklist step dispatch automation settings.
  */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { apiGet, apiPut } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
 
@@ -16,7 +16,7 @@ export type AgentClientsResponse = components["schemas"]["AgentClientsResponse"]
 
 export const checklistDispatchAutomationApi = {
   getAgentClients: (): Promise<AgentClientsResponse> => {
-    log.debug(LOG_CATEGORIES.API, "getAgentClients for dispatch UI");
+    log.debug("API", "getAgentClients for dispatch UI");
     return apiGet<AgentClientsResponse>("/api/v1/agent/clients");
   },
 
@@ -25,7 +25,7 @@ export const checklistDispatchAutomationApi = {
     section: string,
     itemId: number
   ): Promise<ChecklistDispatchAutomationApiResponse> => {
-    log.debug(LOG_CATEGORIES.API, "getChecklistDispatchAutomation", {
+    log.debug("API", "getChecklistDispatchAutomation", {
       clientUserId,
       section,
       itemId,
@@ -41,7 +41,7 @@ export const checklistDispatchAutomationApi = {
     itemId: number,
     body: UpdateChecklistDispatchAutomationRequest
   ): Promise<ChecklistDispatchAutomationApiResponse> => {
-    log.debug(LOG_CATEGORIES.API, "putChecklistDispatchAutomation", {
+    log.debug("API", "putChecklistDispatchAutomation", {
       clientUserId,
       section,
       itemId,

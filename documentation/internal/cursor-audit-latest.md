@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change. After cross-cutting architecture or feature work, also follow [post-major-change-checklist.md](./post-major-change-checklist.md) so docs and this inventory stay aligned.
 
-**Last regenerated:** 2026-06-01 (configuration optimization pass: MCP dedupe defaults, canonical context alignment, and rule payload slimming).
+**Last regenerated:** 2026-06-07 (Added scoped `shared/local-dev-database.mdc` rule and Claude/Codex adapters for local DB reset/secrets/deploy boundaries. **19** agents, **14** skills remain.)
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -10,7 +10,7 @@
 | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | `pnpm typecheck`, `pnpm lint`, `pnpm lint:cycles`, `pnpm format:check`, `pnpm check`, `pnpm test:run` | [Client/package.json](../../Client/package.json)               |
 | `./scripts/ci/run-all-linters.sh [client\|server\|all]`, `make lint`                                  | [scripts/ci/run-all-linters.sh](../../scripts/ci/run-all-linters.sh), [Makefile](../../Makefile) |
-| `make setup`, `make dev`, `make test-fe`, `make test-be`, `make openapi`, `make openapi-verify`   | [Makefile](../../Makefile)                                     |
+| `make setup`, `make dev-db-init`, `make dev`, `make test-fe`, `make test-be`, `make openapi`, `make openapi-verify` | [Makefile](../../Makefile)                                     |
 
 Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/package.json`).
 
@@ -19,7 +19,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | Item                    | Status                                                                                                      |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `.cursor/mcp.json`      | Not committed; use [.cursor/mcp.example.json](../../.cursor/mcp.example.json) and local Cursor MCP settings |
-| `.cursorindexingignore` | Added at repo root — `@mention`-only paths                                                                  |
+| `.cursorindexingignore` | Excludes `@mention`-only paths; **`.claude/`**, **`.codex/`**, **`.agents/`** adapter trees (canonical content in `.cursor/`) |
 | `.cursorignore`         | Team template: [.cursorignore.example](../../.cursorignore.example) (copy to `.cursorignore` locally)       |
 
 ## Tracked `.cursor/` files (lines, last commit date, audit status)
@@ -78,6 +78,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `shared/code-style.mdc`                   | — → **yes**                | (always-on)                             | Stack, Linear commits, verification            |
 | `shared/respa-compliance.mdc`             | — → **no**                 | partners, placement, concierge, financing/insurance/closing | RESPA guardrails for partner code |
 | `shared/pitch-and-fundraising.mdc`        | — → **no**                 | pitch, deck, investor, fundraising globs | Deck-aligned numbers and tone      |
+| `shared/local-dev-database.mdc`           | — → **no**                 | Makefile, compose, setup/secrets scripts, Postgres ops docs | Local DB reset/init stays in Make/setup; deploy secrets stay in `.github/scripts/*` |
 | `shared/post-major-change-sync.mdc`         | no → **no**                | Client/apps/**, Client/packages/**, openapi/**, Server/app/** | Same-PR / fast-follow docs + rules sync after major architecture |
 | `shared/monorepo.mdc`                       | yes → **no**               | \*_/_                                   | Context budget                                  |
 | `shared/ci-gates.mdc`                       | yes → **no**               | .github/workflows/**, Client/**         |                                                 |
@@ -98,12 +99,49 @@ Other `.mdc` files were already `alwaysApply: false` or unchanged in scope. **No
 
 | Path | Purpose |
 |------|---------|
-| [`documentation/internal/component-audit/README.md`](./component-audit/README.md) | Tracked markdown outputs and triage (`TRIAGE.md`, per-axis tables). |
+| [`documentation/internal/component-audit/README.md`](./component-audit/README.md) | Tracked audit evidence (folder matrix); remediation → Linear. |
 | Repo root `audit/` (gitignored) | Local-only scratch audit tables; see rubric doc. |
+
+## Claude adapter (`.claude/`)
+
+Canonical content stays in `.cursor/`. Claude Code loads `@` stubs from `.claude/`.
+
+| Path | Count | Status | Notes |
+| ---- | ----- | ------ | ----- |
+| `.claude/settings.json` | 1 | keep | Adapter permissions config |
+| `.claude/rules/*.md` | 43 | keep | `@` stub → `.cursor/rules/**/*.mdc` |
+| `.claude/agents/*.md` | 19 | keep | `@` stub → `.cursor/agents/<name>.md` |
+| `.claude/skills/*/SKILL.md` | 14 | keep | `@` stub → `.cursor/skills/<name>/SKILL.md` (parity with `.cursor/skills/`) |
+
+## Codex adapter (`.codex/` + `.agents/skills/`)
+
+Canonical content stays in `.cursor/`. Codex loads project config when the repo is **trusted**.
+
+| Path | Count | Status | Notes |
+| ---- | ----- | ------ | ----- |
+| `.codex/README.md` | 1 | keep | Adapter map; edit `.cursor/` first |
+| `.codex/config.toml` | 1 | keep | `file_opener`, `project_doc_max_bytes`, `[agents]` |
+| `.codex/rules/*.md` | 43 | keep | `@` stub → `.cursor/rules/**/*.mdc`; mirrors `.claude/rules/` |
+| `.codex/rules/README.md` | 1 | keep | Adapter index |
+| `.codex/agents/*.toml` | 19 | keep | `developer_instructions` → `.cursor/agents/<name>.md` |
+| `.agents/skills/*/SKILL.md` | 14 | keep | `@` stub → `.cursor/skills/<name>/SKILL.md` |
+| `CODEX.md` (repo root) | 1 | keep | Codex quickstart; `@AGENTS.md` |
+
+See [`.codex/README.md`](../../.codex/README.md) and [CODEX.md](../../CODEX.md).
+
+## Removed fleet agents (2026-06-04)
+
+Deleted from `.cursor/agents/` (+ matching `.claude/agents/`, `.codex/agents/`) and skills:
+
+- **Docs audit:** `silverkey-docs-*` (9) + skill `documentation-full-stack-audit`
+- **Frontend reorg:** `silverkey-frontend-reorg-*` (8) + skill `frontend-reorganization`
+- **Backend reorg:** `silverkey-backend-reorg-*` (10) + skill `backend-reorganization`
+
+**Replacement:** default / `silverkey-engineer` agent + skills `documentation-placement`, `post-major-change-sync`, `make check-docs`; reorg checklists under `documentation/internal/component-audit/`.
 
 ## Loose markdown under `.cursor/` (historical)
 
-Previously noted: `FORMS_*`, `openapi-adoption-checklist.md`, etc. **Not present** in the current workspace listing. If reintroduced, default **move** to `documentation/internal/` or domain docs per plan.
+OpenAPI adoption and forms implementation journals were **moved** to [documentation/dev/cursor-legacy/](../dev/cursor-legacy/README.md) (read-only). Do not re-add `.cursor/openapi-*.md` or `.cursor/FORMS_*.md`; extend canonical docs under `documentation/server/` or `.cursor/rules/` instead.
 
 ## Local-only noise (do not commit)
 
@@ -115,7 +153,9 @@ Previously noted: `FORMS_*`, `openapi-adoption-checklist.md`, etc. **Not present
 ## Definition-of-done checklist
 
 - [x] `alwaysApply: true` count = **7** (security, thin-app, linting, documentation, silverkey-context, code-style, env-vars-minimal) — see [.cursor/README.md](../../.cursor/README.md)
-- [x] [CLAUDE.md](../../CLAUDE.md) — company AI context at repo root
+- [x] [CLAUDE.md](../../CLAUDE.md) — Claude Code quickstart at repo root
+- [x] [CODEX.md](../../CODEX.md) — Codex quickstart at repo root
+- [x] `.codex/` + `.agents/skills/` — Codex adapters (2026-06-02)
 - [x] [.cursor/rules/README.md](../../.cursor/rules/README.md) — rules index
 - [x] `.cursor/README.md` meta-doc
 - [x] `documentation/internal/cursor-audit-latest.md` (this file)

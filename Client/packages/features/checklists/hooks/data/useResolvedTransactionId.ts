@@ -11,24 +11,31 @@ import { useMyTransaction } from "./useMyTransaction";
  * - Buyer self: GET /transactions/me
  * - Agent viewing a client: `AgentClient.transaction_id`
  */
-export function useResolvedTransactionId(clientUserId?: string | null): {
+export function useResolvedTransactionId(
+  clientUserId?: string | null,
+  options?: { enabled?: boolean }
+): {
   transactionId: string | null;
   isLoading: boolean;
 } {
   const isAgent = useIsAgent();
+  const enabled = options?.enabled !== false;
   const { clients, isLoading: clientsLoading } = useAgentClients();
   const { transactionId: myTransactionId, isLoading: myTxLoading } = useMyTransaction({
-    enabled: !isAgent || !clientUserId,
+    enabled: enabled && (!isAgent || !clientUserId),
   });
 
   const transactionId = useMemo(() => {
+    if (!enabled) {
+      return null;
+    }
     if (clientUserId) {
       return clients.find((c) => c.id === clientUserId)?.transaction_id ?? null;
     }
     return myTransactionId;
-  }, [clientUserId, clients, myTransactionId]);
+  }, [clientUserId, clients, enabled, myTransactionId]);
 
-  const isLoading = clientUserId ? clientsLoading : myTxLoading;
+  const isLoading = !enabled ? false : clientUserId ? clientsLoading : myTxLoading;
 
   return { transactionId, isLoading };
 }

@@ -3,7 +3,7 @@ import {
   warnSearchAreaInvalid,
   warnSearchServerOrTimeout,
 } from "packages/features/search/utils/outcomes/searchOutcomeToast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { SearchFilterOverrides } from "packages/store";
 import type {
   IsochroneData,
@@ -14,6 +14,7 @@ import type {
 } from "packages/types/domain/api";
 
 import { extractViewportRingFromIsochroneGeometry } from "@/features/search/utils/map/extractViewportRingFromIsochroneGeometry";
+import { shouldClearLoadingOnSearchAbort } from "@/features/search/utils/searchAbortController";
 
 import { handlePolygonSearchResponse } from "./polygonPropertySearchResponse";
 import {
@@ -57,7 +58,7 @@ export const searchPropertiesInIsochrone = async (
   mapPreview?.onSearchStartClearDismissals?.();
 
   if (!isochroneData?.isochrone?.geometry) {
-    log.warn(LOG_CATEGORIES.SEARCH, "No isochrone geometry available for property search");
+    log.warn("SEARCH", "No isochrone geometry available for property search");
     warnSearchAreaInvalid("geometry");
     setIsSearching(false);
     setSearchStage("");
@@ -89,7 +90,7 @@ export const searchPropertiesInIsochrone = async (
         : {}),
     };
 
-    log.info(LOG_CATEGORIES.SEARCH, "Isochrone search: request filters (overrides + payload)", {
+    log.info("SEARCH", "Isochrone search: request filters (overrides + payload)", {
       overrideBedMin: overrides.preferred_bedrooms_min ?? null,
       overrideBedMax: overrides.preferred_bedrooms_max ?? null,
       overrideBathMin: overrides.preferred_bathrooms_min ?? null,
@@ -121,12 +122,14 @@ export const searchPropertiesInIsochrone = async (
     );
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {
-      setIsSearching(false);
-      setSearchStage("");
+      if (shouldClearLoadingOnSearchAbort()) {
+        setIsSearching(false);
+        setSearchStage("");
+      }
       return;
     }
-    log.error(LOG_CATEGORIES.ERRORS, "Error in automatic isochrone property search", error);
-    log.error(LOG_CATEGORIES.ERRORS, "Error details", {
+    log.error("ERRORS", "Error in automatic isochrone property search", error);
+    log.error("ERRORS", "Error details", {
       message: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
       isochroneData,
@@ -161,7 +164,7 @@ export const searchPropertiesInViewport = async (
   mapPreview?.onSearchStartClearDismissals?.();
 
   if (!viewportPolygon || viewportPolygon.length < 4) {
-    log.warn(LOG_CATEGORIES.SEARCH, "Viewport polygon missing or too small");
+    log.warn("SEARCH", "Viewport polygon missing or too small");
     warnSearchAreaInvalid("viewport");
     setIsSearching(false);
     setSearchStage("");
@@ -183,7 +186,7 @@ export const searchPropertiesInViewport = async (
         : {}),
     };
 
-    log.info(LOG_CATEGORIES.SEARCH, "Viewport polygon search request", {
+    log.info("SEARCH", "Viewport polygon search request", {
       pointCount: viewportPolygon.length,
       hasOverrides: Boolean(userPrefsOverride),
     });
@@ -207,11 +210,13 @@ export const searchPropertiesInViewport = async (
     );
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {
-      setIsSearching(false);
-      setSearchStage("");
+      if (shouldClearLoadingOnSearchAbort()) {
+        setIsSearching(false);
+        setSearchStage("");
+      }
       return;
     }
-    log.error(LOG_CATEGORIES.ERRORS, "Error in viewport property search", error);
+    log.error("ERRORS", "Error in viewport property search", error);
     warnSearchServerOrTimeout(error);
     setIsSearching(false);
     setSearchStage("");

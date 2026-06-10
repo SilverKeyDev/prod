@@ -10,11 +10,17 @@ export function resolveTemplateId(ctx: ProfileFlowContext): FlowTemplateId {
   }
 
   const primaryRole = ctx.primaryRole;
-  if (primaryRole === "seller" || primaryRole === "integration_partner") {
-    return "minimal_onboarding";
+  if (primaryRole === "seller") {
+    return "seller_onboarding";
+  }
+  if (primaryRole === "renter") {
+    return "renter_onboarding";
   }
   if (primaryRole === "brokerage") {
     return "brokerage_onboarding";
+  }
+  if (primaryRole === "integration_partner") {
+    return "integration_partner_onboarding";
   }
   if (ctx.isAgent || primaryRole === "agent") {
     return "agent_onboarding";

@@ -1,10 +1,13 @@
 """Per-user search UI display settings (map overlay, card count, result ordering)."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -48,13 +51,4 @@ class UserSearchDisplaySettings(db.Model):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    user = db.relationship(
-        "User",
-        backref=db.backref(
-            "user_search_display",
-            uselist=False,
-            lazy="select",
-            cascade="all, delete-orphan",
-            single_parent=True,
-        ),
-    )
+    user: Mapped["User"] = relationship("User", back_populates="user_search_display")

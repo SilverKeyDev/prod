@@ -42,7 +42,7 @@ def get_shared_redis() -> redis.Redis | None:
 
 
 def get_pubsub_redis() -> redis.Redis | None:
-    """Pooled client for blocking pub/sub reads (no socket read timeout)."""
+    """Shared pooled client for blocking pub/sub reads (no socket read timeout)."""
     global _pubsub_redis
     if _pubsub_redis is not None:
         return _pubsub_redis
@@ -59,6 +59,27 @@ def get_pubsub_redis() -> redis.Redis | None:
         socket_timeout=None,
     )
     return _pubsub_redis
+
+
+def create_messaging_pubsub_client() -> redis.Redis | None:
+    """Dedicated Redis client for one long-lived SSE pub/sub stream.
+
+    Callers must close the returned client when the stream ends. Do not reuse the
+    shared ``get_pubsub_redis()`` singleton for SSE — closing it breaks every other
+    open messaging stream on the same worker.
+    """
+    url = redis_url()
+    if not url:
+        return None
+    import redis as redis_lib
+
+    return redis_lib.Redis.from_url(
+        url,
+        decode_responses=True,
+        max_connections=1,
+        socket_connect_timeout=_REDIS_SOCKET_CONNECT_TIMEOUT_S,
+        socket_timeout=None,
+    )
 
 
 def ping_shared_redis() -> bool:

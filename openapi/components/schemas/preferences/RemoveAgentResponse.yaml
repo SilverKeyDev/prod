@@ -1,6 +1,0 @@
-allOf:
-  - $ref: '../shared/core/SuccessResponse.yaml'
-  - type: object
-    properties:
-      removed:
-        type: boolean

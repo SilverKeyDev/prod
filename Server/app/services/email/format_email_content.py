@@ -7,10 +7,9 @@ infrastructure for future LLM-based personalization.
 Now supports HTML rendering via React Email components.
 """
 
-import logging
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 # Import HTML renderer (optional - used only when HTML_RENDERING_AVAILABLE is True)
 convert_listing_to_email_dict: Any = None
@@ -28,7 +27,7 @@ try:
     HTML_RENDERING_AVAILABLE = True
 except ImportError:
     HTML_RENDERING_AVAILABLE = False
-    logger.warning("HTML email rendering not available. Falling back to plain text.")
+    log.warn("API", "HTML email rendering not available; falling back to plain text")
 
 
 # Hardcoded email configuration
@@ -72,12 +71,10 @@ class EmailFormatter:
         """
         try:
             # LLM client removed - using embedding-based scoring only
-            logger.info(
-                "[EMAIL_FORMATTER] LLM client initialization deferred (not yet implemented)"
-            )
+            log.info("API", "LLM client initialization deferred (not yet implemented)")
             pass
         except Exception as e:
-            logger.warning(f"[EMAIL_FORMATTER] Could not initialize LLM client: {e}")
+            log.warn("API", "Could not initialize LLM client", {"error": str(e)})
             self.use_llm = False
 
     def format_listings_text(
@@ -206,14 +203,19 @@ class EmailFormatter:
                         "maxItems": max_items,
                     },
                 )
-                logger.info(
-                    f"Successfully rendered HTML email for {recipient_email} "
-                    f"with {len(listing_dicts)} listings"
+                log.info(
+                    "API",
+                    "Successfully rendered HTML email",
+                    {
+                        "recipient_email": recipient_email,
+                        "listing_count": len(listing_dicts),
+                    },
                 )
             except Exception as e:
-                logger.warning(
-                    f"Failed to render HTML email for {recipient_email}, "
-                    f"falling back to plain text: {e}"
+                log.warn(
+                    "API",
+                    "Failed to render HTML email; falling back to plain text",
+                    {"recipient_email": recipient_email, "error": str(e)},
                 )
                 # Continue with plain text only
                 html_body = None
@@ -271,8 +273,9 @@ class EmailFormatter:
         # body = personalized_content.get("body", self.format_listings_text(listings, max_items))
         # return (recipient_email, subject, body)
 
-        logger.info(
-            "[EMAIL_FORMATTER] LLM personalization not yet implemented, using standard formatting"
+        log.info(
+            "API",
+            "LLM personalization not yet implemented; using standard formatting",
         )
         msg = self.format_email_message(
             recipient_email=recipient_email,
@@ -319,7 +322,11 @@ def format_email_messages(
             )
             messages.append(message)
         except Exception as e:
-            logger.error(f"[EMAIL_FORMATTER] Failed to format email for {email}: {e}")
+            log.error(
+                "ERRORS",
+                "Failed to format email message",
+                {"recipient_email": email, "error": str(e)},
+            )
             continue
 
     return messages

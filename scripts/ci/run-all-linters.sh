@@ -14,6 +14,12 @@ SCOPE="${1:-all}"
 
 echo "==> Repo hygiene: macOS duplicate file check"
 bash "$SCRIPT_DIR/check-macos-duplicate-files.sh"
+echo "==> Repo hygiene: no retired secureLogger imports (Client)"
+bash "$SCRIPT_DIR/check-no-secure-logger.sh"
+echo "==> Repo hygiene: log contract call sites (Client + Server)"
+python3 "$REPO_ROOT/scripts/log_contracts/lint_log_paths.py"
+echo "==> Repo hygiene: no legacy app_logging imports (Server)"
+bash "$SCRIPT_DIR/check-no-app-logging.sh"
 
 apply_client_fixes() {
   local log
@@ -62,7 +68,7 @@ run_server() {
 
   apply_server_fixes "$SERVER_PYTHON"
 
-  echo "==> Server: running discovered linters (scripts/lint/lint_*.py, then lint_*.sh)…"
+  echo "==> Server: running discovered linters (scripts/lint/**/lint_*.py, then lint_*.sh)…"
   (
     cd "$REPO_ROOT"
     shopt -s nullglob

@@ -7,11 +7,9 @@ import uuid
 from app import db
 from app.models import Agreement, AgreementEvent
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..errors import AgreementNotFoundError
-
-logger = get_logger()
 
 
 def create_agreement(
@@ -36,8 +34,8 @@ def create_agreement(
     if not buyer_id or not buyer_id.strip():
         raise ValueError("buyer_id cannot be empty")
 
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Creating agreement",
         {
             "agent_id": agent_id,
@@ -84,8 +82,8 @@ def create_agreement(
 
     db.session.commit()
 
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Agreement created successfully",
         {
             "agreement_id": agreement.id,
@@ -100,17 +98,15 @@ def create_agreement(
 
 def get_agreement(agreement_id: str) -> Agreement:
     """Get agreement by ID"""
-    logger.debug(LOG_CATEGORIES["DOCUSIGN"], "Fetching agreement", {"agreement_id": agreement_id})
+    log.debug("DOCUSIGN", "Fetching agreement", {"agreement_id": agreement_id})
 
     agreement = get_model(Agreement, agreement_id)
     if not agreement:
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"], "Agreement not found", {"agreement_id": agreement_id}
-        )
+        log.warn("DOCUSIGN", "Agreement not found", {"agreement_id": agreement_id})
         raise AgreementNotFoundError(f"Agreement {agreement_id} not found")
 
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Agreement fetched successfully",
         {"agreement_id": agreement_id, "status": agreement.status},
     )

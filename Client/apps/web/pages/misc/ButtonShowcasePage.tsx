@@ -1,4 +1,4 @@
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, CancelButton, Title } from "@/components/ui";
 

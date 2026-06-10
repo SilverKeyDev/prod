@@ -1,6 +1,6 @@
 """Fetch a single property detail via Slipstream /ws/listings/get.
 
-On success, the full parsed JSON body is logged at DEBUG (``LOG_CATEGORIES.API``).
+On success, the full parsed JSON body is logged at DEBUG (``"API"``).
 Reference payload (anonymized): ``slipstream_response_reference.SLIPSTREAM_LISTINGS_GET_RESPONSE_EXAMPLE``.
 """
 
@@ -9,7 +9,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from ..client import slipstream_get
 from ..config import SLIPSTREAM_MARKET
@@ -69,7 +69,7 @@ def _fetch_property_detail_once(
 
         if not resp.ok:
             log.warn(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Slipstream /ws/listings/get HTTP error",
                 {
                     "endpoint": "/ws/listings/get",
@@ -90,7 +90,7 @@ def _fetch_property_detail_once(
         if not body.get("success"):
             slip_msg = _slipstream_error_message(body)
             log.warn(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Slipstream /ws/listings/get returned success=false",
                 {
                     "endpoint": "/ws/listings/get",
@@ -109,7 +109,7 @@ def _fetch_property_detail_once(
             }
 
         log.debug(
-            LOG_CATEGORIES["API"],
+            "API",
             "Slipstream /ws/listings/get full response (property detail)",
             {
                 "caller": "get_property_detail",

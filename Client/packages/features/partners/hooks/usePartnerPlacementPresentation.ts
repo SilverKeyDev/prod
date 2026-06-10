@@ -1,14 +1,13 @@
 import { useMemo } from "react";
 
 import type { PartnerPlacement } from "packages/features/partners/api/partners";
-import { useMoveConciergeEmbedUrl } from "packages/features/partners/hooks/useMoveConciergeEmbedUrl";
 import {
   normalizePartnerIntegrationDisplayMode,
   partnerShowsIframe,
 } from "packages/features/partners/types/integrationDisplay";
 import { useAuthStore } from "packages/store";
-import { buildRevShareRedirectUrl } from "packages/utils/revShare/revShareRedirectUrl";
-import { getOrCreateRevShareSessionId } from "packages/utils/revShare/revShareSession";
+import { buildRevShareRedirectUrl } from "packages/utils/transaction/revShare/revShareRedirectUrl";
+import { getOrCreateRevShareSessionId } from "packages/utils/transaction/revShare/revShareSession";
 
 export type PartnerPlacementPresentationRow = {
   placement: PartnerPlacement;
@@ -40,6 +39,7 @@ function resolveRedirectOrigin(override?: string): string {
 
 /**
  * RESPA: Partner placement presentation — link CTAs route through /r/ for click logging.
+ * Embed URLs come from admin-configured placement.embed_src (no partner-slug hardcoding).
  */
 export function usePartnerPlacementPresentation({
   placements,
@@ -47,7 +47,6 @@ export function usePartnerPlacementPresentation({
   transactionId,
   redirectOrigin,
 }: UsePartnerPlacementPresentationArgs): PartnerPlacementPresentationRow[] {
-  const moveConciergeEmbedUrl = useMoveConciergeEmbedUrl();
   const buyerId = useAuthStore((s) => s.user?.id ?? null);
 
   return useMemo(() => {
@@ -71,16 +70,12 @@ export function usePartnerPlacementPresentation({
           })
         : placement.destination_url?.trim() || "";
 
-      let embedSrc: string | null =
+      const embedSrc =
         partnerShowsIframe(displayMode) && placement.embed_src?.trim()
           ? placement.embed_src.trim()
           : null;
 
-      if (!embedSrc && partnerShowsIframe(displayMode) && partner.slug === "move-concierge") {
-        embedSrc = moveConciergeEmbedUrl;
-      }
-
       return { placement, href, displayMode, embedSrc };
     });
-  }, [placements, stepId, transactionId, moveConciergeEmbedUrl, redirectOrigin, buyerId]);
+  }, [placements, stepId, transactionId, redirectOrigin, buyerId]);
 }

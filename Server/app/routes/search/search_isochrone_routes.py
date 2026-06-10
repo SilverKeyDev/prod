@@ -1,10 +1,12 @@
 """Isochrone route (large handler split from main search routes)."""
 
-from flask import current_app, jsonify, request
+from flask import jsonify, request
 
 from app.schemas import IsochroneQueryParams
+from app.utils.route.http_errors import forbidden, server_error, unauthorized
+from app.utils.route.response_helpers import standardize_error_response
 from app.utils.validation import validate_query
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from ...services.search.helpers.geometry_helpers import geocode_address_google
 from ...services.search.helpers.preferences_helpers import (
@@ -19,6 +21,18 @@ from ...services.search.scoring.research_preferences_context import (
 from .search_blueprint import search_bp
 
 
+def _no_locations_response(message: str = "No important locations found"):
+    return standardize_error_response(message, status_code=400, error_code="NO_LOCATIONS")
+
+
+def _no_valid_locations_response():
+    return standardize_error_response(
+        "No valid locations with addresses found",
+        status_code=400,
+        error_code="NO_VALID_LOCATIONS",
+    )
+
+
 @search_bp.route("/isochrone", methods=["GET"])
 @validate_query(IsochroneQueryParams)
 def get_isochrone(query: IsochroneQueryParams | None = None):
@@ -28,15 +42,12 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
     from the first important location.
     """
     try:
-        # Authenticate user
         user, auth_error = get_authenticated_user()
         if auth_error:
-            current_app.logger.error("[ISOCHRONE] User authentication failed")
+            log.error("AUTH", "isochrone_user_authentication_failed", None)
             return auth_error
         if user is None:
-            return jsonify(
-                {"success": False, "error": "UNAUTHORIZED", "message": "Authentication required"}
-            ), 401
+            return unauthorized()
 
         requested = (
             query.preferences_user_id
@@ -45,50 +56,33 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
         )
         resolved_prefs_uid, resolve_err = resolve_preferences_user_id_for_research(user, requested)
         if resolve_err is not None:
-            return jsonify(resolve_err), 403
-        assert resolved_prefs_uid is not None
+            return forbidden()
 
-        # Get and parse user preferences
         user_preferences, pref_error = get_user_preferences_parsed(str(resolved_prefs_uid))
         if pref_error:
             return pref_error
 
-        # Parse important locations
         important_locations, loc_error = parse_important_locations(user_preferences or {})
         if loc_error:
-            current_app.logger.info("[ISOCHRONE] %s", loc_error)
-            log.info(
-                LOG_CATEGORIES["POLYGON_SEARCH"],
-                "[ISOCHRONE] 400 NO_LOCATIONS (parse important_locations failed)",
+            log.warn(
+                "POLYGON_SEARCH",
+                "isochrone_locations_parse_invalid",
                 {
                     "prefs_user_id": str(resolved_prefs_uid),
                     "requested_preferences_user_id": requested,
-                    "parse_error": loc_error,
                 },
             )
-            return jsonify({"success": False, "error": "NO_LOCATIONS", "message": loc_error}), 400
+            return standardize_error_response(
+                loc_error,
+                status_code=400,
+                error_code="INVALID_LOCATIONS",
+            )
         if not important_locations:
-            log.info(
-                LOG_CATEGORIES["POLYGON_SEARCH"],
-                "[ISOCHRONE] 400 NO_LOCATIONS (empty important_locations list)",
-                {
-                    "prefs_user_id": str(resolved_prefs_uid),
-                    "requested_preferences_user_id": requested,
-                },
-            )
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "NO_LOCATIONS",
-                    "message": "No important locations found",
-                }
-            ), 400
+            return _no_locations_response()
 
-        # Prepare address and commute tolerance pairs for all locations and geocode them
         addresses_and_minutes = []
         geocoded_locations = []
 
-        # Use the Google Maps geocoding function
         for location in important_locations:
             address = location.get("address")
             commute_tolerance = location.get("commute_tolerance", 30)
@@ -101,7 +95,6 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
                     minutes = 30.0
                 addresses_and_minutes.append((address.strip(), minutes))
 
-                # Geocode the address to get coordinates using Google Maps API
                 coords = geocode_address_google(address.strip())
                 if coords:
                     lat, lng = coords
@@ -115,10 +108,14 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
                         }
                     )
                 else:
-                    current_app.logger.error(
-                        "[ISOCHRONE] Failed to geocode %s at %s", name, address
+                    log.error(
+                        "SEARCH",
+                        "isochrone_geocode_failed",
+                        {
+                            "location_name": name,
+                            "address_prefix": address.strip()[:20] if address else None,
+                        },
                     )
-                    # Add location with null coordinates to maintain consistency
                     geocoded_locations.append(
                         {
                             "name": name,
@@ -128,52 +125,39 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
                             "lng": None,
                         }
                     )
-                    current_app.logger.warning(
-                        "[ISOCHRONE] Added %s with null coordinates due to geocoding failure",
-                        name,
+                    log.warn(
+                        "SEARCH",
+                        "isochrone_geocode_null_coordinates",
+                        {"location_name": name},
                     )
 
         if not addresses_and_minutes:
             log.warn(
-                LOG_CATEGORIES["ERRORS"],
-                "[ISOCHRONE] 400 NO_VALID_LOCATIONS (no non-blank addresses after parsing)",
+                "SEARCH",
+                "isochrone_no_valid_locations",
                 {
                     "prefs_user_id": str(resolved_prefs_uid),
                     "requested_preferences_user_id": requested,
                     "important_location_count": len(important_locations),
                 },
             )
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "NO_VALID_LOCATIONS",
-                    "message": "No valid locations with addresses found",
-                }
-            ), 400
+            return _no_valid_locations_response()
 
-        # Generate union isochrone polygon for all locations
         try:
             isochrone_feature = isochrone_union_for_addresses(
                 addresses_and_minutes,
                 mode="drive",
-                include_individual=True,  # Include individual polygons for rendering
+                include_individual=True,
             )
             if isinstance(isochrone_feature, dict) and "geometry" in isochrone_feature:
                 isochrone_feature["geometry"]
         except Exception as e:
-            return jsonify(
-                {
-                    "success": False,
-                    "error": "ISOCHRONE_GENERATION_FAILED",
-                    "message": f"Failed to generate isochrone polygon: {str(e)}",
-                }
-            ), 500
+            log.error("SEARCH", "isochrone_generation_failed", e)
+            return server_error(e, context={"endpoint": "isochrone"})
 
-        # Calculate center point from all locations (use first location as primary center for backward compatibility)
         if not important_locations:
-            return jsonify(
-                {"success": False, "error": "NO_LOCATIONS", "message": "No locations"}
-            ), 400
+            return _no_locations_response("No locations")
+
         primary_location = important_locations[0]
         primary_address = primary_location.get("address")
         primary_name = (
@@ -187,24 +171,28 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
             if coords:
                 center_lat, center_lon = coords
             else:
-                # Fallback: use center of isochrone bounds if available
                 center_lat, center_lon = 0, 0
-                current_app.logger.warning(
-                    "[ISOCHRONE_CENTER] Geocoding failed for address '%s', using fallback coordinates: lat=%s, lon=%s",
-                    primary_address,
-                    center_lat,
-                    center_lon,
+                log.warn(
+                    "SEARCH",
+                    "isochrone_center_geocode_fallback",
+                    {
+                        "address_prefix": (primary_address or "")[:20],
+                        "center_lat": center_lat,
+                        "center_lon": center_lon,
+                    },
                 )
         except Exception as e:
             center_lat, center_lon = 0, 0
-            current_app.logger.error(
-                "[ISOCHRONE_CENTER] Exception during geocoding: %s, using fallback coordinates: lat=%s, lon=%s",
-                str(e),
-                center_lat,
-                center_lon,
+            log.error(
+                "SEARCH",
+                "isochrone_center_geocode_exception",
+                {
+                    "error": str(e),
+                    "center_lat": center_lat,
+                    "center_lon": center_lon,
+                },
             )
 
-        # Extract individual isochrones if available
         individual_isochrones = []
         if isinstance(isochrone_feature, dict) and "extras" in isochrone_feature:
             individual_features = isochrone_feature["extras"].get("individual_features", []) or []
@@ -222,7 +210,6 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
                         }
                     )
 
-        # Return the isochrone data
         response_data = {
             "success": True,
             "data": {
@@ -235,9 +222,7 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
                     "name": primary_name,
                 },
                 "locations": geocoded_locations,
-                "commute_tolerance": primary_location.get(
-                    "commute_tolerance", 30
-                ),  # Primary location's tolerance for backward compatibility
+                "commute_tolerance": primary_location.get("commute_tolerance", 30),
                 "mode": "drive",
             },
         }
@@ -245,13 +230,5 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
         return jsonify(response_data), 200
 
     except Exception as e:
-        current_app.logger.error("[ISOCHRONE] Unexpected error in get_isochrone: %s", e)
-        current_app.logger.error("[ISOCHRONE] Error type: %s", type(e))
-        current_app.logger.error("[ISOCHRONE] Error traceback:", exc_info=True)
-        return jsonify(
-            {
-                "success": False,
-                "error": "INTERNAL_ERROR",
-                "message": f"Internal server error: {str(e)}",
-            }
-        ), 500
+        log.error("SEARCH", "isochrone_unexpected_error", e)
+        return server_error(e, context={"endpoint": "isochrone"})

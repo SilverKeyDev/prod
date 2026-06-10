@@ -7,7 +7,7 @@
  * Use getInputClasses() for composed input styling; use getSharedInputTextStyles for raw text styles.
  */
 
-import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
+import { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 export type InputVariant = "default" | "mobile" | "compact" | "search";
 export type InputSize = "sm" | "md" | "lg";
@@ -105,7 +105,7 @@ export const DISPLAY_BOX_CLASSES =
 export const DISPLAY_BOX_READONLY_CLASSES = `${DISPLAY_BOX_CLASSES} bg-primary-muted`;
 
 /** Re-export for consumers that need raw text styles */
-export { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
+export { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 /** Label wrapper classes (mb-2 for spacing; label content uses labelVariants) */
 export const INPUT_LABEL_WRAPPER_CLASSES = "mb-2";
@@ -163,25 +163,25 @@ export const WEB_FORM_SIZE_STYLES_LEGACY: Record<InputSize, string> = {
 /** `Input.web` — `focus:` on the control. */
 export const WEB_FORM_VARIANT_STYLES_INPUT_FOCUS: Record<InputVariant, string> = {
   default:
-    "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border",
   mobile:
-    "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
+    "mobile-input border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
   compact:
-    "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border",
   search:
-    "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border",
 };
 
 /** `FieldShell` — `focus-within:` on the wrapper. */
 export const WEB_FORM_VARIANT_STYLES_SHELL_FOCUS_WITHIN: Record<InputVariant, string> = {
   default:
-    "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
   mobile:
-    "mobile-input border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly autofill-parent",
+    "mobile-input border-border bg-background-surface hover:bg-neutral-100 focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly autofill-parent",
   compact:
-    "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
   search:
-    "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
 };
 
 const WEB_INPUT_CONTROL_BASE =
@@ -200,7 +200,7 @@ export interface GetWebInputControlClassesOptions {
   className?: string;
 }
 
-/** Composed classes for `packages/ui/components/form/Input.web` (`<input>` / `customInput`). */
+/** Composed classes for `packages/ui/components/inputs/form/Input.web` (`<input>` / `customInput`). */
 export function getWebInputControlClasses(options: GetWebInputControlClassesOptions = {}): string {
   const {
     variant = "default",

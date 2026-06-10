@@ -27,7 +27,7 @@ Categories and order: `checklist_constants.py` — `search` → `offer` → `esc
 | offer | `offer/items.py` — `finding_home`, comps, purchase agreement |
 | escrow | `escrow/items.py` |
 | financing | `financing/items.py` |
-| closing | `closing/items.py` — Move Concierge step (`home_concierge`) |
+| closing | `closing/items.py` — move-in concierge step (`partner_placements`, item id 13) |
 | insurance | `insurance/items.py` |
 
 ### Progress storage (shipped, user-scoped)
@@ -54,7 +54,7 @@ Categories and order: `checklist_constants.py` — `search` → `offer` → `esc
 | `partner_agent` | Connected agent via messaging |
 | `finding_home` | `TransactionAddress` + Places autocomplete |
 | `review_comparables` | Comps section |
-| `home_concierge` | Move Concierge via `PartnerTransactionIntegration` + admin placements |
+| `partner_placements` | `PartnerTransactionIntegration` + admin rev-share placements per `step_id` |
 
 Client registry: `checklists/components/integrations/componentRegistry.ts`. Auto-complete: `useAutoCompleteChecklistIntegrations.ts`.
 
@@ -62,16 +62,17 @@ Client registry: `checklists/components/integrations/componentRegistry.ts`. Auto
 
 | Route | Scope |
 | ----- | ----- |
-| `GET/PUT /api/v1/tasks?type=` | Authenticated user |
-| `GET/PUT /api/v1/transactions/:buyerUserId/tasks?type=` | Self or agent’s client |
-| Progress summary | `/tasks/progress-summary`, `/transactions/:id/tasks/progress-summary` |
+| `GET/PUT /api/v1/transactions/:transactionId/tasks?type=` | Self or agent’s client (`transactions.id`) |
+| Progress summary | `GET /api/v1/transactions/:transactionId/tasks/progress-summary` |
 
-Client: `useChecklistData({ checklistSubjectUserId })` for agent mode.
+Client: `useChecklistData({ transactionId })` for agent client hub; buyer workspace resolves `transactionId` via `GET /api/v1/transactions/me` when omitted.
 
 ### Planned evolution
 
 - Materialize per-deal checklist state when multi-transaction model lands
 - Filter/transform items by jurisdiction and contract facts
 - Richer PUT payload (`itemStates` vs flat `checkedIds`)
+
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
 
 See `documentation/transactions/options/03-checklist-modeling.md` for storage options.

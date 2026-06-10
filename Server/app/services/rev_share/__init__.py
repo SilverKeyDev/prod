@@ -6,8 +6,8 @@ from .link_provisioning import (
     ensure_links_for_all_active_partners,
     ensure_links_for_partner,
 )
+from .placements import record_buyer_step_view
 from .redirect import build_redirect_destination, record_click_and_get_destination
-from .step_views import record_buyer_step_view
 from .url_template import interpolate_destination_url
 
 __all__ = [

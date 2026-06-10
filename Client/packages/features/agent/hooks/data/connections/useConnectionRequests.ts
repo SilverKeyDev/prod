@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import type { AgentConnectionRequest } from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";

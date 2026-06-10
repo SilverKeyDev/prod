@@ -74,18 +74,23 @@ export function useChecklistProgress(
   const isAgentViewer = options?.isAgentViewer === true;
   const activeSection = options?.activeSection;
 
+  const checklistEnabled = options?.enabled !== false;
+
   const {
     summary,
     isLoading: summaryLoading,
     error: summaryError,
-  } = useChecklistProgressSummary(options);
+  } = useChecklistProgressSummary({
+    ...options,
+    enabled: checklistEnabled,
+  });
 
   const activeChecklistType =
     activeSection != null ? CHECKLIST_TAB_TO_TYPE[activeSection] : "search";
 
   const activeData = useChecklistData(activeChecklistType, {
     ...options,
-    enabled: activeSection != null,
+    enabled: checklistEnabled && activeSection != null,
   });
 
   const sectionProgress = useMemo(

@@ -101,6 +101,30 @@ describe("adminApi", () => {
     });
   });
 
+  describe("listGateRoleUsers", () => {
+    it("returns admins on success", async () => {
+      const admins = [
+        {
+          user_id: "u1",
+          email: "a@b.c",
+          name: "Alice",
+          gate_roles: ["admin"],
+        },
+      ];
+      vi.mocked(apiGet).mockResolvedValueOnce({
+        success: true,
+        admins,
+      });
+      await expect(adminApi.listGateRoleUsers()).resolves.toEqual({ admins });
+      expect(apiGet).toHaveBeenCalledWith("/api/v1/admin/users/gate-roles");
+    });
+
+    it("throws when response invalid", async () => {
+      vi.mocked(apiGet).mockResolvedValueOnce({ success: false });
+      await expect(adminApi.listGateRoleUsers()).rejects.toThrow();
+    });
+  });
+
   describe("resetDevUserData", () => {
     it("posts confirm and scopes for self", async () => {
       vi.mocked(apiPost).mockResolvedValueOnce({
@@ -153,14 +177,16 @@ describe("adminApi", () => {
 
   describe("setCurrentUserAgentStatus", () => {
     it("returns user on success", async () => {
-      const user = { id: "u1", email: "a@b.c", name: "A", is_active: true, is_agent: true };
+      const user = { id: "u1", email: "a@b.c", name: "A", is_active: true, roles: ["agent"] };
       vi.mocked(apiPost).mockResolvedValueOnce({
         success: true,
         user,
       });
-      await expect(adminApi.setCurrentUserAgentStatus({ is_agent: true })).resolves.toEqual(user);
+      await expect(
+        adminApi.setCurrentUserAgentStatus({ agent_role_enabled: true })
+      ).resolves.toEqual(user);
       expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/current-user-agent-status", {
-        is_agent: true,
+        agent_role_enabled: true,
       });
     });
 
@@ -169,9 +195,9 @@ describe("adminApi", () => {
         success: false,
         error: "Forbidden",
       });
-      await expect(adminApi.setCurrentUserAgentStatus({ is_agent: false })).rejects.toThrow(
-        "Forbidden"
-      );
+      await expect(
+        adminApi.setCurrentUserAgentStatus({ agent_role_enabled: false })
+      ).rejects.toThrow("Forbidden");
     });
   });
 
@@ -182,7 +208,6 @@ describe("adminApi", () => {
         email: "a@b.c",
         name: "A",
         is_active: true,
-        is_agent: false,
         roles: ["seller"],
       };
       vi.mocked(apiPost).mockResolvedValueOnce({

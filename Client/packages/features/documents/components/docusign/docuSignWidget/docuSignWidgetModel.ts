@@ -1,5 +1,5 @@
 import type { Agreement } from "packages/features/documents/types/docusign";
-import { dateNow, dateParseISO } from "packages/utils/date";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
 
 import { daysSinceSent } from "@/features/documents/utils/docusignHelpers";
 

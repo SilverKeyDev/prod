@@ -1,7 +1,7 @@
 import type { IconName } from "packages/ui/types/icons";
-import { stripWorkspaceShellPrefix } from "packages/utils/layout/dashboardLayoutConfig";
+import { stripWorkspaceShellPrefix } from "packages/utils/core/layout/dashboardLayoutConfig";
 
-export type SidebarTabKey = "dashboard" | "search" | "decide" | "profile" | "agent";
+export type SidebarTabKey = "dashboard" | "analytics" | "search" | "decide" | "profile" | "agent";
 export type SidebarSubStep = {
   label: string;
   to: string;
@@ -27,6 +27,20 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
         label: "Dashboard",
         to: "/dashboard",
         icon: "home",
+      },
+    ],
+  },
+  analytics: {
+    key: "analytics",
+    name: "Analytics",
+    description: "Brokerage performance and team insights",
+    icon: "bar-chart-2",
+    href: "/analytics",
+    subSteps: [
+      {
+        label: "Analytics",
+        to: "/analytics",
+        icon: "bar-chart-2",
       },
     ],
   },
@@ -90,6 +104,7 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
 export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   const p = stripWorkspaceShellPrefix(pathname);
   if (p.startsWith("/dashboard")) return SIDEBAR_TABS.dashboard;
+  if (p.startsWith("/analytics")) return SIDEBAR_TABS.analytics;
   if (p.startsWith("/profile")) return SIDEBAR_TABS.profile;
   if (p.startsWith("/search")) return SIDEBAR_TABS.search;
   if (p.startsWith("/library") || p.startsWith("/saved") || p.startsWith("/compare-reports"))

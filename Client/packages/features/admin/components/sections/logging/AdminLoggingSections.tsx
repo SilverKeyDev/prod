@@ -1,10 +1,10 @@
-import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
-import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
 import {
   useAdminLoggerConfig,
   useUpdateAdminLoggerConfig,
-} from "packages/hooks/data/admin/useAdminLoggerConfig";
-import { Box } from "packages/ui/components/primitives";
+} from "packages/features/admin/hooks/data/useAdminLoggerConfig";
+import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
+import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText } from "@/components/ui";

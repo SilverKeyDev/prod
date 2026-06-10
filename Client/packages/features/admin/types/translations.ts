@@ -3,12 +3,12 @@ export const ADMIN_TRANSLATIONS: Record<string, string> = {
   "admin.dev_persona.nav_label": "Dev preview",
   "admin.dev_persona.title": "Development preview",
   "admin.dev_persona.description":
-    "Open dedicated buyer, seller, agent, brokerage, or integration partner test accounts in separate tabs for local QA.",
-  "admin.dev_persona.persona_title": "Role test accounts",
+    "Switch your account to any customer workspace persona for local QA. Updates server identity and workspace UX the same way production does.",
+  "admin.dev_persona.persona_title": "Active persona",
   "admin.dev_persona.persona_description":
-    "Each button opens a new tab already signed in as that role's dedicated dev account.",
+    "Choose buyer, seller, agent, brokerage, or integration partner. Only one persona is active at a time.",
   "admin.dev_persona.persona_warning":
-    "Dev sessions are non-production only, short-lived at launch, and isolated to the tab that opens.",
+    "Warning: this updates your real database user (`user_roles`, and onboarding demographics). Reload or revisit profile if other UI does not reflect the server immediately.",
   "admin.dev_persona.persona_unknown": "Unknown persona",
   "admin.dev_persona.banner_prefix": "Dev persona:",
   "admin.dev_persona.open_settings": "Open dev preview",

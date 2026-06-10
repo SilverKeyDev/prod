@@ -3,7 +3,7 @@ import React from "react";
 import { useLocalization } from "packages/contexts";
 import { SavedHomeCard } from "packages/features/saved/components/SavedHomeCard";
 import type { SavedHome } from "packages/types";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 interface SavedHomesListProps {
   filteredHomes: SavedHome[];

@@ -1,7 +1,7 @@
 /**
  * Centralized PII Security Utilities
  * Single source of truth for sensitive data detection, masking, and scrubbing
- * Used by clipboardSecurity, secureLogger, and other security modules
+ * Used by clipboardSecurity, packages/logger (via pii.ts), and other security modules
  */
 
 // Comprehensive PII patterns - centralized to avoid duplication

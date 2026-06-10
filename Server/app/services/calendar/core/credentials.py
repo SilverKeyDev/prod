@@ -10,21 +10,16 @@ from google.auth.transport.requests import Request as GoogleRequest
 from google.oauth2.credentials import Credentials
 
 from app.services.auth.tokens import tokens_delete, tokens_get, tokens_upsert
-from app.services.calendar.permissions import (
-    get_scopes_from_tokeninfo,
-)
+from app.services.calendar.permissions import get_scopes_from_tokeninfo
 from app.services.calendar.permissions.google_calendar_oauth import (
     normalize_google_oauth_scope_list,
     normalize_google_oauth_scope_string,
 )
-from app.utils.security.app_logging import get_logger
 from app.utils.security.security import log_oauth_event
+from logger import log
 
-logger = get_logger()
-
-# Lock for preventing concurrent token refreshes per user
 _refresh_locks: dict[str, threading.Lock] = {}
-_refresh_locks_lock = threading.Lock()  # Lock for managing refresh locks
+_refresh_locks_lock = threading.Lock()
 
 
 def _get_refresh_lock(user_id: str) -> threading.Lock:
@@ -59,38 +54,28 @@ def load_credentials(
     token_data = tokens_get(user_id)
     if not token_data:
         raise RuntimeError("Google Calendar not connected")
-
-    # Ensure all required fields are present, using service defaults as fallback
-    # client_secret always comes from config (not stored in DB)
     refresh_token = token_data.get("refresh_token")
     token_uri = token_data.get("token_uri") or token_endpoint
     stored_client_id = token_data.get("client_id") or client_id
-    stored_client_secret = client_secret  # Always use config value
+    stored_client_secret = client_secret
     stored_scopes = normalize_google_oauth_scope_list(
         token_data["scopes"].split() if token_data.get("scopes") else list(scopes)
     )
-
-    # Validate that we have the minimum required fields
     if not token_data.get("access_token"):
         raise RuntimeError("Google Calendar not connected: missing access token")
-
-    # Early validation: Check if refresh_token is missing (critical for token refresh)
-    # This prevents 500 errors when Google tries to refresh expired tokens
     if not refresh_token:
-        logger.warning(f"Missing refresh_token for user {user_id} - reconnection required")
+        log.warn("CALENDAR", f"Missing refresh_token for user {user_id} - reconnection required")
         raise RuntimeError(
             "GOOGLE_RECONNECT_REQUIRED: Missing refresh token. Please reconnect your Google Calendar account."
         )
-
-    # Validate that all required credential fields are present
     if not all([token_uri, stored_client_id, stored_client_secret]):
-        logger.warning(
-            f"Missing required credential fields for user {user_id} - reconnection required"
+        log.warn(
+            "CALENDAR",
+            f"Missing required credential fields for user {user_id} - reconnection required",
         )
         raise RuntimeError(
             "GOOGLE_RECONNECT_REQUIRED: Missing required credential fields. Please reconnect your Google Calendar account."
         )
-
     creds = Credentials(
         token=token_data["access_token"],
         refresh_token=refresh_token,
@@ -99,9 +84,6 @@ def load_credentials(
         client_secret=stored_client_secret,
         scopes=stored_scopes,
     )
-
-    # Refresh if expired or about to expire (within 5 minutes)
-    # This proactive refresh helps prevent expiration errors
     expiry = token_data.get("expiry")
     if expiry:
         try:
@@ -111,25 +93,17 @@ def load_credentials(
                 else datetime.fromisoformat(str(expiry).replace("Z", "+00:00"))
             )
             now = datetime.now(timezone.utc)
-            # Refresh if expired or expiring within 5 minutes
             should_refresh = (expiry_dt - now).total_seconds() < 300
         except Exception:
-            # If we can't parse expiry, check if creds.expired
             should_refresh = creds.expired
     else:
         should_refresh = creds.expired
-
     if should_refresh and creds.refresh_token:
-        # Use per-user lock to prevent concurrent refreshes
         user_lock = _get_refresh_lock(user_id)
-
         with user_lock:
-            # Re-check token data after acquiring lock (another thread may have refreshed it)
             token_data = tokens_get(user_id)
             if not token_data:
                 raise RuntimeError("Google Calendar not connected")
-
-            # Check if token was already refreshed by another thread
             expiry = token_data.get("expiry")
             if expiry:
                 try:
@@ -144,25 +118,19 @@ def load_credentials(
                     should_refresh = creds.expired
             else:
                 should_refresh = creds.expired
-
-            # Only refresh if still needed
             if should_refresh:
                 try:
-                    # Ensure all required fields are present for refresh
                     refresh_token = token_data.get("refresh_token")
                     if not refresh_token:
                         raise RuntimeError(
                             "Google Calendar not connected: missing refresh token. Please reconnect."
                         )
-
                     token_uri = token_data.get("token_uri") or token_endpoint
                     stored_client_id = token_data.get("client_id") or client_id
-                    stored_client_secret = client_secret  # Always use config value
+                    stored_client_secret = client_secret
                     stored_scopes = normalize_google_oauth_scope_list(
                         token_data["scopes"].split() if token_data.get("scopes") else list(scopes)
                     )
-
-                    # Recreate creds with latest token data and validated fields
                     creds = Credentials(
                         token=token_data["access_token"],
                         refresh_token=refresh_token,
@@ -171,68 +139,51 @@ def load_credentials(
                         client_secret=stored_client_secret,
                         scopes=stored_scopes,
                     )
-
-                    # Validate that all required fields are present before refresh
                     if not all(
                         [creds.refresh_token, creds.token_uri, creds.client_id, creds.client_secret]
                     ):
                         raise RuntimeError(
                             "Google Calendar not connected: missing required credential fields. Please reconnect."
                         )
-
                     creds.refresh(GoogleRequest())
-
-                    # CRITICAL: Preserve the refresh_token from stored data, not from creds
-                    # The Google Credentials object may not preserve refresh_token after refresh
-                    # Always use the refresh_token from token_data (which we validated exists above)
                     stored_refresh_token = token_data.get("refresh_token")
                     if not stored_refresh_token:
-                        # Fallback to creds.refresh_token, but this should not happen
                         stored_refresh_token = creds.refresh_token
-                        logger.warning(
-                            f"Using refresh_token from Credentials object for user {user_id} (unexpected)"
+                        log.warn(
+                            "CALENDAR",
+                            f"Using refresh_token from Credentials object for user {user_id} (unexpected)",
                         )
-
-                    # CRITICAL: Get authoritative scopes from tokeninfo endpoint
-                    # This is the canonical source of truth - scopes are embedded in the access token
-                    # Google does not provide an API to list all scopes - they're in the token itself
                     actual_scopes = get_scopes_from_tokeninfo(creds.token)
-
                     if actual_scopes:
-                        # Use scopes from tokeninfo (authoritative source)
-                        logger.info(
-                            f"Using scopes from tokeninfo for user {user_id}: {actual_scopes}"
+                        log.info(
+                            "CALENDAR",
+                            f"Using scopes from tokeninfo for user {user_id}: {actual_scopes}",
                         )
                         scopes_to_store = actual_scopes
                     else:
-                        # Fallback to stored scopes if tokeninfo fails (shouldn't happen often)
-                        logger.warning(
-                            f"Tokeninfo failed for user {user_id}, using stored scopes: {token_data.get('scopes', '')}"
+                        log.warn(
+                            "CALENDAR",
+                            f"Tokeninfo failed for user {user_id}, using stored scopes: {token_data.get('scopes', '')}",
                         )
                         scopes_to_store = normalize_google_oauth_scope_string(
                             token_data.get("scopes", "")
                         )
-
-                    # Update stored tokens - explicitly preserve refresh_token
-                    # client_secret not stored - always use config value
                     updated_tokens = {
                         "access_token": creds.token,
-                        "refresh_token": stored_refresh_token,  # Preserve from stored data, not creds
+                        "refresh_token": stored_refresh_token,
                         "token_uri": token_data["token_uri"],
                         "client_id": token_data["client_id"],
-                        # client_secret removed - always use config value
-                        "scopes": scopes_to_store,  # Use authoritative scopes from tokeninfo
+                        "scopes": scopes_to_store,
                         "expiry": creds.expiry,
                     }
                     tokens_upsert(user_id, updated_tokens)
-                    logger.info(
-                        f"Tokens refreshed for user {user_id}, refresh_token preserved: {bool(stored_refresh_token)}"
+                    log.info(
+                        "CALENDAR",
+                        f"Tokens refreshed for user {user_id}, refresh_token preserved: {bool(stored_refresh_token)}",
                     )
                     log_oauth_event("tokens_refreshed", user_id)
-
                 except Exception as e:
                     error_str = str(e).lower()
-                    # Check if this is a refresh token error (invalid_grant, invalid_token, etc.)
                     is_refresh_error = any(
                         keyword in error_str
                         for keyword in [
@@ -248,11 +199,10 @@ def load_credentials(
                             "client_secret",
                         ]
                     )
-
                     if is_refresh_error:
-                        # Refresh token is invalid/revoked or missing required fields - clear tokens and indicate reconnection needed
-                        logger.warning(
-                            f"Refresh token invalid or missing required fields for user {user_id}, clearing tokens: {str(e)}"
+                        log.warn(
+                            "CALENDAR",
+                            f"Refresh token invalid or missing required fields for user {user_id}, clearing tokens: {str(e)}",
                         )
                         tokens_delete(user_id)
                         log_oauth_event(
@@ -262,22 +212,18 @@ def load_credentials(
                             "Google Calendar not connected. Please reconnect your Google Calendar account."
                         ) from e
                     else:
-                        # Other errors (network, etc.) - log and re-raise
-                        logger.error(
-                            f"Failed to refresh credentials for user {user_id}: {str(e)}",
-                            exc_info=True,
+                        log.error(
+                            "ERRORS", f"Failed to refresh credentials for user {user_id}: {str(e)}"
                         )
                         raise RuntimeError(f"Failed to refresh Google credentials: {str(e)}") from e
             else:
-                # Token was refreshed by another thread, reload with fresh data
                 refresh_token = token_data.get("refresh_token")
                 token_uri = token_data.get("token_uri") or token_endpoint
                 stored_client_id = token_data.get("client_id") or client_id
-                stored_client_secret = client_secret  # Always use config value
+                stored_client_secret = client_secret
                 stored_scopes = normalize_google_oauth_scope_list(
                     token_data["scopes"].split() if token_data.get("scopes") else list(scopes)
                 )
-
                 creds = Credentials(
                     token=token_data["access_token"],
                     refresh_token=refresh_token,
@@ -286,5 +232,4 @@ def load_credentials(
                     client_secret=stored_client_secret,
                     scopes=stored_scopes,
                 )
-
     return creds

@@ -4,8 +4,8 @@ import { Icon } from "@ui/icons";
 
 import { ChecklistProgressBar } from "packages/features/checklists/components/progress/ChecklistProgressBar";
 import { CHECKLIST_TITLES, type ChecklistTab } from "packages/features/checklists/types/checklists";
-import { Box } from "packages/ui/components/primitives";
-import { UnderlineTabs } from "packages/ui/components/tabs";
+import { Box } from "packages/ui/components/structure/primitives";
+import { UnderlineTabs } from "packages/ui/components/structure/tabs";
 
 import MiniLogo from "@/components/asset/MiniLogo";
 import Card from "@/components/layout/Card.web";

@@ -1,12 +1,14 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { useSetCurrentUserDevWorkspaceMutation } from "packages/features/admin/hooks/data/useSetCurrentUserDevWorkspaceMutation";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
-import { useOpenDevAccountSessionMutation } from "packages/hooks/data/admin/useOpenDevAccountSessionMutation";
-import { Region } from "packages/ui/components/accessibility";
-import { ALL_WORKSPACES, type Workspace } from "packages/utils/workspace";
-import { workspaceSwitcherLabelKey } from "packages/utils/workspace/workspaceNavConfig";
+import { useAuthStore } from "packages/store";
+import { Region } from "packages/ui/components/system/accessibility";
+import { deriveDevAppPersonaFromProfile } from "packages/utils/growth/admin/deriveDevAppPersonaFromProfile";
+import { ALL_WORKSPACES, type Workspace } from "packages/utils/product/workspace";
+import { workspaceSwitcherLabelKey } from "packages/utils/product/workspace/workspaceNavConfig";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, Title } from "@/components/ui";
@@ -17,19 +19,34 @@ export function AdminDevPersonaSection({
   scope: _scope = DEFAULT_ADMIN_SCOPE,
 }: AdminSectionBaseProps) {
   const { t } = useLocalization();
-  const mutation = useOpenDevAccountSessionMutation();
+  const user = useAuthStore((s) => s.user);
+  const mutation = useSetCurrentUserDevWorkspaceMutation();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const activePersona = useMemo(
+    () =>
+      deriveDevAppPersonaFromProfile(
+        user
+          ? {
+              roles: user.roles,
+              brokerage_org_ids: user.brokerage_org_ids,
+            }
+          : null
+      ),
+    [user]
+  );
 
   const handleSetPersona = useCallback(
     async (workspace: Workspace) => {
+      if (workspace === activePersona) return;
       setErrorMessage(null);
       try {
-        await mutation.mutateAsync(workspace);
+        await mutation.mutateAsync({ workspace });
       } catch (e) {
         setErrorMessage(e instanceof Error ? e.message : "Request failed");
       }
     },
-    [mutation]
+    [activePersona, mutation]
   );
 
   const busy = mutation.isPending;
@@ -59,13 +76,15 @@ export function AdminDevPersonaSection({
         label={t("admin.dev_persona.persona_title")}
       >
         {ALL_WORKSPACES.map((workspace) => {
+          const selected = workspace === activePersona;
           return (
             <Button
               key={workspace}
-              variant="secondary"
+              variant={selected ? "primary" : "secondary"}
               size="sm"
               disabled={busy}
               onPress={() => void handleSetPersona(workspace)}
+              accessibilityState={{ selected }}
             >
               {t(workspaceSwitcherLabelKey(workspace))}
             </Button>

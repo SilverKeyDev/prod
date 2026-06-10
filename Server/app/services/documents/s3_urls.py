@@ -4,11 +4,9 @@ S3 presigned URL generation (download and view URLs).
 
 from botocore.exceptions import ClientError, ParamValidationError
 
-from app.utils.security.app_logging import get_logger
+from logger import log
 
 from .s3_helpers import get_presigned_url_expiration
-
-logger = get_logger()
 
 
 def generate_presigned_url(
@@ -32,10 +30,10 @@ def generate_presigned_url(
         The presigned URL, or None if generation failed
     """
     if not s3_key:
-        logger.error("No S3 key provided for presigned URL generation")
+        log.error("DOCUMENTS", "No S3 key provided for presigned URL generation")
         return None
     if not bucket_name:
-        logger.error("S3 bucket name not available")
+        log.error("DOCUMENTS", "S3 bucket name not available")
         return None
 
     expiration = get_presigned_url_expiration()
@@ -50,15 +48,25 @@ def generate_presigned_url(
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(
-            f"Failed to generate presigned URL for {s3_key}: {error_code} - {error_message}"
+        log.error(
+            "DOCUMENTS",
+            "Failed to generate presigned URL",
+            {"s3_key": s3_key, "error_code": error_code, "error_message": error_message},
         )
         return None
     except ParamValidationError as e:
-        logger.error(f"Parameter validation error generating presigned URL: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Parameter validation error generating presigned URL",
+            {"error": str(e)},
+        )
         return None
     except Exception as e:
-        logger.error(f"Unexpected error generating presigned URL: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Unexpected error generating presigned URL",
+            {"error": str(e)},
+        )
         return None
 
 
@@ -84,10 +92,10 @@ def generate_view_url(
         The presigned URL, or None if generation failed
     """
     if not s3_key:
-        logger.error("No S3 key provided for view URL generation")
+        log.error("DOCUMENTS", "No S3 key provided for view URL generation")
         return None
     if not bucket_name:
-        logger.error("S3 bucket name not available")
+        log.error("DOCUMENTS", "S3 bucket name not available")
         return None
 
     expiration = get_presigned_url_expiration()
@@ -107,11 +115,23 @@ def generate_view_url(
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(f"Failed to generate view URL for {s3_key}: {error_code} - {error_message}")
+        log.error(
+            "DOCUMENTS",
+            "Failed to generate view URL",
+            {"s3_key": s3_key, "error_code": error_code, "error_message": error_message},
+        )
         return None
     except ParamValidationError as e:
-        logger.error(f"Parameter validation error generating view URL: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Parameter validation error generating view URL",
+            {"error": str(e)},
+        )
         return None
     except Exception as e:
-        logger.error(f"Unexpected error generating view URL: {str(e)}")
+        log.error(
+            "DOCUMENTS",
+            "Unexpected error generating view URL",
+            {"error": str(e)},
+        )
         return None

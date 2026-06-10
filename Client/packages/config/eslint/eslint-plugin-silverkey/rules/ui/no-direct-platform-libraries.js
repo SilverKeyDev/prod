@@ -57,7 +57,7 @@ module.exports = {
     ],
     messages: {
       useAdapter:
-        "Do not import '{{package}}' here. Use the platform adapter from packages/ui (e.g. MotionView from packages/ui/components/adapters/motion, Portal from packages/ui/components/portal) so web and React Native share the same API.",
+        "Do not import '{{package}}' here. Use the platform adapter from packages/ui (e.g. MotionView from packages/ui/components/system/adapters/motion, Portal from packages/ui/components/structure/portal) so web and React Native share the same API.",
     },
   },
 

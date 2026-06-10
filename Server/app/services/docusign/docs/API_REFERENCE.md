@@ -622,7 +622,7 @@ Builds complete envelope definition.
 ```python
 from app.services.docusign.envelopes.builder import EnvelopeBuilder
 
-agreement = Agreement.query.get("agreement-123")
+agreement = db.session.get(Agreement, "agreement-123")
 builder = EnvelopeBuilder(agreement, signing_method="embedded")
 envelope_definition = builder.build()
 

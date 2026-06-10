@@ -1,5 +1,5 @@
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText } from "@/components/ui";
 

@@ -1,17 +1,11 @@
 import { clientSettingsApi } from "packages/features/homeauth/api/clientSettings";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import type { SubmitHandlerParams } from "packages/features/profile/types/onboarding/submitHandler";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
-
-import { primaryOnboardingRoleFromForm } from "@/features/profile/utils/onboarding/role/onboardingRoleSelection";
-import { formDataToPreferencesPayload } from "@/features/profile/utils/onboarding/sync/profileFormSync";
-import { validateOnboardingData } from "@/features/profile/utils/onboarding/validation/validation";
-
-/** Default post-onboarding route by primary role (canonical paths). */
-export function postOnboardingPathForForm(formData: OnboardingData): string {
-  return primaryOnboardingRoleFromForm(formData) === "seller" ? "/dashboard" : "/search";
-}
+import { formDataToPreferencesPayload } from "packages/features/profile/utils/onboarding/sync/profileFormSync";
+import { validateOnboardingData } from "packages/features/profile/utils/onboarding/validation/validation";
+import { log } from "packages/logger";
+import { DEFAULT_AUTHENTICATED_PATH } from "packages/navigation/types/routes";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
 
 export type {
   PreferencesSubmitResult,
@@ -50,7 +44,7 @@ export const handleSubmit = async ({
         setShowValidationWarning(true);
       } else {
         // Fallback to warning log if validation UI not available
-        log.warn(LOG_CATEGORIES.ERRORS, "Validation failed", {
+        log.warn("ERRORS", "Validation failed", {
           missingFields: validation.missingFields,
           errors: validation.errors,
         });
@@ -63,7 +57,7 @@ export const handleSubmit = async ({
   try {
     const payload = formDataToPreferencesPayload(formData);
     const payloadIl = payload.important_locations;
-    log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "handleSubmit.preferencesPayload", {
+    log.info("PROFILE_PREFERENCES", "handleSubmit.preferencesPayload", {
       formHasImportantLocationsKey: Object.prototype.hasOwnProperty.call(
         formData,
         "important_locations"
@@ -78,7 +72,7 @@ export const handleSubmit = async ({
       payloadImportantLocationsLen: Array.isArray(payloadIl) ? payloadIl.length : null,
     });
     const result = await submitPreferences(payload as OnboardingData);
-    log.info(LOG_CATEGORIES.API, "Preferences submitted successfully", {
+    log.info("API", "Preferences submitted successfully", {
       success: result.success,
     });
 
@@ -91,16 +85,16 @@ export const handleSubmit = async ({
       if (onSuccessNavigate) {
         onSuccessNavigate();
       } else if (navigate) {
-        navigate(postOnboardingPathForForm(formData));
+        navigate(DEFAULT_AUTHENTICATED_PATH);
       }
     } else {
       const errorMsg = result.error ?? "Failed to generate report";
-      log.error(LOG_CATEGORIES.ERRORS, "Server returned unsuccessful result", result);
+      log.error("ERRORS", "Server returned unsuccessful result", result);
       throw new Error(result.message ?? errorMsg);
     }
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.ERRORS, "Error in handleSubmit", error);
-    log.error(LOG_CATEGORIES.ERRORS, "Error stack", {
+    log.error("ERRORS", "Error in handleSubmit", error);
+    log.error("ERRORS", "Error stack", {
       stack: error instanceof Error ? error.stack : "No stack trace",
     });
 

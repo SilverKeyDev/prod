@@ -5,6 +5,7 @@ Tests for Google OAuth callback flow (redirect-based handler).
 from unittest.mock import patch
 
 from flask import Flask
+from sqlalchemy import select
 
 
 class TestOAuthCallback:
@@ -106,7 +107,10 @@ class TestOAuthCallback:
         session_data = {"google_auth_oauth_state": "state_token_123"}
 
         with app.app_context():
-            assert User.query.filter_by(email="newuser-oauth@example.com").first() is None
+            assert (
+                db.session.scalar(select(User).where(User.email == "newuser-oauth@example.com"))
+                is None
+            )
             with (
                 patch.object(oauth_mod.google_oauth_service, "validate_state", return_value=True),
                 patch.object(
@@ -138,7 +142,9 @@ class TestOAuthCallback:
             ):
                 resp = oauth_mod.handle_google_oauth_callback(request_args, session_data, "req-123")
                 assert resp.status_code == 302
-                created = User.query.filter_by(email="newuser-oauth@example.com").first()
+                created = db.session.scalar(
+                    select(User).where(User.email == "newuser-oauth@example.com")
+                )
                 assert created is not None
                 assert created.google_id == "google-sub-new-456"
                 db.session.delete(created)

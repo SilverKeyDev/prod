@@ -1,7 +1,7 @@
 import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { ClientSelector } from "@/components/ui";
 

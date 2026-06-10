@@ -1,12 +1,19 @@
 # Local prod-parity stack: app + Redis + Celery worker + Beat.
 # Requires Server/.env with DATABASE_URL and other keys from make setup.
+# Docker build args: all Client/.env entries (see compose.sh / make prod-parity-build).
 #
 # Usage (from repo root):
 #   make prod-parity-build && make prod-parity
-#   docker compose -f scripts/deploy/prod-parity/docker-compose.yml build
-#   docker compose -f scripts/deploy/prod-parity/docker-compose.yml up
+#   make prod-parity-smoke
+#   bash scripts/deploy/prod-parity/compose.sh build
+#   bash scripts/deploy/prod-parity/compose.sh up
 #
 # App: http://127.0.0.1:5000/livez
+
+x-backend-build: &backend-build
+  context: ../../..
+  dockerfile: Dockerfile.web
+  target: backend
 
 services:
   redis:
@@ -18,10 +25,7 @@ services:
       retries: 5
 
   app:
-    build:
-      context: ../../..
-      dockerfile: Dockerfile.web
-      target: backend
+    build: *backend-build
     ports:
       - "5000:5000"
     env_file:
@@ -47,10 +51,7 @@ services:
       start_period: 60s
 
   worker:
-    build:
-      context: ../../..
-      dockerfile: Dockerfile.web
-      target: backend
+    build: *backend-build
     env_file:
       - ../../../Server/.env
     environment:
@@ -74,10 +75,7 @@ services:
         condition: service_healthy
 
   beat:
-    build:
-      context: ../../..
-      dockerfile: Dockerfile.web
-      target: backend
+    build: *backend-build
     env_file:
       - ../../../Server/.env
     environment:

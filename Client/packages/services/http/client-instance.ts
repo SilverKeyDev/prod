@@ -3,7 +3,7 @@
    ========================= */
 
 import { getBaseUrl, getDefaultRetries, getDefaultTimeout } from "packages/config/env";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { HttpClient, type HttpClientConfig } from "./client/HttpClient";
 
@@ -27,7 +27,7 @@ function createAuthTokenProvider(): () => string | null {
 
 function createAuthErrorHandler(): (error: Error) => void {
   return (error: Error) => {
-    log.warn(LOG_CATEGORIES.AUTH, "Auth error in HTTP client", error);
+    log.warn("AUTH", "Auth error in HTTP client", error);
     // Note: Removed authChange dispatch to prevent conflicts
   };
 }

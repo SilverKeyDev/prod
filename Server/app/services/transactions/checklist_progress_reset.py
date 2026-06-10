@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from sqlalchemy import delete
+
 from app import db
 from app.models import BuyerStepView, TransactionAddress, TransactionTask, User
 from app.services.transactions.ensure import transaction_for_buyer
@@ -13,10 +15,12 @@ def clear_checklist_progress_for_user(user_id: str, user: User) -> None:
     tx = transaction_for_buyer(uid)
 
     if tx:
-        TransactionTask.query.filter_by(transaction_id=tx.id).delete(synchronize_session=False)
-        TransactionAddress.query.filter_by(transaction_id=tx.id).delete(synchronize_session=False)
+        db.session.execute(delete(TransactionTask).where(TransactionTask.transaction_id == tx.id))
+        db.session.execute(
+            delete(TransactionAddress).where(TransactionAddress.transaction_id == tx.id)
+        )
     else:
-        TransactionTask.query.filter_by(user_id=uid).delete(synchronize_session=False)
-        TransactionAddress.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    BuyerStepView.query.filter_by(buyer_id=uid).delete(synchronize_session=False)
+        db.session.execute(delete(TransactionTask).where(TransactionTask.user_id == uid))
+        db.session.execute(delete(TransactionAddress).where(TransactionAddress.user_id == uid))
+    db.session.execute(delete(BuyerStepView).where(BuyerStepView.buyer_id == uid))
     db.session.add(user)

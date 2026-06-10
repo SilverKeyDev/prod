@@ -1,5 +1,6 @@
 """Reel/feed like by (user_id, home_id). Requires migration to create reel_likes table."""
 
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 
@@ -19,11 +20,3 @@ class ReelLike(db.Model):
     user_id: Mapped[str] = mapped_column(db.String(36))
     home_id: Mapped[str] = mapped_column(db.String(64), index=True)
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "home_id": self.home_id,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-        }

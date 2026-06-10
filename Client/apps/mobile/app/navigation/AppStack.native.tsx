@@ -2,13 +2,13 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { MessagingScreenNative } from "packages/features/agent/native";
-import { ProfileScreenNative } from "packages/features/profile/native";
-import { SavedScreenNative } from "packages/features/saved/native";
-import { SearchScreenNative } from "packages/features/search/native";
+import { MessagingScreenNative } from "packages/features/agent";
+import { ProfileScreenNative } from "packages/features/profile";
+import { SavedScreenNative } from "packages/features/saved";
+import { SearchScreenNative } from "packages/features/search";
 import { type AppTabName, TAB_ICONS } from "packages/navigation/constants";
 import { useNotificationStore } from "packages/store";
-import { Icon } from "packages/ui/components/primitives";
+import { Icon } from "packages/ui/components/structure/primitives";
 import type { IconName } from "packages/ui/types/icons";
 
 import { DashboardStack } from "./DashboardStack.native";

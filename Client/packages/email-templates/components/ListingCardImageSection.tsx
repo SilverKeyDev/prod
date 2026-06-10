@@ -4,7 +4,7 @@ import React from "react";
 import { Img } from "@react-email/components";
 
 import { color } from "packages/design-tokens";
-import { getMatchTier } from "packages/utils/format/matchScore";
+import { getMatchTier } from "packages/utils/core/format/matchScore";
 
 import { emailColors } from "./colors";
 import type { Listing } from "./listingCardTypes";

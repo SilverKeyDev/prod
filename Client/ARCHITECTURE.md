@@ -15,10 +15,10 @@ Client/
 │   │   ├── main.tsx            # Entry point
 │   │   ├── vite.config.js      # Main Vite configuration
 │   │   └── vite.config.resolve.js  # Vite resolve configuration (extracted to reduce file size)
-│   └── mobile/                 # React Native app (Metro)
+│   └── mobile/                 # React Native app (Metro + Expo)
 │       ├── app/screens/        # Screen components (thin shells)
 │       ├── app/providers/      # Platform-specific providers
-│       └── App.tsx             # Entry point
+│       └── App.tsx             # Expo entry → AppRoot.native.tsx
 ├── packages/
 │   ├── features/               # Feature modules (auth, search, profile, etc.)
 │   │   ├── <feature>/
@@ -40,8 +40,9 @@ Client/
 │   ├── services/               # Business logic services
 │   ├── contexts/               # React Context providers
 │   └── schemas/                # Shared type definitions
-└── documentation/              # Client-specific documentation
 ```
+
+Long-form client docs live at repo root in **`documentation/client/`** (see [documentation/client/architecture/](../documentation/client/architecture/)).
 
 ### `packages/utils` top-level domains
 
@@ -79,7 +80,6 @@ Shared pure helpers live under `Client/packages/utils/` with many **top-level si
 | typeGuards | Unknown coercion and guards |
 | ui | Tiny UI-adjacent helpers (non-components) |
 | verification | Verification code input helpers |
-| viewing | Viewing itinerary geocoding |
 | web | Web-only helpers (e.g. settings scroll) |
 
 ### Where UI components live
@@ -125,30 +125,15 @@ Shared pure helpers live under `Client/packages/utils/` with many **top-level si
 │  packages/hooks/                    │  React hooks
 │  (useX data, useY UI state)         │
 ├─────────────────────────────────────┤
-│  packages/config/api/               │  API clients
-│  (Thin wrappers: authApi, userApi)  │
+│  packages/api/                      │  API clients (canonical barrel)
+│  (authApi, userApi, feature api/)   │
 ├─────────────────────────────────────┤
 │  packages/services/                 │  Infrastructure
 │  (HTTP client, security, logging)   │
 └─────────────────────────────────────┘
 ```
 
-### Import Rules
-
-| From                            | Can Import                                                                                         |
-| ------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `apps/web/*` or `apps/mobile/*` | `packages/hooks/*`, `packages/store/*`, `packages/ui/*`, `packages/utils/*`, `packages/contexts/*` |
-| `packages/hooks/data/*`         | `packages/config/api/*`, `packages/store/*`, `packages/services/http/*`                            |
-| `packages/hooks/store/*`        | `packages/hooks/data/*`, `packages/store/*`                                                        |
-| `packages/config/api/*`         | `packages/services/http/*`, `packages/services/security/*`                                         |
-
-**Forbidden:**
-
-- ❌ Apps → `packages/config/api/*` or `packages/services/*` (use hooks instead)
-- ❌ Hooks → Business logic services (use `config/api/*`)
-- ❌ Services → Hooks or React (services are framework-agnostic)
-
-See: `.cursor/rules/frontend/frontend-architecture.mdc`
+**Import matrix and layer rules:** [documentation/client/architecture/layered-architecture-imports.md](../documentation/client/architecture/layered-architecture-imports.md). Enforced in CI via `.cursor/rules/frontend/frontend-architecture.mdc` and ESLint `silverkey/no-restricted-imports-architecture`.
 
 ## Platform File Extensions
 
@@ -167,59 +152,21 @@ Use `.tsx`/`.ts` for files that work on both web and mobile (90%+ of code).
 
 ```typescript
 // ✅ Shared component (no suffix)
-packages / ui / components / Button.tsx;
+packages/ui/components/Button.tsx;
 
 // ✅ Web-only layout
-apps / web / app / layouts / sidebar / Sidebar.web.tsx;
+apps/web/app/layouts/sidebar/Sidebar.web.tsx;
 
-// ✅ Mobile-only layout
-apps / mobile / app / components / BottomNav.native.tsx;
+// ✅ Mobile-only screen
+apps/mobile/app/screens/DashboardScreen.native.tsx;
 ```
 
 See: `.cursor/rules/frontend/platform-file-extensions.mdc`
 
 ## State Management
 
-### Server Cache: TanStack Query (React Query)
-
-For **server data** (users, properties, preferences, etc.):
-
-```typescript
-// packages/hooks/data/user/useUserData.ts
-import { useQuery } from "@tanstack/react-query";
-import { userApi } from "../../config/api/user";
-
-export const useUserData = () => {
-  const { data, isLoading } = useQuery({
-    queryKey: ["user", "profile"],
-    queryFn: () => userApi.getProfile(),
-  });
-
-  return { user: data, isLoading };
-};
-```
-
-**Benefits:**
-
-- Automatic caching, refetching, and invalidation
-- Loading/error states
-- Cancellation on unmount
-
-### UI State: Zustand
-
-For **global UI state** (modals, sidebar open, filters, etc.):
-
-```typescript
-// packages/store/slices/ui/sidebar.slice.ts
-import { create } from "zustand";
-
-export const useSidebarStore = create<SidebarState>((set) => ({
-  isOpen: false,
-  toggleSidebar: () => set((state) => ({ isOpen: !state.isOpen })),
-}));
-```
-
-**Integration hooks** (in `packages/hooks/store/`) sync server cache → Zustand when UI needs global access.
+- **Server cache:** TanStack Query in `packages/hooks/data/*` — calls `packages/api` (or legacy `packages/config/http/api` re-exports).
+- **Global UI state:** Zustand slices in `packages/store/`; components use integration hooks from `packages/hooks/store/*` when server cache and store must stay in sync.
 
 See: `.cursor/rules/frontend/state-boundaries.mdc`
 
@@ -250,124 +197,26 @@ import { View } from "react-native"; // Native-only
 
 See: `.cursor/rules/shared/cross-platform-component-reuse.mdc`
 
-## React Hooks Best Practices
+## React Hooks and UI Components
 
-### Avoid Infinite Loops
-
-**Most common bug:** `useEffect` with unstable dependencies
-
-```typescript
-// ❌ WRONG: New object every render → effect every render
-useEffect(() => {
-  setX(...)
-}, [{ foo: bar }]);
-
-// ✅ CORRECT: Memoize objects
-const filter = useMemo(() => ({ foo: bar }), [bar]);
-useEffect(() => {
-  setX(...)
-}, [filter]);
-
-// ✅ BETTER: Derive instead of storing
-const x = useMemo(() => compute(bar), [bar]);
-```
-
-### No Async useEffect
-
-```typescript
-// ❌ WRONG: Async effect
-useEffect(async () => {
-  const data = await fetch(...);
-}, []);
-
-// ✅ CORRECT: Use React Query
-const { data } = useQuery({
-  queryKey: ["data"],
-  queryFn: () => fetch(...),
-});
-
-// ✅ CORRECT: Explicit async with cleanup
-useEffect(() => {
-  const ac = new AbortController();
-  (async () => {
-    const data = await fetch(..., { signal: ac.signal });
-    if (!ac.signal.aborted) setData(data);
-  })();
-  return () => ac.abort();
-}, []);
-```
-
-See: `.cursor/rules/frontend/react-hooks.mdc`, `.cursor/rules/frontend/async-cancellation.mdc`
-
-## UI Components
-
-### Standardized Components
-
-All buttons and text MUST use standardized components from **`Client/packages/ui/`** (see “Where UI components live” above):
-
-```typescript
-import { Button, CancelButton, CloseButton, Title, BodyText, Label } from "packages/ui";
-
-// ✅ CORRECT
-<Button variant="primary" size="md">Save</Button>
-<Title size="lg">Settings</Title>
-<BodyText size="sm" muted>Description text</BodyText>
-
-// ❌ WRONG: Custom button with inline styles
-<button className="px-4 py-2 bg-blue-500">Save</button>
-
-// ❌ WRONG: Direct text size classes
-<h2 className="text-xl font-bold">Settings</h2>
-```
-
-### Color System
-
-- **Primary/CTA**: Olive (via `brand-accent`)
-- **Secondary/Cancel**: Gray
-- **Danger**: Rose
-- **Success**: Brand secondary
-
-Never use brown for buttons. Use semantic variants (primary, secondary, danger) instead of direct colors.
-
-See: `.cursor/rules/frontend/ui-components.mdc`
+- **Hooks:** Loop prevention, async effects, and Zustand selector patterns — `.cursor/rules/frontend/react-hooks.mdc`, `.cursor/rules/frontend/async-cancellation.mdc`; examples in [documentation/client/patterns/react-hooks-patterns.md](../documentation/client/patterns/react-hooks-patterns.md).
+- **UI:** All buttons and text use **`Client/packages/ui/`** primitives — `.cursor/rules/frontend/ui-components.mdc`.
 
 ## Build and Tooling
 
-### Web (Vite)
+Run from **`Client/`** with **pnpm 9** (see root `AGENTS.md`).
 
-- **Dev**: `npm run dev`
-- **Build**: `npm run build`
-- **Preview**: `npm run preview`
+| Target | Command |
+| ------ | ------- |
+| Web dev | `pnpm dev:web` |
+| Mobile dev | `pnpm dev:mobile` |
+| Typecheck | `pnpm typecheck` |
+| Lint + cycles | `pnpm lint && pnpm lint:cycles` |
+| Full client gate | `pnpm check` |
 
-Configuration: `apps/web/vite.config.js` (with helpers in `vite.config.resolve.js`)
+Web: `apps/web/vite.config.js` (+ `vite.config.resolve.js`). Mobile: `apps/mobile/metro.config.js`, `app.json`. Config reference: [documentation/client/tooling/config-files-reference.md](../documentation/client/tooling/config-files-reference.md).
 
-### Mobile (Metro)
-
-- **Dev**: `npm run start` (Expo)
-- **iOS**: `npm run ios`
-- **Android**: `npm run android`
-
-Configuration: `apps/mobile/metro.config.js`, `app.json`
-
-### Linting and Type Checking
-
-```bash
-# Lint (ESLint + custom rules)
-npm run lint
-
-# Format check (Prettier)
-npm run format:check
-
-# Type check (TypeScript)
-npm run typecheck
-
-# Run all checks
-npm run check:all
-```
-
-Custom ESLint rules in `packages/config/eslint/` enforce architecture patterns.
-
-See: `.cursor/rules/shared/ci-gates.mdc`, `.cursor/rules/shared/linting.mdc`
+Custom ESLint rules in `packages/config/eslint/` enforce architecture patterns. See: `.cursor/rules/shared/ci-gates.mdc`, `.cursor/rules/shared/linting.mdc`
 
 ## Testing
 
@@ -405,7 +254,7 @@ See: `.cursor/rules/shared/testing-tiers.mdc`
 ### Naming Conventions
 
 - **Descriptive names:** `profileFormSync.ts` > `utils.ts`
-- **Domain-based:** `packages/utils/search/`, `packages/utils/profile/`
+- **Domain-based:** `packages/utils/product/search/`, `packages/utils/profile/`
 - **No redundancy:** Not `types/types.ts` → `documentTypes.ts`
 
 ### Where to Put New Code
@@ -416,7 +265,7 @@ See: `.cursor/rules/shared/testing-tiers.mdc`
 | Feature logic | `packages/features/<feature>/hooks/` or `utils/` |
 | Shared UI     | `packages/ui/components/`                        |
 | Utilities     | `packages/utils/<domain>/` (NOT under `apps/`)   |
-| API calls     | `packages/config/api/`                           |
+| API calls     | `packages/api/` (canonical; see `packages/features/*/api/`) |
 | React hooks   | `packages/hooks/`                                |
 | Types         | `packages/schemas/` or feature `types/`          |
 
@@ -463,9 +312,9 @@ See: `.cursor/rules/frontend/assets-and-icons.mdc`
 ## Contributing
 
 1. **Follow Thin App pattern:** Logic in `packages/`, not in `apps/`
-2. **Use standardized UI:** Button, Title, BodyText from `components/ui/`
-3. **Respect layers:** Apps → Hooks → Config/API → Services
-4. **Test locally:** Run `npm run check:all` before committing
+2. **Use standardized UI:** Button, Title, BodyText from `packages/ui/`
+3. **Respect layers:** Apps → Hooks → `packages/api` → Services
+4. **Test locally:** Run `pnpm check` before committing
 5. **Document patterns:** Update rules or docs for architectural changes
 
 ## Further Reading

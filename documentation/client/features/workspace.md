@@ -1,7 +1,7 @@
 # Workspace feature
 
 > **Status:** Partial — workspace shells and routing shipped  
-> **Last verified:** 2026-05-28  
+> **Last verified:** 2026-06-04  
 > **Code:** `Client/packages/features/workspace/`
 
 Workspace-first navigation: buyer/seller/brokerage shells live in packages, not fat apps. See [workspace-first-architecture.md](../architecture/workspace-first-architecture.md).

@@ -4,7 +4,9 @@ Tests for DocuSign template synchronization (TemplateSyncService).
 
 import pytest
 from flask import Flask
+from sqlalchemy import select
 
+from app import db
 from app.services.docusign.templates.sync import TemplateSyncService
 
 
@@ -47,7 +49,11 @@ class TestTemplateSyncService:
 
             TemplateSyncService.sync_all_templates()
 
-            template = DocusignTemplate.query.filter_by(docusign_template_id="template-789").first()
+            template = db.session.scalar(
+                select(DocusignTemplate).where(
+                    DocusignTemplate.docusign_template_id == "template-789"
+                )
+            )
             assert template is not None
             assert template.name == "Listing Agreement"
             assert template.description == "Exclusive listing agreement"
@@ -75,7 +81,11 @@ class TestTemplateSyncService:
 
             TemplateSyncService.sync_all_templates()
 
-            updated = DocusignTemplate.query.filter_by(docusign_template_id="template-123").first()
+            updated = db.session.scalar(
+                select(DocusignTemplate).where(
+                    DocusignTemplate.docusign_template_id == "template-123"
+                )
+            )
             assert updated is not None
             assert updated.name == "Updated Name"
             assert updated.description == "Updated description"

@@ -10,6 +10,8 @@ export type ErrorContext = {
   componentStack?: string;
   errorBoundary?: boolean;
   routeError?: boolean;
+  userFeedback?: boolean;
+  feedbackMessage?: string;
   filename?: string;
   lineno?: number;
   colno?: number;

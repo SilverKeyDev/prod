@@ -1,0 +1,17 @@
+allOf:
+  - $ref: './ChecklistForm.yaml'
+  - type: object
+    required:
+      - download_url
+    properties:
+      download_url:
+        type:
+          - string
+          - 'null'
+        format: uri
+        description: Presigned S3 URL; null when URL generation fails.
+      deadline:
+        type:
+          - string
+          - 'null'
+        description: ISO date deadline derived from checklist step timing when available.

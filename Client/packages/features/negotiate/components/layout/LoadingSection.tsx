@@ -1,8 +1,8 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import { Loading } from "packages/ui/components/asset/loading/Loading";
-import { Box } from "packages/ui/components/primitives";
+import { Loading } from "packages/ui/components/media/asset/loading/Loading";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Subtitle } from "@/components/ui";
 

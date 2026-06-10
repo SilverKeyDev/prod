@@ -1,12 +1,12 @@
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { Box, Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/structure/primitives";
 import {
   formatAgentName,
   formatLotSizeInAcres,
   formatPrice,
-} from "packages/utils/format/property/addressFormatting";
+} from "packages/utils/core/format/property/addressFormatting";
 
 import { BodyText, PropertyStat, Title } from "@/components/ui";
 

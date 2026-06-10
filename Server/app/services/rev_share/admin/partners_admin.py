@@ -5,7 +5,10 @@ from __future__ import annotations
 import re
 from decimal import Decimal
 
+from sqlalchemy import delete, select
+
 from app import db
+from app.dtos.partner import PartnerDTO
 from app.models import Partner, RevShareLink, RevShareLinkClick
 from app.models.partners.partner import CHECKLIST_WORKSPACES
 from app.services.rev_share.admin.partner_logo import (
@@ -44,18 +47,18 @@ def _parse_decimal(value, default: str = "0") -> Decimal:
 
 def _partner_row(partner: Partner) -> dict:
     metrics = partner_list_metrics(partner.id, partner.resolved_step_ids())
-    row = enrich_partner_dict_logo(partner.to_dict())
+    row = enrich_partner_dict_logo(PartnerDTO.to_response(partner))
     row.update(metrics)
     return row
 
 
 def list_partners() -> list[dict]:
-    partners = Partner.query.order_by(Partner.name).all()
+    partners = db.session.scalars(select(Partner).order_by(Partner.name)).all()
     return [_partner_row(p) for p in partners]
 
 
 def get_partner(partner_id: str) -> dict | None:
-    p = Partner.query.filter_by(id=partner_id).first()
+    p = db.session.scalar(select(Partner).where(Partner.id == partner_id))
     if not p:
         return None
     return _partner_row(p)
@@ -65,7 +68,7 @@ def create_partner(payload: dict) -> tuple[dict | None, str | None]:
     slug = (payload.get("slug") or "").strip().lower()
     if not _SLUG_RE.match(slug):
         return None, "invalid_slug"
-    if Partner.query.filter_by(slug=slug).first():
+    if db.session.scalar(select(Partner).where(Partner.slug == slug)):
         return None, "slug_exists"
 
     unknown = validate_template_placeholders(payload.get("destination_url_template") or "")
@@ -133,7 +136,7 @@ def create_partner(payload: dict) -> tuple[dict | None, str | None]:
 
 
 def update_partner(partner_id: str, payload: dict) -> tuple[dict | None, str | None]:
-    partner = Partner.query.filter_by(id=partner_id).first()
+    partner = db.session.scalar(select(Partner).where(Partner.id == partner_id))
     if not partner:
         return None, "not_found"
 
@@ -141,7 +144,9 @@ def update_partner(partner_id: str, payload: dict) -> tuple[dict | None, str | N
         slug = (payload.get("slug") or "").strip().lower()
         if not _SLUG_RE.match(slug):
             return None, "invalid_slug"
-        existing = Partner.query.filter(Partner.slug == slug, Partner.id != partner_id).first()
+        existing = db.session.scalar(
+            select(Partner).where(Partner.slug == slug, Partner.id != partner_id)
+        )
         if existing:
             return None, "slug_exists"
         partner.slug = slug
@@ -229,12 +234,12 @@ def update_partner(partner_id: str, payload: dict) -> tuple[dict | None, str | N
 
 def delete_partner(partner_id: str) -> bool:
     """Remove partner, rev-share links/clicks, and stored logo. Returns False if missing."""
-    partner = Partner.query.filter_by(id=partner_id).first()
+    partner = db.session.scalar(select(Partner).where(Partner.id == partner_id))
     if not partner:
         return False
 
-    RevShareLinkClick.query.filter_by(partner_id=partner_id).delete(synchronize_session=False)
-    RevShareLink.query.filter_by(partner_id=partner_id).delete(synchronize_session=False)
+    db.session.execute(delete(RevShareLinkClick).where(RevShareLinkClick.partner_id == partner_id))
+    db.session.execute(delete(RevShareLink).where(RevShareLink.partner_id == partner_id))
     delete_stored_partner_logo(partner.logo_url)
     db.session.delete(partner)
     db.session.commit()

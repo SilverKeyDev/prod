@@ -4,10 +4,11 @@ User lookup utilities for authentication.
 
 from datetime import datetime, timezone
 
-from flask import current_app
+from sqlalchemy import select
 
 from app import db
 from app.models import User
+from logger import log
 
 
 def find_or_create_user_by_cognito(
@@ -19,21 +20,16 @@ def find_or_create_user_by_cognito(
     Returns User or None.
     """
     try:
-        user = User.query.filter_by(cognito_id=cognito_id).first()
+        user = db.session.scalar(select(User).where(User.cognito_id == cognito_id))
         if not user:
-            # Fallback: try to find by email
-            user = User.query.filter_by(email=email).first()
+            user = db.session.scalar(select(User).where(User.email == email))
             if user:
-                # Link cognito_id to existing user
                 user.cognito_id = cognito_id
                 db.session.commit()
-
-        # Update last_logged_in timestamp
         if user and update_last_login:
             user.last_logged_in = datetime.now(timezone.utc)
             db.session.commit()
-
         return user
     except Exception as e:
-        current_app.logger.error(f"Error during user lookup: {str(e)}")
+        log.error("ERRORS", f"Error during user lookup: {str(e)}")
         return None

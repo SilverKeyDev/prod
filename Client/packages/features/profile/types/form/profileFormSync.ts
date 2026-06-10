@@ -1,2 +1,5 @@
-/** Optional user profile; when provided, name is synced from profile (auth source of truth). */
-export type UserProfileForSync = { name?: string | null } | null | undefined;
+/** Optional user profile; when provided, name and roles sync from auth (source of truth). */
+export type UserProfileForSync =
+  | { name?: string | null; roles?: readonly string[] }
+  | null
+  | undefined;

@@ -1,5 +1,5 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { createBlob, getDocument, getNavigator, getWindow } from "packages/utils/platform";
+import { log } from "packages/logger";
+import { createBlob, getDocument, getNavigator, getWindow } from "packages/utils/core/platform";
 
 /** Set by app init (e.g. ReelsView) to avoid utils importing config. */
 let baseUrlGetter: (() => string) | null = null;
@@ -44,11 +44,11 @@ function sendBatch(events: FeedAnalyticsEvent[]): void {
   const nav = getNavigator();
   const sent = nav?.sendBeacon?.(url, payload) ?? false;
   if (!sent) {
-    log.warn(LOG_CATEGORIES.FEED, "Feed analytics sendBeacon failed", {
+    log.warn("FEED", "Feed analytics sendBeacon failed", {
       eventCount: events.length,
     });
     events.forEach((ev) => {
-      log.info(LOG_CATEGORIES.FEED, "Feed analytics event (fallback)", ev);
+      log.info("FEED", "Feed analytics event (fallback)", ev);
     });
   }
 }

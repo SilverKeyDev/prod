@@ -8,6 +8,7 @@ export { SearchResultListingCard } from "./components/list/SearchResultListingCa
 export { DesktopReelsView } from "./components/reels/DesktopReelsView";
 export { SearchFeature } from "./components/src/SearchFeature";
 export { researchListingZpid, usePropertyDetails } from "./hooks/data/property/usePropertyDetails";
+export { type GoogleMapsState, useGoogleMapsStore } from "./store";
 export type { Property, SavedHome } from "./types/domain/property";
 export type { PropertyWithAnalysis } from "./types/domain/property";
 export type { SearchResult } from "./types/domain/result";
@@ -25,6 +26,7 @@ export {
   getPropertyImages,
 } from "./types/search/formatters/propertyDetailsFormatters";
 export { formatPropertyType } from "./types/search/formatters/propertyFormatters";
+export { googleMapsService } from "./utils/googleMaps";
 export {
   buildIsochroneOverlayFromViewportRing,
   viewportRingToPolygonCoordinates,

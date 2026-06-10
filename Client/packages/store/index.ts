@@ -1,8 +1,5 @@
-export { type AgentDashboardState, useAgentDashboardStore } from "./slices/agentDashboard";
+// Global slices (workspace, UI, view, feature flags)
 export { useFeatureFlagsStore } from "./slices/featureFlags";
-export { useGoogleMapsStore } from "./slices/maps";
-export { useNotificationStore } from "./slices/notifications";
-export { type ReportsState, useReportsStore } from "./slices/reports";
 export {
   type DevAppPersonaState,
   type ToastItem,
@@ -18,6 +15,14 @@ export {
   type Workspace,
   type WorkspaceState,
 } from "./slices/workspace";
+
+// Thin re-exports from feature-owned stores (one-release compat; prefer feature barrels for new code)
+export { type AgentDashboardState, useAgentDashboardStore } from "packages/features/agent/store";
+export { type ReportsState, useReportsStore } from "packages/features/documents/store";
+export { type NotificationState, useNotificationStore } from "packages/features/messaging/store";
+export { type GoogleMapsState, useGoogleMapsStore } from "packages/features/search/store";
+
+// Other feature stores (already colocated)
 export { useGoogleCalendarStore } from "packages/features/calendar/store";
 export { useSchedulingStore } from "packages/features/calendar/store";
 export { type CompareSessionState, useCompareSessionStore } from "packages/features/compare/store";

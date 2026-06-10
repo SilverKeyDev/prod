@@ -7,6 +7,7 @@ from flask import redirect, request
 from app.schemas import RevShareRedirectQueryParams
 from app.services.rev_share.redirect import RedirectClickContext, record_click_and_get_destination
 from app.utils.http.client_ip import get_client_ip
+from app.utils.route import not_found
 from app.utils.security.security import rate_limit
 from app.utils.validation import validate_query
 
@@ -32,5 +33,5 @@ def rev_share_redirect(link_id: str, query: RevShareRedirectQueryParams | None =
     )
     destination = record_click_and_get_destination(link_id, ctx)
     if not destination:
-        return {"success": False, "error": "link_not_found"}, 404
+        return not_found()
     return redirect(destination, code=302)

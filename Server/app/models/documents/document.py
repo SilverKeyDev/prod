@@ -1,6 +1,9 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -35,8 +38,8 @@ class Document(db.Model):
     )
 
     # Relationships
-    user = db.relationship("User", backref=db.backref("documents", lazy=True))
-    library_item = db.relationship(
+    user: Mapped["User"] = relationship("User", back_populates="documents")
+    library_item: Mapped["DocumentLibraryItem | None"] = relationship(
         "DocumentLibraryItem",
         back_populates="upload_document",
         foreign_keys=[library_item_id],

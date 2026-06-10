@@ -2,7 +2,7 @@ import { type Dispatch, type ReactNode, type SetStateAction, useEffect } from "r
 
 import { AgentFeature } from "packages/features/agent";
 import { useNavigation } from "packages/navigation";
-import { shellRoutePageMounted } from "packages/utils/perf/shellRouteLoadTiming";
+import { shellRoutePageMounted } from "packages/utils/core/perf/shellRouteLoadTiming";
 
 type AgentPageProps = {
   setMobileHeaderActions?: Dispatch<SetStateAction<ReactNode | null>>;

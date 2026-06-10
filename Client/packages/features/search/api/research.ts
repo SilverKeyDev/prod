@@ -1,8 +1,8 @@
 import { getEnv } from "packages/config/env";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { apiGet, apiPost } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
-import { getFetch } from "packages/utils/platform";
+import { getFetch } from "packages/utils/core/platform";
 
 // Re-export types from generated schema
 export type PropertyResearchOptions = components["schemas"]["PropertyResearchOptions"];
@@ -24,7 +24,7 @@ export const researchApi = {
       timeout: 300000, // 5 minutes for property search
     })
       .then((resp) => {
-        log.debug(LOG_CATEGORIES.API, "getProperty response", {
+        log.debug("API", "getProperty response", {
           success: resp?.success,
           hasData: !!resp?.data,
           hasFeatures: !!resp?.features,
@@ -36,7 +36,7 @@ export const researchApi = {
         return resp;
       })
       .catch((error) => {
-        log.error(LOG_CATEGORIES.ERRORS, "getProperty error", {
+        log.error("ERRORS", "getProperty error", {
           message: String(error),
         });
         throw error;
@@ -90,21 +90,17 @@ export const researchApi = {
             try {
               const jsonStr = line.slice(6); // Remove "data: " prefix
               const update = JSON.parse(jsonStr);
-              log.debug(LOG_CATEGORIES.API, "streamProperty received update", {
+              log.debug("API", "streamProperty received update", {
                 type: update.type,
                 hasData: !!update.data,
               });
 
               yield update;
             } catch (parseError) {
-              log.error(
-                LOG_CATEGORIES.ERRORS,
-                "❌ [researchApi.streamProperty] Failed to parse SSE data",
-                {
-                  line,
-                  error: parseError,
-                }
-              );
+              log.error("ERRORS", "❌ [researchApi.streamProperty] Failed to parse SSE data", {
+                line,
+                error: parseError,
+              });
             }
           }
         }
@@ -123,7 +119,7 @@ export const researchApi = {
       timeout: 300000, // 5 minutes for property comparison
     })
       .then((resp) => {
-        log.debug(LOG_CATEGORIES.API, "compareProperty response", {
+        log.debug("API", "compareProperty response", {
           success: resp?.success,
           hasData: !!resp?.data,
           hasError: !!resp?.error,
@@ -131,7 +127,7 @@ export const researchApi = {
         return resp;
       })
       .catch((error) => {
-        log.error(LOG_CATEGORIES.ERRORS, "compareProperty error", {
+        log.error("ERRORS", "compareProperty error", {
           message: String(error),
         });
         throw error;
@@ -185,21 +181,17 @@ export const researchApi = {
             try {
               const jsonStr = line.slice(6); // Remove "data: " prefix
               const update = JSON.parse(jsonStr);
-              log.debug(LOG_CATEGORIES.API, "streamCompare received update", {
+              log.debug("API", "streamCompare received update", {
                 type: update.type,
                 hasData: !!update.data,
               });
 
               yield update;
             } catch (parseError) {
-              log.error(
-                LOG_CATEGORIES.ERRORS,
-                "❌ [researchApi.streamCompare] Failed to parse SSE data",
-                {
-                  line,
-                  error: parseError,
-                }
-              );
+              log.error("ERRORS", "❌ [researchApi.streamCompare] Failed to parse SSE data", {
+                line,
+                error: parseError,
+              });
             }
           }
         }
@@ -218,7 +210,7 @@ export const researchApi = {
       timeout: 30000, // 30 seconds for task status check
     })
       .then((resp) => {
-        log.debug(LOG_CATEGORIES.API, "getTaskStatus response", {
+        log.debug("API", "getTaskStatus response", {
           success: resp?.success,
           status: resp?.status,
           taskId: resp?.task_id,
@@ -226,7 +218,7 @@ export const researchApi = {
         return resp;
       })
       .catch((error) => {
-        log.error(LOG_CATEGORIES.ERRORS, "getTaskStatus error", {
+        log.error("ERRORS", "getTaskStatus error", {
           message: String(error),
         });
         throw error;

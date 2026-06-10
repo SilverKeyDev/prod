@@ -1,20 +1,25 @@
 import React from "react";
 
+import { useLocalization } from "packages/contexts";
+import type { OnboardingData } from "packages/features/profile";
 import {
   LocationSection,
   type PatchBuyerPreferenceExtensions,
+  PreferencesSaveStatusRow,
   ProfileHousingEssentialsSection,
   ProfileHousingRangesSection,
   ProfileSearchPropertySection,
 } from "packages/features/profile";
+import { SearchDisplayPanelWeb } from "packages/features/search/components/header/display/SearchDisplayPanel.web";
 import { useIsAgent } from "packages/hooks/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
+import { Title } from "@/components/ui";
 import AgentSearchPreferencesSyncPanel from "@/features/agent/components/search/AgentSearchPreferencesSyncPanel.web";
-import type { OnboardingData } from "@/features/profile/utils";
 
 import { ClearPreferencesButton } from "./ClearPreferencesButton";
 import PriceRangeFilter from "./PriceRangeFilter.web";
+import { SearchStrictPreferencesControlWeb } from "./SearchStrictPreferencesControl.web";
 
 export type SearchPreferencesContentProps = {
   formData: Partial<OnboardingData>;
@@ -32,6 +37,9 @@ export type SearchPreferencesContentProps = {
   replaceFormData?: (next: Partial<OnboardingData>) => void;
   cancelPendingSave?: () => void;
   onAfterClear?: () => void | Promise<void>;
+  registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
+  menuPortalStack?: "page" | "modal";
+  saveStatus?: "idle" | "saving" | "saved";
 };
 
 export default function SearchPreferencesContent({
@@ -45,12 +53,23 @@ export default function SearchPreferencesContent({
   replaceFormData,
   cancelPendingSave,
   onAfterClear,
+  registerOutsideClickSafeTarget,
+  menuPortalStack = "page",
+  saveStatus = "idle",
 }: SearchPreferencesContentProps): React.ReactElement {
+  const { t } = useLocalization();
   const typedFormData = formData as OnboardingData;
   const isAgent = useIsAgent();
 
   return (
     <Box className="space-y-6">
+      <PreferencesSaveStatusRow
+        saveStatus={saveStatus}
+        savingLabel={t("common.saving")}
+        savedLabel={t("common.saved")}
+        className="min-h-[1.25rem]"
+      />
+
       <ClearPreferencesButton
         selectedClientId={viewingClientId}
         onClientChange={onClientChange}
@@ -68,7 +87,7 @@ export default function SearchPreferencesContent({
       ) : null}
 
       <PriceRangeFilter
-        minValue={formData.home_budget_min ?? 100_000}
+        minValue={formData.home_budget_min ?? 0}
         maxValue={formData.home_budget_max ?? 2_000_000}
         onChange={(minVal, maxVal) => {
           updateFormData("home_budget_min", minVal);
@@ -102,6 +121,18 @@ export default function SearchPreferencesContent({
         updateField={updateFormData}
         patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
       />
+
+      <SearchStrictPreferencesControlWeb />
+
+      <Box className="border-border mt-6 border-t pt-6">
+        <Title size="sm" as="h3" className="mb-4">
+          {t("search.display")}
+        </Title>
+        <SearchDisplayPanelWeb
+          registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
+          menuPortalStack={menuPortalStack}
+        />
+      </Box>
     </Box>
   );
 }

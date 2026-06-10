@@ -1,0 +1,4 @@
+type: object
+description: >
+  Empty JSON body for POST/PUT/PATCH routes with no request fields (cookie auth,
+  path-only, or multipart file handled outside OpenAPI body validation). Client may send {}.

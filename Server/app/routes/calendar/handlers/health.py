@@ -9,11 +9,10 @@ from flask import jsonify, make_response
 from app.schemas import ConnectionStatusResponse
 from app.services.auth.tokens import tokens_get
 from app.services.calendar.core import get_authenticated_user_id, google_calendar_service
+from app.utils.route import http_errors
 from app.utils.security import rate_limit
-from app.utils.security.app_logging import get_logger
 from app.utils.validation import validate_response
-
-logger = get_logger()
+from logger import log
 
 
 def health_check():
@@ -30,15 +29,10 @@ def health_check():
             }
         ), status_code
     except Exception as e:
-        logger.error(f"Health check error: {str(e)}", exc_info=True)
-        return jsonify(
-            {
-                "status": "error",
-                "service": "google_calendar",
-                "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
-        ), 500
+        log.error("CALENDAR", "health_check_error", e)
+        return http_errors.external_unavailable(
+            e, api_name="Google Calendar", context={"operation": "health_check"}
+        )
 
 
 @rate_limit(max_requests=100, window_seconds=60)
@@ -57,7 +51,7 @@ def connection_status():
 
         return jsonify({"success": True, "connected": is_connected})
     except Exception as e:
-        logger.error(
-            f"Error checking connection status for user {user_id}: {str(e)}", exc_info=True
+        log.error("CALENDAR", "connection_status_error", e)
+        return http_errors.server_error(
+            e, context={"operation": "connection_status", "user_id": user_id}
         )
-        return jsonify({"success": False, "error": "Failed to check connection status"}), 500

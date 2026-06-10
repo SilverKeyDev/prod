@@ -82,9 +82,10 @@ class TestScoreAndSortPropertiesUniformity:
             user_data={"preferences": _realistic_prefs()},
             request_id="test-req-1",
         )
-        scores = [p.get("_score") for p in out]
+        scores = [float(p.get("_score", 0)) for p in out]
         assert len(scores) == 3
         assert len({round(s, 1) for s in scores if s is not None}) >= 2
+        assert max(scores) - min(scores) >= 15.0
 
     def test_homogeneous_market_listings_do_not_all_tie(self, flask_ctx) -> None:
         """Many near-identical listings must not collapse to one rounded score (e.g. all 54)."""
@@ -93,14 +94,16 @@ class TestScoreAndSortPropertiesUniformity:
             user_data={"preferences": {}},
             request_id="test-req-homogeneous",
         )
-        rounded = {round(float(p.get("_score", 0)), 1) for p in out}
+        scores = [float(p.get("_score", 0)) for p in out]
+        rounded = {round(s, 1) for s in scores}
         assert len(rounded) >= 2, f"expected score spread, got {sorted(rounded)}"
+        assert max(scores) - min(scores) >= 3.0, f"expected wider spread, got {sorted(scores)}"
 
-    def test_legacy_preferred_bedrooms_activates_preference_fit(self, flask_ctx) -> None:
+    def test_preferred_bedrooms_min_max_activates_preference_fit(self, flask_ctx) -> None:
         prefs = {
             "home_budget_max": 500_000,
-            "preferred_bedrooms": 3,
-            "preferred_bathrooms": 2,
+            "preferred_bedrooms_min": 3,
+            "preferred_bathrooms_min": 2,
         }
         good = {
             "zpid": "good",

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, DropdownChevron } from "@/components/ui";
 

@@ -1,11 +1,10 @@
+import type { ProfileStepId } from "packages/features/profile/types/onboarding/profileStepIds";
 import { effectiveIsAgentForOptionalBuyerUi } from "packages/features/profile/utils/onboarding/role/agentFormSelection";
 import type { PrimaryOnboardingRole } from "packages/features/profile/utils/onboarding/role/onboardingRoleSelection";
 import {
   getOnboardingSteps,
   getPersonalizationSteps,
 } from "packages/features/profile/utils/onboarding/steps/steps";
-
-import type { ProfileStepId } from "@/features/profile/types/onboarding/profileStepIds";
 
 /** Surfaces that show profile / onboarding section chrome differently by role. */
 export type ProfileUiSurface = "personalization" | "onboarding" | "settings_modal";
@@ -35,14 +34,14 @@ export function isBuyerFacingDemographicsOptionalForAgent(surface: ProfileUiSurf
 export function shouldShowAgentOptionalBuyerCallout(options: {
   surface: ProfileUiSurface;
   authIsAgent: boolean;
-  formIsAgent?: string;
+  formPrimaryRole?: PrimaryOnboardingRole;
 }): boolean {
   if (options.surface !== "onboarding") {
     return false;
   }
   return effectiveIsAgentForOptionalBuyerUi({
     authIsAgent: options.authIsAgent,
-    formIsAgent: options.formIsAgent,
+    formPrimaryRole: options.formPrimaryRole,
   });
 }
 

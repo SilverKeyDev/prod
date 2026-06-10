@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 
 import { authUtils, PERMISSIONS, UserRole } from "packages/config/auth/auth";
 import { useUserData } from "packages/hooks/data/user/useUserData";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
+import { log } from "packages/logger";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Title } from "@/components/ui";
@@ -40,14 +40,10 @@ export function SuperAdminGuard({ children }: SuperAdminGuardProps) {
 
   if (!authorized) {
     if (user?.id) {
-      log.security(
-        LOG_CATEGORIES.SECURITY,
-        "[SUPERADMIN_GUARD] Unauthorized superadmin panel access",
-        {
-          userId: user.id,
-          roles,
-        }
-      );
+      log.security("SECURITY", "[SUPERADMIN_GUARD] Unauthorized superadmin panel access", {
+        userId: user.id,
+        roles,
+      });
     }
     return (
       <Box className="flex min-h-[40vh] items-center justify-center p-4">

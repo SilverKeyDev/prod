@@ -2,7 +2,7 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { CompareHomesComparisonField } from "packages/features/compare/types/compareHomes";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { Button, CloseButton, Subtitle, Title } from "@/components/ui";
 

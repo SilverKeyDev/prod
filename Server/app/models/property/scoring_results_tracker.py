@@ -1,3 +1,4 @@
+# pyright: reportUndefinedVariable=false
 from datetime import datetime, timezone
 from typing import Any
 
@@ -61,31 +62,6 @@ class ScoringResultsTracker(db.Model):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    def to_dict(self):
-        """Convert model to dictionary."""
-        return {
-            "id": self.id,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "request_id": self.request_id,
-            "user_id": self.user_id,
-            "home_id": self.home_id,
-            "embedding_score": self.embedding_score,
-            "llm_score": self.llm_score,
-            "final_score": self.final_score,
-            "embedding_model": self.embedding_model,
-            "embedding_provider": self.embedding_provider,
-            "llm_model": self.llm_model,
-            "llm_provider": self.llm_provider,
-            "prompt_version": self.prompt_version,
-            "weights": self.weights,
-            "rank_position": self.rank_position,
-            "candidate_set_size": self.candidate_set_size,
-            "latency_ms": self.latency_ms,
-            "experiment_key": self.experiment_key,
-            "experiment_variant": self.experiment_variant,
-            "session_id": self.session_id,
-        }
 
     @classmethod
     def create_from_scoring_result(

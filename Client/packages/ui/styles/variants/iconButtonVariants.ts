@@ -35,7 +35,7 @@ export const ICON_BUTTON_VARIANT_STYLES: Record<IconButtonVariant, string> = {
   outline:
     "border border-border text-primary bg-background-surface hover:bg-primary hover:text-white active:bg-primary active:text-white focus:ring-neutral-400 disabled:border-border disabled:text-text-disabled disabled:hover:bg-background-surface disabled:hover:text-text-disabled",
   ghost:
-    "text-primary hover:bg-neutral-100 active:bg-neutral-100 focus:ring-neutral-400 disabled:text-text-disabled disabled:hover:bg-transparent",
+    "text-text-primary hover:bg-neutral-100 active:bg-neutral-200 focus:ring-neutral-400 disabled:text-text-disabled disabled:hover:bg-transparent",
   danger:
     "bg-destructive text-white hover:bg-destructive-hover active:bg-destructive-hover focus:ring-neutral-400 disabled:bg-neutral-100 disabled:text-neutral-400",
   toolbar:

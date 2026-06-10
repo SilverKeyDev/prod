@@ -3,9 +3,9 @@ import { useCallback, useMemo, useState } from "react";
 import { isDevelopment } from "packages/config/env";
 import { useLocalization } from "packages/contexts";
 import type { DevUserDataResetScope } from "packages/features/admin/api/admin";
-import { useResetDevUserDataMutation } from "packages/hooks/data/admin/useResetDevUserDataMutation";
+import { useResetDevUserDataMutation } from "packages/features/admin/hooks/data/useResetDevUserDataMutation";
 import { useAuthStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { AccessibleCheckboxInput, BodyText, Button, Input, Label, Title } from "@/components/ui";
 

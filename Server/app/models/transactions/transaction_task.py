@@ -1,10 +1,13 @@
 """Transaction checklist progress. One row per transaction/category or per completed item."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -30,8 +33,8 @@ class TransactionTask(db.Model):
         default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
 
-    transaction = db.relationship("Transaction", backref=db.backref("user_tasks", lazy="dynamic"))
-    user = db.relationship("User", backref=db.backref("user_tasks", lazy="dynamic"))
+    transaction: Mapped["Transaction"] = relationship("Transaction", back_populates="user_tasks")
+    user: Mapped["User"] = relationship("User", back_populates="user_tasks")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

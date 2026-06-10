@@ -7,14 +7,14 @@ import {
   PROFILE_NOT_SPECIFIED_LABEL,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
+import { profileFieldValueClassName } from "packages/features/profile/utils";
 import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/public/constants";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { FormFieldLabel as Label } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import { Dropdown } from "@/components/ui";
-import Label from "@/features/profile/components/settings/inputs/Label";
-import { profileFieldValueClassName } from "@/features/profile/utils";
 
 import type { PatchBuyerPreferenceExtensions } from "./types";
 import { withBuyerExtV1 } from "./withBuyerExtV1";

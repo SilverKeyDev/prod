@@ -50,7 +50,7 @@ class Logger:
                 logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
             )
             self._py_logger.addHandler(handler)
-        # Root also has a StreamHandler from configure_app_logging; avoid duplicate lines.
+        # Root also has a StreamHandler from configure_flask_stdlib_logging; avoid duplicate lines.
         self._py_logger.propagate = False
 
     def _load_config(self) -> LoggerConfig:

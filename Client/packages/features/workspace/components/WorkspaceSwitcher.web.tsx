@@ -1,31 +1,24 @@
 import { useLocalization } from "packages/contexts";
-import { useOpenDevAccountSessionMutation } from "packages/hooks/data/admin/useOpenDevAccountSessionMutation";
 import {
   useActiveWorkspace,
   useAllowedWorkspaces,
   useSetActiveWorkspace,
 } from "packages/hooks/store";
 import { Button } from "packages/ui";
-import { Region } from "packages/ui/components/accessibility";
-import type { Workspace } from "packages/utils/workspace";
-import { workspaceSwitcherLabelKey } from "packages/utils/workspace/workspaceNavConfig";
+import { Region } from "packages/ui/components/system/accessibility";
+import type { Workspace } from "packages/utils/product/workspace";
+import { workspaceSwitcherLabelKey } from "packages/utils/product/workspace/workspaceNavConfig";
 
 type WorkspaceSwitcherProps = {
   /** When true, render even with a single allowed workspace (local dev harness). */
   forceVisible?: boolean;
-  /** Admin dev harness: allow any shell and persist selection across identity sync. */
-  devPreview?: boolean;
 };
 
-export function WorkspaceSwitcher({
-  forceVisible = false,
-  devPreview = false,
-}: WorkspaceSwitcherProps) {
+export function WorkspaceSwitcher({ forceVisible = false }: WorkspaceSwitcherProps) {
   const { t } = useLocalization();
   const allowed = useAllowedWorkspaces();
   const active = useActiveWorkspace();
   const setActive = useSetActiveWorkspace();
-  const openDevSession = useOpenDevAccountSessionMutation();
 
   const show = forceVisible || (allowed.length > 1 && allowed.length > 0);
 
@@ -48,15 +41,8 @@ export function WorkspaceSwitcher({
             type="button"
             size="sm"
             variant={selected ? "primary" : "secondary"}
-            onPress={() => {
-              if (devPreview) {
-                void openDevSession.mutateAsync(workspace);
-                return;
-              }
-              setActive(workspace);
-            }}
+            onPress={() => setActive(workspace)}
             label={t(workspaceSwitcherLabelKey(workspace))}
-            disabled={devPreview && openDevSession.isPending}
             accessibilityState={{ selected }}
           >
             {t(workspaceSwitcherLabelKey(workspace))}

@@ -9,6 +9,48 @@ from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
+# Field path segments that must never appear in log payloads (Pydantic ``input`` values).
+_SENSITIVE_LOC_SEGMENTS = frozenset(
+    {
+        "password",
+        "token",
+        "secret",
+        "authorization",
+        "credential",
+        "credentials",
+        "api_key",
+        "apikey",
+        "refresh_token",
+        "access_token",
+        "id_token",
+    }
+)
+
+
+def sanitize_validation_errors_for_log(errors: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """
+    Strip Pydantic validation error payloads before logging.
+
+    ``ValidationError.errors()`` includes an ``input`` field with the rejected value,
+    which can contain passwords, tokens, and API keys. Logs must only carry loc/msg/type.
+    """
+    sanitized: list[dict[str, Any]] = []
+    for err in errors:
+        loc = err.get("loc") or ()
+        loc_segments = {str(segment).lower() for segment in loc}
+        entry: dict[str, Any] = {
+            "loc": list(loc) if isinstance(loc, tuple) else loc,
+            "msg": err.get("msg"),
+            "type": err.get("type"),
+        }
+        if "input" in err:
+            if loc_segments & _SENSITIVE_LOC_SEGMENTS:
+                entry["input"] = "[REDACTED]"
+            else:
+                entry["input"] = "[OMITTED]"
+        sanitized.append(entry)
+    return sanitized
+
 
 def format_validation_errors(errors: list[dict[str, Any]]) -> dict[str, str]:
     """

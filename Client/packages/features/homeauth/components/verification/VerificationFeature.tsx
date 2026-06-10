@@ -2,16 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 
 import { useAuthVerification } from "packages/hooks/data/auth/useAuthVerification";
 import { useCountdown } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { ROUTES } from "packages/navigation/types/routes";
-import { dateNow } from "packages/utils/date";
-import { getSessionStorage } from "packages/utils/storage";
-import { performVerify } from "packages/utils/verification";
+import { getPostAuthDestination } from "packages/navigation/postAuthDestination";
+import { performVerify } from "packages/utils/auth/verification";
+import { dateNow } from "packages/utils/core/date";
+import { getSessionStorage } from "packages/utils/core/storage";
 
 import { VerificationForm, type VerificationStep } from "./VerificationForm";
 
-type LocationState = { email?: string; fromLogin?: boolean };
+type LocationState = { email?: string; fromLogin?: boolean; returnPath?: string };
 
 export function VerificationFeature() {
   const { verify, resendCode } = useAuthVerification();
@@ -54,7 +54,7 @@ export function VerificationFeature() {
       setActiveStep("code");
       startCountdown();
     } catch (err: unknown) {
-      log.error(LOG_CATEGORIES.AUTH, "Resend code error", err);
+      log.error("AUTH", "Resend code error", err);
       setError(
         err instanceof Error ? err.message : "Failed to send verification code. Please try again."
       );
@@ -69,7 +69,7 @@ export function VerificationFeature() {
       setError("Please enter a 6-digit code");
       return;
     }
-    log.debug(LOG_CATEGORIES.AUTH, "Verification handleVerify called", {
+    log.debug("AUTH", "Verification handleVerify called", {
       codeLength: verificationCode.length,
       email,
       timestamp: dateNow().toISOString(),
@@ -89,10 +89,15 @@ export function VerificationFeature() {
           session.removeItem("signupPassword");
         },
         navigateToPath,
-        { postSuccessPath: locationState?.fromLogin ? ROUTES.SEARCH : "/onboarding" }
+        {
+          postSuccessPath: getPostAuthDestination({
+            flow: locationState?.fromLogin ? "login" : "signup",
+            returnPath: locationState?.returnPath,
+          }),
+        }
       );
     } catch (err: unknown) {
-      log.error(LOG_CATEGORIES.AUTH, "Verification error", err);
+      log.error("AUTH", "Verification error", err);
       setError(err instanceof Error ? err.message : "Invalid verification code. Please try again.");
       setCode(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
@@ -115,7 +120,7 @@ export function VerificationFeature() {
       setCode(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     } catch (err: unknown) {
-      log.error(LOG_CATEGORIES.AUTH, "Resend code error", err);
+      log.error("AUTH", "Resend code error", err);
       setError(
         err instanceof Error ? err.message : "Failed to resend verification code. Please try again."
       );

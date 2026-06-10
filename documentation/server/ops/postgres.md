@@ -4,9 +4,15 @@ Brief ops reference for local and deployed PostgreSQL. Schema detail lives in SQ
 
 ## Local setup
 
-- Install PostgreSQL 14+ (see [setup.md](../../../setup.md)).
-- Connection vars in `Server/.env.example` (`DATABASE_URL`, host, port, user, password).
-- Start: `sudo pg_ctlcluster 16 main start` (Linux) or `brew services start postgresql@16` (macOS).
+- Default local development uses Docker Postgres from the repo root `docker-compose.yml`.
+- First-time setup (`make setup`) resets the local Docker Postgres volume, fetches non-database secrets, and runs migrations.
+- Repeat the same local reset/init workflow with `make dev-db-init`.
+- Start the isolated local database without resetting it with `make db-up`.
+- `make secrets` writes `DATABASE_URL=postgresql://silverkey:silverkey@localhost:5432/silverkey_dev` unless an existing local URL is already present.
+- Check readiness with `make db-health`.
+- Run migrations explicitly with `make migrate` only when you own that workflow.
+- To intentionally fetch a shared database secret for an operator workflow, run `ALLOW_SHARED_DATABASE_URL=1 make secrets`.
+- Deploy and CI database secrets stay in `.github/scripts/*`; local DB reset must not be wired into deploy scripts or Flask startup.
 
 ## Schema source of truth
 
@@ -17,12 +23,23 @@ Brief ops reference for local and deployed PostgreSQL. Schema detail lives in SQ
 
 | Task | Command / location |
 |------|-------------------|
+| First-time local DB init | `make setup` |
+| Repeat local DB reset/init | `make dev-db-init` |
+| Start isolated local Postgres | `make db-up` |
+| Check local Postgres readiness | `make db-health` |
+| Reset local Postgres data only | `make db-reset` |
+| Post-pull reset with refreshed secrets | `make refresh ARGS='--secrets --reset-db'` |
+| Apply schema to local DB | `make migrate` (operator/developer-owned workflow only) |
 | Run API with DB | `make dev-backend` or `cd Server && source .venv/bin/activate && python run.py` |
-| Tests (no real DB required for most) | `TESTING=true pytest` from `Server/` |
-| Connection issues | Verify `Server/.env` matches `.env.example`; check Postgres listening on 5432 |
+| Server tests (repo root) | `make test-be` — sets `TESTING=true` and runs pytest in `Server/` |
+| Server tests (from `Server/`) | `TESTING=true pytest` |
+| Refresh non-DB secrets into `Server/.env` | `make secrets` (repo root; see [scripts-guide.md](./scripts-guide.md)) |
+| Connection issues | Verify `Server/.env` uses localhost; run `make db-health` |
 
 ## Related docs
 
+- [Redis and Celery](./redis-celery.md)
+- [Scripts guide](./scripts-guide.md)
 - [Flask architecture](../flask-architecture.md)
 - [SQLAlchemy patterns](../sqlalchemy-patterns.md)
 - [AWS resources](../aws-resources.md)

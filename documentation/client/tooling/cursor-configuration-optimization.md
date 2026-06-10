@@ -24,7 +24,7 @@ Do not enable both for the same service at the same time.
 ## Config hardening
 
 - Keep real credentials in local `.cursor/mcp.json` only.
-- Do not commit root `.mcp.json` with secrets.
+- Do not commit root `mcp.json` with secrets (use [mcp.example.json](../../../mcp.example.json) as the template).
 - Prefer pinned versions for command-based MCP servers over unbounded `@latest`.
 - Keep AWS defaults aligned with SilverKey region expectations unless a task requires otherwise.
 

@@ -2,8 +2,8 @@ import { useCallback } from "react";
 
 import type { SyntheticEvent } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { dateNow } from "packages/utils/date";
+import { log } from "packages/logger";
+import { dateNow } from "packages/utils/core/date";
 
 import { injectPdfErrorUI, inspectIframeContentAfterLoad } from "./pdfIframeHelpers";
 
@@ -15,7 +15,7 @@ export function usePdfIframeHandlers(
   const onLoad = useCallback(
     (e: SyntheticEvent<HTMLIFrameElement>) => {
       const iframe = e.currentTarget;
-      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] iframe onLoad event fired", {
+      log.debug("HTTP", "[PdfModal] iframe onLoad event fired", {
         src: iframe.src,
         reportId,
         currentReportAddress,
@@ -29,8 +29,8 @@ export function usePdfIframeHandlers(
   const onError = useCallback(
     (e: SyntheticEvent<HTMLIFrameElement>) => {
       const iframe = e.currentTarget;
-      log.error(LOG_CATEGORIES.ERRORS, "[PdfModal] iframe onError event fired", e);
-      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] iframe onError context", {
+      log.error("ERRORS", "[PdfModal] iframe onError event fired", e);
+      log.debug("HTTP", "[PdfModal] iframe onError context", {
         src: iframe.src,
         reportId,
         currentReportAddress,

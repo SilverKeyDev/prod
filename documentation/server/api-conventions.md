@@ -2,19 +2,20 @@
 
 ## OpenAPI Schema
 
-**All API types are centralized in `/openapi.yaml` (OpenAPI 3.1.0 specification).**
+**All API types are defined in the modular spec under `openapi/` (OpenAPI 3.1.0).** Redocly bundles `openapi/openapi.yaml` to a repo-root `openapi.yaml` for validation and codegen (gitignored; produced locally and in CI).
 
-- **Single source of truth:** All request/response schemas defined in `openapi.yaml`
-- **Frontend types:** Auto-generated via `cd Client && pnpm generate:api-types`
-- **Backend models (future):** Will be generated via `datamodel-code-generator`
+- **Editable source:** `openapi/openapi.yaml` (paths and schema `$ref`s), `openapi/components/schemas/**`, optional `openapi/paths/*.yaml` fragments
+- **Client types:** `Client/packages/types/api.generated.ts` — regenerate with `make openapi` or `cd Client && pnpm generate:api-types` (after bundle)
+- **Server models:** `Server/app/schemas/generated.py` — same regeneration flow; never hand-edit generated files
 
-**Workflow for adding/modifying endpoints:**
-1. Define schemas in `/openapi.yaml` under `components.schemas`
-2. Regenerate frontend types: `cd Client && pnpm generate:api-types`
-3. Use generated types in TypeScript: `import type { components } from "packages/types/api.generated"`
-4. Implement backend handler with matching response structure
+**Workflow for adding or modifying endpoints:**
+1. Add or change schemas under `openapi/components/schemas/` and register `$ref`s in `openapi/openapi.yaml`; add or update `paths` in that file (or a `openapi/paths/` fragment merged into the main spec).
+2. Validate: `npm run openapi:validate` or `make openapi-verify` (bundle + drift + contract tests).
+3. Regenerate both surfaces: `make openapi`.
+4. Use generated types in TypeScript: `import type { components } from "packages/types/api.generated"`.
+5. Implement the Flask handler with matching request/response shapes; add `@validate_request` / `@validate_response` per [input-validation.md](./input-validation.md).
 
-**See:** [openapi-workflow.md](./openapi-workflow.md) and `.cursor/rules/shared/openapi-types.mdc`
+**Canonical workflow:** [openapi-workflow.md](./openapi-workflow.md). Type usage: [`.cursor/rules/shared/openapi-types.mdc`](../../.cursor/rules/shared/openapi-types.mdc).
 
 ## URL Structure
 

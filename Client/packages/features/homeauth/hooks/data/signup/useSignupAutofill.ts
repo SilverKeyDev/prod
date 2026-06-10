@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getDocument } from "packages/utils/platform";
+import { getDocument } from "packages/utils/core/platform";
 
 export type FieldKey = "all" | "name" | "email" | "password" | "phone";
 

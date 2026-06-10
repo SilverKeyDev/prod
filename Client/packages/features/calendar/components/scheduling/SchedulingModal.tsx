@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { ScheduleEventRequest } from "packages/schemas/scheduling";
 import { useGoogleCalendarStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
-import { dateNow } from "packages/utils/date";
+import { Box } from "packages/ui/components/structure/primitives";
+import { dateNow } from "packages/utils/core/date";
 
 import { BodyText, Button, CancelButton, Title } from "@/components/ui";
 import { useScheduling } from "@/features/calendar/hooks/data/core/useScheduling";
@@ -53,7 +53,7 @@ export function SchedulingModal({ onClose }: SchedulingModalProps) {
       // Success - close modal or show success message
       onClose();
     } catch (error) {
-      log.error(LOG_CATEGORIES.CALENDAR, "Failed to schedule event", error);
+      log.error("CALENDAR", "Failed to schedule event", error);
       // Error handling is done in the hook
     }
   };

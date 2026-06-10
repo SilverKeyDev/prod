@@ -11,7 +11,7 @@
 
 Welcome to SilverKey. We respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your data when you use our platform.
 
-**What SilverKey Does:** SilverKey is an AI-powered real estate platform that helps home buyers find, compare, and purchase homes with agent support and personalized recommendations.
+**What SilverKey Does:** SilverKey is a real estate transaction platform that helps home buyers find, compare, and purchase homes with agent support. We may personalize property search and alerts based on preferences you provide.
 
 **Who We Are:**
 - **Company:** SilverKey, Inc.
@@ -275,8 +275,11 @@ We implement industry-standard security measures to protect your personal inform
 
 #### Authentication
 - Secure password hashing (never stored in plain text)
-- Session tokens stored in sessionStorage (not localStorage, more secure)
-- Multi-factor authentication (MFA) available
+- **Web:** HTTP-only session and refresh cookies for sign-in (tokens are not readable by page JavaScript)
+- **Client storage:** We do not store auth tokens in `localStorage`; non-sensitive UI state may use `sessionStorage` where needed
+- Multi-factor authentication (MFA) available when enabled
+
+See [Security policy](../security/SECURITY.md) for deployment, CORS, and cookie details.
 
 #### PII Protection in Logs
 - **Automated Masking:** All logs automatically scrubbed for sensitive data
@@ -318,7 +321,8 @@ We retain your personal information only as long as necessary for the purposes d
 - **Inactive Accounts:** Deleted after 3 years of inactivity (with prior warning)
 - **Deleted Accounts:** Permanently deleted within 90 days (except legal obligations)
 - **Transaction Records:** Retained for 7 years (legal requirement for real estate transactions)
-- **Logs:** Retained for 90 days (PII-masked)
+- **Application and error logs:** Retained for 90 days (PII-masked)
+- **Security audit logs:** Retained for 1 year (PII-masked)
 - **Backups:** Overwritten within 90 days of deletion request
 
 **Detailed Retention Periods:** See [Data Retention Policy](./DATA_RETENTION.md)

@@ -6,6 +6,8 @@ export function agentClientKindTranslationKey(kind: AgentClient["client_kind"]):
       return "agent.client_kind.buyer";
     case "seller":
       return "agent.client_kind.seller";
+    case "renter":
+      return "agent.client_kind.renter";
     case "investor":
       return "agent.client_kind.investor";
     default:

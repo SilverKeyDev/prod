@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { enqueue } from "./feedAnalyticsQueue";
 
@@ -17,7 +17,7 @@ export function logDwellTime(listingId: string, durationMs: number, impressionId
     impressionId,
     durationMs,
   });
-  log.info(LOG_CATEGORIES.FEED, "Feed dwell time", {
+  log.info("FEED", "Feed dwell time", {
     listingId,
     durationMs,
     impressionId,
@@ -39,7 +39,7 @@ export function logCompletionRate(
     impressionId,
     watchedPercent,
   });
-  log.info(LOG_CATEGORIES.FEED, "Feed completion rate", {
+  log.info("FEED", "Feed completion rate", {
     listingId,
     watchedPercent,
     impressionId,
@@ -56,7 +56,7 @@ export function createImpressionId(listingId: string, index: number): string {
  * Log mode switch ratio (Map vs Reels preference)
  */
 export function logModeSwitchRatio(mapCount: number, reelsCount: number): void {
-  log.info(LOG_CATEGORIES.FEED, "Feed mode switch ratio", {
+  log.info("FEED", "Feed mode switch ratio", {
     mapCount,
     reelsCount,
   });
@@ -70,7 +70,7 @@ export function logReelsToMapClick(listingId: string): void {
     type: "reels_to_map_click",
     listingId,
   });
-  log.info(LOG_CATEGORIES.FEED, "Reels to map click", { listingId });
+  log.info("FEED", "Reels to map click", { listingId });
 }
 
 /**
@@ -81,5 +81,5 @@ export function logTourClick(listingId: string): void {
     type: "tour_click",
     listingId,
   });
-  log.info(LOG_CATEGORIES.FEED, "Tour click", { listingId });
+  log.info("FEED", "Tour click", { listingId });
 }

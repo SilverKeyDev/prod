@@ -5,9 +5,13 @@ import { DevPersonaActiveBanner } from "./DevPersonaActiveBanner";
 
 const navigateToPath = vi.fn();
 
-vi.mock("packages/navigation", () => ({
-  useNavigation: () => ({ navigateToPath }),
-}));
+vi.mock("packages/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("packages/navigation")>();
+  return {
+    ...actual,
+    useNavigation: () => ({ navigateToPath }),
+  };
+});
 
 vi.mock("packages/contexts", () => ({
   useLocalization: () => ({ t: (key: string) => key }),
@@ -19,9 +23,8 @@ const authState = {
     email: "a@b.c",
     name: "Test",
     is_active: true,
-    is_agent: true,
     has_preferences: false,
-    roles: ["admin"],
+    roles: ["agent", "admin"],
   },
 };
 

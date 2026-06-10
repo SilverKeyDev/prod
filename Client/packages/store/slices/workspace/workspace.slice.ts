@@ -2,39 +2,27 @@ import { create } from "zustand";
 
 import { withDevtools } from "packages/store/middleware/devtools";
 import {
-  ALL_WORKSPACES,
   deriveAllowedWorkspaces,
   type DeriveAllowedWorkspacesInput,
-  isWorkspace,
   type Workspace,
-} from "packages/utils/workspace";
+} from "packages/utils/product/workspace";
 import {
-  readDevWorkspacePreviewEnabled,
   readPersistedActiveWorkspace,
-  writeDevWorkspacePreviewEnabled,
   writePersistedActiveWorkspace,
-} from "packages/utils/workspace/workspaceSessionStorage";
+} from "packages/utils/product/workspace/workspaceSessionStorage";
 
-export type { Workspace } from "packages/utils/workspace";
-
-export type SetActiveWorkspaceOptions = {
-  /** Admin dev harness: allow any shell and keep selection across identity sync. */
-  devPreview?: boolean;
-};
+export type { Workspace } from "packages/utils/product/workspace";
 
 export type WorkspaceState = {
   allowedWorkspaces: Workspace[];
   activeWorkspace: Workspace | null;
-  devPreviewAllWorkspaces: boolean;
-  setActiveWorkspace: (workspace: Workspace, options?: SetActiveWorkspaceOptions) => void;
-  setDevPreviewAllWorkspaces: (enabled: boolean) => void;
+  setActiveWorkspace: (workspace: Workspace) => void;
   /**
    * Recomputes allowed workspaces from identity and reconciles persisted active workspace.
    * Call when auth user or profile roles change. Pass null user to reset.
    */
   syncFromIdentity: (input: {
     user: {
-      is_agent?: boolean | null;
       roles?: readonly string[];
       brokerage_org_ids?: readonly string[] | null;
     } | null;
@@ -65,89 +53,43 @@ function mergeRoles(
   return out;
 }
 
-function pickInitialActive(
-  allowed: Workspace[],
-  persisted: Workspace | null,
-  devPreviewAllWorkspaces: boolean
-): Workspace {
-  if (devPreviewAllWorkspaces && persisted && isWorkspace(persisted)) {
-    return persisted;
-  }
+function pickInitialActive(allowed: Workspace[], persisted: Workspace | null): Workspace {
   if (persisted && allowed.includes(persisted)) return persisted;
   return allowed[0] ?? "buyer";
 }
 
-function effectiveAllowedWorkspaces(
-  identityAllowed: Workspace[],
-  devPreviewAllWorkspaces: boolean
-): Workspace[] {
-  return devPreviewAllWorkspaces ? [...ALL_WORKSPACES] : identityAllowed;
-}
-
-const initialState = (): Pick<
-  WorkspaceState,
-  "allowedWorkspaces" | "activeWorkspace" | "devPreviewAllWorkspaces"
-> => {
-  const devPreviewAllWorkspaces = readDevWorkspacePreviewEnabled();
-  return {
-    allowedWorkspaces: devPreviewAllWorkspaces ? [...ALL_WORKSPACES] : ["buyer"],
-    activeWorkspace: "buyer",
-    devPreviewAllWorkspaces,
-  };
-};
+const initialState = (): Pick<WorkspaceState, "allowedWorkspaces" | "activeWorkspace"> => ({
+  allowedWorkspaces: ["buyer"],
+  activeWorkspace: "buyer",
+});
 
 const baseCreator: import("zustand").StateCreator<WorkspaceState> = (set, get) => ({
   ...initialState(),
 
-  setActiveWorkspace: (workspace, options) => {
-    const state = get();
-    const devPreview = Boolean(options?.devPreview || state.devPreviewAllWorkspaces);
-    const allowed = effectiveAllowedWorkspaces(state.allowedWorkspaces, devPreview);
-    if (!devPreview && !allowed.includes(workspace)) return;
-
-    if (options?.devPreview && !state.devPreviewAllWorkspaces) {
-      writeDevWorkspacePreviewEnabled(true);
-      set({ devPreviewAllWorkspaces: true, allowedWorkspaces: [...ALL_WORKSPACES] });
-    }
+  setActiveWorkspace: (workspace) => {
+    const { allowedWorkspaces } = get();
+    if (!allowedWorkspaces.includes(workspace)) return;
 
     writePersistedActiveWorkspace(workspace);
     set({ activeWorkspace: workspace });
-  },
-
-  setDevPreviewAllWorkspaces: (enabled) => {
-    writeDevWorkspacePreviewEnabled(enabled);
-    const { allowedWorkspaces } = get();
-    set({
-      devPreviewAllWorkspaces: enabled,
-      allowedWorkspaces: enabled ? [...ALL_WORKSPACES] : allowedWorkspaces,
-    });
   },
 
   syncFromIdentity: (input) => {
     const { user, profileRoles } = input;
     if (!user) {
       writePersistedActiveWorkspace(null);
-      writeDevWorkspacePreviewEnabled(false);
-      set({ ...initialState(), devPreviewAllWorkspaces: false });
+      set(initialState());
       return;
     }
 
-    const devPreviewAllWorkspaces = get().devPreviewAllWorkspaces;
-    const isAgent = Boolean(user.is_agent);
     const roles = mergeRoles(user, profileRoles);
     const deriveInput: DeriveAllowedWorkspacesInput = {
-      isAgent,
       roles,
       brokerageOrgIds: user.brokerage_org_ids ?? undefined,
     };
-    const identityAllowed = deriveAllowedWorkspaces(deriveInput);
-    const allowedWorkspaces = effectiveAllowedWorkspaces(identityAllowed, devPreviewAllWorkspaces);
+    const allowedWorkspaces = deriveAllowedWorkspaces(deriveInput);
     const persisted = readPersistedActiveWorkspace();
-    const activeWorkspace = pickInitialActive(
-      allowedWorkspaces,
-      persisted,
-      devPreviewAllWorkspaces
-    );
+    const activeWorkspace = pickInitialActive(allowedWorkspaces, persisted);
     if (activeWorkspace !== persisted) {
       writePersistedActiveWorkspace(activeWorkspace);
     }
@@ -156,8 +98,7 @@ const baseCreator: import("zustand").StateCreator<WorkspaceState> = (set, get) =
 
   reset: () => {
     writePersistedActiveWorkspace(null);
-    writeDevWorkspacePreviewEnabled(false);
-    set({ ...initialState(), devPreviewAllWorkspaces: false });
+    set(initialState());
   },
 });
 

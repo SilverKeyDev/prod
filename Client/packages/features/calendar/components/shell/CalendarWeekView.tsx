@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 
 import { CalendarTimeGrid } from "packages/features/calendar/components/timeGrid";
-import { getWeekStart } from "packages/utils/calendar/core/date";
-import { dayjs } from "packages/utils/date";
+import { getWeekStart } from "packages/utils/comms/calendar/core/date";
+import { dayjs } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

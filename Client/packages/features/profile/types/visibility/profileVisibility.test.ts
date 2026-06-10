@@ -8,14 +8,14 @@ describe("shouldShowAgentOptionalBuyerCallout", () => {
       shouldShowAgentOptionalBuyerCallout({
         surface: "onboarding",
         authIsAgent: true,
-        formIsAgent: undefined,
+        formPrimaryRole: undefined,
       })
     ).toBe(true);
     expect(
       shouldShowAgentOptionalBuyerCallout({
         surface: "onboarding",
         authIsAgent: false,
-        formIsAgent: "yes",
+        formPrimaryRole: "agent",
       })
     ).toBe(true);
   });
@@ -31,7 +31,7 @@ describe("shouldShowAgentOptionalBuyerCallout", () => {
       shouldShowAgentOptionalBuyerCallout({
         surface: "settings_modal",
         authIsAgent: true,
-        formIsAgent: "yes",
+        formPrimaryRole: "agent",
       })
     ).toBe(false);
   });
@@ -41,7 +41,7 @@ describe("shouldShowAgentOptionalBuyerCallout", () => {
       shouldShowAgentOptionalBuyerCallout({
         surface: "onboarding",
         authIsAgent: false,
-        formIsAgent: "no",
+        formPrimaryRole: "buyer",
       })
     ).toBe(false);
   });

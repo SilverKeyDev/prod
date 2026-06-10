@@ -12,13 +12,13 @@ import {
   searchMapPolygonUnionZIndex,
 } from "packages/features/search/types/search/map/mapOverlayLayerOrder";
 import { importantWaypointsFromIsochrone } from "packages/features/search/utils/map/importantWaypointsFromIsochrone";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useFiltersStore } from "packages/store";
 import {
   getGoogleMapIdForNative,
   getUseGoogleMapsProvider,
-} from "packages/utils/maps/native/nativeGoogleMapsCloudConfig";
-import { parseIsochroneForNativeMap } from "packages/utils/maps/native/parseIsochroneForNativeMap";
+} from "packages/utils/product/maps/native/nativeGoogleMapsCloudConfig";
+import { parseIsochroneForNativeMap } from "packages/utils/product/maps/native/parseIsochroneForNativeMap";
 
 const SEARCH_NATIVE_GOOGLE_MAPS_FLAG = "search_native_google_maps";
 
@@ -72,15 +72,11 @@ export function useSearchPageMapContainerNative({
   const mapIdApplied = useGoogleMapsProvider && !!googleMapId;
   useEffect(() => {
     if (mapIdApplied) {
-      log.info(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Applying Cloud Map ID to native MapView (Google provider)",
-        {
-          googleMapId,
-        }
-      );
+      log.info("MAP_RENDERING", "Applying Cloud Map ID to native MapView (Google provider)", {
+        googleMapId,
+      });
     } else {
-      log.info(LOG_CATEGORIES.MAP_RENDERING, "Native map not using Cloud Map ID", {
+      log.info("MAP_RENDERING", "Native map not using Cloud Map ID", {
         reason: !useGoogleMapsProvider
           ? "Apple Maps (simulator or non-Google)"
           : "no map ID configured",
@@ -95,7 +91,7 @@ export function useSearchPageMapContainerNative({
     try {
       return parseIsochroneForNativeMap(isochroneData);
     } catch (e) {
-      log.warn(LOG_CATEGORIES.MAP_RENDERING, "Failed to parse isochrone for native map", e);
+      log.warn("MAP_RENDERING", "Failed to parse isochrone for native map", e);
       return { main: null, individuals: [] as LatLng[][] };
     }
   }, [isochroneData]);
@@ -107,11 +103,7 @@ export function useSearchPageMapContainerNative({
     try {
       return importantWaypointsFromIsochrone(isochroneData as IsochroneData);
     } catch (e) {
-      log.warn(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Failed to parse important waypoints for native map",
-        e
-      );
+      log.warn("MAP_RENDERING", "Failed to parse important waypoints for native map", e);
       return [];
     }
   }, [isochroneData, showCommuteOverlay]);

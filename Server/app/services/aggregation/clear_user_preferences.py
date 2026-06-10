@@ -4,6 +4,8 @@ Delete normalized preference rows for a user and clear preference metadata on Us
 
 from __future__ import annotations
 
+from sqlalchemy import delete
+
 from app import db
 from app.models import (
     User,
@@ -36,16 +38,16 @@ def clear_user_preferences(user_id: str, *, user: User | None = None) -> User:
     if not u:
         raise ValueError(f"User not found: {uid}")
 
-    UserIntentAttribute.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserImportantLocation.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserFinancials.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserDemographics.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserCommunicationPrefs.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserSearchIntent.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserScoreWeights.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserPropertyHighlights.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserPropertyCommute.query.filter_by(user_id=uid).delete(synchronize_session=False)
-    UserPropertyLink.query.filter_by(user_id=uid).delete(synchronize_session=False)
+    db.session.execute(delete(UserIntentAttribute).where(UserIntentAttribute.user_id == uid))
+    db.session.execute(delete(UserImportantLocation).where(UserImportantLocation.user_id == uid))
+    db.session.execute(delete(UserFinancials).where(UserFinancials.user_id == uid))
+    db.session.execute(delete(UserDemographics).where(UserDemographics.user_id == uid))
+    db.session.execute(delete(UserCommunicationPrefs).where(UserCommunicationPrefs.user_id == uid))
+    db.session.execute(delete(UserSearchIntent).where(UserSearchIntent.user_id == uid))
+    db.session.execute(delete(UserScoreWeights).where(UserScoreWeights.user_id == uid))
+    db.session.execute(delete(UserPropertyHighlights).where(UserPropertyHighlights.user_id == uid))
+    db.session.execute(delete(UserPropertyCommute).where(UserPropertyCommute.user_id == uid))
+    db.session.execute(delete(UserPropertyLink).where(UserPropertyLink.user_id == uid))
 
     u.has_preferences = False
     u.preferences_version = None

@@ -3,16 +3,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocalization } from "packages/contexts";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import { isDefineCriteriaStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
-import { HousingStep } from "packages/features/profile/components/onboarding";
+import type { OnboardingData } from "packages/features/profile";
+import { HousingStep, PreferencesSaveStatusRow } from "packages/features/profile";
+import { userPreferencesToOnboardingData } from "packages/features/profile";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-
-import PreferencesSaveStatusRow from "@/features/profile/components/settings/inputs/PreferencesSaveStatusRow";
-import type { OnboardingData } from "@/features/profile/utils";
-import { userPreferencesToOnboardingData } from "@/features/profile/utils";
+import { Box } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 type DefineCriteriaSectionProps = {
   onComplete?: () => void;

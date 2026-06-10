@@ -4,7 +4,7 @@ from collections.abc import Iterable
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 def _get_ses_client():
@@ -44,7 +44,7 @@ def send_test_emails_via_ses(recipients: Iterable[str]) -> list[str]:
                 message_ids.append(mid)
         except (ClientError, BotoCoreError) as exc:
             log.error(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Failed to send test email",
                 {"recipient": recipient, "error": str(exc)},
             )
@@ -99,7 +99,7 @@ def send_personalized_emails_via_ses(
                 message_ids.append(mid)
         except (ClientError, BotoCoreError) as exc:
             log.error(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Failed to send personalized email",
                 {"to_address": to_address, "error": str(exc)},
             )

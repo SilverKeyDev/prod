@@ -1,10 +1,6 @@
 import { useEffect } from "react";
 
-import {
-  identifyPostHogUser,
-  initPostHogClient,
-  resetPostHogUser,
-} from "packages/services/analytics";
+import { identifyPostHogUser, resetPostHogUser } from "packages/services/analytics";
 import { useAuthStore } from "packages/store";
 
 export function usePostHogIdentity(): void {
@@ -13,22 +9,18 @@ export function usePostHogIdentity(): void {
   const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
-    initPostHogClient();
-  }, []);
-
-  useEffect(() => {
     if (!authReady) {
       return;
     }
 
     if (isAuthenticated && user?.id) {
       identifyPostHogUser(String(user.id), {
-        is_agent: Boolean(user.is_agent),
+        has_agent_role: (user.roles ?? []).includes("agent"),
         has_brokerage: Boolean(user.brokerage),
       });
       return;
     }
 
     resetPostHogUser();
-  }, [authReady, isAuthenticated, user?.id, user?.is_agent, user?.brokerage]);
+  }, [authReady, isAuthenticated, user?.id, user?.roles, user?.brokerage]);
 }

@@ -4,12 +4,15 @@ Webhook endpoints for Google Calendar push notifications.
 
 from flask import jsonify, make_response, request
 
+from app.schemas import GoogleCalendarWebhookBody
 from app.services.calendar.webhooks import verify_calendar_webhook
 from app.utils.security.security import log_oauth_event, rate_limit
+from app.utils.validation import validate_request
 
 
 @rate_limit(max_requests=120, window_seconds=60, per="ip")
-def calendar_webhook():
+@validate_request(GoogleCalendarWebhookBody)
+def calendar_webhook(_data: GoogleCalendarWebhookBody):
     """Handle Google Calendar webhook notifications."""
     resource_state = request.headers.get("X-Goog-Resource-State")
     resource_id = request.headers.get("X-Goog-Resource-Id")

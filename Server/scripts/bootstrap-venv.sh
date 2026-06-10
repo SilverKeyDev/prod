@@ -130,6 +130,13 @@ install_requirements() {
     echo "Installing from requirements/ci.txt (--ci)"
     pip install -r requirements/ci.txt
   else
+    # On linux the bare `torch` pin in runtime.txt resolves to the multi-GB CUDA wheel,
+    # but there is no GPU in dev/Cloud either. Pre-install the CPU wheel so it satisfies
+    # the pin without pulling CUDA. macOS PyPI torch is already CPU-only, so skip it there.
+    if [[ "$(uname -s)" == Linux ]]; then
+      echo "Installing CPU-only torch (linux) from download.pytorch.org/whl/cpu"
+      pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
+    fi
     echo "Installing from requirements/runtime.txt"
     pip install -r requirements/runtime.txt
     echo "Installing from requirements/dev.txt"

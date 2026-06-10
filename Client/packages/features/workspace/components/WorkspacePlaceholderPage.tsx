@@ -1,8 +1,8 @@
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import type { Workspace } from "packages/utils/workspace";
-import { workspaceSwitcherLabelKey } from "packages/utils/workspace/workspaceNavConfig";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import type { Workspace } from "packages/utils/product/workspace";
+import { workspaceSwitcherLabelKey } from "packages/utils/product/workspace/workspaceNavConfig";
 
 export type WorkspacePlaceholderPageProps = {
   workspace: Workspace;
@@ -16,7 +16,7 @@ function placeholderTestId(workspace: Workspace): string {
 }
 
 /**
- * Minimal shell for seller, brokerage, and integration_partner workspaces.
+ * Minimal shell for seller, renter, brokerage, and integration_partner workspaces.
  * Product tabs and flows are added incrementally per workspace.
  */
 export function WorkspacePlaceholderPage({ workspace }: WorkspacePlaceholderPageProps) {

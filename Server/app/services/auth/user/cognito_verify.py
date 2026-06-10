@@ -2,14 +2,14 @@
 Cognito JWT verification and user resolution.
 """
 
-import logging
-
 from jose import jwt as jose_jwt
+from sqlalchemy import select
 from sqlalchemy.exc import InvalidRequestError, SQLAlchemyError
 
 from app import db
 from app.models import User
 from app.utils.security.security import SecurityError, log_security_event
+from logger import log
 
 from ..tokens.verification import (
     AWS_COGNITO_CLIENT_ID,
@@ -19,8 +19,6 @@ from ..tokens.verification import (
 )
 from .exceptions import SecurityException
 
-logger = logging.getLogger(__name__)
-
 
 def verify_cognito_token_and_get_user(token: str, start_time: float | None = None):
     """
@@ -28,7 +26,6 @@ def verify_cognito_token_and_get_user(token: str, start_time: float | None = Non
     Raises SecurityException for auth failures; lets ExpiredSignatureError,
     JWTClaimsError, JWTError propagate for the caller to map.
     """
-    # GUARDRAIL: Check algorithm before attempting Cognito validation
     try:
         unverified_header = jose_jwt.get_unverified_header(token)
         alg = unverified_header.get("alg")
@@ -45,15 +42,9 @@ def verify_cognito_token_and_get_user(token: str, start_time: float | None = Non
     except SecurityException as e:
         raise e from e
     except Exception as header_error:
-        logger.error(
-            "Failed to read token header: %s",
-            header_error,
-            extra={"token_present": bool(token), "token_length": len(token) if token else 0},
-        )
+        log.error("ERRORS", f"Failed to read token header: {header_error}", header_error)
         raise SecurityException(SecurityError.INVALID_TOKEN) from None
-
     key = get_signing_key_for_cognito_rs256(token)
-
     claims = decode_with_leeway(
         token=token,
         key=key,
@@ -62,46 +53,39 @@ def verify_cognito_token_and_get_user(token: str, start_time: float | None = Non
         verify_aud=False,
         audience=None,
     )
-
     token_use = claims.get("token_use")
     if token_use not in ("id", "access"):
         log_security_event("auth_invalid_token_use", {"token_use": token_use})
         raise SecurityException(SecurityError.INVALID_TOKEN)
-
     if token_use == "id":
         aud = claims.get("aud")
         if aud != AWS_COGNITO_CLIENT_ID:
             log_security_event("auth_invalid_audience", {"aud": aud})
             raise SecurityException(SecurityError.INVALID_TOKEN)
-
     elif token_use == "access":
         if claims.get("client_id") != AWS_COGNITO_CLIENT_ID:
             log_security_event("auth_invalid_client_id")
             raise SecurityException(SecurityError.INVALID_TOKEN)
-
     sub = claims.get("sub")
     if not sub:
         log_security_event("auth_missing_sub")
         raise SecurityException(SecurityError.INVALID_TOKEN)
-
     try:
-        user = User.query.filter_by(cognito_id=sub).first()
+        user = db.session.scalar(select(User).where(User.cognito_id == sub))
         if not user:
             user_email = claims.get("email")
             if user_email:
-                user = User.query.filter_by(email=user_email).first()
+                user = db.session.scalar(select(User).where(User.email == user_email))
                 if user:
                     user.cognito_id = sub
                     db.session.commit()
     except InvalidRequestError as e:
-        logger.error("SQLAlchemy mapper init failed during Cognito auth: %s", e)
+        log.error("ERRORS", f"SQLAlchemy mapper init failed during Cognito auth: {e}", e)
         raise
     except SQLAlchemyError as e:
-        logger.error("Database error during Cognito auth: %s", e)
+        log.error("ERRORS", f"Database error during Cognito auth: {e}", e)
         raise
-
     if not user:
         log_security_event("auth_user_not_found", {"cognito_id": f"{sub[:8]}..."})
         raise SecurityException(SecurityError.UNAUTHORIZED)
-
     return user

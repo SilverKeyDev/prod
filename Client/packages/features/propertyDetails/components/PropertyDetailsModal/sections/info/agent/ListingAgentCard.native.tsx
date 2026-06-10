@@ -3,8 +3,8 @@ import React from "react";
 import { useLocalization } from "packages/contexts";
 import { color, spacing } from "packages/design-tokens";
 import { formatAgentPhoneNumber } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
-import { Icon } from "packages/ui/components/primitives";
-import { Box, Image, Text } from "packages/ui/components/primitives";
+import { Icon } from "packages/ui/components/structure/primitives";
+import { Box, Image, Text } from "packages/ui/components/structure/primitives";
 
 function spacingToNumber(token: string): number {
   const remMatch = token.match(/^([\d.]+)rem$/);

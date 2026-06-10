@@ -2,12 +2,11 @@
 Statistics helpers for ensemble scoring.
 """
 
-import logging
 from typing import Any
 
 import numpy as np
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 def get_ensemble_stats(score_history: list[dict[str, float]]) -> dict[str, Any]:
@@ -41,5 +40,5 @@ def get_ensemble_stats(score_history: list[dict[str, float]]) -> dict[str, Any]:
         return stats
 
     except Exception as e:
-        logger.error(f"Error getting ensemble stats: {e}")
+        log.error("ERRORS", f"Error getting ensemble stats: {e}")
         return {"error": str(e)}

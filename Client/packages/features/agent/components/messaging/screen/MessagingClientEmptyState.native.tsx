@@ -2,8 +2,8 @@ import React from "react";
 
 import { View } from "react-native";
 
-import { Pressable } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 type MessagingClientEmptyStateProps = {
   title: string;

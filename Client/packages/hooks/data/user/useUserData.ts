@@ -4,11 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { preferencesApi, userApi } from "packages/api";
 import { queryKeys } from "packages/config/query/keys";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import type { UserPreferences, UserProfile } from "packages/types";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
-import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
+import { prefetchRemoteImage } from "packages/utils/product/media/prefetchRemoteImage";
 
 export type UserProfileQueryMeta = {
   status: string;
@@ -58,7 +58,7 @@ export function useUserData(): UseUserDataReturn {
         typeof performance !== "undefined" && typeof performance.now === "function"
           ? performance.now()
           : 0;
-      log.info(LOG_CATEGORIES.AUTH, "[USER_PROFILE_QUERY] queryFn started", {
+      log.info("AUTH", "[USER_PROFILE_QUERY] queryFn started", {
         runId,
         signalAborted: signal.aborted,
         queryKey: queryKeys.user.profile(),
@@ -70,42 +70,33 @@ export function useUserData(): UseUserDataReturn {
             ? Math.round(performance.now() - t0)
             : undefined;
         if (!response.success) {
-          log.error(
-            LOG_CATEGORIES.ERRORS,
-            "[USER_PROFILE_QUERY] getProfile responded success=false",
-            {
-              runId,
-              elapsedMs,
-              error: response.error,
-            }
-          );
+          log.error("ERRORS", "[USER_PROFILE_QUERY] getProfile responded success=false", {
+            runId,
+            elapsedMs,
+            error: response.error,
+          });
           throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch user profile"));
         }
 
         const userData = response.user ?? response.data;
         if (!userData) {
-          log.error(
-            LOG_CATEGORIES.ERRORS,
-            "[USER_PROFILE_QUERY] getProfile returned no user payload",
-            {
-              runId,
-              elapsedMs,
-            }
-          );
+          log.error("ERRORS", "[USER_PROFILE_QUERY] getProfile returned no user payload", {
+            runId,
+            elapsedMs,
+          });
           throw new Error("No user data received");
         }
 
         const profile: UserProfile = {
           ...userData,
           has_preferences: userData.has_preferences ?? false,
-          is_agent: userData.is_agent ?? false,
           roles: userData.roles ?? [],
           brokerage_org_ids: userData.brokerage_org_ids ?? null,
         };
 
         prefetchRemoteImage(profile.profile_picture_url);
 
-        log.info(LOG_CATEGORIES.AUTH, "[USER_PROFILE_QUERY] queryFn completed", {
+        log.info("AUTH", "[USER_PROFILE_QUERY] queryFn completed", {
           runId,
           elapsedMs,
           roleCount: profile.roles?.length ?? 0,
@@ -118,7 +109,7 @@ export function useUserData(): UseUserDataReturn {
           typeof performance !== "undefined" && typeof performance.now === "function"
             ? Math.round(performance.now() - t0)
             : undefined;
-        log.error(LOG_CATEGORIES.ERRORS, "[USER_PROFILE_QUERY] queryFn threw", {
+        log.error("ERRORS", "[USER_PROFILE_QUERY] queryFn threw", {
           runId,
           elapsedMs,
           signalAborted: signal.aborted,
@@ -157,7 +148,7 @@ export function useUserData(): UseUserDataReturn {
     if (profileTraceSigRef.current === sig) return;
     profileTraceSigRef.current = sig;
 
-    log.info(LOG_CATEGORIES.AUTH, "[USER_PROFILE_QUERY] state transition", {
+    log.info("AUTH", "[USER_PROFILE_QUERY] state transition", {
       shouldLoadData,
       authReady,
       isAuthenticated,

@@ -4,10 +4,10 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { formatAgentPhoneNumber } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/helpers/propertyDetailsDisplayHelpers";
-import { Box } from "packages/ui/components/primitives";
-import { Image } from "packages/ui/components/primitives/media";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Image } from "packages/ui/components/structure/primitives/media";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
 
 type ListingAgentCardProps = {
   imageUrl?: string;

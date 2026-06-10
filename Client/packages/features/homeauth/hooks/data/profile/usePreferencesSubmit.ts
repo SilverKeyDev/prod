@@ -1,8 +1,9 @@
 import { useCallback } from "react";
 
+import type { OnboardingData } from "packages/features/profile";
+import type { PreferencesSubmitResult } from "packages/features/profile";
+
 import { preferencesApi } from "@/features/homeauth/api/preferences";
-import type { OnboardingData } from "@/features/profile/utils";
-import type { PreferencesSubmitResult } from "@/features/profile/utils";
 
 /**
  * Returns a stable submitPreferences callback for use with handleSubmit (utils/profile).

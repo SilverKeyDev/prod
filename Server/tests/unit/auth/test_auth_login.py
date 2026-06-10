@@ -24,7 +24,6 @@ class TestLoginFlow:
                     id=sample_user["id"],
                     name=sample_user["name"],
                     phone=sample_user["phone"],
-                    is_agent=False,
                     google_id=None,
                     cognito_id=sample_user["cognito_id"],
                     email=sample_user["email"],

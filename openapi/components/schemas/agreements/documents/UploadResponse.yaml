@@ -21,3 +21,6 @@ allOf:
       document:
         $ref: './SecureUploadDocumentPayload.yaml'
         nullable: true
+      image:
+        $ref: './SecureUploadImagePayload.yaml'
+        nullable: true

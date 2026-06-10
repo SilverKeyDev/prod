@@ -22,7 +22,6 @@ Use actual partners and facts from this rule and `pitch-and-fundraising.mdc`. Do
 | Partner | Fact |
 | ------- | ---- |
 | **Better** | Signed MSA: $3K + $1,500/user on launch |
-| **Move Concierge** | Revenue-share; live checklist integration |
 | **eXp** | Pilot committed — Rob & Kim's team |
 
 ## Live data over guessing
@@ -30,7 +29,7 @@ Use actual partners and facts from this rule and `pitch-and-fundraising.mdc`. Do
 | Topic | Source |
 | ----- | ------ |
 | Financials, balances, runway | **Mercury** MCP (read-only) |
-| Roadmap, tickets, status | **Linear** MCP |
+| Roadmap, tickets, status, **planned product work** | **Linear** MCP — do not track future work in repo markdown |
 | Code, branches, PRs | **GitHub** MCP |
 | Team threads | **Slack** MCP |
 

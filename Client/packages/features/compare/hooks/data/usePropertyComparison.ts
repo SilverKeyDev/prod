@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 import type { CompareHomesPropertyDetails } from "packages/features/compare/types/compareHomes";
 import { useIsAgent } from "packages/hooks/store";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAgentDashboardStore } from "packages/store";
-import { unknownToNumberOrString, unknownToString } from "packages/utils/typeGuards";
+import { unknownToNumberOrString, unknownToString } from "packages/utils/core/typeGuards";
 
 import type { PropertyRequest } from "@/features/search/api/research";
 import { researchApi } from "@/features/search/api/research";
@@ -169,7 +169,7 @@ export function usePropertyComparison(isOpen: boolean, selectedHomes: SavedHome[
 
           setLoadingStates((prev) => ({ ...prev, [homeId]: false }));
         } catch (error) {
-          log.error(LOG_CATEGORIES.SEARCH, "Error fetching property details", {
+          log.error("SEARCH", "Error fetching property details", {
             address,
             error,
           });

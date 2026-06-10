@@ -7,12 +7,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { StateStorage } from "zustand/middleware";
 
-import { setPlatformGlobals } from "packages/utils/platform";
+import { setPlatformGlobals } from "packages/utils/core/platform";
 import {
   type KeyValueStorage,
   type PlatformStorageConfig,
   setPlatformStorage,
-} from "packages/utils/storage/platformStorage";
+} from "packages/utils/core/storage/platformStorage";
 
 const PERSIST_PREFIX = "@sk_persist/";
 const LOCAL_PREFIX = "@sk_local/";

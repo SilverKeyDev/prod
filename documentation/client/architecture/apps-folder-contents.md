@@ -36,20 +36,21 @@ if (container) {
 
 ### Mobile (`apps/mobile`)
 
-- **Entry:** e.g. `App.tsx` (or the file registered as the app root).
+- **Entry:** `App.tsx` renders `AppRoot.native.tsx` (Expo entry; no `AppRegistry` in-repo — Expo handles registration).
 - **Responsibilities:**
-  - Use **`AppRegistry.registerComponent`** to tell iOS/Android: “This is the root of the application.”
-  - Export the root component that will be mounted by the native runtime.
-- **What it does not do:** Implement screens, data logic, or shared UI. It only registers the app and typically renders the provider tree + root navigator.
+  - Load NativeWind/global styles and gesture-handler side effects.
+  - Mount `AppRoot`, which runs platform bootstrap and the provider tree.
+- **What it does not do:** Implement screens, data logic, or shared UI. It only starts the native tree.
 
 **Example (conceptual):**
 
 ```tsx
 // apps/mobile/App.tsx
-import { AppRegistry } from 'react-native';
-import { App } from './src/App';
+import { AppRoot } from "./app/AppRoot.native";
 
-AppRegistry.registerComponent('SilverKey', () => App);
+export default function App() {
+  return <AppRoot />;
+}
 ```
 
 ---
@@ -74,7 +75,7 @@ Shared code in `packages/` may **consume** a theme, a Query Client, or a router 
 **Ownership vs configuration:** Apps **own** provider instantiation (e.g. creating the `QueryClient`, mounting `NavigationContainer`, `BrowserRouter`). Packages may export provider **components** only if they are **pure composition** and do **not** create singletons by default.
 
 - ✅ **OK:** `packages/ui/ThemeProvider` that takes a `theme` prop and wraps children.
-- ❌ **Not OK:** `packages/data/queryClient.ts` exporting a singleton `new QueryClient()`; the app should create it and pass it into `QueryClientProvider`.
+- ❌ **Not OK:** `packages/config/query/queryClient.ts` exporting a singleton `new QueryClient()`; the app should create it and pass it into `QueryClientProvider`.
 
 So: **packages define “what” (themes, hooks, components); the app defines “where” and “how many” (wrapping the tree once at the root, owning singletons).**
 

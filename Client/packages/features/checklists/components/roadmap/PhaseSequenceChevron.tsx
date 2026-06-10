@@ -2,7 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 export type PhaseSequenceChevronProps = {
   /** True when the stage before this chevron is complete or is the journey step. */

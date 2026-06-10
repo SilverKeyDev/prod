@@ -8,15 +8,14 @@ import React from "react";
 import { Linking, Platform, Pressable, StyleSheet } from "react-native";
 
 import { getEnv } from "packages/config";
-import AppImage from "packages/ui/components/asset/AppImage.native";
+import AppImage from "packages/ui/components/media/asset/AppImage.native";
 import {
   GOOGLE_SIGN_IN_ANDROID_SOURCE,
   GOOGLE_SIGN_IN_IOS_SOURCE,
-} from "packages/ui/components/asset/logoSource.native";
+} from "packages/ui/components/media/asset/logoSource.native";
 
 interface GoogleSignInButtonProps {
   text?: string;
-  disabled?: boolean;
 }
 
 function GoogleIcon() {
@@ -39,21 +38,14 @@ function GoogleIcon() {
 
 export default function GoogleSignInButton({
   text: _text = "Sign up with Google",
-  disabled = false,
 }: GoogleSignInButtonProps) {
   const handlePress = () => {
-    if (disabled) return;
     const apiUrl = getEnv().isDevelopment ? "http://localhost:5000" : "https://usesilverkey.com";
     void Linking.openURL(`${apiUrl}/api/v1/auth/google/start`);
   };
 
   return (
-    <Pressable
-      onPress={handlePress}
-      style={[styles.button, disabled && styles.buttonDisabled]}
-      accessibilityRole="button"
-      disabled={disabled}
-    >
+    <Pressable onPress={handlePress} style={styles.button} accessibilityRole="button">
       <GoogleIcon />
     </Pressable>
   );
@@ -67,9 +59,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 10,
-  },
-  buttonDisabled: {
-    opacity: 0.45,
   },
   icon: {
     height: 48,

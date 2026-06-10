@@ -14,8 +14,8 @@ import {
   redirectToLoginIfNeeded,
 } from "packages/services/http/client/auth";
 import { useAuthStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import { runAuthBootstrap } from "./authBootstrap";
 

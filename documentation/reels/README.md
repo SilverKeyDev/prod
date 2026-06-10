@@ -1,3 +1,7 @@
+> **Status:** Partial
+> **Last verified:** 2026-06-04
+> **Shipped feature docs:** [search.md](../client/features/search.md) (polygon search + cache); client Reels UI under `Client/packages/features/search/components/reels/`.
+
 # Reels for Homes
 
 Instagram/TikTok-style vertical feed for property listings: instant scroll, hyper-personalized ranking, and conversion-optimized experience (saves, agent contact, tour bookings).

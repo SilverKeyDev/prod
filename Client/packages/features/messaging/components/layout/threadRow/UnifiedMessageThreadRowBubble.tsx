@@ -12,9 +12,9 @@ import type {
   SharedChecklistFormSnapshot,
 } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
 import { SearchResultListingCard } from "packages/features/search";
-import type { HomeDescription } from "packages/ui/components/cards/HomeCard";
-import { Box } from "packages/ui/components/primitives";
-import { homeDescriptionToSearchResult } from "packages/utils/search/scoring/homeDescriptionToSearchResult";
+import { Box } from "packages/ui/components/structure/primitives";
+import type { HomeDescription } from "packages/ui/components/surfaces/cards/HomeCard";
+import { homeDescriptionToSearchResult } from "packages/utils/product/search/scoring/homeDescriptionToSearchResult";
 
 import { BodyText } from "@/components/ui";
 import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
@@ -52,6 +52,7 @@ export type UnifiedMessageThreadRowBubbleProps = Pick<
   | "onAcceptEventRequest"
   | "onCancelEventRequest"
   | "acceptingEventRequestId"
+  | "sharedDocumentActionHandlers"
 > & {
   messageConfig: MessageStyleConfig;
   isCurrentUserMessage: boolean;
@@ -102,6 +103,7 @@ export function UnifiedMessageThreadRowBubble({
   onAcceptEventRequest,
   onCancelEventRequest,
   acceptingEventRequestId,
+  sharedDocumentActionHandlers,
 }: UnifiedMessageThreadRowBubbleProps) {
   return (
     <Box
@@ -162,7 +164,7 @@ export function UnifiedMessageThreadRowBubble({
       {bundleSnap &&
         bundleDocs.map((doc) => (
           <Box key={doc.id} className="mb-2 w-full min-w-0 max-w-full overflow-hidden">
-            <SharedDocumentCard doc={doc} />
+            <SharedDocumentCard doc={doc} externalActionHandlers={sharedDocumentActionHandlers} />
           </Box>
         ))}
       {bundleSnap &&
@@ -240,7 +242,10 @@ export function UnifiedMessageThreadRowBubble({
           }
           return (
             <Box className="mb-2 w-full min-w-0 max-w-full overflow-hidden">
-              <SharedDocumentCard doc={document} />
+              <SharedDocumentCard
+                doc={document}
+                externalActionHandlers={sharedDocumentActionHandlers}
+              />
             </Box>
           );
         })()}

@@ -2,19 +2,19 @@ import type { KeyboardEvent, MouseEvent } from "react";
 
 import { color, spacing } from "packages/design-tokens";
 import { useFeedGestureTrap } from "packages/hooks/ui";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
 import {
   eventSpansMultipleLocalDays,
   getEventFirstLocalDayKey,
-} from "packages/utils/calendar/parsing/eventParsing";
-import { dateParseISO } from "packages/utils/date";
+} from "packages/utils/comms/calendar/parsing/eventParsing";
+import { dateParseISO } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { CalendarMonthGridStyles } from "@/features/calendar/components/shell/calendarMonthGridStyles";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import {
   calendarColorForEvent,
-  hexToRgba,
+  calendarMonthEventChipStyle,
 } from "@/features/calendar/utils/createEventModal/calendarEventColors";
 
 import type { MonthBodyDayCell } from "./calendarMonthBodyModel";
@@ -145,13 +145,11 @@ export function CalendarMonthDayCell({
                 label = ev.summary || "Untitled";
               }
 
-              const eventColor = isContinuation
-                ? color("neutral.500")
-                : calendarColorForEvent(ev, calendars);
+              const eventColor = calendarColorForEvent(ev, calendars);
 
               const chipStyle = {
                 ...styles.eventChip,
-                ...(!isContinuation ? { backgroundColor: hexToRgba(eventColor, 0.18) } : null),
+                ...calendarMonthEventChipStyle(eventColor),
                 ...(isMultiDay && !isContinuation ? styles.eventChipMultiDay : null),
                 ...(isContinuation ? styles.eventChipMultiDayContinuation : null),
               };
@@ -180,7 +178,6 @@ export function CalendarMonthDayCell({
                   }}
                   style={chipStyle}
                 >
-                  <Box style={{ ...styles.eventChipDot, backgroundColor: eventColor }} />
                   <Text style={styles.eventChipText} numberOfLines={1}>
                     {label}
                   </Text>
@@ -188,7 +185,7 @@ export function CalendarMonthDayCell({
               );
             })}
             {sortedEvents.length > 3 ? (
-              <Box style={{ marginTop: spacing(2), alignSelf: "flex-start" }}>
+              <Box style={{ marginTop: spacing(2), alignSelf: "center" }}>
                 <Text style={{ fontSize: 10, color: color("neutral.500") }}>
                   +{sortedEvents.length - 3} more
                 </Text>

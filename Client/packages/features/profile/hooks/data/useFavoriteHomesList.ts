@@ -6,10 +6,9 @@ import { useMemo } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 
+import { userApi } from "packages/features/profile/api/user";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
-
-import { userApi } from "@/features/profile/api/user";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type FavoriteHomeItem = {
   user_id: string;

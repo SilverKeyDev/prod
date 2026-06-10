@@ -1,7 +1,7 @@
 import { createElement, type ReactNode } from "react";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { authApi } from "packages/config";
@@ -23,7 +23,7 @@ vi.mock("./useSecureAuthEffects", () => ({
   useAuthReadyDispatch: () => {},
 }));
 
-vi.mock("../utils/logoutCleanup", () => ({
+vi.mock("packages/features/homeauth/hooks/data/utils/logoutCleanup", () => ({
   clearSessionStorageForLogout: vi.fn(),
   getOptionalSessionStorageForLogout: () => undefined,
 }));
@@ -78,14 +78,12 @@ function createAuthState(overrides: Partial<AuthState> = {}): AuthState {
     error: null,
     authReady: true,
     authStatus: "unauthenticated",
-    postAuthRedirectPath: null,
     setUser: vi.fn(),
     setIsAuthenticated: vi.fn(),
     setIsLoading: vi.fn(),
     setError: vi.fn(),
     setAuthReady: vi.fn(),
     setAuthStatus: vi.fn(),
-    setPostAuthRedirectPath: vi.fn(),
     login: vi.fn(),
     logout: vi.fn(),
     refreshToken: vi.fn(async () => false),
@@ -146,7 +144,7 @@ describe("useSecureAuth", () => {
         user_sub: "sub",
         auth_user_kind: "session",
         phone: null,
-        is_agent: false,
+        roles: [],
         auth_method: "cognito",
       },
     } as never);
@@ -155,7 +153,9 @@ describe("useSecureAuth", () => {
       wrapper: createWrapper(),
     });
 
-    await result.current.login("a@b.com", "pw");
+    await act(async () => {
+      await result.current.login("a@b.com", "pw");
+    });
 
     await waitFor(() => {
       expect(authState.setUser).toHaveBeenCalled();
@@ -174,7 +174,9 @@ describe("useSecureAuth", () => {
       wrapper: createWrapper(),
     });
 
-    await result.current.logout();
+    await act(async () => {
+      await result.current.logout();
+    });
 
     await waitFor(() => {
       expect(authApi.logout).toHaveBeenCalled();

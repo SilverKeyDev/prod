@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { createJSONStorage } from "zustand/middleware";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
 import type { SavedHome, SearchResult } from "packages/types";
-import { createPersistStorageProxy } from "packages/utils/storage/platformStorage";
+import { createPersistStorageProxy } from "packages/utils/core/storage/platformStorage";
 
 export type SavedHomesState = {
   // Saved homes data
@@ -70,21 +70,15 @@ const baseCreator: import("zustand").StateCreator<SavedHomesState> = (set) => ({
 
   // Async actions will be implemented by hooks that use this store
   refreshSavedHomes: () => {
-    log.warn(
-      LOG_CATEGORIES.HOOKS,
-      "refreshSavedHomes should be implemented by useSavedHomesData hook"
-    );
+    log.warn("HOOKS", "refreshSavedHomes should be implemented by useSavedHomesData hook");
     return Promise.resolve();
   },
   saveHome: () => {
-    log.warn(LOG_CATEGORIES.HOOKS, "saveHome should be implemented by useSavedHomesData hook");
+    log.warn("HOOKS", "saveHome should be implemented by useSavedHomesData hook");
     return Promise.resolve({ success: false, error: "Not implemented" });
   },
   removeSavedHomeAsync: () => {
-    log.warn(
-      LOG_CATEGORIES.HOOKS,
-      "removeSavedHomeAsync should be implemented by useSavedHomesData hook"
-    );
+    log.warn("HOOKS", "removeSavedHomeAsync should be implemented by useSavedHomesData hook");
     return Promise.resolve({ success: false, error: "Not implemented" });
   },
 

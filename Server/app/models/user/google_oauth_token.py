@@ -1,7 +1,10 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -40,35 +43,12 @@ class GoogleOAuthToken(db.Model):
         default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
 
-    # Relationship
-    user = db.relationship(
-        "User", backref=db.backref("google_oauth_token", uselist=False, lazy="select")
-    )
+    user: Mapped["User"] = relationship("User", back_populates="google_oauth_token")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        """Convert to dictionary format expected by token service"""
-        return {
-            "access_token": self.access_token,
-            "refresh_token": self.refresh_token,
-            "token_uri": self.token_uri,
-            "client_id": self.client_id,
-            # client_secret removed - always use config value
-            "scopes": self.scopes,
-            "expiry": self.expiry,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-            # Permission flags
-            "has_userinfo_email": self.has_userinfo_email,
-            "has_userinfo_profile": self.has_userinfo_profile,
-            "has_openid": self.has_openid,
-            "has_calendar_freebusy": self.has_calendar_freebusy,
-            "has_calendar_app_created": self.has_calendar_app_created,
-        }
 
     def __repr__(self):
         return f"<GoogleOAuthToken user_id={self.user_id}>"

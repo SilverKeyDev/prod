@@ -7,11 +7,9 @@ import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 from flask import current_app, has_app_context
 
-from app.utils.security.app_logging import get_logger
+from logger import log
 
 from ..s3_helpers import get_bucket_name
-
-logger = get_logger()
 
 
 class S3ClientManager:
@@ -66,12 +64,17 @@ class S3ClientManager:
 
             # Validate credentials
             if not aws_access_key or not aws_secret_key or not bucket_name:
-                logger.error("S3 credentials not configured - S3 operations will be disabled")
+                log.error(
+                    "DOCUMENTS", "S3 credentials not configured - S3 operations will be disabled"
+                )
                 return
 
             # Validate credential format (basic checks)
             if len(aws_access_key) < 16 or len(aws_secret_key) < 20:
-                logger.error("S3 credentials appear invalid - S3 operations will be disabled")
+                log.error(
+                    "DOCUMENTS",
+                    "S3 credentials appear invalid - S3 operations will be disabled",
+                )
                 return
 
             # Create S3 client
@@ -86,7 +89,11 @@ class S3ClientManager:
             try:
                 self.s3_client.head_bucket(Bucket=bucket_name)
             except Exception as bucket_test_error:
-                logger.error(f"S3 bucket access test failed: {str(bucket_test_error)}")
+                log.error(
+                    "DOCUMENTS",
+                    "S3 bucket access test failed",
+                    {"error": str(bucket_test_error)},
+                )
                 raise bucket_test_error
 
             # Store bucket name for later use
@@ -94,15 +101,23 @@ class S3ClientManager:
             self.initialization_successful = True
 
         except NoCredentialsError:
-            logger.error("AWS credentials not found or invalid")
+            log.error("DOCUMENTS", "AWS credentials not found or invalid")
             self.s3_client = None
         except ClientError as e:
             error_code = e.response["Error"]["Code"]
             error_message = e.response["Error"]["Message"]
-            logger.error(f"S3 client initialization failed: {error_code} - {error_message}")
+            log.error(
+                "DOCUMENTS",
+                "S3 client initialization failed",
+                {"error_code": error_code, "error_message": error_message},
+            )
             self.s3_client = None
         except Exception as e:
-            logger.error(f"Unexpected error initializing S3 client: {str(e)}")
+            log.error(
+                "DOCUMENTS",
+                "Unexpected error initializing S3 client",
+                {"error": str(e)},
+            )
             self.s3_client = None
 
     def _ensure_s3_client(self):
@@ -111,11 +126,15 @@ class S3ClientManager:
             try:
                 self._initialize_s3_client(force_retry=True)
             except Exception as e:
-                logger.error(f"S3 client initialization failed: {str(e)}")
+                log.error(
+                    "DOCUMENTS",
+                    "S3 client initialization failed",
+                    {"error": str(e)},
+                )
                 return False
 
         if self.s3_client is None:
-            logger.warning("S3 client initialization failed - operations will be disabled")
+            log.warn("DOCUMENTS", "S3 client initialization failed - operations will be disabled")
             return False
 
         return True

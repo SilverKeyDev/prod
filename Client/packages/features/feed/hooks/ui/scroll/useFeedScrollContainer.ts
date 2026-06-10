@@ -4,7 +4,7 @@ import type { VirtuosoHandle } from "react-virtuoso";
 
 import { useSearchContextStore } from "packages/store";
 import { useFeedStore } from "packages/store";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 import type { FeedComment, FeedListing, FeedScrollController } from "@/features/feed/types/feed";
 

@@ -25,8 +25,8 @@ export function isResultsSortDirection(v: string): v is ResultsSortDirection {
   return (RESULTS_SORT_DIRECTIONS as readonly string[]).includes(v);
 }
 
-/** Matches pre-direction-toggle behavior per sort key (price/distance were ascending; others descending). */
-export function legacyDefaultSortDirection(orderBy: ResultsOrderBy): ResultsSortDirection {
+/** Default sort direction per results column (price/distance ascending; others descending). */
+export function defaultSortDirectionForOrderBy(orderBy: ResultsOrderBy): ResultsSortDirection {
   return orderBy === "price" || orderBy === "distance" ? "asc" : "desc";
 }
 

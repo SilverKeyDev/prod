@@ -2,6 +2,7 @@ import type { AgentConversation } from "packages/api";
 import type { DocumentData } from "packages/features/documents";
 import type { SearchResult } from "packages/features/search";
 import type { SavedHome } from "packages/types";
+import type { DocumentCardExternalActionHandlers } from "packages/ui/components/surfaces/cards/document/types";
 
 import type {
   MessagingConfig,
@@ -37,4 +38,5 @@ export type UnifiedMessageThreadRowProps = {
   t: (key: string) => string;
   openSharedHomeDetails: (property: SearchResult) => void;
   onRetryMessage?: (messageId: string) => void;
+  sharedDocumentActionHandlers?: DocumentCardExternalActionHandlers;
 };

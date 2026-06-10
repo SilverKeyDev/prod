@@ -23,7 +23,7 @@ properties:
   brokerage:
     type: string
     nullable: true
-    description: Legacy brokerage name on the users row.
+    description: Brokerage name from the users row (prefer `brokerage_name` when both are set).
   profile_picture_url:
     type: string
     format: uri
@@ -99,4 +99,4 @@ properties:
     nullable: true
     description: >
       Unique slug for the short public profile URL path `/a/{public_profile_slug}`.
-      Omitted or null only for legacy rows before backfill; clients should fall back to the long id-based URL.
+      Omitted or null before slug backfill; clients should fall back to the long id-based URL.

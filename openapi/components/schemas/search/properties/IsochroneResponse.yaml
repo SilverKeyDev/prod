@@ -5,33 +5,3 @@ allOf:
       data:
         $ref: './IsochroneData.yaml'
         nullable: true
-      isochrone_data:
-        type: object
-        nullable: true
-        description: "Legacy field"
-        properties:
-          type:
-            type: string
-          coordinates:
-            type: array
-            items:
-              type: array
-              items:
-                type: array
-                items:
-                  type: number
-      locations:
-        type: array
-        items:
-          type: object
-          properties:
-            address:
-              type: string
-            commute_tolerance:
-              type: number
-              nullable: true
-            name:
-              type: string
-              nullable: true
-        nullable: true
-        description: "Legacy field"

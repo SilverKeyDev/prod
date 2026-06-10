@@ -1,5 +1,4 @@
-import { LOG_CATEGORIES } from "packages/logger";
-import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { traceDynamicImport } from "packages/utils/core/perf/shellRouteLoadTiming";
 
 import { loadClientHubModule, loadClientListModule } from "./agentDashboardDynamicImports";
 
@@ -11,7 +10,7 @@ export type AgentDashboardPrefetchBranch = "all" | "agent" | "client";
 
 export function prefetchAgentDashboardChunks(branch: AgentDashboardPrefetchBranch = "all"): void {
   if (branch === "all" || branch === "agent") {
-    const cat = LOG_CATEGORIES.DASHBOARD;
+    const cat = "DASHBOARD";
     traceDynamicImport(cat, "prefetch:ClientList", loadClientListModule());
     traceDynamicImport(cat, "prefetch:ClientHub", loadClientHubModule());
   }

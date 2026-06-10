@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import {
   clearMarkers,
@@ -70,7 +70,7 @@ export function useMapCleanup({
     if (cleanupTimeoutRef.current) {
       clearTimeout(cleanupTimeoutRef.current);
       cleanupTimeoutRef.current = null;
-      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Cleared pending cleanup timeout");
+      log.debug("MAP_RENDERING", "Cleared pending cleanup timeout");
     }
     runFullMapCleanup(
       googleMapRef,
@@ -102,7 +102,7 @@ export function useMapCleanup({
     const interval = setInterval(() => {
       const stats = getMemoryStats();
       if (stats.totalElements > 100) {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "High memory usage detected", stats);
+        log.warn("MAP_RENDERING", "High memory usage detected", stats);
       }
     }, 30000);
     return () => clearInterval(interval);

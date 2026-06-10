@@ -50,6 +50,7 @@ Keep always-on bodies short; deep detail belongs in `documentation/`.
 | [shared/aws-resource-naming.mdc](shared/aws-resource-naming.mdc) | AWS naming/tags |
 | [shared/cursor-optimization.mdc](shared/cursor-optimization.mdc) | @web, MCP tips |
 | [shared/agent-memory.mdc](shared/agent-memory.mdc) | `.cursor/memory/` read/update; pairs with [cursor-agent-memory.md](../../documentation/client/tooling/cursor-agent-memory.md) |
+| [shared/local-dev-database.mdc](shared/local-dev-database.mdc) | Local DB reset/init, secrets, setup scripts, Postgres ops docs |
 
 ---
 

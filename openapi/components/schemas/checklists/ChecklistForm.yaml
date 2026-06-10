@@ -1,0 +1,30 @@
+type: object
+required:
+  - id
+  - form_key
+  - title
+  - s3_template_path
+properties:
+  id:
+    type: string
+  form_key:
+    type: string
+    description: Stable key (e.g. earnest_money, wire_instructions).
+  title:
+    type: string
+  description:
+    type: string
+    nullable: true
+  s3_template_path:
+    type: string
+    description: S3 object key for the PDF template.
+  category:
+    type: string
+    nullable: true
+    description: Library folder (e.g. escrow, financing).
+  created_at:
+    type: string
+    nullable: true
+  updated_at:
+    type: string
+    nullable: true

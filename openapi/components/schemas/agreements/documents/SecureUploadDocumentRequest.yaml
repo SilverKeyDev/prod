@@ -1,0 +1,12 @@
+type: object
+required:
+  - file
+properties:
+  file:
+    type: string
+    format: binary
+    description: Document file (PDF, DOCX, or allowed image types per handler validation).
+  address:
+    type: string
+    nullable: true
+    description: Optional property address associated with the upload.

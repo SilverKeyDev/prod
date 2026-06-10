@@ -16,10 +16,10 @@ import {
 import { useActiveWorkspace } from "packages/features/homeauth";
 import { useTransactionShellConfig } from "packages/hooks/store";
 import { showErrorToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import type { TransactionShellConfig } from "packages/utils/workspace";
+import { log } from "packages/logger";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import type { TransactionShellConfig } from "packages/utils/product/workspace";
 
 const TAB_TO_CHECKLIST_TYPE = CHECKLIST_TAB_TO_TYPE;
 
@@ -108,7 +108,7 @@ export default function ClientChecklists({
       try {
         await toggleItem(id);
       } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to update checklist item", error);
+        log.error("ERRORS", "Failed to update checklist item", error);
         showErrorToast(
           t("checklists.update_error", {
             defaultValue: "Could not update this step. Please try again.",
@@ -192,15 +192,20 @@ export default function ClientChecklists({
         }
         renderItemAgentFooter={
           isAgentWorkspace
-            ? (item) =>
-                activeItemIds.includes(item.id) ? (
+            ? (item) => {
+                const hasSuggestedForms = (item.suggestedFormIds?.length ?? 0) > 0;
+                if (!activeItemIds.includes(item.id) || !hasSuggestedForms) {
+                  return null;
+                }
+                return (
                   <ChecklistStepForms
                     transactionId={transactionId}
                     section={checklistType}
                     itemId={item.id}
                     isAgent={isAgentWorkspace}
                   />
-                ) : null
+                );
+              }
             : undefined
         }
       />

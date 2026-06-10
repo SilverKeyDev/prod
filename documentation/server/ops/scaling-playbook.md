@@ -20,7 +20,7 @@ flowchart LR
   Beat --> RedisC
 ```
 
-Canonical deploy: [`.github/scripts/ec2-deploy.sh`](../../../.github/scripts/ec2-deploy.sh) (not the legacy `scripts/deploy/ec2/*.sh` step scripts).
+**Canonical deploy:** [`.github/scripts/ec2-deploy.sh`](../../../.github/scripts/ec2-deploy.sh) (invoked from [`.github/workflows/ci_web.yml`](../../../.github/workflows/ci_web.yml) on the EC2 host).
 
 Containers:
 
@@ -104,6 +104,7 @@ Before placing an ALB in front of multiple app containers:
 ```bash
 make prod-parity-build
 make prod-parity
+# or automated gate: make prod-parity-smoke
 curl -s http://127.0.0.1:5000/readyz | jq .
 ```
 

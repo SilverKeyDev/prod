@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# Run ESLint --fix on staged Client files. Reports issues; does not block commits
-# (the githooks/pre-commit wrapper always exits 0).
-set -uo pipefail
+# Run ESLint --fix on staged Client files (advisory; git commit hook never blocks).
+set -euo pipefail
 _HERE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 cd "${_HERE}/../../Client" || exit 0
 rel=()
@@ -20,4 +19,5 @@ printf '%s\0' "${rel[@]}" | xargs -0 pnpm exec eslint \
   --fix \
   --no-warn-ignored \
   || true
+
 exit 0

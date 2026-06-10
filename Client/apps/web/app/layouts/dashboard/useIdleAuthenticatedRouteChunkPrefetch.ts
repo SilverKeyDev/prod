@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
 
 import { prefetchAgentMessagingFeatureChunks } from "packages/features/agent/components/loading/prefetchAgentMessagingChunks";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { ROUTES } from "packages/navigation";
 import { useAuthStore } from "packages/store";
-import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { traceDynamicImport } from "packages/utils/core/perf/shellRouteLoadTiming";
+import { getWindow } from "packages/utils/core/platform";
 
 import { prefetchDashboardShellRoute } from "@/app/layouts/dashboard/dashboardRoutePrefetch";
 
@@ -45,14 +46,10 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
         return;
       }
       didPrefetchRef.current = true;
-      log.info(
-        LOG_CATEGORIES.ROUTING,
-        "[PERF] Authenticated heavy route chunk prefetch batch starting",
-        {
-          pathname,
-        }
-      );
-      const shellOpts = { isAgent: user.is_agent };
+      log.info("ROUTING", "[PERF] Authenticated heavy route chunk prefetch batch starting", {
+        pathname,
+      });
+      const shellOpts = { isAgent: (user.roles ?? []).includes("agent") };
       // Prewarm both heavy chunks; skip the one we're already on.
       if (!pathname.startsWith("/dashboard")) {
         prefetchDashboardShellRoute("/dashboard", shellOpts);
@@ -63,19 +60,23 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
         // Cold load or refresh on /messaging: outer route prefetch is skipped above; still
         // prewarm AgentPage + the correct AgentFeature lazy branch in parallel with other work.
         traceDynamicImport(
-          LOG_CATEGORIES.MESSAGES,
+          "MESSAGES",
           "idlePrefetch:AgentPage",
           import("@/pages/workspace/AgentPage")
         );
-        const branch = user.is_agent === true ? "agent" : "client";
+        const branch = (user.roles ?? []).includes("agent") ? "agent" : "client";
         prefetchAgentMessagingFeatureChunks(branch);
       }
     };
 
     let raf1 = 0;
     let raf2 = 0;
-    raf1 = window.requestAnimationFrame(() => {
-      raf2 = window.requestAnimationFrame(() => {
+    const win = getWindow();
+    if (!win) {
+      return;
+    }
+    raf1 = win.requestAnimationFrame(() => {
+      raf2 = win.requestAnimationFrame(() => {
         if (!cancelled) {
           run();
         }
@@ -84,8 +85,8 @@ export function useIdleAuthenticatedRouteChunkPrefetch(pathname: string): void {
 
     return () => {
       cancelled = true;
-      window.cancelAnimationFrame(raf1);
-      window.cancelAnimationFrame(raf2);
+      win.cancelAnimationFrame(raf1);
+      win.cancelAnimationFrame(raf2);
     };
   }, [authReady, isAuthenticated, user, pathname]);
 }

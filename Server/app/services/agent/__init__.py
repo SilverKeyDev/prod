@@ -3,7 +3,7 @@ Agent service module for managing agent-client relationships and conversations
 """
 
 from .client_service import get_agent_clients, get_client_info
-from .connection_request_service import (
+from .connection_request import (
     create_connection_request,
     get_connection_requests,
     recommend_agents,
@@ -11,7 +11,7 @@ from .connection_request_service import (
     search_agents,
     search_clients,
 )
-from .conversation_service import (
+from .conversation import (
     create_conversation,
     get_conversation,
     get_conversation_history,

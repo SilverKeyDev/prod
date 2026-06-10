@@ -2,12 +2,11 @@
 Strategy generator for negotiation strategies.
 """
 
-import logging
 from typing import Any
 
-from .research import generate_report
+from logger import log
 
-logger = logging.getLogger(__name__)
+from .research import generate_report
 
 
 def generate_negotiation_strategy(
@@ -58,5 +57,5 @@ def generate_negotiation_strategy(
     if result.get("success") and "data" in result:
         return result["data"]
     else:
-        logger.error(f"Failed to generate negotiation strategy: {result}")
+        log.error("NEGOTIATION", "Failed to generate negotiation strategy", {"result": result})
         raise RuntimeError(f"Strategy generation failed: {result.get('error', 'Unknown error')}")

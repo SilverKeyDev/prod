@@ -1,5 +1,6 @@
 """Platform-level outbound links for rev-share partners (one per partner)."""
 
+# pyright: reportUndefinedVariable=false
 from __future__ import annotations
 
 import uuid
@@ -27,15 +28,9 @@ class RevShareLink(db.Model):
     )
     is_active: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=True, index=True)
 
-    partner = relationship("Partner", back_populates="rev_share_links")
-    clicks = relationship("RevShareLinkClick", back_populates="link")
+    partner: Mapped["Partner"] = relationship("Partner", back_populates="rev_share_links")
+    clicks: Mapped[list["RevShareLinkClick"]] = relationship(
+        "RevShareLinkClick", back_populates="link"
+    )
 
     __table_args__ = (Index("idx_rev_share_links_partner_active", "partner_id", "is_active"),)
-
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "partner_id": self.partner_id,
-            "generated_at": self.generated_at.isoformat() if self.generated_at else None,
-            "is_active": self.is_active,
-        }

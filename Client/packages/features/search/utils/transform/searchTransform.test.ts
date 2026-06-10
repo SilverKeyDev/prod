@@ -90,42 +90,21 @@ describe("transformPropertySearchResult", () => {
     expect(result.lng).toBe(-97.5);
   });
 
-  it("maps legacy flat polygon row", () => {
-    const result = transformPropertySearchResult(
-      {
-        zpid: "999",
-        address: "789 Pine Rd",
-        latitude: 30.1,
-        longitude: -97.1,
-        bedrooms: 4,
-        bathrooms: 3,
-        livingArea: "2,100",
-        propertyType: "Townhouse",
-        listingStatus: "For Sale",
-        imgSrc: "/legacy.jpg",
-        _score: 72,
-      },
-      0
-    );
-
-    expect(result).toMatchObject({
-      id: "999",
-      address: "789 Pine Rd",
-      bedrooms: 4,
-      bathrooms: 3,
-      sqft: 2100,
-      lat: 30.1,
-      lng: -97.1,
-      propertyType: "Townhouse",
-      listingStatus: "For Sale",
-      imageUrl: "/legacy.jpg",
-      _score: 72,
-    });
-  });
-
   it("defaults OpenAPI score to 0 when field is missing", () => {
     const result = transformPropertySearchResult(openApiProperty({ score: undefined }), 0);
     expect(result._score).toBe(0);
+  });
+
+  it("prefers home_id as SearchResult id when provided", () => {
+    const stableId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+    const result = transformPropertySearchResult(
+      openApiProperty({ id: "99999", home_id: stableId }),
+      0
+    );
+
+    expect(result.id).toBe(stableId);
+    expect(result.home_id).toBe(stableId);
+    expect(result.zpid).toBe(99999);
   });
 
   it("preserves distinct fractional scores on OpenAPI rows", () => {
@@ -133,22 +112,6 @@ describe("transformPropertySearchResult", () => {
     const b = transformPropertySearchResult(openApiProperty({ score: 54.8, id: "2" }), 1);
     expect(a._score).toBe(53.2);
     expect(b._score).toBe(54.8);
-  });
-
-  it("handles missing address and string livingArea on legacy rows", () => {
-    const result = transformPropertySearchResult(
-      {
-        mls_home_id: "mls-1",
-        livingArea: "not-a-number",
-      },
-      2,
-      { lat: 1, lng: 2 }
-    );
-
-    expect(result.address).toBe("Address not available");
-    expect(result.sqft).toBe(0);
-    expect(result.lat).toBe(1);
-    expect(result.lng).toBe(2);
   });
 });
 

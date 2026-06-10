@@ -7,9 +7,7 @@ from datetime import datetime, time, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from app.utils.security.app_logging import get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def parse_google_datetime(datetime_str: str | None) -> datetime | None:
@@ -29,16 +27,11 @@ def parse_google_datetime(datetime_str: str | None) -> datetime | None:
     """
     if not datetime_str:
         return None
-
-    # Try ISO format parsing (Python 3.7+)
     try:
-        # Replace 'Z' with '+00:00' for timezone-aware parsing
         normalized_str = datetime_str.replace("Z", "+00:00")
         return datetime.fromisoformat(normalized_str)
     except (ValueError, AttributeError):
         pass
-
-    # Fallback to dateutil parser if available
     try:
         from dateutil import parser as date_parser
 
@@ -47,17 +40,12 @@ def parse_google_datetime(datetime_str: str | None) -> datetime | None:
         pass
     except Exception:
         pass
-
-    # Last resort: use datetime.strptime for common formats
     try:
-        # Try to parse common ISO format without timezone
         if "T" in datetime_str:
-            # Extract date and time part (first 19 characters: YYYY-MM-DDTHH:MM:SS)
             return datetime.strptime(datetime_str[:19], "%Y-%m-%dT%H:%M:%S")
     except (ValueError, AttributeError):
         pass
-
-    logger.warning(f"Failed to parse datetime string: {datetime_str}")
+    log.warn("CALENDAR", f"Failed to parse datetime string: {datetime_str}")
     return None
 
 
@@ -92,12 +80,9 @@ def extract_event_datetimes(
     start_datetime = None
     end_datetime = None
     timezone_str = "UTC"
-
     start_obj = google_event.get("start") or {}
     end_obj = google_event.get("end") or {}
-
-    # All-day: start.date / end.date (YYYY-MM-DD), end exclusive
-    if start_obj.get("date") and end_obj.get("date") and not start_obj.get("dateTime"):
+    if start_obj.get("date") and end_obj.get("date") and (not start_obj.get("dateTime")):
         start_naive = _parse_ymd(start_obj.get("date"))
         end_exclusive_naive = _parse_ymd(end_obj.get("date"))
         if start_naive and end_exclusive_naive:
@@ -107,30 +92,24 @@ def extract_event_datetimes(
             except Exception:
                 tz = ZoneInfo("UTC")
                 timezone_str = "UTC"
-
             start_date = start_naive.date()
             end_exclusive = end_exclusive_naive.date()
             last_inclusive = end_exclusive - timedelta(days=1)
             if last_inclusive < start_date:
                 last_inclusive = start_date
-
             start_local = datetime.combine(start_date, time.min, tzinfo=tz)
             end_local = datetime.combine(last_inclusive, time(23, 59, 59, 999999), tzinfo=tz)
             start_datetime = start_local.astimezone(timezone.utc).replace(tzinfo=None)
             end_datetime = end_local.astimezone(timezone.utc).replace(tzinfo=None)
-        return start_datetime, end_datetime, timezone_str
-
-    # Timed: dateTime on start/end
+        return (start_datetime, end_datetime, timezone_str)
     if start_obj.get("dateTime"):
         start_datetime = parse_google_datetime(start_obj["dateTime"])
         timezone_str = start_obj.get("timeZone", "UTC")
-
     if end_obj.get("dateTime"):
         end_datetime = parse_google_datetime(end_obj["dateTime"])
         if timezone_str == "UTC" and end_obj.get("timeZone"):
             timezone_str = end_obj.get("timeZone", "UTC")
-
-    return start_datetime, end_datetime, timezone_str
+    return (start_datetime, end_datetime, timezone_str)
 
 
 def validate_max_results(
@@ -150,13 +129,13 @@ def validate_max_results(
     """
     if not max_results_str:
         return default
-
     try:
         max_results = int(max_results_str)
-        # Clamp between min and max
         return max(min_val, min(max_results, max_val))
     except (ValueError, TypeError):
-        logger.warning(f"Invalid maxResults value: {max_results_str}, using default {default}")
+        log.warn(
+            "CALENDAR", f"Invalid maxResults value: {max_results_str}, using default {default}"
+        )
         return default
 
 

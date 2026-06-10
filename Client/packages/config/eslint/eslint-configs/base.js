@@ -96,5 +96,17 @@ export default function getBaseConfig() {
         "simple-import-sort/exports": "warn",
       },
     },
+
+    // Log contract codegen controls export order; do not re-sort generated barrels.
+    {
+      files: [
+        "packages/logger/core/categories.ts",
+        "packages/logger/core/categories.generated.ts",
+        "packages/logger/config/*.generated.ts",
+      ],
+      rules: {
+        "simple-import-sort/exports": "off",
+      },
+    },
   ];
 }

@@ -4,9 +4,9 @@ import { useLocalization } from "packages/contexts";
 import { partnersApi } from "packages/features/partners/api/partners";
 import { getPartnerLogoUploadErrorMessage } from "packages/features/partners/api/partnersLogoUploadError";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
-import { Box, Image } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Label from "packages/ui/components/text/Label";
+import { Box, Image } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Label from "packages/ui/components/structure/text/Label";
 
 import { Button } from "@/components/ui";
 

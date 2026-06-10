@@ -5,16 +5,16 @@ import { Icon } from "@ui/icons";
 import type { AgentClient, AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
 import AgentClientListRow from "packages/features/agent/components/clientList/AgentClientListRow";
-import { getMessagePreview } from "packages/features/messaging/utils/messagePreview";
-import { Box } from "packages/ui/components/primitives";
-import { SidebarInsetListSelectionStripe } from "packages/ui/components/sidebar/SidebarInsetListSelectionStripe";
+import { Box } from "packages/ui/components/structure/primitives";
+import { SidebarInsetListSelectionStripe } from "packages/ui/components/structure/sidebar/SidebarInsetListSelectionStripe";
 import {
   SIDEBAR_INSET_BODY_MUTED,
   SIDEBAR_INSET_EMPTY_ICON,
   SIDEBAR_INSET_EMPTY_ICON_WRAP,
   sidebarInsetListRowClass,
   sidebarInsetListRowSelectedProps,
-} from "packages/ui/components/sidebar/sidebarTheme";
+} from "packages/ui/components/structure/sidebar/sidebarTheme";
+import { getMessagePreview } from "packages/utils/comms/messaging/messagePreview";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
 import { sortAgentClients } from "@/features/agent/utils/agentClientListSort";

@@ -3,7 +3,7 @@ import React from "react";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
-import { Image } from "packages/ui/components/primitives";
+import { Image } from "packages/ui/components/structure/primitives";
 
 import { propertyImageGalleryNativeStyles } from "./PropertyImageGallery.native.styles";
 

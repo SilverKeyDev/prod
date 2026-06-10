@@ -1,40 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useQueries } from "@tanstack/react-query";
-
-import { type ViewingItinerary, type ViewingStop } from "packages/api/viewings";
 import {
+  CALENDAR_EVENT_KIND_ORDER,
   CALENDAR_EVENT_KINDS,
   type CalendarEventKindId,
-  getCalendarEventKindOptionSlice,
 } from "packages/features/calendar";
-import { getTaskChecklistForSubject } from "packages/features/checklists/api/checklists";
+import { useEventRequestScheduleAvailability } from "packages/features/calendar/hooks/data/availability/useEventRequestScheduleAvailability";
+import { buildEventRequestMessage, type EventRequestPayload } from "packages/features/messaging";
 // Import path avoids messaging barrel cycle (messaging barrel → AgentMessaging → MessagingModals → agent).
-import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
-import { useEventRequestScheduleAvailability } from "packages/hooks/data/calendar/useEventRequestScheduleAvailability";
-import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
+import { useAgentChats } from "packages/features/messaging";
 import { useIsAgent } from "packages/hooks/store";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { type UIState, useAuthStore, useUIStore } from "packages/store";
-import { dateNow, dateParseISO } from "packages/utils/date";
+import { log } from "packages/logger";
+import { type UIState, useUIStore } from "packages/store";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
 
 import { useAgentClients } from "@/features/agent/hooks/data/clients/useAgentClients";
-import {
-  buildViewingItineraryDraftFromForm,
-  primaryLocationLabelFromItinerary,
-  viewingEndpointHasRoutingInput,
-  type ViewingRouteEndMode,
-  type ViewingRouteEndpoint,
-  viewingStopsHaveAtLeastOneAddress,
-  type ViewingTourAnchor,
-  type ViewingTourStartSelection,
-  viewingTourStartToEndpoint,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 import type { MessagingSendMessageOptions } from "@/features/messaging/hooks/data/messaging/types";
-import {
-  buildEventRequestMessage,
-  type EventRequestPayload,
-} from "@/features/messaging/utils/eventRequestPayload";
+
+const DEFAULT_KIND_ID: CalendarEventKindId = "meeting";
 
 export type UseCalendarEventRequestFormParams = {
   onClose: () => void;
@@ -51,103 +34,33 @@ export function useCalendarEventRequestForm({
   sendCalendarEventMessage,
 }: UseCalendarEventRequestFormParams) {
   const isAgent = useIsAgent();
-  const authUserId = useAuthStore((s) => s.user?.id ?? null);
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const { clients, isLoading: isLoadingClients } = useAgentClients();
-  const { clientSettings } = useClientSettings();
-  const viewingTourAnchors: ViewingTourAnchor[] = useMemo(
-    () => clientSettings?.viewing_tour?.anchors ?? [],
-    [clientSettings?.viewing_tour?.anchors]
-  );
   const { conversations, sendMessage: sendMessageDirect } = useAgentChats();
 
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
-  const [eventKindId, setEventKindId] = useState<CalendarEventKindId>("other");
-  const [eventTitle, setEventTitle] = useState("");
+  const [eventKindId, setEventKindId] = useState<CalendarEventKindId>(DEFAULT_KIND_ID);
+  const [eventTitle, setEventTitle] = useState(CALENDAR_EVENT_KINDS[DEFAULT_KIND_ID].label);
   const [eventDescription, setEventDescription] = useState("");
   const [eventLocation, setEventLocation] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [viewingStops, setViewingStops] = useState<ViewingStop[]>([]);
-  const [viewingStartSelection, setViewingStartSelection] = useState<ViewingTourStartSelection>({
-    kind: "omit",
-  });
-  const [viewingEndMode, setViewingEndMode] = useState<ViewingRouteEndMode>("last_property");
-  const [viewingEndFixed, setViewingEndFixed] = useState<ViewingRouteEndpoint | null>(null);
-
-  const checklistSubjectId = useMemo(() => {
-    if (!isAgent) {
-      return authUserId;
-    }
-    return selectedClientId;
-  }, [isAgent, authUserId, selectedClientId]);
-
-  const [searchChecklistQuery, offerChecklistQuery] = useQueries({
-    queries: [
-      {
-        queryKey: ["transactionTasks", checklistSubjectId, "search"] as const,
-        queryFn: () => getTaskChecklistForSubject(checklistSubjectId as string, "search"),
-        enabled: Boolean(checklistSubjectId),
-      },
-      {
-        queryKey: ["transactionTasks", checklistSubjectId, "offer"] as const,
-        queryFn: () => getTaskChecklistForSubject(checklistSubjectId as string, "offer"),
-        enabled: Boolean(checklistSubjectId),
-      },
-    ],
-  });
-
-  const checklistProgressLoading =
-    Boolean(checklistSubjectId) &&
-    (searchChecklistQuery.isLoading || offerChecklistQuery.isLoading);
-
-  const kindOptionSlice = useMemo(
-    () =>
-      getCalendarEventKindOptionSlice({
-        searchCheckedIds: checklistSubjectId ? searchChecklistQuery.data?.checkedIds : undefined,
-        offerCheckedIds: checklistSubjectId ? offerChecklistQuery.data?.checkedIds : undefined,
-      }),
-    [
-      checklistSubjectId,
-      searchChecklistQuery.data?.checkedIds,
-      offerChecklistQuery.data?.checkedIds,
-    ]
-  );
 
   const kindSeededRef = useRef(false);
 
   useEffect(() => {
     kindSeededRef.current = false;
-  }, [checklistSubjectId]);
+  }, [selectedClientId]);
 
   useEffect(() => {
     if (kindSeededRef.current) {
       return;
     }
-    if (checklistSubjectId) {
-      if (searchChecklistQuery.isLoading || offerChecklistQuery.isLoading) {
-        return;
-      }
-    }
-    const slice = getCalendarEventKindOptionSlice({
-      searchCheckedIds: checklistSubjectId ? searchChecklistQuery.data?.checkedIds : undefined,
-      offerCheckedIds: checklistSubjectId ? offerChecklistQuery.data?.checkedIds : undefined,
-    });
-    setEventKindId(slice.defaultKindId);
-    if (slice.defaultKindId !== "other") {
-      setEventTitle(CALENDAR_EVENT_KINDS[slice.defaultKindId].label);
-    } else {
-      setEventTitle("");
-    }
+    setEventKindId(DEFAULT_KIND_ID);
+    setEventTitle(CALENDAR_EVENT_KINDS[DEFAULT_KIND_ID].label);
     kindSeededRef.current = true;
-  }, [
-    checklistSubjectId,
-    searchChecklistQuery.isLoading,
-    searchChecklistQuery.data?.checkedIds,
-    offerChecklistQuery.isLoading,
-    offerChecklistQuery.data?.checkedIds,
-  ]);
+  }, [selectedClientId]);
 
   const handleEventKindIdChange = useCallback((id: CalendarEventKindId) => {
     setEventKindId(id);
@@ -157,29 +70,6 @@ export function useCalendarEventRequestForm({
       setEventTitle("");
     }
   }, []);
-
-  const kindDef = useMemo(() => CALENDAR_EVENT_KINDS[eventKindId], [eventKindId]);
-
-  const isPropertyViewing = kindDef.usesViewingStops;
-
-  useEffect(() => {
-    if (!isPropertyViewing) {
-      setViewingStops([]);
-      setViewingStartSelection({ kind: "omit" });
-      setViewingEndMode("last_property");
-      setViewingEndFixed(null);
-    }
-  }, [isPropertyViewing]);
-
-  useEffect(() => {
-    if (viewingEndMode !== "return_to_start") {
-      return;
-    }
-    const ep = viewingTourStartToEndpoint(viewingStartSelection, viewingTourAnchors);
-    if (!viewingEndpointHasRoutingInput(ep)) {
-      setViewingEndMode("last_property");
-    }
-  }, [viewingEndMode, viewingStartSelection, viewingTourAnchors]);
 
   const getConversationId = useCallback(
     (clientId: string): string | null => {
@@ -217,34 +107,22 @@ export function useCalendarEventRequestForm({
     eventTitle.trim() &&
     eventDate &&
     eventTime &&
-    (isAgent ? selectedClientId !== null : clientConversation !== null) &&
-    (!isPropertyViewing || viewingStopsHaveAtLeastOneAddress(viewingStops))
+    (isAgent ? selectedClientId !== null : clientConversation !== null)
   );
 
   const resetForm = useCallback(() => {
-    setEventKindId("other");
-    setEventTitle("");
+    setEventKindId(DEFAULT_KIND_ID);
+    setEventTitle(CALENDAR_EVENT_KINDS[DEFAULT_KIND_ID].label);
     setEventDescription("");
     setEventLocation("");
     setEventDate("");
     setEventTime("");
     setSelectedClientId(null);
-    setViewingStops([]);
-    setViewingStartSelection({ kind: "omit" });
-    setViewingEndMode("last_property");
-    setViewingEndFixed(null);
     kindSeededRef.current = false;
   }, []);
 
   const handleSend = useCallback(async () => {
     if (!eventTitle.trim() || !eventDate || !eventTime) {
-      return;
-    }
-    if (isPropertyViewing && !viewingStopsHaveAtLeastOneAddress(viewingStops)) {
-      enqueueToast({
-        type: "error",
-        message: "Add at least one property address for the viewing tour.",
-      });
       return;
     }
     let conversationId: string | null = null;
@@ -274,27 +152,6 @@ export function useCalendarEventRequestForm({
       description: eventDescription.trim() || undefined,
       location: eventLocation.trim() || undefined,
     };
-    if (isPropertyViewing) {
-      const it = buildViewingItineraryDraftFromForm({
-        stops: viewingStops,
-        startSelection: viewingStartSelection,
-        anchors: viewingTourAnchors,
-        endMode: viewingEndMode,
-        endFixed: viewingEndFixed,
-      });
-      if (!it) {
-        enqueueToast({
-          type: "error",
-          message: "Add at least one property address for the viewing tour.",
-        });
-        return;
-      }
-      payload.itinerary = it as ViewingItinerary;
-      const loc = primaryLocationLabelFromItinerary(it);
-      if (loc) {
-        payload.location = loc;
-      }
-    }
     const message = buildEventRequestMessage(payload);
     setIsSending(true);
     try {
@@ -311,7 +168,11 @@ export function useCalendarEventRequestForm({
       onSuccess?.();
       onClose();
     } catch (error) {
-      log.error(LOG_CATEGORIES.CALENDAR, "Error sending event request", error);
+      log.error("CALENDAR", "Error sending event request", error);
+      enqueueToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Could not send event request",
+      });
     } finally {
       setIsSending(false);
     }
@@ -325,12 +186,6 @@ export function useCalendarEventRequestForm({
     eventTitle,
     getConversationId,
     isAgent,
-    isPropertyViewing,
-    viewingStops,
-    viewingStartSelection,
-    viewingTourAnchors,
-    viewingEndMode,
-    viewingEndFixed,
     onClose,
     onSuccess,
     resetForm,
@@ -348,8 +203,7 @@ export function useCalendarEventRequestForm({
     setSelectedClientId,
     eventKindId,
     onEventKindIdChange: handleEventKindIdChange,
-    kindOptionSlice,
-    checklistProgressLoading,
+    allowedKindIds: CALENDAR_EVENT_KIND_ORDER,
     eventTitle,
     setEventTitle,
     eventDescription,
@@ -364,16 +218,6 @@ export function useCalendarEventRequestForm({
     canSend,
     minDate,
     handleSend,
-    isPropertyViewing,
-    viewingStops,
-    setViewingStops,
-    viewingStartSelection,
-    setViewingStartSelection,
-    viewingEndMode,
-    setViewingEndMode,
-    viewingEndFixed,
-    setViewingEndFixed,
-    viewingTourAnchors,
     eventRequestDateOptions,
     eventRequestTimeOptions,
   };

@@ -17,7 +17,7 @@
 # AUTH_TOKEN_DECODE_ERROR, INTERNAL_SERVER_ERROR, and many auth paths in app/__init__.py middleware.
 #
 # Client log messages: AUTH_ERROR_401 (packages/logger), "401 recovery refresh chain failed",
-# FRONTEND_AUTH_REFRESH_FAILED / FRONTEND_AUTH_BOOTSTRAP_* (secureLogger in auth bootstrap).
+# Auth bootstrap start/complete/retry (packages/logger AUTH category), session verify/refresh in session.ts.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/../.." && pwd)"
 ID="${1:-}"
@@ -28,10 +28,10 @@ fi
 echo "Repo root: $ROOT"
 echo "Searching Client source for auth log tokens (documentation only)..."
 if command -v rg >/dev/null 2>&1; then
-  rg -n "AUTH_ERROR_401|AUTH_REFRESH_|FRONTEND_AUTH_|401 recovery" "$ROOT/Client/packages" \
+  rg -n "AUTH_ERROR_401|AUTH_REFRESH_|Auth bootstrap|401 recovery" "$ROOT/Client/packages" \
     --glob '*.ts' --glob '*.tsx' 2>/dev/null | head -40 || true
 else
-  grep -RIn --include='*.ts' --include='*.tsx' -E "AUTH_ERROR_401|AUTH_REFRESH_|FRONTEND_AUTH_|401 recovery" \
+  grep -RIn --include='*.ts' --include='*.tsx' -E "AUTH_ERROR_401|AUTH_REFRESH_|Auth bootstrap|401 recovery" \
     "$ROOT/Client/packages" 2>/dev/null | head -40 || true
 fi
 echo ""

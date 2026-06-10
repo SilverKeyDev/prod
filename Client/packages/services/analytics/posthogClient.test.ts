@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const posthogMocks = vi.hoisted(() => ({
+  __loaded: false as boolean | undefined,
   init: vi.fn(),
   identify: vi.fn(),
   reset: vi.fn(),
@@ -48,6 +49,7 @@ describe("buildPostHogWebInitOptions", () => {
 describe("initPostHogClient", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    posthogMocks.__loaded = false;
     envMocks.posthogKey = "phc_test_key";
     windowMocks.hasWindow = true;
     vi.resetModules();
@@ -80,6 +82,14 @@ describe("initPostHogClient", () => {
     const { initPostHogClient } = await import("./posthogClient");
 
     expect(initPostHogClient()).toBe(false);
+    expect(posthogMocks.init).not.toHaveBeenCalled();
+  });
+
+  it("does not call posthog.init when the SDK is already loaded", async () => {
+    posthogMocks.__loaded = true;
+    const { initPostHogClient } = await import("./posthogClient");
+
+    expect(initPostHogClient()).toBe(true);
     expect(posthogMocks.init).not.toHaveBeenCalled();
   });
 });

@@ -2,14 +2,13 @@
 Comparison and correlation analysis helpers for ensemble scoring.
 """
 
-import logging
 from typing import Any
 
 import numpy as np
 
-from .batch_scoring import get_embedding_scores_batch
+from logger import log
 
-logger = logging.getLogger(__name__)
+from .batch_scoring import get_embedding_scores_batch
 
 
 def calculate_score_correlations(
@@ -34,7 +33,7 @@ def calculate_score_correlations(
         return correlations
 
     except Exception as e:
-        logger.error(f"Error calculating correlations: {e}")
+        log.error("ERRORS", f"Error calculating correlations: {e}")
         return {}
 
 
@@ -51,7 +50,7 @@ def rank_by_scores(data: list[dict[str, Any]], score_field: str) -> list[dict[st
         return sorted_data
 
     except Exception as e:
-        logger.error(f"Error ranking by {score_field}: {e}")
+        log.error("ERRORS", f"Error ranking by {score_field}: {e}")
         return data
 
 
@@ -100,5 +99,5 @@ def compare_scoring_methods(
         }
 
     except Exception as e:
-        logger.error(f"Error comparing scoring methods: {e}")
+        log.error("ERRORS", f"Error comparing scoring methods: {e}")
         return {"error": str(e)}

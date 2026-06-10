@@ -24,13 +24,13 @@ This document is the **exhaustive** reference for what is **React (web)** specif
 ### Current State
 
 - **apps/web:** Full React (web) app; build with Vite; uses DOM, `react-router-dom`, and web-only libraries where needed.
-- **apps/mobile:** React Native app (present as a folder; may be minimal or placeholder). Build with Metro; uses React Native primitives (`View`, `Text`, `Pressable`, etc.).
+- **apps/mobile:** React Native app (Expo + Metro). Thin screens and native navigation; shared product UI comes from `packages/features/` and `packages/ui/`. See [mobile-app-structure.md](mobile-app-structure.md).
 - **packages/*:** Shared logic (hooks, store, config, services, schemas, utils, contexts, navigation, design-tokens) **and** shared UI in **`packages/ui/`**, plus feature modules in **`packages/features/`**. Shared code is **RN-safe** unless a file uses platform extensions (`.web.tsx` / `.native.tsx`) or web-only adapters; CSS under `packages/ui/styles/` is **web-oriented**. See `Client/ARCHITECTURE.md` (“Where UI components live”).
 - **UI today:** Design-system components and primitives live in **`Client/packages/ui/`** (import via `packages/ui`, `@/components/ui`, or `@ui`). **apps/web** holds thin pages and app shell layouts, not a parallel `components/ui` tree. Historical note: [shared-ui-package.md](shared-ui-package.md) described adopting `packages/ui`; that package is now canonical.
 
 ### Goals
 
-- **Shared “brain”:** Hooks, store, config/api, services, schemas, utils, navigation, and design-tokens are shared so web and mobile use the same data layer and business logic.
+- **Shared “brain”:** Hooks, store, `packages/api`, services, schemas, utils, navigation, and design-tokens are shared so web and mobile use the same data layer and business logic.
 - **Explicit platform code:** Code that **cannot** run on both platforms is marked with platform extensions (`.web.*` or `.native.*`) and lives in the correct app or in a shared package with two implementations.
 - **Single convention:** We use **`.native.*`** for React Native (not `.mobile.*`). We use **`.web.*`** for web-only or desktop-only code.
 
@@ -47,7 +47,7 @@ This document is the **exhaustive** reference for what is **React (web)** specif
 | **Routing** | react-router-dom (in app shell); features use `packages/navigation` adapter only. |
 | **UI** | React components using DOM elements, Tailwind, and optionally web-only libraries (Headless UI, react-virtuoso, etc.). |
 | **File extensions** | **Default:** `.tsx` / `.ts` (shared or default web). **Web-only or desktop-only:** `.web.tsx` / `.web.ts`. |
-| **Allowed imports** | `packages/*` (hooks, store, schemas, utils, contexts, navigation, design-tokens), `logger`; `@/` for app-local paths. Must **not** import `config/api` or `services` directly from components. |
+| **Allowed imports** | `packages/*` (hooks, store, schemas, utils, contexts, navigation, design-tokens), `logger`; `@/` for app-local paths. Must **not** import `packages/api` or `services` directly from components. |
 
 ### apps/mobile
 

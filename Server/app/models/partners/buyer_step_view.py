@@ -1,5 +1,6 @@
 """Buyer step views for rev-share CTR denominator."""
 
+# pyright: reportUndefinedVariable=false
 from __future__ import annotations
 
 import uuid
@@ -32,8 +33,8 @@ class BuyerStepView(db.Model):
     )
     partner_payout_snapshot: Mapped[list[dict[str, Any]] | None] = mapped_column(db.JSON)
 
-    buyer = relationship("User", foreign_keys=[buyer_id])
-    transaction = relationship("Transaction")
+    buyer: Mapped["User"] = relationship("User", foreign_keys=[buyer_id])
+    transaction: Mapped["Transaction"] = relationship("Transaction")
 
     __table_args__ = (
         UniqueConstraint(
@@ -44,13 +45,3 @@ class BuyerStepView(db.Model):
         ),
         Index("idx_buyer_step_views_step_viewed", "step_id", "viewed_at"),
     )
-
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "buyer_id": self.buyer_id,
-            "step_id": self.step_id,
-            "transaction_id": self.transaction_id,
-            "viewed_at": self.viewed_at.isoformat() if self.viewed_at else None,
-            "partner_payout_snapshot": self.partner_payout_snapshot,
-        }

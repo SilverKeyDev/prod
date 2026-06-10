@@ -5,11 +5,11 @@ import { useUserData } from "packages/hooks/data/user/useUserData";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore, useUIStore } from "packages/store";
 import { Button } from "packages/ui";
-import { ProfileAvatar } from "packages/ui/components/avatar/ProfileAvatar";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import { setPendingPublicAgentConnect } from "packages/utils/agent";
+import { ProfileAvatar } from "packages/ui/components/media/avatar/ProfileAvatar";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
+import { setPendingPublicAgentConnect } from "packages/utils/growth/agent";
 
 import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";
 import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
@@ -41,7 +41,7 @@ export function PublicAgentProfileConnect({
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const initiatorId = userProfile?.id ?? authUser?.id ?? null;
-  const initiatorIsAgent = userProfile?.is_agent ?? authUser?.is_agent ?? false;
+  const initiatorIsAgent = (userProfile?.roles ?? authUser?.roles ?? []).includes("agent");
 
   const sendConnectRequest = useCallback(async () => {
     if (!initiatorId) {
@@ -90,8 +90,7 @@ export function PublicAgentProfileConnect({
   const handleSignIn = useCallback(() => {
     setPendingPublicAgentConnect(agentId, { name: agentName, photoUrl: agentPhotoUrl });
     setAuthModalOpen(false);
-    // Navigate directly to login with no return path — the resume hook will handle
-    // sending the connection request after auth and navigate to DASHBOARD cleanly.
+    // Navigate to login; pending intent is completed after onboarding via useResumePendingAgentPublicConnect.
     navigate("LOGIN");
   }, [agentId, agentName, agentPhotoUrl, navigate]);
 

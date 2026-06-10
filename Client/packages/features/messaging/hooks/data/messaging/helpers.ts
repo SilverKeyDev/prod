@@ -9,7 +9,7 @@ import {
   formatLocaleMonthDayShortEnUs,
   formatLocaleMonthDayYearShortEnUs,
   formatLocaleTime12HourEnUs,
-} from "packages/utils/date";
+} from "packages/utils/core/date";
 
 import type { ApiMessageForMapping, ChatMessage } from "./types";
 

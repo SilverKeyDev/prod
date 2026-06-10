@@ -3,9 +3,9 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
-import { Box } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 
 import { MAX_VISIBLE, truncateAddress } from "./constants";

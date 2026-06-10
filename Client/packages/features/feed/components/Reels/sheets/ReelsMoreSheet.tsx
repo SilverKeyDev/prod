@@ -1,8 +1,8 @@
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { Transition } from "packages/ui/components/adapters/headless";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Transition } from "packages/ui/components/system/adapters/headless";
 
 import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";
@@ -18,7 +18,7 @@ type ReelsMoreSheetProps = {
   onSave?: () => void;
 };
 const ACTION_ROW_CLASS =
-  "flex flex-row w-full items-center gap-3 px-4 py-3 text-left border-0 rounded-none bg-transparent hover:bg-background-base active:bg-primary-muted active:opacity-90 text-text-primary";
+  "flex flex-row w-full items-center gap-3 px-4 py-3 text-left border-0 rounded-none bg-transparent hover:bg-background-base active:bg-neutral-200 active:opacity-90 text-text-primary";
 export function ReelsMoreSheet({
   isOpen,
   onClose,

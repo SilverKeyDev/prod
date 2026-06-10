@@ -1,3 +1,5 @@
+> **Status:** Planned
+> **Last verified:** 2026-06-04
 # Reels: Final Goal and Vision
 
 ## Vision

@@ -15,7 +15,7 @@ If you prefer to stay at the repo root, prefix commands with `cd Client &&`.
 ## Tooling overview
 
 - **ESLint**
-  - Configured via `packages/config/eslint/eslint.config.js`.
+  - Source config: `packages/config/eslint/eslint.config.js` (ESM). `pnpm lint` loads the CJS wrapper `packages/config/eslint/eslint.config.cjs`.
   - Uses the custom `eslint-plugin-silverkey` along with TypeScript and React-focused rules.
   - Enforces project-specific architecture, hooks, and style rules.
   - `eslint-plugin-tailwindcss` flags contradictory Tailwind classes in the same string (requires the `eslint-plugin-tailwindcss` pnpm patch under `Client/patches/` for ESLint 9).
@@ -35,8 +35,8 @@ If you prefer to stay at the repo root, prefix commands with `cd Client &&`.
   - Type-checking is configured for the web app via `Client/apps/web/tsconfig.json`.
   - Helps catch type errors and invalid API usage before build/deploy.
 
-- **Git hooks**
-  - `husky` and `lint-staged` are configured (see `Client/package.json`) to run lint/format checks on staged files before committing.
+- **Git hooks (advisory)**
+  - `scripts/githooks/pre-commit` runs Ruff, Prettier, ESLint `--fix`, and OpenAPI regen on relevant paths; **never blocks** the commit (auto-fixes are re-staged). Merge gates: `make lint`, CI `test.yml`.
 
 - **Accessibility (jsx-a11y + SilverKey)**
   - `eslint-plugin-jsx-a11y` (recommended rules) runs on `apps/web`, `apps/mobile`, `packages/ui`, `packages/features`, `packages/hooks`, and `packages/contexts` via `packages/config/eslint/eslint-overrides/a11y-overrides.js`.
@@ -55,7 +55,7 @@ From the `Client/` directory, you can use the following `pnpm` scripts:
   pnpm lint
   ```
 
-  - Runs `eslint .` using `packages/config/eslint/eslint.config.js`, then `pnpm stylelint` on the configured CSS paths.
+  - Runs `eslint . --config packages/config/eslint/eslint.config.cjs` (see `Client/package.json`), then `pnpm stylelint` on the configured CSS paths.
   - ESLint includes `tailwindcss/no-contradicting-classname` (Tailwind utilities that override each other in the same class string), matching editor Tailwind “css conflict” hints.
   - This is the main command to check for code-quality, CSS conventions, and architectural issues.
 

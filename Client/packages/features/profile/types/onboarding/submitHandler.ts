@@ -14,7 +14,7 @@ export type SubmitHandlerParams = {
   setValidationResult?: (result: { missingFields: string[]; errors: string[] }) => void;
   setShowValidationWarning?: (show: boolean) => void;
   navigate?: (path: string) => void;
-  /** When provided and result.success, called instead of navigate("/search") (e.g. for React Native). */
+  /** When provided and result.success, called instead of navigate("/dashboard") (e.g. for React Native). */
   onSuccessNavigate?: () => void;
   validateFunction?: (data: OnboardingData) => ValidationResult;
   onSuccess?: () => void;

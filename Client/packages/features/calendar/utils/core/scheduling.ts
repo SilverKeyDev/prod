@@ -2,7 +2,7 @@
  * Scheduling utilities for Google Calendar scheduling MVP
  */
 
-import { dateNow, dateParseISO, dayjs } from "packages/utils/date";
+import { dateNow, dateParseISO, dayjs } from "packages/utils/core/date";
 
 import type {
   FreebusyResponse,

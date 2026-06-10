@@ -21,7 +21,6 @@ export const ROUTES = {
   PRIVACY: "/privacy",
   TERMS: "/terms",
   CONTACT: "/contact",
-  DEV_SESSION: "/dev/session",
 
   // Protected routes
   PROFILE: "/profile/*",
@@ -30,6 +29,9 @@ export const ROUTES = {
   /** DocuSign embedded signing return URL (see Server DOCUSIGN_SIGNING_COMPLETE_PATH). */
   AGREEMENT_SIGNING_COMPLETE: "/agreements/:agreementId/complete",
   MESSAGING: "/messaging",
+  ANALYTICS: "/analytics",
+  /** Client: discover / connect with agents (recommendations + search). */
+  FIND_AGENTS: "/find-agents",
   SEARCH: "/search",
   PROPERTY_DETAILS: "/property-details",
   PROPERTY: "/property/:zpid/:slug?",
@@ -40,3 +42,6 @@ export const ROUTES = {
   // Legacy redirects
   APP: "/app/*",
 } as const;
+
+/** Default landing path after sign-in for all roles. */
+export const DEFAULT_AUTHENTICATED_PATH = "/dashboard" as const;

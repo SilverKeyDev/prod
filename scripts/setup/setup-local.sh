@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# First-time local onboarding: deps → build → AWS SSO → secrets → verify → MCP.
+# First-time local onboarding: deps → build → AWS SSO → local DB init → verify → MCP.
 # Usage: ./scripts/setup/setup-local.sh [--skip-secrets] [--ci] [--no-install]
 set -euo pipefail
 
@@ -62,17 +62,17 @@ fi
 [[ "$BOOTSTRAP_CI" == true ]] && bootstrap_args+=(--ci)
 bash Server/scripts/bootstrap-venv.sh "${bootstrap_args[@]}"
 
-# --- Step 3–4: AWS SSO + secrets ---
+# --- Step 3–4: AWS SSO + local DB init ---
 if [[ "$SKIP_SECRETS" != true ]]; then
   echo "==> Step 3/6: AWS SSO"
   if ! aws_setup_login "$ROOT"; then
     die "AWS SSO setup failed (see setup.md — AWS section)"
   fi
 
-  echo "==> Step 4/6: Secrets (Server/.env)"
-  bash Server/scripts/secrets.sh "${AWS_REGION:-us-east-2}" "${AWS_PROFILE:-}"
+  echo "==> Step 4/6: Local dev database (reset, secrets, migrations)"
+  make dev-db-init REGION="${AWS_REGION:-us-east-2}" PROFILE="${AWS_PROFILE:-}"
 else
-  echo "==> Steps 3–4/6: Skipped AWS SSO and secrets (--skip-secrets)"
+  echo "==> Steps 3–4/6: Skipped AWS SSO, secrets, and local DB init (--skip-secrets)"
   echo "    Copy Server/.env.example to Server/.env and fill values manually."
 fi
 
@@ -105,7 +105,8 @@ cat <<EOF
 
 setup-local: done
 
-  make dev              # web + API
+  make dev              # web + API (DB initialized by setup)
+  make dev-db-init      # reset local DB + secrets + migrations
   make dev-web          # web only
   setup.md              # full guide (incl. Cursor MCP — step 6)
 EOF

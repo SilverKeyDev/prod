@@ -2,7 +2,7 @@ import { type ReactNode, useEffect } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
-import { prefetchLibraryRouteQueryData } from "packages/hooks/data/polling/libraryRouteDataPrefetch";
+import { prefetchLibraryRouteQueryData } from "packages/features/documents/hooks/data/libraryRouteDataPrefetch";
 import { useSavedHomesStoreIntegration, useWorkspaceIdentitySync } from "packages/hooks/store";
 import { useAgentDashboardStore, useAuthStore } from "packages/store";
 

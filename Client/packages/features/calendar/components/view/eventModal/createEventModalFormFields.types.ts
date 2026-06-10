@@ -1,16 +1,8 @@
 import type { ChangeEvent } from "react";
 
-import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
-import type { Calendar } from "@/features/calendar/types/calendar";
-import type { CalendarEventKindOptionSlice } from "@/features/calendar/utils/createEventModal/calendarEventKindOptions";
+import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
-import type {
-  ViewingRouteEndMode,
-  ViewingRouteEndpoint,
-  ViewingTourAnchor,
-  ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 export type CreateEventModalFormFieldsProps = {
   mode: "create" | "edit";
@@ -20,8 +12,7 @@ export type CreateEventModalFormFieldsProps = {
   hideCalendarPicker?: boolean;
   eventKindId: CalendarEventKindId;
   onEventKindIdChange: (id: CalendarEventKindId) => void;
-  kindOptionSlice: CalendarEventKindOptionSlice;
-  checklistProgressLoading?: boolean;
+  allowedKindIds: CalendarEventKindId[];
   eventTitle: string;
   onEventTitleChange: (e: ChangeEvent<HTMLInputElement>) => void;
   isAllDay: boolean;
@@ -33,16 +24,6 @@ export type CreateEventModalFormFieldsProps = {
   endTime: string;
   onStartTimeChange: (hhmm: string) => void;
   onEndTimeChange: (hhmm: string) => void;
-  isPropertyViewing?: boolean;
-  viewingStops?: ViewingStop[];
-  onViewingStopsChange?: (next: ViewingStop[]) => void;
-  viewingStartSelection?: ViewingTourStartSelection;
-  onViewingStartSelectionChange?: (next: ViewingTourStartSelection) => void;
-  viewingEndMode?: ViewingRouteEndMode;
-  onViewingEndModeChange?: (next: ViewingRouteEndMode) => void;
-  viewingEndFixed?: ViewingRouteEndpoint | null;
-  onViewingEndFixedChange?: (next: ViewingRouteEndpoint | null) => void;
-  viewingTourAnchors?: ViewingTourAnchor[];
   eventLocation: string;
   onEventLocationChange: (value: string) => void;
   locationScriptsReady: boolean;
@@ -52,6 +33,7 @@ export type CreateEventModalFormFieldsProps = {
   addGoogleMeet: boolean;
   onAddGoogleMeetChange: (next: boolean) => void;
   showGoogleMeetOption: boolean;
+  existingEvent?: ExtendedGoogleEvent;
   mutualSchedule: CreateEventMutualAvailability | null;
   registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
   onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;

@@ -13,7 +13,6 @@ server_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__f
 if server_dir not in sys.path:
     sys.path.insert(0, server_dir)
 from logger import (  # noqa: E402 -- logger requires Server on sys.path when run outside app context
-    LOG_CATEGORIES,
     log,
 )
 
@@ -47,7 +46,6 @@ celery.conf.update(
         "worker_pool": _celery_worker_pool,
         "worker_concurrency": _celery_concurrency,
         "task_routes": {
-            "tasks.find_best_matches_task": {"queue": "heavy"},
             "tasks.research_property_task": {"queue": "heavy"},
             "tasks.compare_property_task": {"queue": "heavy"},
             "tasks.train_user_weights_task": {"queue": "heavy"},
@@ -115,7 +113,7 @@ class ContextTask(celery.Task):
 
                     if attempt < max_retries - 1:
                         log.warn(
-                            LOG_CATEGORIES["API"],
+                            "API",
                             f"Database connection retry in {retry_delay} seconds",
                             {"attempt": attempt + 1, "max_retries": max_retries},
                         )
@@ -123,14 +121,14 @@ class ContextTask(celery.Task):
                         retry_delay *= 2  # Exponential backoff
                     else:
                         log.error(
-                            LOG_CATEGORIES["ERRORS"],
+                            "ERRORS",
                             "Max database connection retries exceeded, failing task",
                             {"max_retries": max_retries},
                         )
                         raise
 
                 except Exception as e:
-                    log.error(LOG_CATEGORIES["ERRORS"], "Non-connection error in Celery task", e)
+                    log.error("ERRORS", "Non-connection error in Celery task", e)
                     try:
                         db.session.rollback()
                     except Exception:
@@ -155,12 +153,12 @@ def worker_started(**_):
     from logger.export import init_posthog_otlp
 
     init_posthog_otlp("silverkey-celery")
-    log.info(LOG_CATEGORIES["API"], "Celery worker process started")
+    log.info("API", "Celery worker process started")
 
 
 @worker_process_shutdown.connect
 def worker_stopped(**_):
-    log.info(LOG_CATEGORIES["API"], "Celery worker process shutting down")
+    log.info("API", "Celery worker process shutting down")
 
 
 # Register all tasks (import side effects register @celery.task definitions)

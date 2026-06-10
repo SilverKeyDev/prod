@@ -4,9 +4,9 @@ import { renderKeyValueRecord } from "packages/features/propertyDetails/componen
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
+import { Box } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
+import { DEFAULT_REPORT_SECTIONS } from "packages/utils/product/domain/defaultReportSections";
 
 type PropertySchoolsProps = PropertyComponentProps & {
   analysisContent?: unknown;

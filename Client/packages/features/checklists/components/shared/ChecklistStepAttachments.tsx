@@ -3,7 +3,7 @@ import React, { type ReactNode } from "react";
 import type { TaskChecklistItem } from "packages/features/checklists/api/checklists";
 import ChecklistIntegrationSlot from "packages/features/checklists/components/slots/ChecklistIntegrationSlot";
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 type ChecklistStepAttachmentsProps = {
   item: TaskChecklistItem;

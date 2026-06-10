@@ -5,11 +5,9 @@ Agreement participant operations: add, remove, update, and sync participants.
 from app import db
 from app.models import Agreement, AgreementParticipant, User
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..errors import AgreementStateError
-
-logger = get_logger()
 
 
 def sync_signer_participant(agreement: Agreement, participant_user_id: str, actor_id: str) -> bool:
@@ -100,8 +98,8 @@ def add_participant(
     """
     from .agreement_crud import get_agreement
 
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Adding participant to agreement",
         {
             "agreement_id": agreement_id,
@@ -165,8 +163,8 @@ def add_participant(
     db.session.add(participant)
     db.session.commit()
 
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Participant added successfully",
         {
             "agreement_id": agreement_id,
@@ -195,8 +193,8 @@ def remove_participant(agreement_id: str, participant_id: str) -> None:
     """
     from .agreement_crud import get_agreement
 
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Removing participant from agreement",
         {"agreement_id": agreement_id, "participant_id": participant_id},
     )
@@ -215,8 +213,8 @@ def remove_participant(agreement_id: str, participant_id: str) -> None:
     db.session.delete(participant)
     db.session.commit()
 
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Participant removed successfully",
         {"agreement_id": agreement_id, "participant_id": participant_id},
     )
@@ -244,8 +242,8 @@ def update_participant_routing_order(
     """
     from .agreement_crud import get_agreement
 
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Updating participant routing order",
         {
             "agreement_id": agreement_id,
@@ -270,8 +268,8 @@ def update_participant_routing_order(
 
     db.session.commit()
 
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Participant routing order updated",
         {
             "agreement_id": agreement_id,

@@ -1,11 +1,9 @@
+# AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Modify scripts/log_contracts/categories.yaml, then run: make log-contracts
 type: object
 description: >
-  Frontend logger category toggles with nested API subcategories plus logLevel.
-additionalProperties:
-  oneOf:
-    - type: boolean
-    - type: string
-    - $ref: './ClientApiSubcategoryConfig.yaml'
+  Resolved frontend logger category toggles with nested API subcategories plus logLevel.
+additionalProperties: false
 required:
   - polling
   - pages
@@ -15,6 +13,20 @@ required:
   - api
   - errors
   - security
+  - search
+  - polygonSearch
+  - mapRendering
+  - propertyDetails
+  - negotiation
+  - checklists
+  - calendar
+  - dashboard
+  - messages
+  - feed
+  - routing
+  - docusign
+  - documents
+  - profilePreferences
   - logLevel
 properties:
   polling:

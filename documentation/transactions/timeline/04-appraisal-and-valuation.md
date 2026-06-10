@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
+
 ## Appraisal and valuation
 
 Appraisal steps appear as **financing checklist copy** (order appraisal, review report). No appraisal-specific milestones or lender status sync.

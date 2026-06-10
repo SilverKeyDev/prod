@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { getMyTransaction, type Transaction } from "packages/features/checklists/api/checklists";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type UseMyTransactionReturn = {
   transaction: Transaction | undefined;
@@ -15,7 +15,7 @@ export type UseMyTransactionReturn = {
 };
 
 /**
- * Ensures and returns the authenticated buyer's single transaction row (v1).
+ * Resolves the authenticated buyer's active deal (`GET /api/v1/transactions/me`).
  */
 export function useMyTransaction(options?: { enabled?: boolean }): UseMyTransactionReturn {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -30,10 +30,11 @@ export function useMyTransaction(options?: { enabled?: boolean }): UseMyTransact
     refetchOnMount: false,
   });
 
-  const transactionId = useMemo(() => data?.id ?? null, [data?.id]);
+  const transaction = useMemo(() => data?.transaction, [data?.transaction]);
+  const transactionId = useMemo(() => transaction?.id ?? null, [transaction?.id]);
 
   return {
-    transaction: data,
+    transaction,
     transactionId,
     isLoading,
     error: error

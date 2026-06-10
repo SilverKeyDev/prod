@@ -8,17 +8,15 @@ listing status.  Each dimension tested in isolation and with edge cases.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
 
 import pytest
 
 
 def _call(prefs: dict) -> dict:
-    """Shorthand to call map_user_preferences_to_filters with a mock Flask app."""
-    with patch("app.services.search.helpers.preferences_helpers.current_app", MagicMock()):
-        from app.services.search.helpers.preferences_helpers import map_user_preferences_to_filters
+    """Shorthand to call map_user_preferences_to_filters."""
+    from app.services.search.helpers.preferences_helpers import map_user_preferences_to_filters
 
-        return map_user_preferences_to_filters(prefs)
+    return map_user_preferences_to_filters(prefs)
 
 
 # ---- Price / Budget ----

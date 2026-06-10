@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { useSearchViewStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import MobileTopBar, {
   MOBILE_TOP_BAR_COMPACT_HEIGHT_PX,

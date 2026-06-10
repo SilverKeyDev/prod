@@ -10,10 +10,11 @@ import {
   AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT,
   effectiveIsAgentForOptionalBuyerUi,
   type OnboardingData,
+  primaryOnboardingRoleFromForm,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 type LocationStepProps = {
   formData: OnboardingData;
@@ -29,7 +30,7 @@ export function LocationStep({
   const authIsAgent = useIsAgent();
   const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
-    formIsAgent: formData.is_agent,
+    formPrimaryRole: primaryOnboardingRoleFromForm(formData),
   });
   const locations = Array.isArray(formData.important_locations) ? formData.important_locations : [];
 

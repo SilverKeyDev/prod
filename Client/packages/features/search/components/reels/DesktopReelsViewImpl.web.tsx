@@ -6,7 +6,7 @@ import { DEFAULT_PLACEHOLDER_IMAGE, type FeedScrollController } from "packages/f
 import type { SearchResult } from "packages/features/search/types";
 import { useIsMobile } from "packages/hooks/ui";
 import { useReelsShortcuts } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { ReelsView } from "./ReelsView";
 

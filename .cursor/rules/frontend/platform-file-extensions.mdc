@@ -52,7 +52,7 @@ Cursor and tooling must use consistent file extensions by app so that:
 
 **Examples:**
 - `Client/apps/web/app/layouts/sidebar/Sidebar.web.tsx` ✅ (web-only layout)
-- `Client/apps/web/features/search/header/SearchHeader.web.tsx` ✅ (web-only)
+- `Client/packages/features/search/components/header/SearchHeader.web.tsx` ✅ (web-only)
 - `Client/packages/ui/components/button/Button.tsx` ✅ (shared or default web)
 - `Client/packages/ui/components/primitives/button/Button.web.tsx` without a `.native` counterpart where DOM-only ✅ (web-only primitive)
 

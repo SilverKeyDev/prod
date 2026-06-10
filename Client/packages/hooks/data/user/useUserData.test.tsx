@@ -18,7 +18,7 @@ import { createUserDataTestQueryContext, mockAuthSelectors } from "./useUserData
 // Mock dependencies
 vi.mock("packages/store");
 vi.mock("packages/api");
-vi.mock("packages/utils/media/prefetchRemoteImage", () => ({
+vi.mock("packages/utils/product/media/prefetchRemoteImage", () => ({
   prefetchRemoteImage: vi.fn(),
 }));
 
@@ -110,7 +110,6 @@ describe("useUserData", () => {
       expect(result.current.userProfile).toEqual({
         ...partialUserFromApi,
         has_preferences: false,
-        is_agent: false,
         roles: [],
         brokerage_org_ids: null,
       });

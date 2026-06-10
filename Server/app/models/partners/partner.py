@@ -1,5 +1,6 @@
 """Marketplace partner configuration (brokerage-level placement)."""
 
+# pyright: reportUndefinedVariable=false
 from __future__ import annotations
 
 import uuid
@@ -12,7 +13,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app import db
 
 CHECKLIST_WORKSPACES = frozenset({"buyer", "seller"})
-VALID_TARGET_ROLES = frozenset({"buyer", "seller", "agent", "brokerage", "integration_partner"})
+VALID_TARGET_ROLES = frozenset(
+    {"buyer", "seller", "renter", "agent", "brokerage", "integration_partner"}
+)
 VALID_PAYOUT_TYPES = frozenset({"on_click", "on_close"})
 VALID_INTEGRATION_DISPLAY_MODES = frozenset({"iframe_and_link", "link_only"})
 DEFAULT_INTEGRATION_DISPLAY_MODE = "iframe_and_link"
@@ -52,8 +55,12 @@ class Partner(db.Model):
         nullable=False,
     )
 
-    rev_share_links = relationship("RevShareLink", back_populates="partner")
-    clicks = relationship("RevShareLinkClick", back_populates="partner")
+    rev_share_links: Mapped[list["RevShareLink"]] = relationship(
+        "RevShareLink", back_populates="partner"
+    )
+    clicks: Mapped[list["RevShareLinkClick"]] = relationship(
+        "RevShareLinkClick", back_populates="partner"
+    )
 
     __table_args__ = (Index("idx_partners_step_active", "step_id", "is_active"),)
 
@@ -63,25 +70,3 @@ class Partner(db.Model):
         if self.step_id:
             return [self.step_id]
         return []
-
-    def to_dict(self) -> dict:
-        step_ids = self.resolved_step_ids()
-        return {
-            "id": self.id,
-            "name": self.name,
-            "slug": self.slug,
-            "destination_url_template": self.destination_url_template,
-            "logo_url": self.logo_url,
-            "description": self.description,
-            "step_id": step_ids[0] if step_ids else self.step_id,
-            "step_ids": step_ids,
-            "target_roles": list(self.target_roles or []),
-            "payout_type": self.payout_type,
-            "payout_per_conversion": float(self.payout_per_conversion),
-            "integration_display_mode": self.integration_display_mode
-            or DEFAULT_INTEGRATION_DISPLAY_MODE,
-            "embed_url_template": self.embed_url_template,
-            "is_active": self.is_active,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }

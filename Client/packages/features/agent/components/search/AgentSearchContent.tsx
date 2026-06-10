@@ -6,8 +6,9 @@ import { useLocalization } from "packages/contexts";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAuthStore, useUIStore } from "packages/store";
 import { Button, Textarea } from "packages/ui";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { Box } from "packages/ui/components/primitives";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
+import { SCROLL_PANEL_MAX, ScrollPanel } from "packages/ui/components/structure/layout/ScrollPanel";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Input, Label, Title } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
@@ -131,7 +132,7 @@ export const AgentSearchContent = forwardRef<AgentSearchContentHandle, AgentSear
         </Box>
 
         {/* Results */}
-        <Box className="max-h-96 overflow-y-auto p-4">
+        <ScrollPanel maxHeight={SCROLL_PANEL_MAX.agentSearch} className="p-4">
           {searchQuery.length > 0 && searchQuery.length < 2 ? (
             <Box className="text-text-secondary py-4 text-left text-sm">
               {t("agent.discovery_search_min_chars")}
@@ -236,7 +237,7 @@ export const AgentSearchContent = forwardRef<AgentSearchContentHandle, AgentSear
                             size="md"
                             icon={<Icon name="x" />}
                             iconPosition="left"
-                            className="border-border bg-border text-text-secondary hover:bg-primary-muted px-6"
+                            className="border-border bg-border text-text-secondary px-6 hover:bg-neutral-100"
                           >
                             Cancel
                           </Button>
@@ -274,7 +275,7 @@ export const AgentSearchContent = forwardRef<AgentSearchContentHandle, AgentSear
               )}
             </Box>
           )}
-        </Box>
+        </ScrollPanel>
       </Box>
     );
   }

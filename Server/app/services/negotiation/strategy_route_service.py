@@ -12,6 +12,7 @@ from typing import Any
 from app.services.agent.client_service import agent_may_access_client
 from app.services.aggregation import get_preferences_dict_optional
 from app.services.analytics.posthog_events import capture_product_event
+from app.services.auth.user_role_helpers import user_is_agent
 from app.services.negotiation import generate_negotiation_strategy
 from app.services.research.graphs.graphic_generation import (
     GOOGLE_MAPS_ID,
@@ -26,9 +27,7 @@ from app.services.search.scoring import (
     compute_listing_match_score,
     highlights_context_payload,
 )
-from app.utils.security.app_logging import get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def resolve_preferences_user_id(
@@ -39,11 +38,11 @@ def resolve_preferences_user_id(
     if not target_user_id:
         return preferences_user_id, None, None
 
-    if not user.is_agent:
-        logger.warning(
-            "Non-agent user %s attempted to generate strategy for another user %s",
-            user.id,
-            target_user_id,
+    if not user_is_agent(user):
+        log.warn(
+            "NEGOTIATION",
+            "Non-agent user attempted strategy for another user",
+            {"user_id": str(user.id), "target_user_id": target_user_id},
         )
         return (
             None,
@@ -56,10 +55,10 @@ def resolve_preferences_user_id(
 
     target_s = str(target_user_id).strip()
     if not agent_may_access_client(str(user.id), target_s):
-        logger.warning(
-            "Agent %s attempted to access client %s who is not in their list",
-            user.id,
-            target_s,
+        log.warn(
+            "NEGOTIATION",
+            "Agent attempted strategy for non-client",
+            {"agent_id": str(user.id), "client_id": target_s},
         )
         return (
             None,
@@ -85,7 +84,11 @@ def build_negotiation_strategy_payload(
 
     user_preferences = get_preferences_dict_optional(str(preferences_user_id))
     if not user_preferences:
-        logger.warning("No user preferences found for user %s", preferences_user_id)
+        log.warn(
+            "NEGOTIATION",
+            "No user preferences for negotiation strategy",
+            {"preferences_user_id": preferences_user_id},
+        )
 
     property_data = None
     commute_data = None
@@ -157,7 +160,7 @@ def build_negotiation_strategy_payload(
                             map_id=GOOGLE_MAPS_ID,
                         )
                     except Exception as e:
-                        logger.error("Error generating map URL: %s", e)
+                        log.error("ERRORS", "Error generating map URL", {"error": str(e)})
                 commute_data["map_url"] = map_url
 
             if user_preferences and isinstance(property_data, dict):
@@ -186,7 +189,7 @@ def build_negotiation_strategy_payload(
                 else:
                     _p, _c = adjust_pros_cons_counts(3, 3, _mscore, _lo, _hi)
                 sonar_ctx = {
-                    "viewer_is_agent": bool(getattr(user, "is_agent", False)),
+                    "viewer_is_agent": bool(user_is_agent(user)),
                     "profile_subject": (
                         "client" if str(preferences_user_id) != str(user.id) else "self"
                     ),
@@ -206,7 +209,11 @@ def build_negotiation_strategy_payload(
                     if _hc:
                         property_analysis["highlights_context"] = _hc
     except Exception as e:
-        logger.error("Error fetching property data for negotiation strategy: %s", e)
+        log.error(
+            "NEGOTIATION",
+            "Error fetching property data for negotiation strategy",
+            {"error": str(e)},
+        )
 
     try:
         enhanced_params = {
@@ -256,7 +263,11 @@ def build_negotiation_strategy_payload(
         return response_data, 200
     except Exception as e:
         error_msg = f"Strategy generation failed: {str(e)}"
-        logger.error("%s\n%s", error_msg, traceback.format_exc())
+        log.error(
+            "ERRORS",
+            error_msg,
+            {"traceback": traceback.format_exc()},
+        )
         return (
             {"success": False, "error": error_msg, "traceback": traceback.format_exc()},
             500,

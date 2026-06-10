@@ -1,0 +1,13 @@
+# AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Modify scripts/log_contracts/categories.yaml, then run: make log-contracts
+type: object
+description: Partial API subcategory toggles for admin logger config updates.
+properties:
+  initialLoad:
+    type: boolean
+  polling:
+    type: boolean
+  pageMount:
+    type: boolean
+  other:
+    type: boolean

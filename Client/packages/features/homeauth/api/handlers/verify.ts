@@ -1,8 +1,8 @@
 import type { AuthResponse } from "packages/features/homeauth/types";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { apiPost } from "packages/services/http";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 function maskEmail(email: string): string {
   if (!email) return "missing";
@@ -11,7 +11,7 @@ function maskEmail(email: string): string {
 
 function handleVerifySuccess(response: AuthResponse, requestId: string, duration: number): void {
   if (!response.success) return;
-  log.info(LOG_CATEGORIES.AUTH, "Email verification successful", {
+  log.info("AUTH", "Email verification successful", {
     requestId,
     verificationComplete: response.verification_complete,
     loginFailed: response.login_failed,
@@ -26,7 +26,7 @@ function handleVerifyFailure(
   duration: number
 ): void {
   if (response.success) return;
-  log.warn(LOG_CATEGORIES.AUTH, "Email verification failed", {
+  log.warn("AUTH", "Email verification failed", {
     requestId,
     error: response.error,
     message: response.message,
@@ -51,14 +51,14 @@ function handleVerifyException(
   requestId: string,
   duration: number
 ): void {
-  log.error(LOG_CATEGORIES.AUTH, "❌ AUTH_VERIFY_ERROR", {
+  log.error("AUTH", "❌ AUTH_VERIFY_ERROR", {
     requestId,
     errorType: err?.constructor?.name || "Unknown",
     errorMessage: err?.message || "Unknown error",
     duration: `${duration}ms`,
     timestamp: dateNow().toISOString(),
   });
-  log.error(LOG_CATEGORIES.AUTH, "Verification request failed with exception", {
+  log.error("AUTH", "Verification request failed with exception", {
     requestId,
     errorMessage: err?.message || "Unknown error",
     duration: `${duration}ms`,
@@ -84,14 +84,14 @@ export async function verifyHandler(
   const startTime = Date.now();
   const requestId = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-  log.info(LOG_CATEGORIES.AUTH, "Starting email verification request", {
+  log.info("AUTH", "Starting email verification request", {
     requestId,
     email: maskEmail(email),
     codeLength: code?.length || 0,
     hasPassword: !!password,
     timestamp: dateNow().toISOString(),
   });
-  log.debug(LOG_CATEGORIES.AUTH, "🔵 AUTH_VERIFY_API_CALL", {
+  log.debug("AUTH", "🔵 AUTH_VERIFY_API_CALL", {
     requestId,
     url: "/api/v1/auth/verify",
     method: "POST",
@@ -109,7 +109,7 @@ export async function verifyHandler(
     });
     const duration = Date.now() - startTime;
 
-    log.debug(LOG_CATEGORIES.AUTH, "✅ AUTH_VERIFY_RESPONSE", {
+    log.debug("AUTH", "✅ AUTH_VERIFY_RESPONSE", {
       requestId,
       success: response.success,
       verificationComplete: response.verification_complete,

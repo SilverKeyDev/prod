@@ -19,15 +19,18 @@ import {
   warnSearchFailed,
   warnUnsupportedServiceArea,
 } from "packages/features/search/utils/outcomes/searchOutcomeToast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { ViewportPolygonPoint } from "packages/types/domain/api";
-import { isSupportedServiceAreaCoordinates } from "packages/utils/search/locations/serviceAreaAvailability";
+import { isSupportedServiceAreaCoordinates } from "packages/utils/product/search/locations/serviceAreaAvailability";
 
 import {
   type MapPreviewSearchLifecycleHooks,
   searchPropertiesInViewport,
 } from "@/features/search/api/propertySearch";
-import type { SearchFilterOverrides } from "@/features/search/store/searchContext.slice";
+import {
+  type SearchFilterOverrides,
+  useSearchContextStore,
+} from "@/features/search/store/searchContext.slice";
 import type { SearchResult } from "@/features/search/types";
 import type { LastSearchContext } from "@/features/search/types/domain/searchDisplay";
 import type { IsochroneData } from "@/features/search/types/isochrone";
@@ -95,6 +98,8 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     mapPreviewSearchLifecycle,
   } = p;
 
+  const flushPreferencesSave = useSearchContextStore((s) => s.flushPreferencesSave);
+
   const fetchAndCacheIsochrone = useCallback(async (): Promise<IsochroneData | null> => {
     const response = await searchApi.getIsochrone({
       preferencesUserId: preferencesSubjectUserId ?? undefined,
@@ -109,11 +114,15 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
   }, [queryClient, preferencesSubjectUserId, getSearchAbortSignal]);
 
   const runUnifiedSearch = useCallback(async () => {
-    log.info(LOG_CATEGORIES.SEARCH, "Unified search (resolve search area)", {});
+    log.info("SEARCH", "Unified search (resolve search area)", {});
     setIsSearching(true);
     setSearchStage("Preparing search...");
 
     try {
+      if (flushPreferencesSave) {
+        await flushPreferencesSave();
+      }
+
       const map = googleMapRef.current;
       let mapBoundsRing: ViewportPolygonPoint[] | null = null;
       if (map?.getBounds()) {
@@ -136,6 +145,13 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
         mapBoundsRing,
         fetchIsochrone: fetchAndCacheIsochrone,
       });
+
+      if (resolved.blocked) {
+        warnSearchAreaWarnings(resolved.warnings);
+        setIsSearching(false);
+        setSearchStage("");
+        return;
+      }
 
       warnSearchAreaWarnings(resolved.warnings);
       setSearchSource(resolved.searchSource);
@@ -193,7 +209,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     } catch (error: unknown) {
       const err = error as Error;
       if (err?.name === "AbortError") return;
-      log.error(LOG_CATEGORIES.ERRORS, "Unified search failed", error);
+      log.error("ERRORS", "Unified search failed", error);
       warnSearchFailed(error);
       setIsSearching(false);
       setSearchStage("");
@@ -223,16 +239,17 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     getSearchAbortSignal,
     saveLastSearchContext,
     mapPreviewSearchLifecycle,
+    flushPreferencesSave,
   ]);
 
   const runViewportSearch = useCallback(async () => {
-    log.info(LOG_CATEGORIES.SEARCH, "Viewport / location search", {});
+    log.info("SEARCH", "Viewport / location search", {});
     setIsSearching(true);
     setSearchStage("Searching this area...");
     setSearchSource("location");
     const map = googleMapRef.current;
     if (!map) {
-      log.warn(LOG_CATEGORIES.SEARCH, "Map not ready for viewport search");
+      log.warn("SEARCH", "Map not ready for viewport search");
       warnMapNotReady("no_map");
       setIsSearching(false);
       setSearchStage("");
@@ -240,7 +257,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     }
     const bounds = map.getBounds();
     if (!bounds) {
-      log.warn(LOG_CATEGORIES.SEARCH, "Map bounds not available yet");
+      log.warn("SEARCH", "Map bounds not available yet");
       setSearchStage("Map is still loading. Try again in a moment.");
       warnMapNotReady("no_bounds");
       setIsSearching(false);
@@ -251,7 +268,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
         ? (locationPlaceViewportRing as ViewportPolygonPoint[])
         : boundsToViewportPolygon(bounds);
     if (!ring.every((point) => isSupportedServiceAreaCoordinates(point))) {
-      log.warn(LOG_CATEGORIES.SEARCH, "Blocked viewport search outside supported service area", {
+      log.warn("SEARCH", "Blocked viewport search outside supported service area", {
         pointCount: ring.length,
       });
       warnUnsupportedServiceArea();
@@ -268,6 +285,10 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     setLocationSearchOverlayData(overlay);
 
     try {
+      if (flushPreferencesSave) {
+        await flushPreferencesSave();
+      }
+
       if (googleMapRef.current) {
         renderIsochronePolygonWrapper(overlay, { skipCommuteToggle: true });
         clearImportantLocationMarkers(importantMarkersRef);
@@ -308,7 +329,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     } catch (error: unknown) {
       const err = error as Error;
       if (err?.name === "AbortError") return;
-      log.error(LOG_CATEGORIES.ERRORS, "Viewport search failed", error);
+      log.error("ERRORS", "Viewport search failed", error);
       warnSearchFailed(error);
       setIsSearching(false);
       setSearchStage("");
@@ -333,6 +354,7 @@ export function useSearchPageMapGeoSearch(p: UseSearchPageMapGeoSearchParams): {
     getSearchAbortSignal,
     saveLastSearchContext,
     mapPreviewSearchLifecycle,
+    flushPreferencesSave,
   ]);
 
   return { runUnifiedSearch, runViewportSearch };

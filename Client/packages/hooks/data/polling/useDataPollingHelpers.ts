@@ -3,9 +3,9 @@ import type { QueryClient } from "@tanstack/react-query";
 import type { AgentConversation } from "packages/config/http/api";
 import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { dateParseISO } from "packages/utils/date";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { log } from "packages/logger";
+import { dateParseISO } from "packages/utils/core/date";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type NotificationStoreRef = {
   current: {
@@ -116,13 +116,13 @@ export async function runCheckForNewMessages(params: RunCheckForNewMessagesParam
     }
 
     previousConversationsRef.current = conversations;
-    log.debug(LOG_CATEGORIES.POLLING, "Check complete", {
+    log.debug("POLLING", "Check complete", {
       conversationsCount: conversations.length,
       previousCount: previousConversationsRef.current.length,
       newMessagesCount: conversationsWithActualNewMessages.length,
     });
   } catch (error) {
-    log.error(LOG_CATEGORIES.ERRORS, "Error checking for new data", error);
+    log.error("ERRORS", "Error checking for new data", error);
   } finally {
     isCheckingRef.current = false;
   }
@@ -156,7 +156,7 @@ export function setupPollingEffect(params: SetupPollingEffectParams): () => void
   } = params;
 
   if (!inRouter) {
-    log.debug(LOG_CATEGORIES.POLLING, "Polling not started - router context not available", {
+    log.debug("POLLING", "Polling not started - router context not available", {
       inRouter,
       pathname,
     });
@@ -164,7 +164,7 @@ export function setupPollingEffect(params: SetupPollingEffectParams): () => void
   }
 
   if (!authReady || !isAuthenticated) {
-    log.debug(LOG_CATEGORIES.POLLING, "Polling not started - auth not ready", {
+    log.debug("POLLING", "Polling not started - auth not ready", {
       authReady,
       isAuthenticated,
     });
@@ -181,7 +181,7 @@ export function setupPollingEffect(params: SetupPollingEffectParams): () => void
     const docForState = docForVisibility;
     const visibilityState = docForState?.visibilityState ?? "unknown";
 
-    log.info(LOG_CATEGORIES.POLLING, "Starting polling", {
+    log.info("POLLING", "Starting polling", {
       interval,
       isOnMessagingPage,
       visibilityState,
@@ -190,14 +190,14 @@ export function setupPollingEffect(params: SetupPollingEffectParams): () => void
     });
 
     if (interval > 0) {
-      log.debug(LOG_CATEGORIES.POLLING, "Running initial check");
+      log.debug("POLLING", "Running initial check");
       void checkForNewMessages();
       pollingIntervalRef.current = setInterval(() => {
-        log.debug(LOG_CATEGORIES.POLLING, "Polling interval tick");
+        log.debug("POLLING", "Polling interval tick");
         void checkForNewMessages();
       }, interval);
     } else {
-      log.debug(LOG_CATEGORIES.POLLING, "Polling paused (interval is 0)");
+      log.debug("POLLING", "Polling paused (interval is 0)");
     }
   };
 
@@ -206,7 +206,7 @@ export function setupPollingEffect(params: SetupPollingEffectParams): () => void
   const handleVisibilityChange = () => {
     const docForState = docForVisibility;
     const visibilityState = docForState?.visibilityState ?? "unknown";
-    log.debug(LOG_CATEGORIES.POLLING, "Visibility changed", {
+    log.debug("POLLING", "Visibility changed", {
       visibilityState,
       willRestart: visibilityState === "visible",
     });
@@ -219,7 +219,7 @@ export function setupPollingEffect(params: SetupPollingEffectParams): () => void
   }
 
   return () => {
-    log.debug(LOG_CATEGORIES.POLLING, "Cleaning up polling");
+    log.debug("POLLING", "Cleaning up polling");
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;

@@ -7,14 +7,13 @@ import time
 from functools import wraps
 from typing import Any
 
-from flask import current_app, jsonify, request
+from flask import jsonify, request
 
+from app.http.secure_errors import SecureErrorHandler
 from app.utils.http.client_ip import get_client_ip
+from logger import log
 
-from .app_logging import get_logger
 from .rate_limit_backend import allow_request
-
-logger = get_logger()
 
 # Sensitive keys that should be redacted from logs
 SENSITIVE_KEYS = {
@@ -76,11 +75,16 @@ def security_error_response(error_type, additional_info=None):
     """
     error_code, user_message, status_code = error_type
 
-    response = {"success": False, "error": error_code, "message": user_message}
+    response = {
+        "success": False,
+        "error": error_code,
+        "message": user_message,
+        "error_id": SecureErrorHandler.generate_error_id(),
+    }
 
     if additional_info and isinstance(additional_info, dict):
         # Only include non-sensitive additional info
-        safe_keys = ["field_errors", "validation_errors", "retry_after"]
+        safe_keys = ["field_errors", "retry_after"]
         for key, value in additional_info.items():
             if key in safe_keys:
                 response[key] = value
@@ -122,7 +126,11 @@ def rate_limit(max_requests=60, window_seconds=60, per="ip"):
                 key = f"rate_limit:{client_ip}:{request.endpoint}"
 
             if not allow_request(key, max_requests, window_seconds):
-                current_app.logger.warning(f"Rate limit exceeded for {key}")
+                log.security(
+                    "SECURITY",
+                    "rate_limit_exceeded",
+                    {"key": key, "endpoint": request.endpoint},
+                )
                 return security_error_response(
                     SecurityError.RATE_LIMIT_EXCEEDED, {"retry_after": window_seconds}
                 )
@@ -158,7 +166,7 @@ def log_security_event(event_type, details=None, user_id=None):
     if details:
         log_data["details"] = details
 
-    current_app.logger.warning(f"🔒 SECURITY EVENT: {event_type} - {log_data}")
+    log.security("SECURITY", event_type, log_data)
 
 
 def safe_user_lookup_error():
@@ -281,7 +289,7 @@ def log_oauth_event(event_type: str, user_id: str | None = None, **kwargs):
 
     log_data = {"event_type": event_type, "user_id": user_id, **redact_sensitive_data(kwargs)}
 
-    logger.info(f"GOOGLE_OAUTH_{event_type.upper()}", extra=log_data)
+    log.info("CALENDAR", f"GOOGLE_OAUTH_{event_type.upper()}", log_data)
 
 
 def validate_event_data(event_data: dict[str, Any]) -> bool:
@@ -298,44 +306,49 @@ def validate_event_data(event_data: dict[str, Any]) -> bool:
 
     for field in required_fields:
         if field not in event_data:
-            logger.warning(f"Event validation failed: missing required field '{field}'")
+            log.warn(
+                "CALENDAR",
+                "Event validation failed: missing required field",
+                {"field": field},
+            )
             return False
 
     start = event_data["start"]
     end = event_data["end"]
     if not isinstance(start, dict) or not isinstance(end, dict):
-        logger.warning("Event validation failed: start/end must be objects")
+        log.warn("CALENDAR", "Event validation failed: start/end must be objects")
         return False
 
     # All-day events: start.date / end.date (YYYY-MM-DD, end exclusive per Google)
     if "date" in start and "date" in end:
         date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
         if not isinstance(start["date"], str) or not date_pattern.match(start["date"]):
-            logger.warning("Event validation failed: invalid all-day start date")
+            log.warn("CALENDAR", "Event validation failed: invalid all-day start date")
             return False
         if not isinstance(end["date"], str) or not date_pattern.match(end["date"]):
-            logger.warning("Event validation failed: invalid all-day end date")
+            log.warn("CALENDAR", "Event validation failed: invalid all-day end date")
             return False
         # Google requires exclusive end strictly after inclusive start (ISO dates compare lexicographically).
         if start["date"] >= end["date"]:
-            logger.warning(
-                "Event validation failed: all-day end date must be after start (exclusive end)"
+            log.warn(
+                "CALENDAR",
+                "Event validation failed: all-day end must be after start (exclusive end)",
             )
             return False
         return True
 
     # Timed events: dateTime on start/end
     if "dateTime" not in start or "dateTime" not in end:
-        logger.warning("Event validation failed: invalid start/end time structure")
+        log.warn("CALENDAR", "Event validation failed: invalid start/end time structure")
         return False
 
     datetime_pattern = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
     if not re.match(datetime_pattern, start["dateTime"]):
-        logger.warning("Event validation failed: invalid start datetime format")
+        log.warn("CALENDAR", "Event validation failed: invalid start datetime format")
         return False
 
     if not re.match(datetime_pattern, end["dateTime"]):
-        logger.warning("Event validation failed: invalid end datetime format")
+        log.warn("CALENDAR", "Event validation failed: invalid end datetime format")
         return False
 
     return True

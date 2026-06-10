@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 
-import { Text } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 type PlaceholderScreenParams = { title?: string };
 

@@ -6,8 +6,6 @@ Consolidates common logic shared between /property and /compare routes.
 
 from typing import Any
 
-from flask import current_app
-
 from app.services.auth import SecurityException, get_current_user
 from app.services.search.features.image_features import extract_and_clean_features
 from app.services.search.features.property_features import extract_property_features
@@ -16,6 +14,7 @@ from app.services.search.scoring import (
     build_research_analysis_options,
     public_property_analysis,
 )
+from logger import log
 
 from .property_analysis import get_property_analysis_for_property
 from .property_analysis_payload import finalize_property_analysis_payload
@@ -94,13 +93,21 @@ def process_property_data(
             images_to_analyze = zillow_api_images[:5]
             image_features = extract_and_clean_features(images_to_analyze)
     except Exception as e:
-        current_app.logger.error(f"🔍 {log_prefix} Error during image feature extraction: {e}")
+        log.error(
+            "ERRORS",
+            "Error during image feature extraction",
+            {"log_prefix": log_prefix, "error": str(e)},
+        )
         image_features = {"error": "Failed to extract features from images"}
 
     # Extract features
     features = cached_features if cached_features else extract_property_features(data)
     if cached_features:
-        current_app.logger.info(f"{log_prefix} ⏭️ Skipping features extraction, using cached data")
+        log.info(
+            "PROPERTY_DETAILS",
+            "Skipping features extraction, using cached data",
+            {"log_prefix": log_prefix},
+        )
 
     # Persist property data
     try:
@@ -122,8 +129,10 @@ def process_property_data(
         # Silently handle SecurityException for optional user context
         pass
     except Exception as persist_err:
-        current_app.logger.error(
-            f"{log_prefix} ⚠️ Failed to persist property details: {persist_err}", exc_info=True
+        log.error(
+            "ERRORS",
+            "Failed to persist property details",
+            {"log_prefix": log_prefix, "error": str(persist_err)},
         )
 
     # Build response (strip server-only analysis keys for clients)

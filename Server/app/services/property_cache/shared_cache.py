@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-import logging
 from datetime import datetime, timezone
 from typing import Any
+
+from sqlalchemy import select
 
 from app import db
 from app.models import PropertyCache
 from app.utils.format.address_format import normalize_address
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 def _normalize_safe(address: str) -> str:
@@ -25,13 +25,15 @@ def get_property_by_zpid_or_address(
 ) -> PropertyCache | None:
     """Look up shared property record by zpid first, then normalized address."""
     if zpid:
-        record = PropertyCache.query.filter_by(zpid=str(zpid)).first()
+        record = db.session.scalar(select(PropertyCache).where(PropertyCache.zpid == str(zpid)))
         if record:
             return record
 
     if address:
         target_norm = _normalize_safe(address)
-        record = PropertyCache.query.filter_by(address_normalized=target_norm).first()
+        record = db.session.scalar(
+            select(PropertyCache).where(PropertyCache.address_normalized == target_norm)
+        )
         if record:
             return record
 
@@ -59,11 +61,10 @@ def get_or_create_property(
     )
     db.session.add(record)
     db.session.flush()
-    logger.info(
-        "[PROPERTY_CACHE] Created shared PropertyCache id=%s zpid=%s addr=%s",
-        record.id,
-        zpid,
-        address,
+    log.info(
+        "PROPERTY_DETAILS",
+        "Created shared PropertyCache",
+        {"property_id": record.id, "zpid": zpid, "address": address},
     )
     return record
 

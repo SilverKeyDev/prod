@@ -1,6 +1,6 @@
 import type { AgentConversation } from "packages/api";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
-import { parseHousingTypes } from "packages/utils/domain/profile/fieldHelpers";
+import { parseHousingTypes } from "packages/utils/product/domain/profile/fieldHelpers";
 
 export type ConnectedAgentSummary = {
   agentId: string;

@@ -8,14 +8,14 @@ import { SectionTintWrapper } from "packages/features/propertyDetails/components
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations/PropertySectionHeader";
 import type { PropertyWithAnalysis } from "packages/types/domain/property-analysis";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 import {
   type EnvironmentalFactorScoreKey,
   getClimateEnvironmentalSection,
   hasEnvironmentalFactorsContent,
   parseEnvironmentalSection,
-} from "packages/utils/propertyDetails";
+} from "packages/utils/transaction/propertyDetails";
 
 const FACTOR_LABEL_KEYS: Record<EnvironmentalFactorScoreKey, string> = {
   noise_pollution_score: "property_details.environmental_factor_noise",

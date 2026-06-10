@@ -1,6 +1,7 @@
 export type AgendaTodoDTO = {
   id: string;
   title: string;
+  description?: string | null;
   due_date: string | null;
   completed: boolean;
   /** DocuSign item merged into the agenda; row opens signing instead of a checkbox. */

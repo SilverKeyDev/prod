@@ -2,8 +2,9 @@
  * Web app platform bootstrap. Runs before React so shared packages
  * (store, utils/storage, platform adapter) get real globals instead of in-memory fallbacks.
  */
-import { setPlatformGlobals } from "packages/utils/platform";
-import { setPlatformStorage } from "packages/utils/storage/platformStorage";
+import { bootstrapWebPostHog } from "packages/hooks/platform/bootstrapWebPostHog.web";
+import { setPlatformGlobals } from "packages/utils/core/platform";
+import { setPlatformStorage } from "packages/utils/core/storage/platformStorage";
 
 setPlatformStorage({
   persistStorage: localStorage,
@@ -22,3 +23,6 @@ setPlatformGlobals({
       ? (globalThis as unknown as { fetch: typeof fetch }).fetch
       : undefined,
 });
+
+// Once per page load (survives React StrictMode remounts; idempotent under Vite HMR).
+bootstrapWebPostHog();

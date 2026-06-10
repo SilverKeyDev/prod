@@ -5,11 +5,11 @@ import { Icon } from "@ui/icons";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { ConnectedCardHeartSave } from "packages/ui/components/primitives";
-import { Image } from "packages/ui/components/primitives";
-import { Box, Text } from "packages/ui/components/primitives";
-import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
-import { displayListingPriceForCard } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
+import { ConnectedCardHeartSave } from "packages/ui/components/structure/primitives";
+import { Image } from "packages/ui/components/structure/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { addressStreetLineForCard } from "packages/utils/core/format/property/addressFormatting";
+import { displayListingPriceForCard } from "packages/utils/product/search/pricing/formatPropertySearchListingPrice";
 
 import type { SavedHomeCardProps } from "./SavedHomeCard";
 

@@ -7,7 +7,7 @@ import type { GetChatHistoryRef } from "packages/features/messaging/hooks/data/m
 import type { ChatMessage } from "packages/features/messaging/hooks/data/messaging/types";
 import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats.constants";
 import type { SendMessageApiResult } from "packages/features/messaging/hooks/data/useAgentChats.types";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 export type { SendMessageApiResult } from "packages/features/messaging/hooks/data/useAgentChats.types";
 

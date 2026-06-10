@@ -4,81 +4,30 @@
  * across ProfileFeature, Settings, ProfileScreen, and PreferencesFormContent.
  */
 
+import type { DownPaymentBandValue } from "packages/features/profile/types/buyerFinancing";
 import type { UserProfileForSync } from "packages/features/profile/types/form/profileFormSync";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { toBuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
+import { downPaymentDollarsFromBand } from "packages/features/profile/utils/financials/downPaymentBand";
+import { primaryOnboardingRoleFromForm } from "packages/features/profile/utils/onboarding/role/onboardingRoleSelection";
+import {
+  applyBuyerFlatFieldsFromApi,
+  buildBuyerPreferenceExtensionsFromForm,
+  stripBuyerFlatKeysFromPayload,
+} from "packages/features/profile/utils/onboarding/sync/buyerPreferencesSync";
+import { parseUserPreferencesArray } from "packages/features/profile/utils/onboarding/validation/preferencesUtils";
 
-import { parseUserPreferencesArray } from "@/features/profile/utils/onboarding/validation/preferencesUtils";
+import {
+  toBool,
+  toDictArray,
+  toImportantLocations,
+  toNumber,
+  toRecordString,
+  toString,
+  toStringArray,
+} from "./profileFormSyncCoercions";
 
 export type { UserProfileForSync } from "packages/features/profile/types/form/profileFormSync";
-
-function toNumber(value: unknown): number | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value === "number" && !Number.isNaN(value)) return value;
-  if (typeof value === "string") {
-    const n = Number(value);
-    return Number.isNaN(n) ? undefined : n;
-  }
-  return undefined;
-}
-
-function toString(value: unknown): string | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value === "string") return value.trim() || undefined;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-  return undefined;
-}
-
-function toBool(value: unknown): boolean | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value === "boolean") return value;
-  if (value === "true" || value === 1) return true;
-  if (value === "false" || value === 0) return false;
-  return undefined;
-}
-
-function toStringArray(value: unknown): string[] {
-  const arr = parseUserPreferencesArray(value);
-  return arr.filter((v): v is string => typeof v === "string");
-}
-
-function toImportantLocations(value: unknown): { address: string; commute_tolerance?: number }[] {
-  const arr = parseUserPreferencesArray(value);
-  return arr
-    .filter(
-      (v): v is Record<string, unknown> => typeof v === "object" && v !== null && "address" in v
-    )
-    .map((v) => {
-      const address = typeof v.address === "string" ? v.address : String(v.address ?? "");
-      const commuteTolerance =
-        typeof v.commute_tolerance === "number" && !Number.isNaN(v.commute_tolerance)
-          ? v.commute_tolerance
-          : typeof v.max_commute_minutes === "number" && !Number.isNaN(v.max_commute_minutes)
-            ? v.max_commute_minutes
-            : undefined;
-      return { address, commute_tolerance: commuteTolerance };
-    })
-    .filter((loc) => loc.address.trim() !== "");
-}
-
-function toDictArray(value: unknown): Record<string, unknown>[] {
-  const arr = parseUserPreferencesArray(value);
-  return arr.filter(
-    (v): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
-  );
-}
-
-function toRecordString(value: unknown): Record<string, string> | undefined {
-  if (value === null || value === undefined) return undefined;
-  if (typeof value !== "object" || Array.isArray(value)) return undefined;
-  const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(value)) {
-    if (typeof k === "string" && typeof v === "string") out[k] = v;
-  }
-  return Object.keys(out).length > 0 ? out : undefined;
-}
-
-const IS_AGENT_VALUES = new Set(["yes", "am_agent", "true", "1"]);
 
 /**
  * Bump "major.minor" for preferences_version (profile/onboarding saves stay aligned).
@@ -119,18 +68,20 @@ export function mergeOnboardingServerAndDraft(
   };
 }
 
-function isAgentFormData(formData: OnboardingData): boolean {
-  const v = formData.is_agent;
-  return typeof v === "string" && IS_AGENT_VALUES.has(v.toLowerCase());
+function isAgentFormData(formData: OnboardingData, userProfile?: UserProfileForSync): boolean {
+  return primaryOnboardingRoleFromForm(formData, { roles: userProfile?.roles }) === "agent";
 }
 
 /**
  * Builds the payload to send to the preferences API. Includes name so the backend
  * can persist it to User (single source of truth); GET preferences returns name from User.
- * When formData.is_agent is not yes/am_agent, agent_* fields are omitted.
+ * When the user is not an agent (draft role or auth roles), agent_* fields are omitted.
  * Maps form keys to backend-expected keys (housing_type, preferred_*_min/max, important_locations, extended_buyer_preferences).
  */
-export function formDataToPreferencesPayload(formData: OnboardingData): Record<string, unknown> {
+export function formDataToPreferencesPayload(
+  formData: OnboardingData,
+  userProfile?: UserProfileForSync
+): Record<string, unknown> {
   const { name, important_locations, ...rest } = formData;
   const payload = {
     ...rest,
@@ -160,19 +111,37 @@ export function formDataToPreferencesPayload(formData: OnboardingData): Record<s
   }
 
   // Backend expects extended_buyer_preferences (form: buyerPreferenceExtensions)
-  if (formData.buyerPreferenceExtensions !== undefined) {
+  const mergedExtensions = buildBuyerPreferenceExtensionsFromForm(formData);
+  if (mergedExtensions !== undefined) {
+    payload.extended_buyer_preferences = mergedExtensions;
+  } else if (formData.buyerPreferenceExtensions !== undefined) {
     payload.extended_buyer_preferences = formData.buyerPreferenceExtensions;
-    delete payload.buyerPreferenceExtensions;
+  }
+  delete payload.buyerPreferenceExtensions;
+
+  // Map buyer pets boolean → demographics.pets yes/no
+  if (formData.buyer_about_has_pets !== undefined) {
+    payload.pets = formData.buyer_about_has_pets ? "yes" : "no";
   }
 
-  if (!isAgentFormData(formData)) {
+  // Derive down_payment dollars from band when financing
+  if (!formData.paying_cash && formData.down_payment_band && formData.home_budget_max != null) {
+    payload.down_payment = downPaymentDollarsFromBand(
+      formData.down_payment_band as DownPaymentBandValue,
+      formData.home_budget_max
+    );
+  }
+
+  stripBuyerFlatKeysFromPayload(payload);
+
+  if (!isAgentFormData(formData, userProfile)) {
     for (const key of Object.keys(payload)) {
       if (key.startsWith("agent_")) delete payload[key];
     }
   }
   delete payload.public_profile_slug;
   delete payload.agent_professional_headshot_url;
-  delete payload.primary_onboarding_role;
+  delete payload.workspace_shell_test_input;
   return payload;
 }
 
@@ -206,13 +175,12 @@ export function userPreferencesToOnboardingData(
       : undefined
   );
 
-  return {
+  const data: OnboardingData = {
     // Metadata
     preferences_version: toString(get("preferences_version")),
 
     // Demographics — name from user profile (auth) when available, else from preferences
     name: nameFromProfile ?? toString(get("name")),
-    is_agent: toString(get("is_agent")),
     pets: toString(get("pets")),
     age: toNumber(get("age")),
     why_joining_silverkey: toStringArray(get("why_joining_silverkey")),
@@ -232,8 +200,7 @@ export function userPreferencesToOnboardingData(
     // Housing — map backend keys (housing_type, preferred_*_min/max) to form keys
     preferred_housing_type:
       toString(get("preferred_housing_type")) ?? toString(get("housing_type")),
-    preferred_bedrooms_min:
-      toNumber(get("preferred_bedrooms")) ?? toNumber(get("preferred_bedrooms_min")),
+    preferred_bedrooms_min: toNumber(get("preferred_bedrooms_min")),
     preferred_bedrooms_max: toNumber(get("preferred_bedrooms_max")),
     preferred_bathrooms_min:
       toNumber(get("preferred_bathrooms")) ?? toNumber(get("preferred_bathrooms_min")),
@@ -276,17 +243,23 @@ export function userPreferencesToOnboardingData(
       }))
       .filter((r) => r.address.trim() !== ""),
     important_locations: toImportantLocations(get("important_locations")),
-    walkability_importance: toString(get("walkability_importance")),
+    walkability_importance:
+      toString(get("walkability_importance")) ??
+      toString(buyerPreferenceExtensions?.neighborhood?.walkability_importance),
     /** Backend key `extended_buyer_preferences` mapped to form key `buyerPreferenceExtensions` */
     buyerPreferenceExtensions,
 
     // Communication
     communication_frequency: toString(get("communication_frequency")),
+    preferred_contact_method: toString(get("preferred_contact_method")),
     information_detail_level: toString(get("information_detail_level")),
     has_buyers_agent: toString(get("has_buyers_agent")),
     looking_for_buyers_agent: toBool(get("looking_for_buyers_agent")),
 
-    // Agent profile (when user is agent; API returns these only when is_agent)
+    // Financial — paying_cash from intent attributes
+    paying_cash: toBool(get("paying_cash")),
+
+    // Agent profile (when user has agent role; API returns these only for agents)
     agent_physical_mailing_address: toString(get("agent_physical_mailing_address")),
     agent_licensed_states: toStringArray(get("agent_licensed_states")),
     agent_license_types: toStringArray(get("agent_license_types")),
@@ -304,4 +277,11 @@ export function userPreferencesToOnboardingData(
     agent_social_links: toRecordString(get("agent_social_links")),
     public_profile_slug: toString(get("public_profile_slug")),
   };
+
+  const primaryRole = primaryOnboardingRoleFromForm(data, { roles: userProfile?.roles });
+  if (primaryRole) {
+    data.primary_onboarding_role = primaryRole;
+  }
+
+  return applyBuyerFlatFieldsFromApi(data, prefs);
 }

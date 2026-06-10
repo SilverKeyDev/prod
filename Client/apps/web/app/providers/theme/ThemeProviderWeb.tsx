@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import { defaultConfig, type ThemeConfig, ThemeContext } from "packages/contexts/ThemeContext";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 export type ThemeProviderWebProps = {
   children: ReactNode;
@@ -24,7 +25,9 @@ export function ThemeProviderWeb({ children, initialConfig }: ThemeProviderWebPr
   const [systemTheme, setSystemTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const win = getWindow();
+    if (!win) return;
+    const mediaQuery = win.matchMedia("(prefers-color-scheme: dark)");
     setPrefersDarkMode(mediaQuery.matches);
     setSystemTheme(mediaQuery.matches ? "dark" : "light");
 
@@ -38,7 +41,8 @@ export function ThemeProviderWeb({ children, initialConfig }: ThemeProviderWebPr
   }, []);
 
   useEffect(() => {
-    const root = document.documentElement;
+    const root = getDocument()?.documentElement;
+    if (!root) return;
 
     root.style.setProperty("--theme-primary", config.primaryColor);
     root.style.setProperty("--theme-accent", config.accentColor);
@@ -59,11 +63,13 @@ export function ThemeProviderWeb({ children, initialConfig }: ThemeProviderWebPr
   };
 
   const getCSSVariable = (name: string): string => {
-    return getComputedStyle(document.documentElement).getPropertyValue(`--theme-${name}`).trim();
+    const root = getDocument()?.documentElement;
+    if (!root) return "";
+    return getWindow()?.getComputedStyle(root).getPropertyValue(`--theme-${name}`).trim() ?? "";
   };
 
   const setCSSVariable = (name: string, value: string) => {
-    document.documentElement.style.setProperty(`--theme-${name}`, value);
+    getDocument()?.documentElement?.style.setProperty(`--theme-${name}`, value);
   };
 
   const value = {

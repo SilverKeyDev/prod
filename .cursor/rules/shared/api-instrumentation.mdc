@@ -4,6 +4,7 @@ globs:
   - "Server/app/http/**"
   - "Server/app/routes/**"
   - "Server/app/services/analytics/posthog_events.py"
+  - "Server/app/services/analytics/api_request_error_semantics.py"
   - "Server/scripts/endpoints/**"
 alwaysApply: false
 ---
@@ -16,7 +17,7 @@ HTTP route telemetry is **centralized** — do not add per-route `api_request` P
 
 - After adding or changing Flask routes, run `make routes-extract` and commit [`Server/endpoints.json`](../../../Server/endpoints.json).
 - CI enforces drift via `make routes-extract-verify` in [`.github/workflows/test-callable.yml`](../../../.github/workflows/test-callable.yml).
-- After **Test & Coverage** succeeds on `main`, [`.github/workflows/endpoints-sync-posthog.yml`](../../../.github/workflows/endpoints-sync-posthog.yml) POSTs `endpoint_inventory_sync` via [`sync_inventory_posthog.py`](../../../Server/scripts/endpoints/sync_inventory_posthog.py) (reads committed `endpoints.json` only — no `DATABASE_URL`; requires GitHub secret `POSTHOG_PROJECT_TOKEN`).
+- After **Test & Coverage** succeeds on `main`, [`.github/workflows/endpoints-sync-posthog.yml`](../../../.github/workflows/endpoints-sync-posthog.yml) POSTs coverage via [`sync_inventory_posthog.py`](../../../Server/scripts/endpoints/sync_inventory_posthog.py): `endpoint_inventory_sync` (full inventory + `dead_endpoints` summary) and one `endpoint_dead_route` event per route with zero `api_request` hits in 7d (reads committed `endpoints.json` only — no `DATABASE_URL`; secrets `POSTHOG_PROJECT_TOKEN` + `POSTHOG_QUERY_API_KEY`).
 
 ## `api_request` event contract
 
@@ -27,7 +28,10 @@ Captured in [`Server/app/http/api_telemetry.py`](../../../Server/app/http/api_te
 | `endpoint` | yes | `"METHOD /path/{param}"` — use [`normalize_flask_route_rule`](../../../Server/app/utils/http/route_pattern.py) |
 | `method` | yes | HTTP verb |
 | `status_code` | yes | int |
-| `is_error` | yes | `status_code >= 400` |
+| `is_error` | yes | `status_code >= 400` (legacy; do not use alone for SLO red/green) |
+| `is_server_error` | yes | `status_code >= 500` |
+| `error_kind` | yes | `none`, `server`, `auth`, `forbidden`, `not_found`, `rate_limited`, `client` — see [`api_request_error_semantics.py`](../../../Server/app/services/analytics/api_request_error_semantics.py) |
+| `expected_client_error` | yes | `true` when the outcome is normal product flow (expired session, role gate, etc.) |
 | `duration_ms` | yes | `time.perf_counter()` delta from `g._request_start_perf` in `before_request` |
 | `latency_ms` | deprecated | Same value as `duration_ms`; remove after dashboard migration |
 

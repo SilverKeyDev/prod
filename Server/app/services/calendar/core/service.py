@@ -9,33 +9,20 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from app.utils.security.app_logging import get_logger
+from logger import log
 
 from ..availability.freebusy import query_freebusy
-from ..calendars.management import (
-    create_calendar,
-    get_or_create_silverkey_calendar,
-)
-from ..calendars.resolution import (
-    list_calendars,
-    resolve_calendar_id,
-)
-from ..calendars.sharing import (
+from ..calendars import (
     add_calendar_acl,
     setup_agent_client_calendar_sharing,
     share_calendar_with_users,
 )
-from ..events.operations import (
-    create_event,
-    delete_event,
-    get_event,
-    update_event,
-)
+from ..calendars.management import create_calendar, get_or_create_silverkey_calendar
+from ..calendars.resolution import list_calendars, resolve_calendar_id
+from ..events.operations import create_event, delete_event, get_event, update_event
 from ..events.operations_list_events import list_events
 from .oauth_facade import CalendarOAuthFacade
 from .revoke import revoke_calendar_access
-
-logger = get_logger()
 
 
 class GoogleCalendarService:
@@ -48,28 +35,20 @@ class GoogleCalendarService:
         self.client_id = Config.GOOGLE_CLIENT_ID
         self.client_secret = Config.GOOGLE_CALENDAR_SECRET or ""
         self.redirect_uri = Config.GOOGLE_REDIRECT_URI
-        # Import permissions constants to ensure only allowed scopes are used
         from app.services.calendar.permissions.constants import permissions
 
-        # Default to calendar.app.created (non-sensitive scope) - no OAuth verification required
-        # This allows managing only calendars/events created by the app
         if Config.GOOGLE_SCOPES:
-            # Validate that config scopes are in our permissions constants
             valid_scopes = {perm_data["scope_url"] for perm_data in permissions.values()}
             config_scopes = Config.GOOGLE_SCOPES.split()
             self.scopes = [scope for scope in config_scopes if scope in valid_scopes]
             if len(self.scopes) != len(config_scopes):
                 invalid_scopes = set(config_scopes) - valid_scopes
-                logger.warning(f"Filtered out invalid scopes from config: {invalid_scopes}")
+                log.warn("CALENDAR", f"Filtered out invalid scopes from config: {invalid_scopes}")
         else:
             self.scopes = [permissions["calendar_app_created"]["scope_url"]]
         self.auth_endpoint = "https://accounts.google.com/o/oauth2/v2/auth"
         self.token_endpoint = "https://oauth2.googleapis.com/token"
-
-        # Configuration validation
         self._validate_configuration()
-
-        # Initialize request session with retry logic
         self._initialize_session()
         self._oauth_facade = CalendarOAuthFacade(
             self.client_id,
@@ -84,37 +63,31 @@ class GoogleCalendarService:
     def _validate_configuration(self):
         """Validate required configuration"""
         missing_vars = []
-
         if not self.client_id:
             missing_vars.append("GOOGLE_CLIENT_ID")
         if not self.client_secret:
             missing_vars.append("GOOGLE_CALENDAR_SECRET")
         if not self.redirect_uri:
             missing_vars.append("GOOGLE_REDIRECT_URI")
-
         if missing_vars:
-            logger.error(
-                f"Google Calendar service missing required environment variables: {', '.join(missing_vars)}"
+            log.error(
+                "ERRORS",
+                f"Google Calendar service missing required environment variables: {', '.join(missing_vars)}",
             )
             raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
     def _initialize_session(self):
         """Initialize requests session with retry logic"""
         self.session = requests.Session()
-
-        # Configure retry strategy
         retry_strategy = Retry(
             total=3,
             backoff_factor=1,
             status_forcelist=[429, 500, 502, 503, 504],
             raise_on_status=False,
         )
-
-        adapter = HTTPAdapter(max_retries=retry_strategy)  # type: ignore[arg-type]; API accepts Retry
+        adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
-
-        # Default timeout for requests (Session does not have a timeout attribute)
         self._request_timeout = 15
 
     def is_healthy(self) -> bool:
@@ -124,7 +97,7 @@ class GoogleCalendarService:
                 [self.client_id, self.client_secret, self.redirect_uri, hasattr(self, "session")]
             )
         except Exception as e:
-            logger.error(f"Health check failed: {str(e)}")
+            log.error("ERRORS", f"Health check failed: {str(e)}")
             return False
 
     def generate_state(self, user_id: str) -> str:
@@ -133,10 +106,11 @@ class GoogleCalendarService:
     def validate_state(self, state: str, session_state: str | None = None) -> bool:
         return self._oauth_facade.validate_state(state, session_state)
 
+    def validate_state_and_get_user_id(self, state: str) -> str | None:
+        return self._oauth_facade.validate_state_and_get_user_id(state)
+
     def build_auth_url(
-        self,
-        user_id: str,
-        request_additional_scopes: list[str] | None = None,
+        self, user_id: str, request_additional_scopes: list[str] | None = None
     ) -> tuple[str, str]:
         return self._oauth_facade.build_auth_url(user_id, request_additional_scopes)
 
@@ -237,7 +211,13 @@ class GoogleCalendarService:
         )
 
     def update_event(
-        self, user_id: str, event_id: str, event_data: dict[str, Any], calendar_id: str = "primary"
+        self,
+        user_id: str,
+        event_id: str,
+        event_data: dict[str, Any],
+        calendar_id: str = "primary",
+        *,
+        add_google_meet: bool = False,
     ) -> dict[str, Any]:
         """Update an existing event in user's Google calendar"""
         return update_event(
@@ -250,6 +230,7 @@ class GoogleCalendarService:
             self.token_endpoint,
             self.scopes,
             self._resolve_calendar_id,
+            add_google_meet=add_google_meet,
         )
 
     def delete_event(self, user_id: str, event_id: str, calendar_id: str = "primary") -> bool:
@@ -370,5 +351,4 @@ class GoogleCalendarService:
         return revoke_calendar_access(user_id, self.session)
 
 
-# Singleton instance
 google_calendar_service = GoogleCalendarService()

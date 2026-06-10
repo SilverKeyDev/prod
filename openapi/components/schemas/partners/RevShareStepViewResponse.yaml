@@ -6,5 +6,4 @@ properties:
   success:
     type: boolean
   data:
-    type: object
-    additionalProperties: true
+    $ref: "./BuyerStepView.yaml"

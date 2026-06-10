@@ -96,7 +96,7 @@ jobs:
 
       - name: Check module-specific coverage thresholds
         working-directory: Server
-        run: python scripts/lint/check_coverage_thresholds.py
+        run: python scripts/misc/check_coverage_thresholds.py
 
       - name: Verify Server/endpoints.json matches Flask url_map
         working-directory: Server

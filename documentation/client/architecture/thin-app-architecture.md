@@ -96,7 +96,7 @@ The “enterprise” part of thin apps is **enforcing directionality**. Respect 
 | Layer | May import from |
 |-------|-----------------|
 | **`apps/*`** | `packages/*` **public entrypoints only** (see “Public API only” below); platform runtime libs (`react-router-dom`, `react-navigation`, `AppRegistry`, etc.). |
-| **`packages/features/*`** | `packages/ui`, `packages/hooks`, `packages/data` (or equivalent), `packages/platform`. |
+| **`packages/features/*`** | `packages/ui`, `packages/hooks`, `packages/config/query`, `packages/platform`. |
 | **`packages/ui`** | Must **not** import from `packages/features` (prevents “UI depends on product” and circular deps). |
 | **`packages/domain`** (or core) | Imports **nothing** from React/React Native; pure logic and types only. |
 

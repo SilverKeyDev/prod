@@ -4,10 +4,10 @@
  */
 
 import type { Chat } from "packages/features/messaging/types/chat";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { dateNow, dayjs } from "packages/utils/date";
-import { formatFilenameToAddress } from "packages/utils/format/address";
-import { getWindow } from "packages/utils/platform";
+import { log } from "packages/logger";
+import { dateNow, dayjs } from "packages/utils/core/date";
+import { formatFilenameToAddress } from "packages/utils/core/format/address";
+import { getWindow } from "packages/utils/core/platform";
 
 const CACHE_TTL_MS = 30000; // 30 seconds
 
@@ -75,12 +75,9 @@ export function getSharedReportsData(): { reports: unknown[] } | null {
 export function getChatsFromSharedData(): ChatListItem[] | null {
   const shared = getSharedReportsData();
   if (!shared) return null;
-  log.debug(
-    LOG_CATEGORIES.MESSAGES,
-    "[reportToChat] Using shared reports data from ReportsContext"
-  );
+  log.debug("MESSAGES", "[reportToChat] Using shared reports data from ReportsContext");
   const chats = shared.reports.map((report) => reportToChat(report));
-  log.debug(LOG_CATEGORIES.MESSAGES, "[reportToChat] Processed chats from shared data", {
+  log.debug("MESSAGES", "[reportToChat] Processed chats from shared data", {
     chatsCount: chats.length,
     chatIds: chats.map((c) => c.id),
   });

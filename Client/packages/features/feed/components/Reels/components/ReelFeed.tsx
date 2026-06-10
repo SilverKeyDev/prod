@@ -1,9 +1,9 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 
 import { spacing } from "packages/design-tokens";
-import { Virtuoso, type VirtuosoHandle } from "packages/ui/components/adapters/virtuoso";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Virtuoso, type VirtuosoHandle } from "packages/ui/components/system/adapters/virtuoso";
+import { getWindow } from "packages/utils/core/platform";
 
 import type { PostData } from "@/features/feed/types/feed";
 

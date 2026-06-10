@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useGoogleMapsStore } from "packages/store";
 import { screenUp } from "packages/ui/types/screens";
-import { dateNow } from "packages/utils/date";
-import { getWindow } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { getWindow } from "packages/utils/core/platform";
 
 import { googleMapsService } from "@/features/search/utils/googleMaps";
 
@@ -46,7 +46,7 @@ export const useMapInitialization = ({
 
   renderCountRef.current++;
 
-  log.debug(LOG_CATEGORIES.MAP_RENDERING, "Map initialization hook render", {
+  log.debug("MAP_RENDERING", "Map initialization hook render", {
     renderCount: renderCountRef.current,
     isLocalStorageLoaded,
     isGoogleMapsLoaded,
@@ -66,7 +66,7 @@ export const useMapInitialization = ({
     );
 
     if (depsChanged) {
-      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Map initialization dependencies changed", {
+      log.debug("MAP_RENDERING", "Map initialization dependencies changed", {
         previous: lastRenderDepsRef.current,
         current: currentDeps,
         timestamp: dateNow().toISOString(),
@@ -104,7 +104,7 @@ export const useMapInitialization = ({
   };
 
   const createInContainer = (container: HTMLDivElement) => {
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Creating map in container", {
+    log.debug("MAP_RENDERING", "Creating map in container", {
       container,
       containerVisible: container.offsetWidth > 0 && container.offsetHeight > 0,
       containerBounds: container.getBoundingClientRect(),
@@ -120,11 +120,11 @@ export const useMapInitialization = ({
 
     const map = googleMapsService.createMap(container);
     if (!map) {
-      log.error(LOG_CATEGORIES.MAP_RENDERING, "Failed to create Google Map");
+      log.error("MAP_RENDERING", "Failed to create Google Map");
       return null;
     }
 
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Map created successfully", {
+    log.debug("MAP_RENDERING", "Map created successfully", {
       mapInstance: map,
       container,
       timestamp: dateNow().toISOString(),
@@ -136,7 +136,7 @@ export const useMapInitialization = ({
     // Kick a resize after initial paint for tiles/layout correctness
     setTimeout(() => {
       if (googleMapRef.current) {
-        log.debug(LOG_CATEGORIES.MAP_RENDERING, "Triggering initial map resize");
+        log.debug("MAP_RENDERING", "Triggering initial map resize");
         googleMapsService.triggerMapResize(googleMapRef.current);
       }
     }, 60);
@@ -144,7 +144,7 @@ export const useMapInitialization = ({
     attachResizeObserver(container);
 
     if (onMapReady) {
-      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Calling onMapReady callback");
+      log.debug("MAP_RENDERING", "Calling onMapReady callback");
       onMapReady(map);
     }
     return map;
@@ -152,7 +152,7 @@ export const useMapInitialization = ({
 
   // Initial create when both prerequisites are ready
   useEffect(() => {
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Initial useEffect triggered", {
+    log.debug("MAP_RENDERING", "Initial useEffect triggered", {
       isLocalStorageLoaded,
       isGoogleMapsLoaded,
       isInitialized: isInitializedRef.current,
@@ -162,12 +162,12 @@ export const useMapInitialization = ({
     });
 
     if (!getWindow()) {
-      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Skipping - window undefined (SSR)");
+      log.debug("MAP_RENDERING", "Skipping - window undefined (SSR)");
       return;
     }
 
     if (!isLocalStorageLoaded || !isGoogleMapsLoaded) {
-      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Prerequisites not ready", {
+      log.debug("MAP_RENDERING", "Prerequisites not ready", {
         isLocalStorageLoaded,
         isGoogleMapsLoaded,
       });
@@ -176,11 +176,11 @@ export const useMapInitialization = ({
 
     const container = getVisibleContainer();
     if (!container) {
-      log.debug(LOG_CATEGORIES.MAP_RENDERING, "No visible container found");
+      log.debug("MAP_RENDERING", "No visible container found");
       return;
     }
 
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Checking if already initialized", {
+    log.debug("MAP_RENDERING", "Checking if already initialized", {
       isInitialized: isInitializedRef.current,
       currentContainer: currentContainerRef.current,
       targetContainer: container,
@@ -194,11 +194,11 @@ export const useMapInitialization = ({
       currentContainerRef.current === container &&
       googleMapRef.current
     ) {
-      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Already initialized in same container - skipping");
+      log.debug("MAP_RENDERING", "Already initialized in same container - skipping");
       return;
     }
 
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Proceeding with map initialization");
+    log.debug("MAP_RENDERING", "Proceeding with map initialization");
     isInitializedRef.current = true;
     createInContainer(container);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -206,18 +206,18 @@ export const useMapInitialization = ({
 
   // React to breakpoint changes (mobile <-> desktop)
   useEffect(() => {
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Breakpoint useEffect triggered");
+    log.debug("MAP_RENDERING", "Breakpoint useEffect triggered");
 
     const win = getWindow();
     if (!win) {
-      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Skipping breakpoint setup - window undefined (SSR)");
+      log.debug("MAP_RENDERING", "Skipping breakpoint setup - window undefined (SSR)");
       return;
     }
 
     const mql = win.matchMedia(DESKTOP_QUERY);
     mqlRef.current = mql;
 
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Setting up media query listener", {
+    log.debug("MAP_RENDERING", "Setting up media query listener", {
       query: DESKTOP_QUERY,
       matches: mql.matches,
       currentContainer: currentContainerRef.current,
@@ -225,7 +225,7 @@ export const useMapInitialization = ({
     });
 
     const handleChange = () => {
-      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Breakpoint changed", {
+      log.debug("MAP_RENDERING", "Breakpoint changed", {
         query: DESKTOP_QUERY,
         matches: mql.matches,
         hasMapInstance: !!googleMapRef.current,
@@ -234,22 +234,19 @@ export const useMapInitialization = ({
 
       const nextContainer = getVisibleContainer();
       if (!nextContainer) {
-        log.debug(LOG_CATEGORIES.MAP_RENDERING, "No container found for new breakpoint");
+        log.debug("MAP_RENDERING", "No container found for new breakpoint");
         return;
       }
 
       // If the map is already in the right container, just trigger resize
       if (currentContainerRef.current === nextContainer && googleMapRef.current) {
-        log.debug(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Map already in correct container - triggering resize"
-        );
+        log.debug("MAP_RENDERING", "Map already in correct container - triggering resize");
         googleMapsService.triggerMapResize(googleMapRef.current);
         return;
       }
 
       // Otherwise, (re)create the map in the new container
-      log.debug(LOG_CATEGORIES.MAP_RENDERING, "Moving map to new container", {
+      log.debug("MAP_RENDERING", "Moving map to new container", {
         fromContainer: currentContainerRef.current,
         toContainer: nextContainer,
       });

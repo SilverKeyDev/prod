@@ -8,13 +8,14 @@ This module now uses the preprocessing models internally but maintains backward
 compatibility by returning dictionaries.
 """
 
-import logging
 from typing import Any
 
+from sqlalchemy import select
+
+from app import db
 from app.models import PropertyCache, UserPropertyLink
 from app.utils.db.orm_lookup import get_model
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 # Reference existing scraping helpers from services
 try:
@@ -29,7 +30,7 @@ except ImportError:
     SCRAPING_HELPERS_AVAILABLE = False
     extract_property_features = None  # type: ignore[assignment]
     extract_and_clean_features = None  # type: ignore[assignment]
-    logger.warning("Some scraping helpers not available - some features may be limited")
+    log.warn("SEARCH", "Some scraping helpers not available - some features may be limited")
 
 
 def get_home_data_from_db(home_id: str, user_id: str | None = None) -> dict[str, Any] | None:
@@ -37,17 +38,25 @@ def get_home_data_from_db(home_id: str, user_id: str | None = None) -> dict[str,
     try:
         prop = get_model(PropertyCache, home_id)
         if not prop:
-            logger.warning("Property not found: %s", home_id)
+            log.warn("SEARCH", "Property not found: %s", home_id)
             return None
 
         link = None
         if user_id:
-            link = UserPropertyLink.query.filter_by(user_id=user_id, property_id=prop.id).first()
+            link = db.session.scalar(
+                select(UserPropertyLink).where(
+                    UserPropertyLink.user_id == user_id, UserPropertyLink.property_id == prop.id
+                )
+            )
 
         return format_home_data_for_matching(prop, link)
 
     except Exception as e:
-        logger.error("Error retrieving home data for %s: %s", home_id, e)
+        log.error(
+            "ERRORS",
+            "Error retrieving home data for %s: %s",
+            {"arg0": str(home_id), "arg1": str(e)},
+        )
         return None
 
 
@@ -56,16 +65,15 @@ def get_homes_data_from_db(
 ) -> list[dict[str, Any]]:
     """Retrieve multiple properties from database via UserPropertyLink."""
     try:
-        query = UserPropertyLink.query
+        stmt = select(UserPropertyLink).where(UserPropertyLink.current.is_(True))
         if user_id:
-            query = query.filter_by(user_id=user_id)
-        query = query.filter_by(current=True)
+            stmt = stmt.where(UserPropertyLink.user_id == user_id)
         if liked_only:
-            query = query.filter_by(is_liked=True)
+            stmt = stmt.where(UserPropertyLink.is_liked.is_(True))
         if limit:
-            query = query.limit(limit)
+            stmt = stmt.limit(limit)
 
-        links = query.all()
+        links = db.session.scalars(stmt).all()
         results = []
         for link in links:
             prop = get_model(PropertyCache, link.property_id)
@@ -74,7 +82,7 @@ def get_homes_data_from_db(
         return results
 
     except Exception as e:
-        logger.error("Error retrieving homes data: %s", e)
+        log.error("ERRORS", "Error retrieving homes data: %s", e)
         return []
 
 
@@ -222,7 +230,7 @@ def format_home_data_from_api(property_data: dict[str, Any]) -> dict[str, Any]:
                 if features:
                     formatted["features"] = features
             except Exception as e:
-                logger.warning(f"Could not extract property features: {e}")
+                log.warn("SEARCH", f"Could not extract property features: {e}")
 
         # Extract image features if images are available
         if formatted.get("image_urls") and not formatted.get("image_features"):
@@ -231,7 +239,7 @@ def format_home_data_from_api(property_data: dict[str, Any]) -> dict[str, Any]:
                 if image_features:
                     formatted["image_features"] = image_features
             except Exception as e:
-                logger.warning(f"Could not extract image features: {e}")
+                log.warn("SEARCH", f"Could not extract image features: {e}")
 
     return formatted
 
@@ -272,7 +280,7 @@ def get_home_data(
     elif home_id:
         return get_home_data_from_db(home_id, user_id)
     else:
-        logger.warning("Either home_id or home_data_dict must be provided")
+        log.warn("SEARCH", "Either home_id or home_data_dict must be provided")
         return None
 
 

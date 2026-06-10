@@ -3,26 +3,30 @@ import { lazy, Suspense, useEffect } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 import { useActiveWorkspace, useIsAgent } from "packages/features/homeauth";
+import { getMessagingSurfaceForWorkspace } from "packages/features/messaging";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
-import { LOG_CATEGORIES } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
-import { stripWorkspaceShellPrefix } from "packages/utils/layout/dashboardLayoutConfig";
-import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { Box } from "packages/ui/components/structure/primitives";
+import { stripWorkspaceShellPrefix } from "packages/utils/core/layout/dashboardLayoutConfig";
+import { traceLazyImport } from "packages/utils/core/perf/shellRouteLoadTiming";
 
 import { KeyTurnLoader } from "@/components/ui";
 
 import {
   loadAgentDashboardModule,
   loadClientMessagingModule,
+  loadWorkspaceMessagingShellModule,
 } from "./loading/agentFeatureDynamicImports";
 
 const ClientMessaging = lazy(
-  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:ClientMessaging", loadClientMessagingModule)
+  traceLazyImport("MESSAGES", "lazy:ClientMessaging", loadClientMessagingModule)
+);
+const WorkspaceMessagingShell = lazy(
+  traceLazyImport("MESSAGES", "lazy:WorkspaceMessagingShell", loadWorkspaceMessagingShellModule)
 );
 const AgentDashboard = lazy(
-  traceLazyImport(LOG_CATEGORIES.MESSAGES, "lazy:AgentDashboard", loadAgentDashboardModule)
+  traceLazyImport("MESSAGES", "lazy:AgentDashboard", loadAgentDashboardModule)
 );
 
 const messagingBranchFallback = (
@@ -36,7 +40,7 @@ type AgentFeatureProps = {
 };
 
 export default function AgentFeature({ setMobileHeaderActions }: AgentFeatureProps = {}) {
-  useFirstRenderCommitTimer(LOG_CATEGORIES.MESSAGES, "AgentFeature");
+  useFirstRenderCommitTimer("MESSAGES", "AgentFeature");
   const authReady = useAuthStore((s) => s.authReady);
   const isAgentIdentity = useIsAgent();
   const activeWorkspace = useActiveWorkspace();
@@ -74,9 +78,23 @@ export default function AgentFeature({ setMobileHeaderActions }: AgentFeaturePro
     );
   }
   if (isOnMessagingPath) {
+    const surface = getMessagingSurfaceForWorkspace(activeWorkspace);
+    if (surface?.stack === "workspace") {
+      return (
+        <Suspense fallback={messagingBranchFallback}>
+          <WorkspaceMessagingShell
+            persona={surface.persona}
+            setMobileHeaderActions={setMobileHeaderActions}
+          />
+        </Suspense>
+      );
+    }
     return (
       <Suspense fallback={messagingBranchFallback}>
-        <ClientMessaging setMobileHeaderActions={setMobileHeaderActions} />
+        <ClientMessaging
+          clientPersona={surface?.stack === "agent_client" ? surface.clientPersona : "buyer"}
+          setMobileHeaderActions={setMobileHeaderActions}
+        />
       </Suspense>
     );
   }

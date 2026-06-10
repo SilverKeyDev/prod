@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { isGoogleMapsReady } from "@/features/search/utils/googleMaps/loader/googleMapsReadiness";
 import { ScriptLoader } from "@/features/search/utils/googleMaps/loader/scriptLoader";
@@ -39,7 +39,7 @@ export class GoogleMapsService {
     overrides?: Partial<google.maps.MapOptions>
   ): google.maps.Map | null {
     if (!this.isGoogleMapsReady()) {
-      log.error(LOG_CATEGORIES.MAP_RENDERING, "Google Maps not ready yet - missing required APIs");
+      log.error("MAP_RENDERING", "Google Maps not ready yet - missing required APIs");
       return null;
     }
     return this.mapManager.createMap(container, this.scriptLoader.getMapId(), overrides);

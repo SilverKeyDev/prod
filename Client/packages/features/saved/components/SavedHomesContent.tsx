@@ -10,10 +10,10 @@ import {
   sortSavedHomesForLibrary,
 } from "packages/features/saved/utils/librarySort";
 import type { SavedHome } from "packages/types";
-import { AgreementCard, AgreementListRow } from "packages/ui/components/cards/agreement";
-import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
-import { Box } from "packages/ui/components/primitives";
-import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
+import { Box } from "packages/ui/components/structure/primitives";
+import { AgreementCard, AgreementListRow } from "packages/ui/components/surfaces/cards/agreement";
+import type { DocumentCardExternalActionHandlers } from "packages/ui/components/surfaces/cards/document/types";
+import { filterDocumentLibraryExcludingAgreements } from "packages/utils/transaction/documents";
 
 import { BodyText, KeyTurnLoader } from "@/components/ui";
 

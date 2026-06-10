@@ -8,7 +8,6 @@ export type AgentPublicProfileShareInput = {
   userProfile: {
     id?: string;
     name?: string | null;
-    is_agent?: boolean;
     roles?: readonly string[] | null;
   } | null;
 };
@@ -24,8 +23,7 @@ export function isAgentIdentityForProfileUi(
   storeIsAgent: boolean,
   userProfile: AgentPublicProfileShareInput["userProfile"]
 ): boolean {
-  const profileIndicatesAgent =
-    Boolean(userProfile?.is_agent) || Boolean(userProfile?.roles?.includes("agent"));
+  const profileIndicatesAgent = Boolean(userProfile?.roles?.includes("agent"));
   return storeIsAgent || profileIndicatesAgent;
 }
 

@@ -9,13 +9,16 @@ import { DASHBOARD_TRANSLATIONS } from "packages/features/dashboard/types/transl
 import { DOCUMENTS_TRANSLATIONS } from "packages/features/documents/types/translations";
 import { FEED_TRANSLATIONS } from "packages/features/feed/types/translations";
 import { AUTH_TRANSLATIONS } from "packages/features/homeauth/types/translations";
+import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
 import { NEGOTIATE_TRANSLATIONS } from "packages/features/negotiate/types/translations";
 import { PROFILE_TRANSLATIONS } from "packages/features/profile/types/i18n/translations";
 import { PROPERTY_DETAILS_TRANSLATIONS } from "packages/features/propertyDetails/types/translations";
+import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
 import { SAVED_TRANSLATIONS } from "packages/features/saved/types/translations";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
-import { getErrorCatalogI18nKeys } from "packages/utils/errorHandling/errorCatalog";
-import { assertKeysResolve } from "packages/utils/test/translationAssertions";
+import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
+import { getErrorCatalogI18nKeys } from "packages/utils/core/errorHandling/errorCatalog";
+import { assertKeysResolve } from "packages/utils/core/test/translationAssertions";
 
 import { ERRORS_TRANSLATIONS } from "./errors";
 import { TRANSLATIONS } from "./index";
@@ -26,6 +29,9 @@ const FEATURE_MODULES = {
   ERRORS_TRANSLATIONS,
   AUTH_TRANSLATIONS,
   BROKERAGE_TRANSLATIONS,
+  SELLER_TRANSLATIONS,
+  RENTER_TRANSLATIONS,
+  INTEGRATION_PARTNER_TRANSLATIONS,
   ADMIN_TRANSLATIONS,
   SEARCH_TRANSLATIONS,
   PROPERTY_DETAILS_TRANSLATIONS,

@@ -1,11 +1,10 @@
 import { useEffect, useRef } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { useChecklistStepSubmitRegistry } from "packages/features/checklists/hooks/useChecklistStepSubmitRegistry";
 import { useOptionalChecklistUpdatePending } from "packages/features/checklists/hooks/useOptionalChecklistUpdatePending";
 import { Button } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-
-import { useChecklistStepSubmitRegistry } from "./ChecklistStepSubmitContext";
+import { Box } from "packages/ui/components/structure/primitives";
 
 export type ChecklistStepSubmitBarProps = {
   disabled: boolean;

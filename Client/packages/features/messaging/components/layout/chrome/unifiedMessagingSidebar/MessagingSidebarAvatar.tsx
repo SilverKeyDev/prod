@@ -1,6 +1,6 @@
 import { ProfileAvatar } from "packages/ui/components";
-import { Box } from "packages/ui/components/primitives";
-import { SIDEBAR_AVATAR_WRAP } from "packages/ui/components/sidebar/sidebarTheme";
+import { Box } from "packages/ui/components/structure/primitives";
+import { SIDEBAR_AVATAR_WRAP } from "packages/ui/components/structure/sidebar/sidebarTheme";
 
 export function MessagingSidebarAvatar({
   name,

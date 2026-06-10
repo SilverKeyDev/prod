@@ -3,6 +3,7 @@
  */
 
 import type { AuthResponse } from "packages/features/homeauth/api/types";
+import type { UserRole } from "packages/features/homeauth/types/roles";
 
 import type { UserProfile } from "@/features/homeauth/types";
 
@@ -26,16 +27,11 @@ export function mapAuthResponseToUserProfile(
     created_at: null,
     is_active: true,
     has_preferences: false,
-    is_agent: ("is_agent" in user ? (user.is_agent ?? false) : false) ?? false,
-    roles: ("roles" in user ? user.roles : undefined) as UserProfile["roles"],
-    brokerage_org_ids: ("brokerage_org_ids" in user
-      ? user.brokerage_org_ids
-      : undefined) as UserProfile["brokerage_org_ids"],
+    roles: ("roles" in user && Array.isArray(user.roles) ? user.roles : []) as UserRole[],
     auth_method: ("auth_method" in user ? user.auth_method : undefined) as
       | "cognito"
       | "google"
       | "both"
-      | "dev_session"
       | "unknown"
       | undefined,
   };

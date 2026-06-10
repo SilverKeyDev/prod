@@ -13,12 +13,3 @@ export type PropertyDetailsScreenParams = {
 export type AgentProfileScreenParams =
   | { agentUserId: string; displayName?: string }
   | { publicProfileSlug: string };
-
-/**
- * Result of resolving post-auth redirect path.
- * Native navigator uses this to call rootNavigationRef.navigate accordingly.
- */
-export type PostAuthRedirectTarget =
-  | { type: "main"; screen: string }
-  | { type: "onboarding" }
-  | null;

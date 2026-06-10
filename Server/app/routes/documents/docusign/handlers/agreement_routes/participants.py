@@ -1,22 +1,26 @@
 """Agreement participant management routes."""
 
-from flask import jsonify, request
+from flask import jsonify
 
+from app.dtos.documents import participant_payload
 from app.schemas import (
     CreateParticipantRequest,
     CreateParticipantResponse,
     UpdateRoutingOrderRequest,
     UpdateRoutingOrderResponse,
 )
+from app.services.auth.user_role_helpers import user_is_agent
 from app.services.docusign import AgreementLifecycleService
-from app.services.docusign.utils.permissions import can_access_agreement, is_agent
-from app.utils.common_patterns import require_authenticated_user
+from app.services.docusign.utils.permissions import can_access_agreement
+from app.utils.common_patterns import (
+    forbidden,
+    require_authenticated_user,
+    server_error,
+    validation,
+)
 from app.utils.security import rate_limit
-from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.validation import validate_request, validate_response
-from logger import LOG_CATEGORIES, get_logger
-
-log = get_logger()
+from logger import log
 
 
 def register_participant_routes(bp):
@@ -25,43 +29,39 @@ def register_participant_routes(bp):
     @require_authenticated_user
     @validate_request(CreateParticipantRequest)
     @validate_response(CreateParticipantResponse)
-    def add_participant(user, agreement_id, data: CreateParticipantRequest | None = None):
+    def add_participant(user, agreement_id, data: CreateParticipantRequest):
         try:
-            if not is_agent(user):
+            if not user_is_agent(user):
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "Non-agent attempted to add participant",
                     {"agreement_id": agreement_id, "user_id": user.id},
                 )
-                return jsonify({"success": False, "error": "Agent access required"}), 403
+                return forbidden()
 
             agreement = AgreementLifecycleService.get_agreement(agreement_id)
             if not can_access_agreement(user, agreement):
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "User denied access to add participant",
                     {"agreement_id": agreement_id, "user_id": user.id},
                 )
-                return jsonify({"success": False, "error": "Access denied"}), 403
+                return forbidden()
 
-            if data is None:
-                request_data = request.get_json(silent=True)
-                if request_data is None:
-                    return jsonify({"success": False, "error": "Request body required"}), 400
-            else:
-                request_data = data.model_dump(mode="json")
+            request_data = data.model_dump(mode="json")
 
             required_fields = ["user_id"]
             for field in required_fields:
                 if field not in request_data:
                     log.warn(
-                        LOG_CATEGORIES["DOCUSIGN"],
+                        "DOCUSIGN",
                         "Missing required field for add participant",
                         {"field": field, "agreement_id": agreement_id},
                     )
-                    return jsonify(
-                        {"success": False, "error": f"Missing required field: {field}"}
-                    ), 400
+                    return validation(
+                        f"Missing required field: {field}",
+                        field_errors={field: "Required"},
+                    )
 
             raw_role = request_data.get("role")
             if raw_role is None:
@@ -79,7 +79,7 @@ def register_participant_routes(bp):
             )
 
             log.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Participant added successfully",
                 {
                     "agreement_id": agreement_id,
@@ -88,23 +88,25 @@ def register_participant_routes(bp):
                 },
             )
 
-            return jsonify({"success": True, "participant": participant.to_dict()}), 201
+            return jsonify({"success": True, "participant": participant_payload(participant)}), 201
         except Exception as e:
             log.error(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Failed to add participant",
                 {"agreement_id": agreement_id, "error": str(e)},
             )
-            return SecureErrorHandler.handle_error(e, "Failed to add participant")
+            return server_error(
+                e, context={"function": "add_participant", "agreement_id": agreement_id}
+            )
 
     @bp.route("/agreements/<agreement_id>/participants/<participant_id>", methods=["DELETE"])
     @rate_limit(max_requests=20, window_seconds=60)
     @require_authenticated_user
     def remove_participant(user, agreement_id, participant_id):
         try:
-            if not is_agent(user):
+            if not user_is_agent(user):
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "Non-agent attempted to remove participant",
                     {
                         "agreement_id": agreement_id,
@@ -112,23 +114,23 @@ def register_participant_routes(bp):
                         "user_id": user.id,
                     },
                 )
-                return jsonify({"success": False, "error": "Agent access required"}), 403
+                return forbidden()
 
             agreement = AgreementLifecycleService.get_agreement(agreement_id)
             if not can_access_agreement(user, agreement):
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "User denied access to remove participant",
                     {"agreement_id": agreement_id, "user_id": user.id},
                 )
-                return jsonify({"success": False, "error": "Access denied"}), 403
+                return forbidden()
 
             AgreementLifecycleService.remove_participant(
                 agreement_id=agreement_id, participant_id=participant_id
             )
 
             log.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Participant removed successfully",
                 {"agreement_id": agreement_id, "participant_id": participant_id},
             )
@@ -136,11 +138,18 @@ def register_participant_routes(bp):
             return jsonify({"success": True, "message": "Participant removed"}), 200
         except Exception as e:
             log.error(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Failed to remove participant",
                 {"agreement_id": agreement_id, "participant_id": participant_id, "error": str(e)},
             )
-            return SecureErrorHandler.handle_error(e, "Failed to remove participant")
+            return server_error(
+                e,
+                context={
+                    "function": "remove_participant",
+                    "agreement_id": agreement_id,
+                    "participant_id": participant_id,
+                },
+            )
 
     @bp.route(
         "/agreements/<agreement_id>/participants/<participant_id>/routing-order", methods=["PATCH"]
@@ -150,12 +159,12 @@ def register_participant_routes(bp):
     @validate_request(UpdateRoutingOrderRequest)
     @validate_response(UpdateRoutingOrderResponse)
     def update_participant_routing_order(
-        user, agreement_id, participant_id, data: UpdateRoutingOrderRequest | None = None
+        user, agreement_id, participant_id, data: UpdateRoutingOrderRequest
     ):
         try:
-            if not is_agent(user):
+            if not user_is_agent(user):
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "Non-agent attempted to update routing order",
                     {
                         "agreement_id": agreement_id,
@@ -163,23 +172,23 @@ def register_participant_routes(bp):
                         "user_id": user.id,
                     },
                 )
-                return jsonify({"success": False, "error": "Agent access required"}), 403
+                return forbidden()
 
             agreement = AgreementLifecycleService.get_agreement(agreement_id)
             if not can_access_agreement(user, agreement):
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "User denied access to update routing order",
                     {"agreement_id": agreement_id, "user_id": user.id},
                 )
-                return jsonify({"success": False, "error": "Access denied"}), 403
+                return forbidden()
 
-            if data is None:
-                request_data = request.get_json(silent=True) or {}
-            else:
-                request_data = data.model_dump(mode="json")
+            request_data = data.model_dump(mode="json")
             if "routing_order" not in request_data:
-                return jsonify({"success": False, "error": "routing_order field required"}), 400
+                return validation(
+                    "routing_order field required",
+                    field_errors={"routing_order": "Required"},
+                )
 
             participant = AgreementLifecycleService.update_participant_routing_order(
                 agreement_id=agreement_id,
@@ -188,7 +197,7 @@ def register_participant_routes(bp):
             )
 
             log.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Participant routing order updated",
                 {
                     "agreement_id": agreement_id,
@@ -197,11 +206,18 @@ def register_participant_routes(bp):
                 },
             )
 
-            return jsonify({"success": True, "participant": participant.to_dict()}), 200
+            return jsonify({"success": True, "participant": participant_payload(participant)}), 200
         except Exception as e:
             log.error(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Failed to update routing order",
                 {"agreement_id": agreement_id, "participant_id": participant_id, "error": str(e)},
             )
-            return SecureErrorHandler.handle_error(e, "Failed to update routing order")
+            return server_error(
+                e,
+                context={
+                    "function": "update_participant_routing_order",
+                    "agreement_id": agreement_id,
+                    "participant_id": participant_id,
+                },
+            )

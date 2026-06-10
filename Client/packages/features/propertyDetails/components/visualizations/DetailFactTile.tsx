@@ -1,8 +1,8 @@
 import React from "react";
 
-import { Icon } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Icon } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 import type { IconName } from "packages/ui/types/icons";
 
 export type DetailFactTileProps = {

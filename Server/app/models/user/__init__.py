@@ -1,9 +1,11 @@
 """Authentication and user-related models."""
 
+# pyright: reportUndefinedVariable=false
 from .google_oauth_token import GoogleOAuthToken
 from .oauth_state import OAuthState
 from .user import User
 from .user_agent_profile import UserAgentProfile
+from .user_calendar_connection import UserCalendarConnection
 from .user_client_settings import UserClientSettings
 from .user_communication_prefs import UserCommunicationPrefs
 from .user_demographics import UserDemographics
@@ -18,6 +20,7 @@ __all__ = [
     "User",
     "OAuthState",
     "GoogleOAuthToken",
+    "UserCalendarConnection",
     "UserRole",
     "UserDemographics",
     "UserFinancials",

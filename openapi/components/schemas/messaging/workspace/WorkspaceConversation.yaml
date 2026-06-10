@@ -1,0 +1,58 @@
+type: object
+required:
+  - id
+  - kind
+  - created_at
+  - updated_at
+properties:
+  id:
+    type: string
+  kind:
+    $ref: "./WorkspaceConversationKind.yaml"
+  brokerage_org_id:
+    type: string
+    nullable: true
+  partner_id:
+    type: string
+    nullable: true
+  subject_user_id:
+    type: string
+    nullable: true
+  support_category:
+    type: string
+    nullable: true
+    enum:
+      - brokerage
+      - integrator
+  agent_user_id:
+    type: string
+    nullable: true
+  title:
+    type: string
+    nullable: true
+  participant_count:
+    type: integer
+    nullable: true
+  is_archived:
+    type: boolean
+    nullable: true
+  last_message:
+    type: string
+    nullable: true
+  last_message_at:
+    type: string
+    format: date-time
+    nullable: true
+  last_read_at:
+    type: string
+    format: date-time
+    nullable: true
+  unread_count:
+    type: integer
+    nullable: true
+  created_at:
+    type: string
+    format: date-time
+  updated_at:
+    type: string
+    format: date-time

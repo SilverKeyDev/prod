@@ -1,10 +1,13 @@
 """Per-user property highlights (pros/cons and match context)."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -40,4 +43,10 @@ class UserPropertyHighlights(db.Model):
 
     __table_args__ = (
         db.UniqueConstraint("user_id", "property_id", name="uq_user_property_highlights"),
+    )
+
+    property: Mapped["PropertyCache"] = relationship(
+        "PropertyCache",
+        back_populates="user_highlights",
+        lazy="select",
     )

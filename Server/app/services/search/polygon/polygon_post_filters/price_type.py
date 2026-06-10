@@ -7,9 +7,9 @@ from typing import Any
 from app.services.search.home_matching.mcda.criteria.property_type import (
     listing_matches_preferred_housing_type,
 )
-from logger import LOG_CATEGORIES, log
+from logger import log
 
-_POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
+_POLY = "POLYGON_SEARCH"
 
 
 def _as_float(raw: Any) -> float | None:

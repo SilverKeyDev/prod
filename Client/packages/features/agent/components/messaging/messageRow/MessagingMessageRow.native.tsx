@@ -21,7 +21,7 @@ import type {
 import { useSavedHomesData } from "packages/features/search";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
-import { Pressable, Text } from "packages/ui/components/primitives";
+import { Pressable, Text } from "packages/ui/components/structure/primitives";
 
 import { messagingMessageRowNativeStyles as styles } from "./MessagingMessageRowNative.styles";
 import {

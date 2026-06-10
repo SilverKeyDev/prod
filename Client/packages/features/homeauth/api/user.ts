@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { apiGet, apiPost, apiUpload } from "packages/services/http";
 
 import type {
@@ -63,7 +63,7 @@ export const userApi = {
     const parsed = userResponseSchema.safeParse(raw);
     if (!parsed.success) {
       const paths = parsed.error.errors.map((e) => e.path.join("."));
-      log.error(LOG_CATEGORIES.API, "User profile validation failed", {
+      log.error("API", "User profile validation failed", {
         paths,
       });
       const msg = parsed.error.errors.map((e) => e.message).join("; ");
@@ -76,7 +76,7 @@ export const userApi = {
    * Update user profile - Note: Backend endpoint not implemented yet
    */
   updateProfile: (_userData: Partial<User>): Promise<UserResponse> => {
-    log.warn(LOG_CATEGORIES.API, "User profile update endpoint not implemented on backend");
+    log.warn("API", "User profile update endpoint not implemented on backend");
     return Promise.reject(new Error("Profile update not available"));
   },
 
@@ -84,9 +84,18 @@ export const userApi = {
    * Get user's favorite homes
    * @param clientId - Optional client ID for agents to view client's saved homes
    */
-  getFavoriteHomes: (clientId?: string): Promise<FavoriteHomesResponse> => {
-    const params = clientId ? `?client_id=${encodeURIComponent(clientId)}` : "";
-    return apiGet<FavoriteHomesResponse>(`/api/v1/user/favorite-homes${params}`);
+  getFavoriteHomes: (
+    clientId?: string,
+    pagination?: { page?: number; perPage?: number }
+  ): Promise<FavoriteHomesResponse> => {
+    const search = new URLSearchParams({
+      page: String(pagination?.page ?? 1),
+      per_page: String(pagination?.perPage ?? 20),
+    });
+    if (clientId) {
+      search.set("client_id", clientId);
+    }
+    return apiGet<FavoriteHomesResponse>(`/api/v1/user/favorite-homes?${search.toString()}`);
   },
 
   /**
@@ -124,16 +133,6 @@ export const userApi = {
    */
   updateNotInterestedHome: (data: UpdateNotInterestedRequest): Promise<FavoriteHomesResponse> =>
     apiPost<FavoriteHomesResponse>("/api/v1/user/not-interested-homes/update", data),
-
-  /**
-   * Search for agents
-   */
-  searchAgents: (
-    query: string
-  ): Promise<{ success: boolean; agents?: unknown[]; message?: string }> =>
-    apiGet<{ success: boolean; agents?: unknown[]; message?: string }>(
-      `/api/v1/user/search-agents?q=${encodeURIComponent(query)}`
-    ),
 
   /**
    * Assign an agent to current user

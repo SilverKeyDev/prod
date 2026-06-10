@@ -1,7 +1,14 @@
 # Component audit artifacts (tracked)
 
-Outputs from [React + TS component audits](../../client/patterns/react-component-audit-rubric.md) live here (`components-axis-*.md`, `packages-fat-deps.md`, **`TRIAGE.md`**, **`feature-module-folder-and-layering-audit.md`**).
+Evidence from [React + TS component audits](../../client/patterns/react-component-audit-rubric.md):
 
-**Remediation:** after triage, use the **Remediation subagents** table in the rubric ([`documentation/client/patterns/react-component-audit-rubric.md`](../../client/patterns/react-component-audit-rubric.md#remediation-subagents-fix-pass)); run `pnpm typecheck` and `pnpm lint` from `Client/` after code changes.
+| Artifact | Purpose |
+| -------- | ------- |
+| [feature-module-folder-and-layering-audit.md](./feature-module-folder-and-layering-audit.md) | Feature folder skeleton + rubric sampling |
+| [frontend-reorganization-audit.md](./frontend-reorganization-audit.md) | Layer bleed, thin-app, cross-feature utils — **wave checklist** (human or default agent; no fleet subagents) |
 
-For **local-only** scratch tables, use repo-root **`audit/`** (gitignored).
+Optional local `components-axis-*.md` under repo-root `audit/` (gitignored).
+
+**Remediation:** file a Linear issue when a rubric pass finds work worth doing; use the **Remediation subagents** table in the rubric (`silverkey-audit-axis*`, `silverkey-architecture-boundary-auditor`, `silverkey-file-module-reorganizer`). Run `pnpm typecheck` and `pnpm lint` from `Client/` after code changes.
+
+**Docs vs code reorg:** Phase 5 (2026-06-04) refreshed prose; [frontend-reorganization-audit.md](./frontend-reorganization-audit.md) wave rows track **pending code reorg** work (not tied to removed fleet agents).

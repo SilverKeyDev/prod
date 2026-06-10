@@ -17,7 +17,7 @@ Client detail: [`documentation/client/features/docusign-integration.md`](../../c
 ### Partial / not built
 
 - **`signature_plus_review`:** Present in OpenAPI/checklist item metadata; no server review-state engine or dedicated review UI yet.
-- **Integration-completed signals:** No `IntegrationTask` model; partner steps (e.g. Move Concierge) do not auto-complete the checklist from partner webhooks — see [12-financial-and-service-integrations.md](./12-financial-and-service-integrations.md).
+- **Integration-completed signals:** No `IntegrationTask` model; partner placement steps do not auto-complete the checklist from partner webhooks — see [12-financial-and-service-integrations.md](./12-financial-and-service-integrations.md).
 - **Transaction-scoped signing UX:** Flows work per buyer/agreement; not every surface passes explicit transaction context end-to-end.
 
 ### Invariants (target)

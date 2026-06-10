@@ -1,5 +1,5 @@
-> **Status:** Planned — partner placement pattern shipped for Move Concierge; no `IntegrationTask` or Plaid/loan rails.  
-> **Last verified:** 2026-05-28
+> **Status:** Planned — partner placement pattern shipped via `partner_placements`; no `IntegrationTask` or Plaid/loan rails.  
+> **Last verified:** 2026-06-04
 
 ## Problem
 
@@ -17,7 +17,7 @@ Loans, earnest money, and partner services should complete checklist steps via p
 
 | Area | What exists | Pointers |
 | ---- | ----------- | -------- |
-| Move Concierge (live partner) | Rev-share placements + redirect logging; checklist key `home_concierge` maps to **Move Concierge** UI (admin-driven URLs, not agent referral fees). | `Client/packages/features/partners/` (`PartnerTransactionIntegration.tsx`, `moveConciergeEmbed.ts`), `Server/app/routes/rev_share/`, template key in `Server/app/services/transactions/closing/items.py` (`integration_key`: `home_concierge`) |
+| Partner placements | Rev-share placements + redirect logging; closing item 13 (`partner_placements`) renders `PartnerTransactionIntegration` (admin-driven URLs, not agent referral fees). | `Client/packages/features/partners/`, `Server/app/routes/rev_share/`, `Server/app/services/transactions/closing/items.py` |
 | RESPA | Placement at workflow level; exposure logged. | `.cursor/rules/shared/respa-compliance.mdc` |
 | Earnest / forms | Checklist PDF forms (e.g. earnest money) via forms library — not Plaid transfer automation. | `Server/app/models/documents/checklist_form.py`, `Server/app/services/documents/forms_service.py` |
 | Plaid | Client env supports `plaidClientId`; no transaction `IntegrationTask` flow. | `Client/packages/config/env.test.ts` |
@@ -30,4 +30,6 @@ Loans, earnest money, and partner services should complete checklist steps via p
 
 ## Naming
 
-Docs and templates may still say `home_concierge`; product partner is **Move Concierge**. Prefer Move Concierge in user-facing copy; keys can stay until a coordinated rename.
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [rev-share-partners.md](../../client/features/rev-share-partners.md).
+
+Closing step 13 keeps generic copy *Schedule move-in concierge*; integration keys are `partner_placements` (no hardcoded partner slug in templates).

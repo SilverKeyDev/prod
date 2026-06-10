@@ -1,6 +1,8 @@
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import delete
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
@@ -33,7 +35,10 @@ class OAuthState(db.Model):
 
     def is_expired(self) -> bool:
         """Check if state has expired"""
-        return datetime.now(timezone.utc) > self.expires_at
+        expires_at = self.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        return datetime.now(timezone.utc) > expires_at
 
     @classmethod
     def cleanup_expired(cls, older_than_hours: int = 1):
@@ -46,9 +51,10 @@ class OAuthState(db.Model):
             Number of records deleted
         """
         cutoff = datetime.now(timezone.utc) - timedelta(hours=older_than_hours)
-        deleted = cls.query.filter((cls.expires_at < cutoff) | (cls.used.is_(True))).delete(
-            synchronize_session=False
+        result = db.session.execute(
+            delete(cls).where((cls.expires_at < cutoff) | (cls.used.is_(True)))
         )
+        deleted = result.rowcount
         db.session.commit()
         return deleted
 

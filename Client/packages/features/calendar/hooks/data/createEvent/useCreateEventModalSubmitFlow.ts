@@ -1,9 +1,12 @@
 import { useCallback } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import {
+  buildEventRequestMessage,
+  buildEventRequestPayloadFromCreateFormState,
+} from "packages/features/messaging";
+import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 
-import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { CreateEventModalAddWithoutSchedulePayload } from "@/features/calendar/types/createEventModal";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
@@ -12,14 +15,6 @@ import {
   explicitEventTypeForCalendarKind,
 } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { runCreateEventModalSubmit } from "@/features/calendar/utils/createEventModal/createEventModalSubmit";
-import type {
-  ViewingRouteEndMode,
-  ViewingRouteEndpoint,
-  ViewingTourAnchor,
-  ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
-import { buildEventRequestPayloadFromCreateFormState } from "@/features/messaging/utils/buildEventRequestPayloadFromCreateFormState";
-import { buildEventRequestMessage } from "@/features/messaging/utils/eventRequestPayload";
 
 import type { CalendarEventRequestModalIntegration } from "./useCreateEventModal.types";
 
@@ -36,12 +31,6 @@ export function useCreateEventModalSubmitFlow(params: {
   startTime: string;
   endTime: string;
   isAllDay: boolean;
-  isPropertyViewing: boolean;
-  viewingStops: ViewingStop[];
-  viewingStartSelection: ViewingTourStartSelection;
-  viewingTourAnchors: ViewingTourAnchor[];
-  viewingEndMode: ViewingRouteEndMode;
-  viewingEndFixed: ViewingRouteEndpoint | null;
   isAgent: boolean;
   selectedClientId: string | null;
   mode: "create" | "edit";
@@ -62,83 +51,41 @@ export function useCreateEventModalSubmitFlow(params: {
   setIsSavingUnscheduled: (v: boolean) => void;
   clampTimedEndToStartLocalDay: boolean;
 }) {
-  const {
-    isCalendarEventRequestFlow,
-    calendarEventRequest,
-    eventTitle,
-    eventDescription,
-    eventLocation,
-    startDate,
-    endDate,
-    startTime,
-    endTime,
-    isAllDay,
-    isPropertyViewing,
-    viewingStops,
-    viewingStartSelection,
-    viewingTourAnchors,
-    viewingEndMode,
-    viewingEndFixed,
-    isAgent,
-    selectedClientId,
-    mode,
-    eventKindId,
-    selectedCalendarId,
-    defaultCalendarId,
-    existingEvent,
-    onAddWithoutSchedule,
-    createEvent,
-    updateEvent,
-    onEventCreated,
-    onClose,
-    enqueueToast,
-    addGoogleMeet,
-    setIsSendingCalendarRequest,
-    setIsSavingUnscheduled,
-    clampTimedEndToStartLocalDay,
-  } = params;
-
-  const explicitEventType = explicitEventTypeForCalendarKind(eventKindId);
+  const explicitEventType = explicitEventTypeForCalendarKind(params.eventKindId);
 
   const handleSubmit = useCallback(async () => {
-    if (isCalendarEventRequestFlow && calendarEventRequest) {
-      setIsSendingCalendarRequest(true);
+    if (params.isCalendarEventRequestFlow && params.calendarEventRequest) {
+      params.setIsSendingCalendarRequest(true);
       try {
         const built = buildEventRequestPayloadFromCreateFormState({
-          eventTitle,
-          eventDescription,
-          eventLocation,
-          startDate,
-          endDate,
-          startTime,
-          endTime,
-          isAllDay,
-          isPropertyViewing,
-          viewingStops,
-          viewingStartSelection,
-          viewingTourAnchors,
-          viewingEndMode,
-          viewingEndFixed,
+          eventTitle: params.eventTitle,
+          eventDescription: params.eventDescription,
+          eventLocation: params.eventLocation,
+          startDate: params.startDate,
+          endDate: params.endDate,
+          startTime: params.startTime,
+          endTime: params.endTime,
+          isAllDay: params.isAllDay,
         });
         if ("error" in built) {
-          enqueueToast({ type: "error", message: built.error });
+          params.enqueueToast({ type: "error", message: built.error });
           return;
         }
         const message = buildEventRequestMessage(built.payload);
         const { conversations, sendMessageDirect, sendCalendarEventMessage, onSuccess } =
-          calendarEventRequest;
+          params.calendarEventRequest;
 
         let conversationId: string | null = null;
-        if (isAgent) {
-          if (!selectedClientId) {
+        if (params.isAgent) {
+          if (!params.selectedClientId) {
             return;
           }
-          const conv = conversations.find((c) => c.client_id === selectedClientId);
+          const conv = conversations.find((c) => c.client_id === params.selectedClientId);
           conversationId = conv?.id ?? "new";
         } else {
           const clientConv = conversations[0];
           if (!clientConv) {
-            enqueueToast({
+            params.enqueueToast({
               type: "error",
               message: "No conversation found. Open messaging first.",
             });
@@ -148,7 +95,9 @@ export function useCreateEventModalSubmitFlow(params: {
         }
 
         const clientIdToPass =
-          isAgent && conversationId === "new" ? (selectedClientId ?? undefined) : undefined;
+          params.isAgent && conversationId === "new"
+            ? (params.selectedClientId ?? undefined)
+            : undefined;
 
         if (sendCalendarEventMessage) {
           await sendCalendarEventMessage(message, {
@@ -159,81 +108,41 @@ export function useCreateEventModalSubmitFlow(params: {
           await sendMessageDirect(conversationId, message, clientIdToPass);
         }
         onSuccess?.();
-        onClose();
+        params.onClose();
       } catch (error) {
-        log.error(LOG_CATEGORIES.CALENDAR, "Error sending calendar event request", error);
+        log.error("CALENDAR", "Error sending calendar event request", error);
       } finally {
-        setIsSendingCalendarRequest(false);
+        params.setIsSendingCalendarRequest(false);
       }
       return;
     }
 
     await runCreateEventModalSubmit({
-      mode,
-      eventTitle,
+      mode: params.mode,
+      eventTitle: params.eventTitle,
       explicitEventType,
-      eventDescription,
-      eventLocation,
-      startDate,
-      endDate,
-      startTime,
-      endTime,
-      isAllDay,
-      selectedCalendarId,
-      defaultCalendarId,
-      selectedClientId,
-      isPropertyViewing,
-      viewingStops,
-      viewingStartSelection,
-      viewingTourAnchors,
-      viewingEndMode,
-      viewingEndFixed,
-      existingEvent,
-      onAddWithoutSchedule,
-      createEvent,
-      updateEvent,
-      onEventCreated,
-      onClose,
-      setIsSavingUnscheduled,
-      enqueueToast,
-      addGoogleMeet,
-      clampTimedEndToStartLocalDay: clampTimedEndToStartLocalDay || undefined,
+      eventDescription: params.eventDescription,
+      eventLocation: params.eventLocation,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      startTime: params.startTime,
+      endTime: params.endTime,
+      isAllDay: params.isAllDay,
+      selectedCalendarId: params.selectedCalendarId,
+      defaultCalendarId: params.defaultCalendarId,
+      selectedClientId: params.selectedClientId,
+      existingEvent: params.existingEvent,
+      onAddWithoutSchedule: params.onAddWithoutSchedule,
+      createEvent: params.createEvent,
+      updateEvent: params.updateEvent,
+      onEventCreated: params.onEventCreated,
+      onClose: params.onClose,
+      setIsSavingUnscheduled: params.setIsSavingUnscheduled,
+      enqueueToast: params.enqueueToast,
+      addGoogleMeet: params.addGoogleMeet,
+      clampTimedEndToStartLocalDay: params.clampTimedEndToStartLocalDay || undefined,
     });
-  }, [
-    isCalendarEventRequestFlow,
-    calendarEventRequest,
-    eventTitle,
-    eventDescription,
-    eventLocation,
-    startDate,
-    endDate,
-    startTime,
-    endTime,
-    isAllDay,
-    isPropertyViewing,
-    viewingStops,
-    viewingStartSelection,
-    viewingTourAnchors,
-    viewingEndMode,
-    viewingEndFixed,
-    isAgent,
-    selectedClientId,
-    mode,
-    explicitEventType,
-    selectedCalendarId,
-    defaultCalendarId,
-    existingEvent,
-    onAddWithoutSchedule,
-    createEvent,
-    updateEvent,
-    onEventCreated,
-    onClose,
-    enqueueToast,
-    addGoogleMeet,
-    setIsSendingCalendarRequest,
-    setIsSavingUnscheduled,
-    clampTimedEndToStartLocalDay,
-  ]);
+  }, [explicitEventType, params]);
 
   return { handleSubmit };
 }

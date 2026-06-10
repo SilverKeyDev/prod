@@ -4,7 +4,7 @@
       "enabled": true
     },
     "linear": {
-      "enabled": false
+      "enabled": true
     },
     "slack": {
       "enabled": false
@@ -13,7 +13,7 @@
       "enabled": false
     },
     "posthog": {
-      "enabled": false
+      "enabled": true
     }
   }
 }

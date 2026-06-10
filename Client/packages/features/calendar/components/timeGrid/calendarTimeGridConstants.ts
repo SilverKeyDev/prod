@@ -7,6 +7,17 @@ export function calTimeGridTemplateColumns(dayCount: number): string {
 }
 
 export const CAL_TIME_GRID_HOURS = 24;
+
+/**
+ * Default week scrollport shows 8am–6pm (typical working hours). The full 24h grid stays
+ * scrollable for early/late events; opening at midnight or 1am wasted vertical space and
+ * hid the hours agents actually schedule in.
+ */
+export const CAL_TIME_GRID_DEFAULT_VISIBLE_START_HOUR = 8;
+/** Exclusive end hour for the default scrollport (18 = 6pm). */
+export const CAL_TIME_GRID_DEFAULT_VISIBLE_END_HOUR = 18;
+export const CAL_TIME_GRID_DEFAULT_VISIBLE_HOUR_SPAN =
+  CAL_TIME_GRID_DEFAULT_VISIBLE_END_HOUR - CAL_TIME_GRID_DEFAULT_VISIBLE_START_HOUR;
 export const CAL_TIME_GRID_ALL_DAY_ROW_HEIGHT = 22;
 export const CAL_TIME_GRID_ALL_DAY_MAX_VISIBLE = 4;
 export const CAL_TIME_GRID_EVENT_MIN_HEIGHT_FOR_TIME = 24;

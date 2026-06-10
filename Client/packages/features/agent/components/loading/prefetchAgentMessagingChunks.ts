@@ -1,6 +1,5 @@
 import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
-import { LOG_CATEGORIES } from "packages/logger";
-import { traceDynamicImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { traceDynamicImport } from "packages/utils/core/perf/shellRouteLoadTiming";
 
 import { loadAgentMessagingUIModule } from "@/features/agent/components/workspace/agentMessagingEntryLoad";
 
@@ -18,7 +17,7 @@ export type AgentMessagingPrefetchBranch = "all" | "agent" | "client";
 export function prefetchAgentMessagingFeatureChunks(
   branch: AgentMessagingPrefetchBranch = "all"
 ): void {
-  const cat = LOG_CATEGORIES.MESSAGES;
+  const cat = "MESSAGES";
   traceDynamicImport(cat, "prefetch:UnifiedMessagesList", loadUnifiedMessagesListModule());
   if (branch === "all" || branch === "client") {
     traceDynamicImport(cat, "prefetch:ClientMessaging", loadClientMessagingModule());

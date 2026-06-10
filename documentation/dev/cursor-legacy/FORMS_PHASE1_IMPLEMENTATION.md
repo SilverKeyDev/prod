@@ -189,7 +189,7 @@ curl -H "Authorization: Bearer <agent_token>" \
 - ✅ Modified: `Client/packages/features/documents/index.ts`
 
 ### Documentation
-- ✅ Created: `.cursor/FORMS_PHASE1_IMPLEMENTATION.md` (this file)
+- ✅ Created: [FORMS_PHASE1_IMPLEMENTATION.md](./FORMS_PHASE1_IMPLEMENTATION.md) (this file; archived under `documentation/dev/cursor-legacy/`)
 
 ---
 

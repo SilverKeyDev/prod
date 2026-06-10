@@ -4,11 +4,10 @@
 export {
   type ChecklistType,
   getMyTransaction,
-  getTaskChecklist,
   getTaskChecklistForSubject,
-  getTaskChecklistProgressSummary,
   getTaskChecklistProgressSummaryForSubject,
   getTransactionAddress,
+  resolveMyTransactionId,
   saveTransactionAddress,
   type TaskChecklistApiResponse,
   type TaskChecklistItem,
@@ -17,7 +16,7 @@ export {
   type TaskChecklistResponse,
   type Transaction,
   type TransactionAddressData,
-  updateTaskChecklist,
+  tryResolveMyTransactionId,
   updateTaskChecklistForSubject,
 } from "./api/checklists";
 export { default as ChooseAreasSection } from "./components/integrations/areas/ChooseAreasSection";

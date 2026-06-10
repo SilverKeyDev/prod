@@ -2,8 +2,8 @@ import React, { useMemo, useState } from "react";
 
 import ClientList from "packages/features/agent/components/clientList/ClientList";
 import { useNavigation } from "packages/navigation";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
-import { buildClientHubPath } from "packages/utils/dashboard";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import { buildClientHubPath } from "packages/utils/product/dashboard";
 
 import { useAgentClients } from "@/features/agent/hooks/data/clients/useAgentClients";
 import { useAgentDashboardMockData } from "@/features/agent/hooks/data/clients/useAgentDashboardMockData";

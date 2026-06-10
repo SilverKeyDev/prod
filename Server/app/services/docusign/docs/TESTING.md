@@ -23,9 +23,10 @@ This guide provides comprehensive testing procedures for the DocuSign integratio
 
 **Prerequisites**:
 ```bash
-# Install dependencies
+# Install dependencies (bootstrap-venv.sh pre-installs CPU torch on Linux)
 cd Server
-pip install -r requirements/runtime.txt
+bash scripts/bootstrap-venv.sh
+source .venv/bin/activate
 
 # Set environment variables
 cp .env.example .env

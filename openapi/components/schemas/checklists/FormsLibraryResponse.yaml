@@ -1,0 +1,9 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      categories:
+        type: array
+        items:
+          $ref: './FormsLibraryCategory.yaml'
+        nullable: true

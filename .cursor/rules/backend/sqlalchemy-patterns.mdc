@@ -9,240 +9,232 @@ alwaysApply: false
 
 ## Overview
 
-This document defines SQLAlchemy modeling, querying, and relationship conventions for the SilverKey backend. Follow these patterns to maintain consistency and avoid common pitfalls.
+SQLAlchemy 2.0 conventions for the SilverKey backend: typed ORM models under `Server/app/models/`, API serialization via `Server/app/dtos/`.
+
+## Forbidden in `app/models/`
+
+- **`db.Column`** — use `Mapped[T] = mapped_column(...)`
+- **`backref=`** — use `back_populates` with typed `Mapped` / `DynamicMapped` on both sides
+- **`to_dict()`** on ORM classes — use `app/dtos/*` (see `app/dtos/README.md`)
+
+CI blocks `db.Column` and `backref=` via `Server/scripts/lint/lint_sqlalchemy_legacy_models.py`.
+
+## Forbidden query APIs (`app/`, `tests/`, `scripts/`)
+
+- **`Model.query.*`** and **`db.session.query(...)`** — use `select()` + `db.session.scalar` / `scalars` / `execute`
+
+CI blocks legacy query usage via `Server/scripts/lint/lint_legacy_orm_query.py`.
 
 ## Model Definitions
 
 ### Basic Model Structure
 
 ```python
-from app import db
-from datetime import datetime
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
 from sqlalchemy import Index
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app import db
+
 
 class MyModel(db.Model):
-    """
-    Brief description of what this model represents.
+    """Brief description of what this model represents."""
+    __tablename__ = "my_models"
 
-    Relationships:
-    - user: Many-to-one with User
-    - items: One-to-many with Item
-    """
-    __tablename__ = 'my_models'
-
-    # Primary key
-    id = db.Column(db.Integer, primary_key=True)
-
-    # Foreign keys
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-
-    # Attributes
-    name = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relationships
-    user = db.relationship('User', back_populates='my_models')
-    items = db.relationship('Item', back_populates='my_model', cascade='all, delete-orphan')
-
-    # Indexes
-    __table_args__ = (
-        Index('idx_user_created', 'user_id', 'created_at'),
+    id: Mapped[str] = mapped_column(db.String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(
+        db.String(36), db.ForeignKey("users.id"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(db.String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc), nullable=False, index=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
 
-    def to_dict(self):
-        """Serialize to dictionary"""
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-        }
+    user: Mapped["User"] = relationship("User", back_populates="my_models")
+    items: Mapped[list["Item"]] = relationship(
+        "Item", back_populates="my_model", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (Index("idx_user_created", "user_id", "created_at"),)
+```
+
+### API serialization (DTOs)
+
+Do not add `to_dict()` on models. Build HTTP payloads from DTOs validated against OpenAPI:
+
+```python
+from app.dtos.user import UserDTO
+
+user_data = UserDTO.to_response(user, include_roles=True, presign_profile_pic=True)
 ```
 
 ## Relationships
 
 ### Bidirectional Relationships
 
-Use `back_populates` (preferred) instead of `backref` for clarity:
+Use `back_populates` with explicit types — never `backref`:
 
 ```python
-# Parent model
+from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
+
+# Parent (one-to-one)
 class User(db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    preferences = db.relationship('UserPreferences', back_populates='user', uselist=False)
-    saved_homes = db.relationship('SavedHome', back_populates='user', cascade='all, delete-orphan')
+    __tablename__ = "users"
+    id: Mapped[str] = mapped_column(db.String(36), primary_key=True)
+    user_demographics: Mapped["UserDemographics | None"] = relationship(
+        "UserDemographics", back_populates="user", uselist=False
+    )
 
-# Child model (one-to-one)
-class UserPreferences(db.Model):
-    __tablename__ = 'user_preferences'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False)
-    user = db.relationship('User', back_populates='preferences')
+# Child (one-to-one)
+class UserDemographics(db.Model):
+    __tablename__ = "user_demographics"
+    user_id: Mapped[str] = mapped_column(
+        db.String(36), db.ForeignKey("users.id"), unique=True, nullable=False
+    )
+    user: Mapped["User"] = relationship("User", back_populates="user_demographics")
 
-# Child model (one-to-many)
-class SavedHome(db.Model):
-    __tablename__ = 'saved_homes'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    user = db.relationship('User', back_populates='saved_homes')
+# Parent (one-to-many, large collection — dynamic query)
+class User(db.Model):
+    org_memberships: DynamicMapped["UserOrgMembership"] = relationship(
+        "UserOrgMembership", back_populates="user", lazy="dynamic"
+    )
 ```
 
 ### Lazy Loading Strategy
 
-- **Default (lazy='select')**: Load relationships on access (default behavior)
-- **Eager loading**: Use `lazy='joined'` or `lazy='subquery'` when you always need the relationship
-- **Dynamic queries**: Use `lazy='dynamic'` for large collections that need filtering
+- **Default (`lazy='select'`)**: Load relationships on access
+- **Eager loading**: `lazy='joined'` or query `options(joinedload(...))` when you always need the relationship
+- **Dynamic collections**: `DynamicMapped` + `lazy='dynamic'` for large sets that need filtering
 
 ```python
-# Use joined loading for small, frequently accessed relationships
-user = db.relationship('User', back_populates='preferences', lazy='joined')
-
-# Use dynamic for large collections
-comments = db.relationship('Comment', back_populates='post', lazy='dynamic')
+user_demographics: Mapped["UserDemographics | None"] = relationship(
+    "UserDemographics", back_populates="user", uselist=False, lazy="joined"
+)
+org_memberships: DynamicMapped["UserOrgMembership"] = relationship(
+    "UserOrgMembership", back_populates="user", lazy="dynamic"
+)
 ```
 
 ### Cascade Options
 
-Common cascade patterns:
-
 ```python
-# Delete children when parent is deleted
-children = db.relationship('Child', cascade='all, delete-orphan')
-
-# Do nothing on parent delete (require explicit handling)
-optional_ref = db.relationship('Related', cascade='save-update, merge')
-
-# Delete-orphan ensures children are deleted when removed from collection
-tags = db.relationship('Tag', secondary=post_tags, cascade='all, delete-orphan', single_parent=True)
+items: Mapped[list["Item"]] = relationship(
+    "Item", back_populates="parent", cascade="all, delete-orphan"
+)
+optional_ref: Mapped["Related | None"] = relationship(
+    "Related", cascade="save-update, merge"
+)
 ```
 
 ## Hybrid Properties and Computed Fields
 
-Use `@hybrid_property` for computed values that need both Python and SQL expressions:
-
 ```python
+from sqlalchemy import func
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy import select, func
+from sqlalchemy.orm import Mapped, mapped_column
 
 class User(db.Model):
-    __tablename__ = 'users'
-    first_name = db.Column(db.String(100))
-    last_name = db.Column(db.String(100))
+    __tablename__ = "users"
+    first_name: Mapped[str | None] = mapped_column(db.String(100))
+    last_name: Mapped[str | None] = mapped_column(db.String(100))
 
     @hybrid_property
-    def full_name(self):
-        """Python-level computed property"""
+    def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
 
     @full_name.expression
     def full_name(cls):
-        """SQL-level expression for queries"""
-        return func.concat(cls.first_name, ' ', cls.last_name)
-
-# Now you can query:
-# users = User.query.filter(User.full_name == 'John Doe').all()
+        return func.concat(cls.first_name, " ", cls.last_name)
 ```
 
 ## Indexing Strategy
 
 ### When to Add Indexes
 
-1. **Foreign keys**: Always index foreign key columns (shown above with `index=True`)
-2. **Frequent WHERE clauses**: Index columns used in filtering
-3. **Sorting**: Index columns used in ORDER BY
-4. **Composite indexes**: For multi-column queries
+1. **Foreign keys**: Index FK columns (`index=True` on `mapped_column`)
+2. **Frequent WHERE clauses**: Columns used in filtering
+3. **Sorting**: Columns used in ORDER BY
+4. **Composite indexes**: Multi-column query patterns
 
 ```python
 __table_args__ = (
-    # Composite index for common query pattern
-    Index('idx_user_status_created', 'user_id', 'status', 'created_at'),
-
-    # Partial index (PostgreSQL)
-    Index('idx_active_users', 'user_id', postgresql_where=db.text("status = 'active'")),
+    Index("idx_user_status_created", "user_id", "status", "created_at"),
+    Index("idx_active_users", "user_id", postgresql_where=db.text("status = 'active'")),
 )
 ```
-
-### Index Guidelines
-
-- Don't over-index (each index has insert/update cost)
-- Monitor query patterns and add indexes based on actual usage
-- Use EXPLAIN ANALYZE to verify index effectiveness
 
 ## Query Patterns
 
 ### Avoiding N+1 Queries
 
 **Bad** (N+1 problem):
+
 ```python
-users = User.query.all()
+from sqlalchemy import func, select
+from sqlalchemy.orm import joinedload
+
+from app import db
+from app.models import PropertyCache, User
+
+users = db.session.scalars(select(User)).all()
 for user in users:
-    print(user.preferences.budget_max)  # Triggers separate query for each user
+    print(user.user_demographics.age_range)  # separate query per user
 ```
 
 **Good** (eager loading):
-```python
-from sqlalchemy.orm import joinedload
 
-users = User.query.options(joinedload(User.preferences)).all()
-for user in users:
-    print(user.preferences.budget_max)  # No additional queries
+```python
+users = db.session.scalars(
+    select(User).options(joinedload(User.user_demographics))
+).all()
 ```
 
 ### Efficient Filtering
 
 ```python
-# Use indexed columns
-results = Property.query.filter(Property.status == 'active').all()
-
-# Combine filters efficiently
-results = Property.query.filter(
-    Property.price >= min_price,
-    Property.price <= max_price,
-    Property.bedrooms >= min_beds
+results = db.session.scalars(
+    select(PropertyCache).where(PropertyCache.listing_status == "active")
 ).all()
 
-# Use IN for multiple values
-user_ids = [1, 2, 3]
-users = User.query.filter(User.id.in_(user_ids)).all()
+results = db.session.scalars(
+    select(PropertyCache).where(
+        PropertyCache.price >= min_price,
+        PropertyCache.price <= max_price,
+    )
+).all()
+
+users = db.session.scalars(select(User).where(User.id.in_(user_ids))).all()
 ```
 
 ### Counting Efficiently
 
 ```python
-# Bad: loads all records
-count = len(User.query.all())
+count = db.session.scalar(select(func.count()).select_from(User))
 
-# Good: count at database level
-count = User.query.count()
-
-# Even better: use func.count() for complex queries
-from sqlalchemy import func
-count = db.session.query(func.count(User.id)).filter(User.status == 'active').scalar()
+count = db.session.scalar(
+    select(func.count()).select_from(User).where(User.is_active.is_(True))
+)
 ```
 
 ## Session Management
 
-### Session Scope
+See `backend-patterns.mdc` for session/transaction patterns:
 
-See `backend-patterns.mdc` for session/transaction patterns. Key points:
-
-- Use `from app import db` for the session
-- Commit after successful operations: `db.session.commit()`
-- Rollback on errors: `db.session.rollback()`
-- Use `db_transaction` context manager for atomic operations
-
-### Detached Objects
+- `from app import db`
+- `db.session.commit()` / `rollback()`
+- `db_transaction` context manager for atomic work
 
 ```python
-# Refresh after commit if you need updated values
 db.session.commit()
 db.session.refresh(obj)
-
-# Merge detached objects back into session
 obj = db.session.merge(detached_obj)
 ```
 
@@ -251,32 +243,36 @@ obj = db.session.merge(detached_obj)
 ### Database-Level Constraints
 
 ```python
+from sqlalchemy import CheckConstraint
+from sqlalchemy.orm import Mapped, mapped_column
+
 class User(db.Model):
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    age = db.Column(db.Integer, db.CheckConstraint('age >= 18', name='check_age'))
+    email: Mapped[str] = mapped_column(db.String(255), unique=True, nullable=False)
+    __table_args__ = (CheckConstraint("age >= 18", name="check_age"),)
 ```
 
 ### Application-Level Validation
 
-```python
-def validate_before_commit(self):
-    """Call before db.session.commit()"""
-    if not self.email or '@' not in self.email:
-        raise ValueError("Invalid email address")
-    if self.age < 18:
-        raise ValueError("User must be 18 or older")
-```
+Validate in services or DTO builders before commit — not in ad hoc `to_dict()`.
+
+## Type checking (optional)
+
+- **CI:** Pyright import resolution only (`typeCheckingMode = "off"` in `Server/pyproject.toml`).
+- **Manual:** `cd Server && mypy app/` — gradual; not a merge gate.
+- Prefer typed `Mapped` / `DynamicMapped` on models over enabling strict mypy on the whole tree.
 
 ## Common Pitfalls
 
-1. **Forgetting to commit**: Changes aren't persisted without `db.session.commit()`
-2. **N+1 queries**: Use `joinedload()` or `subqueryload()` for relationships
-3. **Large result sets**: Use pagination (`.limit()` and `.offset()`) or `yield_per()` for large queries
-4. **Stale data**: Remember to `db.session.refresh()` after commits if you need updated values
-5. **Cascade confusion**: Understand cascade options to avoid accidental deletions or orphans
+1. **Forgetting to commit**: Changes are not persisted without `db.session.commit()`
+2. **N+1 queries**: Use `joinedload()` / `subqueryload()` for relationships
+3. **Large result sets**: Pagination (`.limit()` / `.offset()`) or `yield_per()`
+4. **Stale data**: `db.session.refresh()` after commit when needed
+5. **Reintroducing legacy patterns**: `db.Column`, `backref=`, model `to_dict()` — blocked in `app/models/`
 
 ## Cross-Reference
 
-- **Transaction patterns**: See `.cursor/rules/backend/backend-patterns.mdc` for `db_transaction`, `safe_db_commit`
-- **Database constraints**: See `.cursor/rules/backend/database.mdc` for migration restrictions (no schema changes)
-- **Model definitions**: See `Server/app/models/` for existing model examples
+- **Architecture:** `Server/ARCHITECTURE.md` (data layer, DTOs)
+- **DTO layer:** `Server/app/dtos/README.md`
+- **Transaction patterns:** `.cursor/rules/backend/backend-patterns.mdc`
+- **Migrations:** `.cursor/rules/backend/database.mdc` (no schema changes in normal workflow)
+- **Examples:** `Server/app/models/`

@@ -396,6 +396,195 @@ export {{
 """
 
 
+OPENAPI_LOGGER_DIR = ROOT / "openapi/components/schemas/shared/logger"
+
+OPENAPI_HEADER = (
+    "# AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY.\n"
+    "# Modify scripts/log_contracts/categories.yaml, then run: make log-contracts\n"
+)
+
+
+def _yaml_bool_prop(key: str, indent: int = 2) -> str:
+    pad = " " * indent
+    return f"{pad}{key}:\n{pad}  type: boolean\n"
+
+
+def _all_config_keys(categories: list[CategoryDef]) -> list[str]:
+    return [cat.config_key for cat in categories]
+
+
+def generate_openapi_client_api_subcategory_yaml(categories: list[CategoryDef]) -> str:
+    api_cat = next(c for c in categories if c.name == "API")
+    required = [key for _, key in api_cat.subcategories]
+    props = "".join(_yaml_bool_prop(key, 2) for key in required)
+    req_block = "\n".join(f"  - {key}" for key in required)
+    return f"""{OPENAPI_HEADER}type: object
+required:
+{req_block}
+properties:
+{props}"""
+
+
+def generate_openapi_client_api_subcategory_patch_yaml(categories: list[CategoryDef]) -> str:
+    api_cat = next(c for c in categories if c.name == "API")
+    props = "".join(_yaml_bool_prop(key, 2) for _, key in api_cat.subcategories)
+    return f"""{OPENAPI_HEADER}type: object
+description: Partial API subcategory toggles for admin logger config updates.
+properties:
+{props}"""
+
+
+def generate_openapi_client_logger_config_yaml(
+    categories: list[CategoryDef], *, patch: bool
+) -> str:
+    keys = _all_config_keys(categories)
+    props_lines: list[str] = []
+    for cat in categories:
+        key = cat.config_key
+        if cat.name == "API":
+            if patch:
+                props_lines.append(
+                    "  api:\n"
+                    "    oneOf:\n"
+                    "      - type: boolean\n"
+                    "      - $ref: './ClientApiSubcategoryConfigPatch.yaml'\n"
+                )
+            else:
+                props_lines.append(
+                    "  api:\n"
+                    "    oneOf:\n"
+                    "      - type: boolean\n"
+                    "      - $ref: './ClientApiSubcategoryConfig.yaml'\n"
+                )
+        else:
+            props_lines.append(_yaml_bool_prop(key, 2).rstrip() + "\n")
+    props_lines.append(
+        "  logLevel:\n"
+        "    type: string\n"
+        "    enum: [DEBUG, INFO, WARN, ERROR]\n"
+    )
+    props = "".join(props_lines)
+
+    if patch:
+        return f"""{OPENAPI_HEADER}type: object
+description: >
+  Partial frontend logger config for admin updates. All fields optional; server deep-merges
+  into stored deployment overrides.
+additionalProperties: false
+properties:
+{props}"""
+
+    required = "\n".join(f"  - {key}" for key in keys + ["logLevel"])
+    return f"""{OPENAPI_HEADER}type: object
+description: >
+  Resolved frontend logger category toggles with nested API subcategories plus logLevel.
+additionalProperties: false
+required:
+{required}
+properties:
+{props}"""
+
+
+def generate_openapi_server_logger_config_yaml(
+    categories: list[CategoryDef], *, patch: bool
+) -> str:
+    keys = _all_config_keys(categories)
+    props = "".join(_yaml_bool_prop(key, 2) for key in keys)
+    props += (
+        "  logLevel:\n"
+        "    type: string\n"
+        "    enum: [DEBUG, INFO, WARN, ERROR]\n"
+    )
+
+    if patch:
+        return f"""{OPENAPI_HEADER}type: object
+description: >
+  Partial server logger config for admin updates. All fields optional; server deep-merges
+  into stored deployment overrides.
+additionalProperties: false
+properties:
+{props}"""
+
+    required = "\n".join(f"  - {key}" for key in keys + ["logLevel"])
+    return f"""{OPENAPI_HEADER}type: object
+description: >
+  Resolved server logger category toggles plus logLevel.
+additionalProperties: false
+required:
+{required}
+properties:
+{props}"""
+
+
+def generate_openapi_deployment_logger_config_updates_yaml() -> str:
+    return f"""{OPENAPI_HEADER}type: object
+properties:
+  client:
+    $ref: './ClientLoggerConfigPatch.yaml'
+  server:
+    $ref: './ServerLoggerConfigPatch.yaml'
+"""
+
+
+def generate_admin_ui_meta_ts(
+    always_enabled: list[str], categories: list[CategoryDef]
+) -> str:
+    always_set = set(always_enabled)
+    core_names = ("POLLING", "PAGES", "HOOKS", "AUTH", "HTTP")
+    core_keys = [c.config_key for c in categories if c.name in core_names]
+    always_keys = [c.config_key for c in categories if c.name in always_set]
+    feature_keys = [
+        c.config_key
+        for c in categories
+        if c.name not in always_set
+        and c.name != "API"
+        and c.name not in core_names
+    ]
+
+    def fmt_keys(keys: list[str]) -> str:
+        return ",\n  ".join(f'"{k}"' for k in keys)
+
+    key_to_path = ",\n  ".join(f'  {c.config_key}: "{c.name}"' for c in categories)
+    api_cat = next(c for c in categories if c.name == "API")
+    api_sub_paths = ",\n  ".join(
+        f'  {key}: "API.{name}"' for name, key in api_cat.subcategories
+    )
+
+    return f"""{HEADER_TS}
+/** Admin Logging UI groups derived from categories.yaml (config key → log path label). */
+export const LOGGER_CONFIG_KEY_TO_LOG_PATH: Record<string, string> = {{
+{key_to_path}
+}};
+
+export const ADMIN_LOGGER_UI_GROUPS = {{
+  core: {{
+    title: "Core",
+    keys: [
+  {fmt_keys(core_keys)},
+    ] as const,
+  }},
+  features: {{
+    title: "Features",
+    keys: [
+  {fmt_keys(feature_keys)},
+    ] as const,
+  }},
+  alwaysEnabled: {{
+    title: "Always on",
+    keys: [
+  {fmt_keys(always_keys)},
+    ] as const,
+  }},
+}} as const;
+
+export type AdminLoggerUiGroupKey = keyof typeof ADMIN_LOGGER_UI_GROUPS;
+
+export const API_SUBCATEGORY_CONFIG_KEY_TO_LOG_PATH: Record<string, string> = {{
+{api_sub_paths}
+}};
+"""
+
+
 def generate_categories_shim_py() -> str:
     return f'''{HEADER_PY}
 from .categories_generated import (  # noqa: F401
@@ -444,6 +633,40 @@ def main() -> int:
     write(
         ROOT / "Server/logger/config/allowed_logger_config_keys_generated.py",
         generate_allowed_keys_py(categories),
+    )
+    write(
+        ROOT / "Client/packages/logger/config/adminLoggerUiMeta.generated.ts",
+        generate_admin_ui_meta_ts(always_enabled, categories),
+    )
+
+    openapi_dir = OPENAPI_LOGGER_DIR
+    write(
+        openapi_dir / "ClientApiSubcategoryConfig.yaml",
+        generate_openapi_client_api_subcategory_yaml(categories),
+    )
+    write(
+        openapi_dir / "ClientApiSubcategoryConfigPatch.yaml",
+        generate_openapi_client_api_subcategory_patch_yaml(categories),
+    )
+    write(
+        openapi_dir / "ClientLoggerConfig.yaml",
+        generate_openapi_client_logger_config_yaml(categories, patch=False),
+    )
+    write(
+        openapi_dir / "ClientLoggerConfigPatch.yaml",
+        generate_openapi_client_logger_config_yaml(categories, patch=True),
+    )
+    write(
+        openapi_dir / "ServerLoggerConfig.yaml",
+        generate_openapi_server_logger_config_yaml(categories, patch=False),
+    )
+    write(
+        openapi_dir / "ServerLoggerConfigPatch.yaml",
+        generate_openapi_server_logger_config_yaml(categories, patch=True),
+    )
+    write(
+        openapi_dir / "DeploymentLoggerConfigUpdates.yaml",
+        generate_openapi_deployment_logger_config_updates_yaml(),
     )
 
     print("Done.")

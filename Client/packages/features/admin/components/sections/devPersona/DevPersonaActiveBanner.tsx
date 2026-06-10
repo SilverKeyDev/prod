@@ -5,9 +5,9 @@ import { ADMIN_BASE_PATH, ADMIN_ROUTE_SEGMENTS } from "packages/features/admin/u
 import { useNavigation } from "packages/navigation";
 import { useAuthStore, useDevAppPersonaStore } from "packages/store";
 import { BodyText, Button } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import { deriveDevAppPersonaFromProfile } from "packages/utils/admin/deriveDevAppPersonaFromProfile";
-import { workspaceSwitcherLabelKey } from "packages/utils/workspace/workspaceNavConfig";
+import { Box } from "packages/ui/components/structure/primitives";
+import { deriveDevAppPersonaFromProfile } from "packages/utils/growth/admin/deriveDevAppPersonaFromProfile";
+import { workspaceSwitcherLabelKey } from "packages/utils/product/workspace/workspaceNavConfig";
 
 export function DevPersonaActiveBanner() {
   const { t } = useLocalization();
@@ -19,7 +19,7 @@ export function DevPersonaActiveBanner() {
     const persona = deriveDevAppPersonaFromProfile(
       user
         ? {
-            is_agent: Boolean(user.is_agent),
+            roles: user.roles ?? [],
             roles: user.roles,
             brokerage_org_ids: user.brokerage_org_ids,
           }

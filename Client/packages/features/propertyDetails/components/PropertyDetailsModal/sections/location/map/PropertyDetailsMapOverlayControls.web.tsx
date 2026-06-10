@@ -2,7 +2,7 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import { Button } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import type { PropertyDetailsMapOverlayControlsProps } from "./PropertyDetailsMapOverlayControls.types";
 

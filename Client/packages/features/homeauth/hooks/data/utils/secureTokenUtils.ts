@@ -3,7 +3,7 @@
  * With HTTP-only cookies, these only log metadata; tokens are not stored client-side.
  */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { asError, getWindow } from "packages/utils";
 
 /** Web-only: hook for secure access token (e.g. from HTTP-only cookie bridge). */
@@ -41,7 +41,7 @@ export function isTokenExpiringSoon(token: string | null, bufferMinutes: number 
     const bufferMs = bufferMinutes * 60 * 1000;
     return expiresIn < bufferMs;
   } catch (error) {
-    log.warn(LOG_CATEGORIES.AUTH, "Failed to decode token for expiry check", {
+    log.warn("AUTH", "Failed to decode token for expiry check", {
       error: asError(error).message,
     });
     return true;
@@ -58,25 +58,21 @@ export const secureTokenUtils = {
     const refreshTokenSize = tokens.refresh_token?.length ?? 0;
     const idTokenSize = tokens.id_token?.length ?? 0;
     const totalSize = accessTokenSize + refreshTokenSize + idTokenSize;
-    log.security(
-      LOG_CATEGORIES.AUTH,
-      "Token metadata logged (tokens NOT stored - using HTTP-only cookies)",
-      {
-        hasAccessToken: !!tokens.access_token,
-        hasRefreshToken: !!tokens.refresh_token,
-        hasIdToken: !!tokens.id_token,
-        accessTokenSize,
-        refreshTokenSize,
-        idTokenSize,
-        totalSize,
-        storageMethod: "http_only_cookies",
-        note: "Tokens are in HTTP-only cookies, not accessible to JS",
-      }
-    );
+    log.security("AUTH", "Token metadata logged (tokens NOT stored - using HTTP-only cookies)", {
+      hasAccessToken: !!tokens.access_token,
+      hasRefreshToken: !!tokens.refresh_token,
+      hasIdToken: !!tokens.id_token,
+      accessTokenSize,
+      refreshTokenSize,
+      idTokenSize,
+      totalSize,
+      storageMethod: "http_only_cookies",
+      note: "Tokens are in HTTP-only cookies, not accessible to JS",
+    });
   },
 
   clearAllTokens: () => {
-    log.security(LOG_CATEGORIES.AUTH, "Token clearing delegated to server", {
+    log.security("AUTH", "Token clearing delegated to server", {
       note: "HTTP-only cookies can only be cleared by server",
     });
   },

@@ -2,8 +2,7 @@ type: object
 description: |
   DocuSign-backed agreement between an agent and buyer, including envelope metadata,
   participant list, optional revisions/history, and denormalized names for list views.
-  `docusign_envelope_id` is the primary correlation key with DocuSign; `envelope_id`
-  is legacy and may duplicate or diverge on older rows.
+  `docusign_envelope_id` is the primary correlation key with DocuSign.
 required:
   - id
   - agent_id
@@ -34,10 +33,6 @@ properties:
     type: string
     nullable: true
     description: Free-text summary or internal notes shown on agreement detail.
-  envelope_id:
-    type: string
-    nullable: true
-    description: "Legacy field"
   docusign_envelope_id:
     type: string
     nullable: true
@@ -116,7 +111,6 @@ example:
   status: "sent"
   property_address: "742 Evergreen Terrace, Springfield, IL 62704"
   description: "Standard BRA for spring 2026 search."
-  envelope_id: null
   docusign_envelope_id: "abc123de-4567-89ab-cdef-0123456789ab"
   docusign_status: "sent"
   created_at: "2026-03-01T12:00:00.000Z"

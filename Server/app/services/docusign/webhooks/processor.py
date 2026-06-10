@@ -8,10 +8,12 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
+from sqlalchemy import select
+
 from app import db
 from app.models import Agreement, AgreementEvent, DocusignConnectEvent
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from .processor_helpers import (
     build_event_description,
@@ -20,8 +22,6 @@ from .processor_helpers import (
     map_event_type,
 )
 from .processor_participants import update_participants
-
-logger = get_logger()
 
 
 class WebhookProcessor:
@@ -37,29 +37,27 @@ class WebhookProcessor:
         """
         try:
             # Load event
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Loading webhook event for processing",
                 {"event_id": event_id},
             )
 
             event = get_model(DocusignConnectEvent, event_id)
             if not event:
-                logger.error(
-                    LOG_CATEGORIES["ERRORS"], "Webhook event not found", {"event_id": event_id}
-                )
+                log.error("ERRORS", "Webhook event not found", {"event_id": event_id})
                 return
 
             if event.processed:
-                logger.debug(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                log.debug(
+                    "DOCUSIGN",
                     "Webhook event already processed",
                     {"event_id": event_id, "envelope_id": event.envelope_id},
                 )
                 return
 
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "Processing webhook event",
                 {
                     "event_id": event_id,
@@ -70,8 +68,8 @@ class WebhookProcessor:
             )
 
             # Parse payload
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Parsing webhook payload",
                 {"event_id": event_id, "payload_size": len(event.payload)},
             )
@@ -79,8 +77,8 @@ class WebhookProcessor:
             try:
                 payload = json.loads(event.payload)
             except json.JSONDecodeError as e:
-                logger.error(
-                    LOG_CATEGORIES["ERRORS"],
+                log.error(
+                    "ERRORS",
                     "Failed to parse webhook payload",
                     {"event_id": event_id, "error": str(e)},
                 )
@@ -89,17 +87,19 @@ class WebhookProcessor:
                 return
 
             # Find agreement by envelope ID
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Looking up agreement by envelope ID",
                 {"event_id": event_id, "envelope_id": event.envelope_id},
             )
 
-            agreement = Agreement.query.filter_by(docusign_envelope_id=event.envelope_id).first()
+            agreement = db.session.scalar(
+                select(Agreement).where(Agreement.docusign_envelope_id == event.envelope_id)
+            )
 
             if not agreement:
-                logger.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                log.warn(
+                    "DOCUSIGN",
                     "Agreement not found for envelope",
                     {"event_id": event_id, "envelope_id": event.envelope_id},
                 )
@@ -108,8 +108,8 @@ class WebhookProcessor:
                 return
 
             # Process based on event type
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Processing event for agreement",
                 {
                     "event_id": event_id,
@@ -127,8 +127,8 @@ class WebhookProcessor:
 
             db.session.commit()
 
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "Webhook event processed successfully",
                 {
                     "event_id": event_id,
@@ -147,15 +147,15 @@ class WebhookProcessor:
                 if fresh is not None and str(fresh.status) == "completed":
                     sync_checklist_for_completed_agreement(fresh)
             except Exception as sync_exc:
-                logger.error(
-                    LOG_CATEGORIES["ERRORS"],
+                log.error(
+                    "ERRORS",
                     "checklist_sync_after_webhook_commit_failed",
                     sync_exc,
                 )
 
         except Exception as e:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 "Webhook processing failed",
                 {"event_id": event_id, "error": str(e)},
             )
@@ -167,8 +167,8 @@ class WebhookProcessor:
                     event.processing_error = str(e)
                     db.session.commit()
             except Exception as db_exc:
-                logger.error(
-                    LOG_CATEGORIES["ERRORS"],
+                log.error(
+                    "ERRORS",
                     "Failed to update event error",
                     {"event_id": event_id, "error": str(db_exc)},
                 )
@@ -217,8 +217,8 @@ class WebhookProcessor:
     def _process_event(agreement: Agreement, payload: dict[str, Any], event_type: str):
         """Process specific event type"""
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Processing envelope status update",
             {
                 "agreement_id": agreement.id,
@@ -237,8 +237,8 @@ class WebhookProcessor:
         new_docusign_status = envelope_data.get("status")
 
         if new_docusign_status:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Updating agreement status",
                 {
                     "agreement_id": agreement.id,
@@ -263,8 +263,8 @@ class WebhookProcessor:
                 agreement.status = status_mapping[new_docusign_status]
 
                 if old_status != agreement.status:
-                    logger.info(
-                        LOG_CATEGORIES["DOCUSIGN"],
+                    log.info(
+                        "DOCUSIGN",
                         "Agreement status changed",
                         {
                             "agreement_id": agreement.id,
@@ -281,8 +281,8 @@ class WebhookProcessor:
                     envelope_data["sentDateTime"].replace("Z", "+00:00")
                 )
             except (ValueError, TypeError) as e:
-                logger.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                log.warn(
+                    "DOCUSIGN",
                     "Failed to parse envelope sentDateTime",
                     {
                         "agreement_id": agreement.id,
@@ -297,8 +297,8 @@ class WebhookProcessor:
                     envelope_data["completedDateTime"].replace("Z", "+00:00")
                 )
             except (ValueError, TypeError) as e:
-                logger.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                log.warn(
+                    "DOCUSIGN",
                     "Failed to parse envelope completedDateTime",
                     {
                         "agreement_id": agreement.id,
@@ -313,8 +313,8 @@ class WebhookProcessor:
                     envelope_data["voidedDateTime"].replace("Z", "+00:00")
                 )
             except (ValueError, TypeError) as e:
-                logger.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                log.warn(
+                    "DOCUSIGN",
                     "Failed to parse envelope voidedDateTime",
                     {
                         "agreement_id": agreement.id,
@@ -330,8 +330,8 @@ class WebhookProcessor:
             and not recipients.get("carbonCopies")
             and "recipient" in event_type
         ):
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Connect payload had no signer/CC blocks for a recipient event",
                 {
                     "agreement_id": agreement.id,
@@ -359,8 +359,8 @@ class WebhookProcessor:
 
         # If completed, enqueue document fetch task
         if agreement.status == "completed" and not agreement.signed_document_path:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Agreement completed - enqueueing document fetch",
                 {"agreement_id": agreement.id},
             )

@@ -1,5 +1,5 @@
 import type { AuthResponse } from "packages/features/homeauth/types";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { apiGet } from "packages/services/http/apiMethods";
 import type { ApiRequestOptions } from "packages/services/http/apiRequest";
 import { HttpError } from "packages/services/http/client";
@@ -8,7 +8,7 @@ import {
   postRefreshTokenWithRetry,
 } from "packages/services/http/client/auth/refreshTokenRetry";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import type { UserProfile } from "@/features/homeauth/types";
 
@@ -88,13 +88,13 @@ export async function verifySessionHandler(): Promise<SessionVerifyResult> {
 
     if (response.success && response.data) {
       const user = response.data as UserProfile;
-      log.info(LOG_CATEGORIES.AUTH, "🔍 Session verification successful", {
+      log.info("AUTH", "🔍 Session verification successful", {
         requestId,
         userId: user.id,
         userEmail: user.email
           ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
           : "missing",
-        isAgent: user.is_agent || false,
+        isAgent: (user.roles ?? []).includes("agent"),
         cookieCountBefore: allCookies.length,
         cookieCountAfter: cookiesAfter.length,
         newCookies: newCookies.length > 0 ? newCookies : undefined,
@@ -103,7 +103,7 @@ export async function verifySessionHandler(): Promise<SessionVerifyResult> {
       return { success: true, user };
     }
 
-    log.info(LOG_CATEGORIES.AUTH, "🔍 No valid session found", {
+    log.info("AUTH", "🔍 No valid session found", {
       requestId,
       responseSuccess: response.success,
       hasData: !!response.data,
@@ -132,13 +132,13 @@ export async function verifySessionHandler(): Promise<SessionVerifyResult> {
       currentUrl: win?.location.href,
     };
     if (isTransientHttpError(error)) {
-      log.warn(LOG_CATEGORIES.AUTH, "Session verification transient failure", logPayload);
+      log.warn("AUTH", "Session verification transient failure", logPayload);
       return { success: false, transient: true };
     }
     if (hadNoSession) {
-      log.debug(LOG_CATEGORIES.AUTH, "🔍 Session verification: no session (expected)", logPayload);
+      log.debug("AUTH", "🔍 Session verification: no session (expected)", logPayload);
     } else {
-      log.error(LOG_CATEGORIES.AUTH, "🔍 Session verification failed with error", logPayload);
+      log.error("AUTH", "🔍 Session verification failed with error", logPayload);
     }
     return { success: false };
   }
@@ -155,14 +155,14 @@ export async function refreshTokenHandler(): Promise<SessionVerifyResult> {
     : 0;
 
   try {
-    log.info(LOG_CATEGORIES.AUTH, "Starting token refresh", { requestId });
+    log.info("AUTH", "Starting token refresh", { requestId });
 
     const attempt = await postRefreshTokenWithRetry(3, requestId);
 
     if (attempt.success && attempt.body) {
       const response = mapRefreshBodyToAuthResponse(attempt.body);
       if (response.success) {
-        log.info(LOG_CATEGORIES.AUTH, "Token refresh successful", {
+        log.info("AUTH", "Token refresh successful", {
           requestId,
           hasUser: !!response.user,
         });
@@ -171,12 +171,12 @@ export async function refreshTokenHandler(): Promise<SessionVerifyResult> {
     }
 
     if (isTransientRefreshFailure(attempt)) {
-      log.warn(LOG_CATEGORIES.AUTH, "Token refresh transient failure", { requestId });
+      log.warn("AUTH", "Token refresh transient failure", { requestId });
       return { success: false, transient: true };
     }
 
     const mapped = mapRefreshBodyToAuthResponse(attempt.body);
-    log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed", {
+    log.warn("AUTH", "Token refresh failed", {
       requestId,
       error: mapped.error,
       message: mapped.message,
@@ -204,13 +204,13 @@ export async function refreshTokenHandler(): Promise<SessionVerifyResult> {
       errorType: err?.constructor?.name || "Unknown",
     };
     if (isTransientHttpError(error)) {
-      log.warn(LOG_CATEGORIES.AUTH, "Token refresh transient exception", logPayload);
+      log.warn("AUTH", "Token refresh transient exception", logPayload);
       return { success: false, transient: true };
     }
     if (expectedLoggedOutFailure) {
-      log.debug(LOG_CATEGORIES.AUTH, "Token refresh: no session (expected)", logPayload);
+      log.debug("AUTH", "Token refresh: no session (expected)", logPayload);
     } else {
-      log.error(LOG_CATEGORIES.AUTH, "Token refresh request failed with exception", logPayload);
+      log.error("AUTH", "Token refresh request failed with exception", logPayload);
       reportSecurityEvent({
         type: "authentication_failure",
         severity: "high",

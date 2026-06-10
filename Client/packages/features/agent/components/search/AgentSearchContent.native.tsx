@@ -14,9 +14,9 @@ import { useLocalization } from "packages/contexts";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAuthStore, useUIStore } from "packages/store";
 import { Button } from "packages/ui";
-import { Loading } from "packages/ui/components/asset/loading/Loading";
-import { Box, Text, TouchableBox } from "packages/ui/components/primitives";
-import Input from "packages/ui/components/primitives/input/Input";
+import { Loading } from "packages/ui/components/media/asset/loading/Loading";
+import { Box, Text, TouchableBox } from "packages/ui/components/structure/primitives";
+import Input from "packages/ui/components/structure/primitives/input/Input";
 
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 import { useAgentConnectionDisplayStatus } from "@/features/agent/hooks/data/connections/useAgentConnectionDisplayStatus";

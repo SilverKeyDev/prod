@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from .beds_baths import apply_beds_baths_filter
 from .home_age import apply_home_age_filter
@@ -12,7 +12,7 @@ from .must_haves import apply_must_have_filter
 from .price_type import apply_price_filter, apply_property_type_filter
 from .sqft_dom_lot import apply_dom_filter, apply_lot_size_filter, apply_sqft_filter
 
-_POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
+_POLY = "POLYGON_SEARCH"
 
 # Retained as a compatibility constant for callers/tests that imported the old threshold.
 PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT = 100

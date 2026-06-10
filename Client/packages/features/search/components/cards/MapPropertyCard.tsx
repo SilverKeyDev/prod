@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo } from "react";
 
 import { getEnv } from "packages/config/env";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
+import { log } from "packages/logger";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { PERFECT_CRITERIA_MATCH_CARD_CLASSNAME } from "@/components/cards/property/perfectMatchCardGlowClasses";
 import { SearchResultListingCard } from "@/features/search/components/list/SearchResultListingCard.web";
@@ -64,7 +64,7 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
   let normalizedScore = property.calculatedScore;
   if (normalizedScore !== undefined && normalizedScore !== null) {
     if (typeof normalizedScore !== "number" || isNaN(normalizedScore)) {
-      log.warn(LOG_CATEGORIES.MAP_RENDERING, "🗺️ [MAP PROPERTY CARD] Invalid score type detected", {
+      log.warn("MAP_RENDERING", "🗺️ [MAP PROPERTY CARD] Invalid score type detected", {
         environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
         propertyId: property.id,
         originalScore: property.calculatedScore,
@@ -72,15 +72,11 @@ const MapPropertyCard: React.FC<MapPropertyCardProps> = ({
       });
       normalizedScore = undefined;
     } else if (normalizedScore < 0 || normalizedScore > 100) {
-      log.warn(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "🗺️ [MAP PROPERTY CARD] Score out of valid range (0-100)",
-        {
-          environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
-          propertyId: property.id,
-          score: normalizedScore,
-        }
-      );
+      log.warn("MAP_RENDERING", "🗺️ [MAP PROPERTY CARD] Score out of valid range (0-100)", {
+        environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
+        propertyId: property.id,
+        score: normalizedScore,
+      });
       normalizedScore = Math.max(0, Math.min(100, normalizedScore));
     } else if (normalizedScore === 0) {
       normalizedScore = undefined;

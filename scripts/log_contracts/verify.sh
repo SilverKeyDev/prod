@@ -15,11 +15,19 @@ GENERATED_PATHS=(
   Client/packages/logger/core/categories.ts
   Client/packages/logger/config/loggerContract.generated.ts
   Client/packages/logger/config/adminLoggerKeys.generated.ts
+  Client/packages/logger/config/adminLoggerUiMeta.generated.ts
   Server/logger/core/categories_generated.py
   Server/logger/core/categories.py
   Server/logger/config/logger_contract_generated.py
   Server/logger/config/config_model.py
   Server/logger/config/allowed_logger_config_keys_generated.py
+  openapi/components/schemas/shared/logger/ClientApiSubcategoryConfig.yaml
+  openapi/components/schemas/shared/logger/ClientApiSubcategoryConfigPatch.yaml
+  openapi/components/schemas/shared/logger/ClientLoggerConfig.yaml
+  openapi/components/schemas/shared/logger/ClientLoggerConfigPatch.yaml
+  openapi/components/schemas/shared/logger/ServerLoggerConfig.yaml
+  openapi/components/schemas/shared/logger/ServerLoggerConfigPatch.yaml
+  openapi/components/schemas/shared/logger/DeploymentLoggerConfigUpdates.yaml
 )
 
 echo "==> Check generated files match committed copies"

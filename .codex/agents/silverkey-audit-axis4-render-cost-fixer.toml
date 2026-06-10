@@ -1,3 +1,8 @@
 name = "silverkey-audit-axis4-render-cost-fixer"
-description = "Fix audit axis 4 issues - unnecessary re-renders, unstable keys, context/value churn, list performance; evidence-driven memoization."
-developer_instructions = "@../../.cursor/agents/silverkey-audit-axis4-render-cost-fixer.md"
+description = """Fix audit axis 4 issues — unnecessary re-renders, unstable keys, context/value churn, list performance; evidence-driven memoization."""
+developer_instructions = """
+Before work: read and follow `.cursor/agents/silverkey-audit-axis4-render-cost-fixer.md` (canonical persona).
+Apply always-on rules under `.cursor/rules/shared/` and scoped `.mdc` rules when paths match.
+Engineering gates: `AGENTS.md` — `make check-client`, `make lint`, `make test-be` as appropriate.
+Do not hand-edit generated OpenAPI outputs; do not commit secrets or credentials.
+"""

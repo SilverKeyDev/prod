@@ -17,7 +17,7 @@ In a monorepo where **web** and **mobile** share `packages/`, a few failure mode
 
 **The fix:**
 
-- **`packages/schemas`** and **`packages/config/api`** (and any shared API contracts) must be **strictly additive** where possible. You can **add** new optional fields; you **cannot** rename or delete fields without a backward-compatibility strategy.
+- **`packages/schemas`** and **`packages/api`** (and OpenAPI-generated types) must be **strictly additive** where possible. You can **add** new optional fields; you **cannot** rename or delete fields without a backward-compatibility strategy.
 - If you must rename or remove a field, the **backend** must support **both** the old and new contract for a long support window (e.g. 6+ months), and shared client code must tolerate both until the minimum supported app version no longer needs the old field. Document the deprecation and support window.
 - Version APIs explicitly (e.g. `/api/v1/`, `/api/v2/`) when making breaking changes; old clients keep calling v1 until they’re phased out.
 

@@ -1,3 +1,4 @@
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 
@@ -43,25 +44,6 @@ class DocusignTemplate(db.Model):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "docusign_template_id": self.docusign_template_id,
-            # Alias for OpenAPI `DocusignTemplate.template_id` (DocuSign GUID string).
-            "template_id": self.docusign_template_id,
-            "name": self.name,
-            "description": self.description,
-            "template_variables": self.template_variables,
-            "category": self.category,
-            "synced_at": self.synced_at.isoformat() if self.synced_at else None,
-            "is_active": self.is_active,
-            "created_by_user_id": self.created_by_user_id,
-            "role_names_json": self.role_names_json,
-            "last_edit_synced_at": self.last_edit_synced_at.isoformat()
-            if self.last_edit_synced_at
-            else None,
-        }
 
     def __repr__(self):
         return f"<DocusignTemplate {self.name}>"

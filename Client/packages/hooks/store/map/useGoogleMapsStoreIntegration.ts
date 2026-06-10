@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
-import { useGoogleMaps } from "packages/hooks/data/property/useGoogleMaps";
-import { useGoogleMapsStore } from "packages/store";
+import { useGoogleMaps } from "packages/features/search/hooks/data/map/useGoogleMaps";
+import { useGoogleMapsStore } from "packages/features/search/store";
 
 /**
  * Hook that integrates useGoogleMaps with useGoogleMapsStore

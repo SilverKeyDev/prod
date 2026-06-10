@@ -1,3 +1,4 @@
+# pyright: reportUndefinedVariable=false
 from ..extensions import db
 from .agent import AgentConnectionRequest, AgentConnections, ChatHistory, Todo
 from .brokerage import BrokerageOrg, UserOrgMembership
@@ -14,6 +15,12 @@ from .documents import (
     DocusignConnectEvent,
     DocusignOAuthToken,
     DocusignTemplate,
+)
+from .messaging import (
+    BrokeragePartnerAdoption,
+    PartnerOperator,
+    WorkspaceConversation,
+    WorkspaceConversationParticipant,
 )
 from .partners import BuyerStepView, Partner, RevShareLink, RevShareLinkClick
 from .property import (
@@ -42,6 +49,7 @@ from .user import (
     OAuthState,
     User,
     UserAgentProfile,
+    UserCalendarConnection,
     UserClientSettings,
     UserCommunicationPrefs,
     UserDemographics,
@@ -62,6 +70,10 @@ def init_db():
 __all__ = [
     "BrokerageOrg",
     "UserOrgMembership",
+    "BrokeragePartnerAdoption",
+    "PartnerOperator",
+    "WorkspaceConversation",
+    "WorkspaceConversationParticipant",
     "Partner",
     "RevShareLink",
     "RevShareLinkClick",
@@ -107,6 +119,7 @@ __all__ = [
     "CalendarEvent",
     "CalendarShare",
     "GoogleOAuthToken",
+    "UserCalendarConnection",
     "OAuthState",
     "DocusignConnectEvent",
     "DocusignOAuthToken",

@@ -5,10 +5,9 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { secureLogger } from "packages/services/security/secureLogger";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
-import { hasProperty, isObject } from "packages/utils/typeGuards";
+import { log } from "packages/logger";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
+import { hasProperty, isObject } from "packages/utils/core/typeGuards";
 
 import { useLocalStorage } from "./useLocalStorage";
 
@@ -117,23 +116,19 @@ export const useStepUpAuth = (): UseStepUpAuthReturn => {
       }
       const existing = pendingPromiseByActionRef.current[action];
       if (existing) {
-        log.info(LOG_CATEGORIES.ROUTING, "[STEP_UP_AUTH] returning existing in-flight promise", {
+        log.info("ROUTING", "[STEP_UP_AUTH] returning existing in-flight promise", {
           action,
         });
         return existing;
       }
       const promise = new Promise<boolean>((resolve) => {
-        secureLogger.security("STEP_UP_AUTH", "Step-up authentication requested", { action });
-        log.info(
-          LOG_CATEGORIES.ROUTING,
-          "[STEP_UP_AUTH] new step-up promise created (modal opening)",
-          {
-            action,
-          }
-        );
+        log.security("SECURITY", "Step-up authentication requested", { action });
+        log.info("ROUTING", "[STEP_UP_AUTH] new step-up promise created (modal opening)", {
+          action,
+        });
 
         if (pendingResolveRef.current) {
-          log.info(LOG_CATEGORIES.ROUTING, "[STEP_UP_AUTH] superseding prior pending step-up", {
+          log.info("ROUTING", "[STEP_UP_AUTH] superseding prior pending step-up", {
             action,
           });
           pendingResolveRef.current(false);
@@ -144,7 +139,7 @@ export const useStepUpAuth = (): UseStepUpAuthReturn => {
         setCurrentDescription(description);
         setCurrentConfig(config);
         setIsModalOpen(true);
-        log.info(LOG_CATEGORIES.ROUTING, "[STEP_UP_AUTH] modal state set to open", { action });
+        log.info("ROUTING", "[STEP_UP_AUTH] modal state set to open", { action });
       });
       pendingPromiseByActionRef.current[action] = promise;
       void promise.finally(() => {
@@ -159,14 +154,10 @@ export const useStepUpAuth = (): UseStepUpAuthReturn => {
    * Handle successful authentication
    */
   const handleSuccess = useCallback(() => {
-    log.info(
-      LOG_CATEGORIES.ROUTING,
-      "[STEP_UP_AUTH] user confirmed step-up (before cache + resolve)",
-      {
-        action: currentAction,
-      }
-    );
-    secureLogger.security("STEP_UP_AUTH", "Step-up authentication completed successfully", {
+    log.info("ROUTING", "[STEP_UP_AUTH] user confirmed step-up (before cache + resolve)", {
+      action: currentAction,
+    });
+    log.security("SECURITY", "Step-up authentication completed successfully", {
       action: currentAction,
     });
 
@@ -186,10 +177,7 @@ export const useStepUpAuth = (): UseStepUpAuthReturn => {
    * Handle authentication cancellation
    */
   const handleClose = useCallback(() => {
-    log.info(LOG_CATEGORIES.ROUTING, "[STEP_UP_AUTH] user cancelled step-up (resolving false)", {
-      action: currentAction,
-    });
-    secureLogger.info("STEP_UP_AUTH", "Step-up authentication cancelled", {
+    log.info("ROUTING", "[STEP_UP_AUTH] user cancelled step-up (resolving false)", {
       action: currentAction,
     });
 
@@ -258,7 +246,7 @@ export const checkStepUpRequired = (action: string): boolean => {
 
       return Date.now() - (authTime as number) >= DEFAULT_STEP_UP_CACHE_MS;
     } catch (error: unknown) {
-      log.warn(LOG_CATEGORIES.AUTH, "Error reading step-up auth cache", error);
+      log.warn("AUTH", "Error reading step-up auth cache", error);
       return true; // Require auth if we can't read the cache
     }
   }

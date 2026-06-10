@@ -1,0 +1,11 @@
+allOf:
+  - $ref: "../shared/core/SuccessResponse.yaml"
+  - type: object
+    required:
+      - admins
+    properties:
+      admins:
+        type: array
+        description: Users with at least one SilverKey gate role (`admin` or `super_admin`).
+        items:
+          $ref: "./AdminGateUser.yaml"

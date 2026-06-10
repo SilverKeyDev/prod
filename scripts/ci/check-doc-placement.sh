@@ -24,9 +24,11 @@ is_allowed() {
   [[ "$rel" == documentation/* ]] && return 0
   [[ "$rel" == .cursor/* ]] && return 0
   [[ "$rel" == .claude/* ]] && return 0
+  [[ "$rel" == .codex/* ]] && return 0
+  [[ "$rel" == .agents/* ]] && return 0
   case "$rel" in
     .github/pull_request_template.md) return 0 ;;
-    AGENTS.md|CLAUDE.md|ARCHITECTURE.md|setup.md|README.md) return 0 ;;
+    AGENTS.md|CLAUDE.md|CODEX.md|ARCHITECTURE.md|setup.md|README.md) return 0 ;;
     Client/ARCHITECTURE.md|Client/README.md|Client/packages/README.md) return 0 ;;
     Server/ARCHITECTURE.md|Server/README.md) return 0 ;;
     Client/packages/*/README.md) return 0 ;;

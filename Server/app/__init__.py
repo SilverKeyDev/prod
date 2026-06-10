@@ -54,10 +54,9 @@ def create_app(config=None):
     if config:
         app.config.update(config)
 
-    # Configure centralized logging for entire application
-    from .utils.security.app_logging import configure_app_logging
+    from logger import configure_flask_stdlib_logging
 
-    configure_app_logging(app)
+    configure_flask_stdlib_logging(app)
 
     # Initialize centralized logger (category-based with PII scrubbing)
     import sys
@@ -65,15 +64,15 @@ def create_app(config=None):
     server_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if server_dir not in sys.path:
         sys.path.insert(0, server_dir)
-    from logger import LOG_CATEGORIES, get_logger
+    from logger import get_logger
 
     logger = get_logger()
-    logger.info(LOG_CATEGORIES["API"], "Centralized logger initialized")
+    logger.info("API", "Centralized logger initialized")
 
     def _log_boot_phase(phase: str) -> None:
         elapsed_ms = int((time.perf_counter() - _boot_t0) * 1000)
         logger.info(
-            LOG_CATEGORIES["API"],
+            "API",
             f"gunicorn_boot_phase={phase} elapsed_ms={elapsed_ms} pid={os.getpid()}",
         )
 
@@ -93,7 +92,7 @@ def create_app(config=None):
     if not Config.SQLALCHEMY_DATABASE_URI.startswith("sqlite://"):
         pool_opts = Config.SQLALCHEMY_ENGINE_OPTIONS
         logger.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "db_pool_config "
             f"pool_size={pool_opts.get('pool_size')} "
             f"max_overflow={pool_opts.get('max_overflow')} "
@@ -121,7 +120,7 @@ def create_app(config=None):
         # Production schema is owned by Alembic; skip create_all to avoid extra DDL round-trips at boot.
         if os.getenv("FLASK_ENV") == "production":
             logger.info(
-                LOG_CATEGORIES["API"],
+                "API",
                 "Skipping db.create_all() in production (migrations own schema)",
             )
         else:
@@ -132,11 +131,9 @@ def create_app(config=None):
             from sqlalchemy.orm import configure_mappers
 
             configure_mappers()
-            logger.info(LOG_CATEGORIES["API"], "SQLAlchemy mappers configured successfully")
+            logger.info("API", "SQLAlchemy mappers configured successfully")
         except Exception as mapper_error:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"], f"SQLAlchemy mapper configuration failed: {mapper_error}"
-            )
+            logger.error("ERRORS", f"SQLAlchemy mapper configuration failed: {mapper_error}")
             raise RuntimeError(
                 f"Database model configuration error: {mapper_error}"
             ) from mapper_error
@@ -145,10 +142,10 @@ def create_app(config=None):
             from app.services.admin.deployment_logger_config import load_server_config_at_startup
 
             load_server_config_at_startup()
-            logger.info(LOG_CATEGORIES["API"], "Deployment logger config loaded from database")
+            logger.info("API", "Deployment logger config loaded from database")
         except Exception as deployment_logger_error:
             logger.warn(
-                LOG_CATEGORIES["API"],
+                "API",
                 "Deployment logger config not loaded; using codegen defaults",
                 {"error": str(deployment_logger_error)},
             )
@@ -157,7 +154,7 @@ def create_app(config=None):
 
     if is_migrate_only():
         logger.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "SILVERKEY_MIGRATE_ONLY: skipping routes, CORS, and full env validation",
         )
         _log_boot_phase("migrate_only_ready")
@@ -203,7 +200,8 @@ def create_app(config=None):
     # S3 client is initialized lazily on first use via s3_service._ensure_s3_client() (avoids boto/head_bucket at boot).
 
     # Validate environment variables at startup
-    from .utils.security.env_validator import check_api_keys
+    from app.config.env_validator import check_api_keys
+
     from .utils.validation.config_validator import validate_and_raise
 
     try:
@@ -214,14 +212,12 @@ def create_app(config=None):
             api_status = check_api_keys()
             missing_apis = [name for name, status in api_status.items() if not status]
             if missing_apis:
-                logger.warn(
-                    LOG_CATEGORIES["SECURITY"], f"Missing API keys: {', '.join(missing_apis)}"
-                )
+                logger.warn("SECURITY", f"Missing API keys: {', '.join(missing_apis)}")
     except RuntimeError:
         # Re-raise RuntimeError from config validation (critical)
         raise
     except Exception as e:
-        logger.warn(LOG_CATEGORIES["SECURITY"], f"Environment validation warning: {str(e)}")
+        logger.warn("SECURITY", f"Environment validation warning: {str(e)}")
 
     _log_boot_phase("env_validate_done")
 
@@ -230,45 +226,41 @@ def create_app(config=None):
     from .routes.agent.agent import agent_bp
     from .routes.auth.auth import auth_bp
     from .routes.auth.preferences import preferences_bp
-    from .routes.auth.search_display import search_display_bp
     from .routes.auth.user import user_bp
     from .routes.calendar.google_calendar import google_calendar_bp
     from .routes.chat.chatbot import chatbot_bp
-    from .routes.client_errors import client_errors_bp
+    from .routes.conversations import conversations_bp
     from .routes.documents.report import report_bp
     from .routes.documents.secure_upload import secure_upload_bp
     from .routes.feed import feed_bp
     from .routes.forms import forms_bp
-    from .routes.maps import maps_bp
-    from .routes.offer import offer_bp
+    from .routes.negotiation import offer_bp
     from .routes.public import public_bp
+    from .routes.research import research_bp
     from .routes.rev_share import rev_share_bp, rev_share_redirect_bp
-    from .routes.search.home_matching import home_matching_bp
-    from .routes.search.research import research_bp
+    from .routes.search.maps import maps_bp
     from .routes.search.search import search_bp
-    from .routes.tasks import tasks_bp
+    from .routes.search.search_display import search_display_bp
+    from .routes.telemetry import client_errors_bp
     from .routes.transactions import transactions_bp
-    from .routes.viewings import viewings_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(public_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(preferences_bp)
     app.register_blueprint(search_display_bp)
-    app.register_blueprint(home_matching_bp)
     app.register_blueprint(maps_bp)
     app.register_blueprint(search_bp)
     app.register_blueprint(research_bp)
     app.register_blueprint(secure_upload_bp)
     app.register_blueprint(offer_bp)
     app.register_blueprint(google_calendar_bp)
-    app.register_blueprint(viewings_bp)
     app.register_blueprint(agent_bp)
+    app.register_blueprint(conversations_bp)
     app.register_blueprint(chatbot_bp)
     app.register_blueprint(report_bp)
     app.register_blueprint(client_errors_bp)
     app.register_blueprint(feed_bp)
-    app.register_blueprint(tasks_bp)
     app.register_blueprint(transactions_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(rev_share_bp)
@@ -280,9 +272,9 @@ def create_app(config=None):
 
         app.register_blueprint(docusign_bp)
         app.register_blueprint(webhook_bp)
-        logger.info(LOG_CATEGORIES["API"], "DocuSign routes registered")
+        logger.info("API", "DocuSign routes registered")
     except ImportError as e:
-        logger.warn(LOG_CATEGORIES["API"], f"DocuSign routes not available: {e}")
+        logger.warn("API", f"DocuSign routes not available: {e}")
 
     _log_boot_phase("blueprints_registered")
 

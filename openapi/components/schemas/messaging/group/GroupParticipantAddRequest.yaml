@@ -1,0 +1,7 @@
+type: object
+description: Reserved for group chat — endpoints not implemented
+required:
+  - user_id
+properties:
+  user_id:
+    type: string

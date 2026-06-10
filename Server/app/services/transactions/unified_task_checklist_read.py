@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from sqlalchemy import delete, select
+
 from app import db
 from app.models import Transaction, TransactionTask
 from app.services.transactions.checklist_signature_completion import (
@@ -20,7 +22,7 @@ from app.services.transactions.retrieval import (
 
 
 def _buyer_id_for_transaction(transaction_id: str) -> str:
-    tx = Transaction.query.filter_by(id=str(transaction_id)).first()
+    tx = db.session.scalar(select(Transaction).where(Transaction.id == str(transaction_id)))
     if tx is None or not tx.buyer_id:
         raise ValueError(f"Transaction not found: {transaction_id}")
     return str(tx.buyer_id)
@@ -30,7 +32,11 @@ def replace_checked_ids_for_transaction(transaction_id: str, category: str, ids:
     """Replace all TransactionTask rows for transaction_id+category."""
     transaction_id = str(transaction_id)
     buyer_id = _buyer_id_for_transaction(transaction_id)
-    TransactionTask.query.filter_by(transaction_id=transaction_id, category=category).delete()
+    db.session.execute(
+        delete(TransactionTask).where(
+            TransactionTask.transaction_id == transaction_id, TransactionTask.category == category
+        )
+    )
     for i, tid in enumerate(ids):
         try:
             template_id = int(tid) if not isinstance(tid, int | float) else int(tid)
@@ -51,8 +57,11 @@ def replace_checked_ids_for_transaction(transaction_id: str, category: str, ids:
 
 
 def get_checked_ids_for_transaction(transaction_id: str, category: str) -> list[int]:
-    tasks = TransactionTask.query.filter_by(
-        transaction_id=str(transaction_id), category=category
+    tasks = db.session.scalars(
+        select(TransactionTask).where(
+            TransactionTask.transaction_id == str(transaction_id),
+            TransactionTask.category == category,
+        )
     ).all()
     ids: list[int] = []
     for t in tasks:

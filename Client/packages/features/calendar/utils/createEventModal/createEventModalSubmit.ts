@@ -1,37 +1,54 @@
-import type { ViewingItinerary } from "packages/api/viewings";
 import type { GoogleEventCreateResponse } from "packages/features/calendar/api/types";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import {
   buildCreateEventGoogleStartEnd,
   CREATE_EVENT_TIME_STEP_MINUTES,
-} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
-import { detectEventTypeFromTitle } from "packages/utils/calendar/parsing/detectEventTypeFromTitle";
+} from "packages/utils/comms/calendar/createEvent/eventFormGooglePayload";
+import { detectEventTypeFromTitle } from "packages/utils/comms/calendar/parsing/detectEventTypeFromTitle";
 
-import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { CreateEventModalAddWithoutSchedulePayload } from "@/features/calendar/types/createEventModal";
 import type {
   GoogleCalendarEventCreateBody,
   GoogleEvent,
 } from "@/features/calendar/types/googleEvent";
-import type {
-  ViewingRouteEndMode,
-  ViewingRouteEndpoint,
-  ViewingTourAnchor,
-  ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
-import {
-  buildViewingItineraryDraftFromForm,
-  primaryLocationLabelFromItinerary,
-  viewingStopsHaveAtLeastOneAddress,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 import {
-  copyTextToClipboard,
   isGoogleMeetProvisioningPending,
   pollGoogleMeetHangoutLink,
 } from "./googleMeetAfterCreate";
 import { showGoogleMeetToggleForCreate } from "./googleMeetCreateEligibility";
+
+async function finalizeGoogleMeetAfterSave(params: {
+  applyGoogleMeet: boolean;
+  calendarIdForMeet: string | undefined | null;
+  fallbackEventId?: string;
+  response: GoogleEventCreateResponse;
+  enqueueToast: RunCreateEventModalSubmitParams["enqueueToast"];
+}): Promise<void> {
+  if (!params.applyGoogleMeet || !params.calendarIdForMeet) {
+    return;
+  }
+
+  let meetLink =
+    typeof params.response.hangoutLink === "string" && params.response.hangoutLink.length > 0
+      ? params.response.hangoutLink
+      : null;
+  const eventId = params.response.id ?? params.fallbackEventId;
+  if (!meetLink && eventId && isGoogleMeetProvisioningPending(params.response)) {
+    params.enqueueToast({
+      type: "info",
+      message: "Meet link generating…",
+    });
+    meetLink = await pollGoogleMeetHangoutLink(eventId, params.calendarIdForMeet);
+  }
+  if (!meetLink) {
+    params.enqueueToast({
+      type: "error",
+      message: "Couldn't add Meet; you can add a link manually.",
+    });
+  }
+}
 
 export type RunCreateEventModalSubmitParams = {
   mode: "create" | "edit";
@@ -48,12 +65,6 @@ export type RunCreateEventModalSubmitParams = {
   selectedCalendarId: string;
   defaultCalendarId?: string | null;
   selectedClientId: string | null;
-  isPropertyViewing: boolean;
-  viewingStops: ViewingStop[];
-  viewingStartSelection: ViewingTourStartSelection;
-  viewingTourAnchors: ViewingTourAnchor[];
-  viewingEndMode: ViewingRouteEndMode;
-  viewingEndFixed: ViewingRouteEndpoint | null;
   existingEvent?: ExtendedGoogleEvent;
   onAddWithoutSchedule?: (payload: CreateEventModalAddWithoutSchedulePayload) => Promise<void>;
   createEvent: (body: GoogleCalendarEventCreateBody) => Promise<unknown>;
@@ -65,9 +76,7 @@ export type RunCreateEventModalSubmitParams = {
     type: "error" | "success" | "info" | "warning";
     message: string;
   }) => void;
-  /** Forwarded to `buildCreateEventGoogleStartEnd` for timed events (e.g. quick-create). */
   clampTimedEndToStartLocalDay?: boolean;
-  /** Create flow only: optional Google Meet on the calendar insert. */
   addGoogleMeet?: boolean;
 };
 
@@ -76,14 +85,6 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
     p.enqueueToast({
       type: "error",
       message: "Please enter a title",
-    });
-    return;
-  }
-
-  if (p.isPropertyViewing && !viewingStopsHaveAtLeastOneAddress(p.viewingStops)) {
-    p.enqueueToast({
-      type: "error",
-      message: "Add at least one property address for the viewing tour.",
     });
     return;
   }
@@ -114,18 +115,9 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
     try {
       const descTrimmed = p.eventDescription.trim();
       const locTrimmed = p.eventLocation.trim();
-      const viewingAddresses = p.isPropertyViewing
-        ? p.viewingStops.map((s) => s.address.trim()).filter(Boolean)
-        : [];
-      const viewingBlock =
-        p.isPropertyViewing && viewingAddresses.length > 0
-          ? `Stops:\n${viewingAddresses.map((a, i) => `${i + 1}. ${a}`).join("\n")}`
-          : "";
-      const parts = [
-        descTrimmed || null,
-        !locTrimmed || p.isPropertyViewing ? null : `Location: ${locTrimmed}`,
-        viewingBlock || null,
-      ].filter(Boolean);
+      const parts = [descTrimmed || null, locTrimmed ? `Location: ${locTrimmed}` : null].filter(
+        Boolean
+      );
       const descriptionForTodo = parts.length ? parts.join("\n\n") : null;
 
       await p.onAddWithoutSchedule({
@@ -137,7 +129,7 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
       p.onEventCreated?.();
       p.onClose();
     } catch (error) {
-      log.error(LOG_CATEGORIES.CALENDAR, "Error adding agenda item", error);
+      log.error("CALENDAR", "Error adding agenda item", error);
       p.enqueueToast({
         type: "error",
         message: error instanceof Error ? error.message : "Failed to add item",
@@ -187,14 +179,13 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
   try {
     const titleHint = detectEventTypeFromTitle(p.eventTitle.trim());
     const eventType = p.explicitEventType ?? titleHint;
-    const applyGoogleMeet =
-      Boolean(p.addGoogleMeet) &&
-      showGoogleMeetToggleForCreate({
-        mode: p.mode,
-        startDate: p.startDate,
-        endDate: p.endDate,
-        isAllDay: p.isAllDay,
-      });
+    const meetEligible = showGoogleMeetToggleForCreate({
+      mode: p.mode,
+      startDate: p.startDate,
+      endDate: p.endDate,
+      isAllDay: p.isAllDay,
+    });
+    const applyGoogleMeet = meetEligible && Boolean(p.addGoogleMeet);
     const eventData: GoogleCalendarEventCreateBody = {
       summary: p.eventTitle.trim(),
       description: p.eventDescription.trim() || undefined,
@@ -205,83 +196,52 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
       eventType,
     };
 
-    if (p.isPropertyViewing) {
-      const itineraryPayload = buildViewingItineraryDraftFromForm({
-        stops: p.viewingStops,
-        startSelection: p.viewingStartSelection,
-        anchors: p.viewingTourAnchors,
-        endMode: p.viewingEndMode,
-        endFixed: p.viewingEndFixed,
-      });
-      if (itineraryPayload) {
-        eventData.itinerary = itineraryPayload as ViewingItinerary;
-        const loc = primaryLocationLabelFromItinerary(itineraryPayload);
-        if (loc) {
-          eventData.location = loc;
-        }
-      }
-    }
-
     if (p.mode === "create" && p.selectedClientId) {
       eventData.target_user_id = p.selectedClientId;
     }
 
-    if (applyGoogleMeet) {
-      eventData.addGoogleMeet = true;
+    if (meetEligible) {
+      eventData.addGoogleMeet = applyGoogleMeet;
     }
 
+    const calendarIdForMeet =
+      p.mode === "edit"
+        ? (p.existingEvent?.calendarId ?? p.selectedCalendarId)
+        : calendarIdForCreate;
+
     if (p.mode === "edit" && p.existingEvent?.id && p.updateEvent) {
-      await p.updateEvent(p.existingEvent.id, eventData, p.existingEvent.calendarId);
+      const updated = (await p.updateEvent(
+        p.existingEvent.id,
+        eventData,
+        p.existingEvent.calendarId
+      )) as GoogleEventCreateResponse;
       p.enqueueToast({
         type: "success",
         message: "Event updated successfully",
       });
+
+      await finalizeGoogleMeetAfterSave({
+        applyGoogleMeet,
+        calendarIdForMeet,
+        fallbackEventId: p.existingEvent.id,
+        response: updated,
+        enqueueToast: p.enqueueToast,
+      });
     } else {
       const created = (await p.createEvent(eventData)) as GoogleEventCreateResponse;
-      const wantsMeetFlow = applyGoogleMeet && Boolean(calendarIdForCreate);
 
-      if (wantsMeetFlow) {
-        let meetLink =
-          typeof created.hangoutLink === "string" && created.hangoutLink.length > 0
-            ? created.hangoutLink
-            : null;
-        if (!meetLink && created.id && isGoogleMeetProvisioningPending(created)) {
-          p.enqueueToast({
-            type: "info",
-            message: "Meet link generating…",
-          });
-          meetLink = await pollGoogleMeetHangoutLink(created.id, calendarIdForCreate);
-        }
-        p.enqueueToast({
-          type: "success",
-          message: "Added to calendar",
-        });
-        if (meetLink) {
-          const copied = await copyTextToClipboard(meetLink);
-          if (copied) {
-            p.enqueueToast({
-              type: "info",
-              message: "Meet link copied to clipboard.",
-            });
-          }
-        } else {
-          p.enqueueToast({
-            type: "error",
-            message: "Couldn't add Meet; you can add a link manually.",
-          });
-        }
-      } else {
-        p.enqueueToast({
-          type: "success",
-          message: "Added to calendar",
-        });
-      }
+      await finalizeGoogleMeetAfterSave({
+        applyGoogleMeet,
+        calendarIdForMeet: calendarIdForCreate,
+        response: created,
+        enqueueToast: p.enqueueToast,
+      });
     }
 
     p.onEventCreated?.();
     p.onClose();
   } catch (error) {
-    log.error(LOG_CATEGORIES.CALENDAR, "Error creating event", error);
+    log.error("CALENDAR", "Error creating event", error);
     p.enqueueToast({
       type: "error",
       message: error instanceof Error ? error.message : "Failed to create event",

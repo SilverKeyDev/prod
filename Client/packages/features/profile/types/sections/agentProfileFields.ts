@@ -1,4 +1,4 @@
-import type { OnboardingData } from "@/features/profile/types/onboarding/onboarding";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 
 /** Form keys for agent-only profile sections (brokerage, licensing, service area). */
 export const AGENT_BROKERAGE_FIELD_KEYS = [

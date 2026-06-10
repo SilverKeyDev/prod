@@ -73,6 +73,24 @@ describe("applyStreamUpdate", () => {
     });
   });
 
+  it("merges neighborhood_overview from property_analysis_section", () => {
+    const { state } = apply({
+      type: "property_analysis_section",
+      data: {
+        neighborhood_overview: {
+          summary: "Walkable",
+          age_distribution: { "25-34": "20%" },
+        },
+      },
+    });
+    expect(state?.property_analysis).toMatchObject({
+      neighborhood_overview: {
+        summary: "Walkable",
+        age_distribution: { "25-34": "20%" },
+      },
+    });
+  });
+
   it("merges property_analysis and property_analysis_partial", () => {
     const partial = apply({
       type: "property_analysis_partial",

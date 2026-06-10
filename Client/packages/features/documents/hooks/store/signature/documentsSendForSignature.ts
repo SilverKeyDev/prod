@@ -4,7 +4,7 @@ import { queryKeys } from "packages/config/query/keys";
 import { docusignApi } from "packages/features/documents/api/docusign";
 import type { DocumentData } from "packages/features/documents/hooks/data/useDocumentsData";
 import type { DocusignRevisionUploadBody } from "packages/features/documents/types/docusign";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import type { SendForSignatureParams } from "@/features/documents/hooks/store/integration/documentsDataIntegrationTypes";
 
@@ -35,7 +35,7 @@ export async function sendDocumentForSignatureFlow(
     throw new Error("Agreement title is required");
   }
 
-  log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature started", {
+  log.info("DOCUSIGN", "Send for signature started", {
     documentId: document.id,
     libraryKind: document.library_kind,
     signingMethod,
@@ -50,7 +50,7 @@ export async function sendDocumentForSignatureFlow(
       if (!agreementId) {
         throw new Error("Unable to resolve agreement id");
       }
-      log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature: existing agreement path", {
+      log.info("DOCUSIGN", "Send for signature: existing agreement path", {
         agreementId,
         signingMethod,
         participantUserId: recipientUserId ?? buyerId ?? null,
@@ -65,7 +65,7 @@ export async function sendDocumentForSignatureFlow(
       void queryClient.invalidateQueries({
         queryKey: queryKeys.documents.all,
       });
-      log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature completed (existing agreement)", {
+      log.info("DOCUSIGN", "Send for signature completed (existing agreement)", {
         agreementId,
       });
       return agreementId;
@@ -89,7 +89,7 @@ export async function sendDocumentForSignatureFlow(
     }
 
     const agreementId = createAgreementResponse.agreement.id;
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature: agreement created from upload", {
+    log.info("DOCUSIGN", "Send for signature: agreement created from upload", {
       agreementId,
       buyerId: resolvedBuyerId,
     });
@@ -104,7 +104,7 @@ export async function sendDocumentForSignatureFlow(
     if (!revisionResponse.success || !revisionResponse.revision) {
       throw new Error(revisionResponse.error ?? "Failed to attach revision");
     }
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature: revision attached", {
+    log.info("DOCUSIGN", "Send for signature: revision attached", {
       agreementId,
       revisionId: revisionResponse.revision.id,
     });
@@ -120,12 +120,12 @@ export async function sendDocumentForSignatureFlow(
     void queryClient.invalidateQueries({
       queryKey: queryKeys.documents.all,
     });
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Send for signature completed (upload → agreement)", {
+    log.info("DOCUSIGN", "Send for signature completed (upload → agreement)", {
       agreementId,
     });
     return agreementId;
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.ERRORS, "Send for signature failed", {
+    log.error("ERRORS", "Send for signature failed", {
       error,
       documentId: document.id,
       libraryKind: document.library_kind,

@@ -1,10 +1,11 @@
+# pyright: reportUndefinedVariable=false
 from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, cast
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -67,30 +68,35 @@ class Agreement(db.Model):
     certificate_path: Mapped[str | None] = mapped_column(db.String(512))
 
     # Relationships
-    library_item = db.relationship(
+    library_item: Mapped["DocumentLibraryItem | None"] = relationship(
         "DocumentLibraryItem",
         back_populates="agreement",
         foreign_keys=[library_item_id],
     )
-    participants = db.relationship(
+    participants: Mapped[list["AgreementParticipant"]] = relationship(
         "AgreementParticipant",
         back_populates="agreement",
         cascade="all, delete-orphan",
         lazy="select",
     )
-    events = db.relationship(
+    events: Mapped[list["AgreementEvent"]] = relationship(
         "AgreementEvent",
         back_populates="agreement",
         cascade="all, delete-orphan",
         order_by="AgreementEvent.created_at.desc()",
         lazy="select",
     )
-    revisions = db.relationship(
+    revisions: Mapped[list["AgreementRevision"]] = relationship(
         "AgreementRevision",
         back_populates="agreement",
         foreign_keys="AgreementRevision.agreement_id",
         cascade="all, delete-orphan",
         order_by="AgreementRevision.version_number.desc()",
+        lazy="select",
+    )
+    agreement_links: Mapped[list["AgreementLink"]] = relationship(
+        "AgreementLink",
+        back_populates="agreement",
         lazy="select",
     )
 

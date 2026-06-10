@@ -1,13 +1,14 @@
 import React from "react";
 
-import Label from "packages/features/profile/components/settings/inputs/Label";
-import BudgetRangeSlider from "packages/features/profile/components/settings/inputs/sliders/BudgetRangeSlider";
 import {
   FIELD_LABELS,
   HOME_AGE_YEARS_TICK_VALUES,
   LOT_SIZE_ACRES_TICK_VALUES,
 } from "packages/features/profile/utils/public/constants";
-import { Box } from "packages/ui/components/primitives";
+import { BudgetRangeSlider, FormFieldLabel as Label } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
+
+import { LotSizeHomeAgeSliderRow } from "./layout/lotSizeHomeAgeSliderLayout";
 
 export type LotSizeHomeAgeFormSlice = {
   preferred_lot_size_min?: number;
@@ -32,6 +33,11 @@ type LotSizeAndHomeAgeSlidersProps = {
   ) => void;
   onSearchFilterOverridesPatch?: (patch: LotSizeHomeAgeSearchOverridesPatch) => void;
   className?: string;
+  /**
+   * `fragment` — each slider is a separate sibling (grid-safe).
+   * `responsive-row` — pair sliders side-by-side when wide, stacked when narrow.
+   */
+  layout?: "fragment" | "responsive-row";
 };
 
 /**
@@ -43,58 +49,76 @@ export function LotSizeAndHomeAgeSliders({
   updateFormData,
   onSearchFilterOverridesPatch,
   className = "",
+  layout = "fragment",
 }: LotSizeAndHomeAgeSlidersProps): React.ReactElement {
+  const lotSizeField = (
+    <Box className={className}>
+      <Label>{FIELD_LABELS.PREFERRED_LOT_SIZE}</Label>
+      <BudgetRangeSlider
+        tickValues={LOT_SIZE_ACRES_TICK_VALUES}
+        minValue={formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]}
+        maxValue={
+          formData.preferred_lot_size_max ??
+          LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]
+        }
+        onChange={(minVal, maxVal) => {
+          updateFormData("preferred_lot_size_min", minVal);
+          updateFormData("preferred_lot_size_max", maxVal);
+          updateFormData("preferred_lot_size", undefined);
+          onSearchFilterOverridesPatch?.({
+            preferred_lot_size_min: minVal,
+            preferred_lot_size_max: maxVal,
+          });
+        }}
+        formatValue={(v) => `${Number(v).toFixed(2)} ac`}
+        formatPrefix=""
+        minGap={0.1}
+        valueDecimals={2}
+        className="mt-2"
+      />
+    </Box>
+  );
+
+  const homeAgeField = (
+    <Box className={className}>
+      <Label>{FIELD_LABELS.PREFERRED_HOME_AGE}</Label>
+      <BudgetRangeSlider
+        tickValues={HOME_AGE_YEARS_TICK_VALUES}
+        minValue={formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]}
+        maxValue={
+          formData.preferred_home_age_max ??
+          HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]
+        }
+        onChange={(minVal, maxVal) => {
+          updateFormData("preferred_home_age_min", minVal);
+          updateFormData("preferred_home_age_max", maxVal);
+          updateFormData("preferred_home_age", undefined);
+          onSearchFilterOverridesPatch?.({
+            preferred_home_age_min: minVal,
+            preferred_home_age_max: maxVal,
+          });
+        }}
+        formatValue={(v) => `${v} years`}
+        formatPrefix=""
+        minGap={5}
+        className="mt-2"
+      />
+    </Box>
+  );
+
+  if (layout === "fragment") {
+    return (
+      <>
+        {lotSizeField}
+        {homeAgeField}
+      </>
+    );
+  }
+
   return (
-    <>
-      <Box className={className}>
-        <Label>{FIELD_LABELS.PREFERRED_LOT_SIZE}</Label>
-        <BudgetRangeSlider
-          tickValues={LOT_SIZE_ACRES_TICK_VALUES}
-          minValue={formData.preferred_lot_size_min ?? LOT_SIZE_ACRES_TICK_VALUES[0]}
-          maxValue={
-            formData.preferred_lot_size_max ??
-            LOT_SIZE_ACRES_TICK_VALUES[LOT_SIZE_ACRES_TICK_VALUES.length - 1]
-          }
-          onChange={(minVal, maxVal) => {
-            updateFormData("preferred_lot_size_min", minVal);
-            updateFormData("preferred_lot_size_max", maxVal);
-            updateFormData("preferred_lot_size", undefined);
-            onSearchFilterOverridesPatch?.({
-              preferred_lot_size_min: minVal,
-              preferred_lot_size_max: maxVal,
-            });
-          }}
-          formatValue={(v) => `${Number(v).toFixed(2)} ac`}
-          formatPrefix=""
-          minGap={0.1}
-          valueDecimals={2}
-          className="mt-2"
-        />
-      </Box>
-      <Box className={className}>
-        <Label>{FIELD_LABELS.PREFERRED_HOME_AGE}</Label>
-        <BudgetRangeSlider
-          tickValues={HOME_AGE_YEARS_TICK_VALUES}
-          minValue={formData.preferred_home_age_min ?? HOME_AGE_YEARS_TICK_VALUES[0]}
-          maxValue={
-            formData.preferred_home_age_max ??
-            HOME_AGE_YEARS_TICK_VALUES[HOME_AGE_YEARS_TICK_VALUES.length - 1]
-          }
-          onChange={(minVal, maxVal) => {
-            updateFormData("preferred_home_age_min", minVal);
-            updateFormData("preferred_home_age_max", maxVal);
-            updateFormData("preferred_home_age", undefined);
-            onSearchFilterOverridesPatch?.({
-              preferred_home_age_min: minVal,
-              preferred_home_age_max: maxVal,
-            });
-          }}
-          formatValue={(v) => `${v} years`}
-          formatPrefix=""
-          minGap={5}
-          className="mt-2"
-        />
-      </Box>
-    </>
+    <LotSizeHomeAgeSliderRow>
+      {lotSizeField}
+      {homeAgeField}
+    </LotSizeHomeAgeSliderRow>
   );
 }

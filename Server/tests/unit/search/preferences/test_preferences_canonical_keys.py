@@ -3,14 +3,15 @@
 from app.services.aggregation.preferences_aggregation import apply_canonical_housing_preference_keys
 
 
-def test_mirrors_bedrooms_bathrooms_from_min() -> None:
+def test_does_not_mirror_preferred_bathrooms_from_min() -> None:
     out: dict = {"preferred_bedrooms_min": 2, "preferred_bathrooms_min": 1}
     apply_canonical_housing_preference_keys(out)
-    assert out["preferred_bedrooms"] == 2
-    assert out["preferred_bathrooms"] == 1
+    assert "preferred_bedrooms" not in out
+    assert "preferred_bathrooms" not in out
+    assert out["preferred_bathrooms_min"] == 1
 
 
-def test_does_not_override_existing_preferred_bedrooms() -> None:
+def test_does_not_emit_preferred_bedrooms_from_min() -> None:
     out: dict = {"preferred_bedrooms": 4, "preferred_bedrooms_min": 2}
     apply_canonical_housing_preference_keys(out)
     assert out["preferred_bedrooms"] == 4

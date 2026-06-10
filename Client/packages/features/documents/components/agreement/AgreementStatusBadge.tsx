@@ -3,7 +3,7 @@ import { FileSignature, FileText } from "lucide-react";
 import type { AgreementStatus } from "packages/features/documents/types/docusign";
 import type { ContextualAgreementStatus } from "packages/features/documents/utils/docusignHelpers";
 import { getStatusColor, getStatusLabel } from "packages/features/documents/utils/docusignHelpers";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText } from "@/components/ui";
 

@@ -1,5 +1,6 @@
 """ChecklistForm model - pre-defined forms attached to checklist steps."""
 
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 
@@ -40,19 +41,6 @@ class ChecklistForm(db.Model):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        """Convert to dictionary for API responses."""
-        return {
-            "id": self.id,
-            "form_key": self.form_key,
-            "title": self.title,
-            "description": self.description,
-            "s3_template_path": self.s3_template_path,
-            "category": self.category,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
 
     def __repr__(self):
         return f"<ChecklistForm {self.form_key} - {self.title}>"

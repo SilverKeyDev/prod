@@ -1,6 +1,6 @@
 import React from "react";
 
-import BodyText from "packages/ui/components/text/BodyText";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 export type AnalysisKeyValueLineProps = {
   label: string;

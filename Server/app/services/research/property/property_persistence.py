@@ -5,13 +5,14 @@ Persists data to shared PropertyCache + per-user UserPropertyLink.
 
 from typing import Any
 
-from flask import current_app
+from sqlalchemy import select
 
 from app import db
 from app.models import PropertyCache, UserPropertyLink
 from app.services.property_cache import get_or_create_property, update_property_basic_data
 from app.utils.format.address_format import normalize_address
 from app.utils.format.currency import format_currency, resolve_price
+from logger import log
 
 
 def build_update_fields(
@@ -80,7 +81,9 @@ def find_existing_record(user_id: str, full_address: str) -> PropertyCache | Non
     except Exception:
         target_norm = full_address.strip().lower()
 
-    return PropertyCache.query.filter_by(address_normalized=target_norm).first()
+    return db.session.scalar(
+        select(PropertyCache).where(PropertyCache.address_normalized == target_norm)
+    )
 
 
 def persist_property_data(
@@ -116,7 +119,7 @@ def persist_property_data(
             full_address = data.get("streetAddress") or address or ""
 
         if not full_address:
-            current_app.logger.warning("[PROPERTY] No address found, skipping persistence")
+            log.warn("PROPERTY_DETAILS", "No address found, skipping persistence")
             return
 
         zpid = (
@@ -131,7 +134,12 @@ def persist_property_data(
         prop.raw_data = data
 
         # Ensure UserPropertyLink row
-        link = UserPropertyLink.query.filter_by(user_id=str(user_id), property_id=prop.id).first()
+        link = db.session.scalar(
+            select(UserPropertyLink).where(
+                UserPropertyLink.user_id == str(user_id),
+                UserPropertyLink.property_id == prop.id,
+            )
+        )
         if not link:
             link = UserPropertyLink(user_id=str(user_id), property_id=prop.id, current=True)
             db.session.add(link)
@@ -141,9 +149,9 @@ def persist_property_data(
         db.session.commit()
 
     except Exception as persist_err:
-        current_app.logger.error(
-            "[PROPERTY] Failed to persist property details: %s",
-            persist_err,
-            exc_info=True,
+        log.error(
+            "ERRORS",
+            "Failed to persist property details",
+            {"error": str(persist_err)},
         )
         db.session.rollback()

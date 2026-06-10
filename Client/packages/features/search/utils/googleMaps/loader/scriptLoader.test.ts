@@ -26,12 +26,12 @@ vi.mock("packages/api/maps", () => ({
   mapsApi: {},
 }));
 
-vi.mock("packages/utils/platform", () => ({
+vi.mock("packages/utils/core/platform", () => ({
   getDocument: () => null,
   getWindow: () => undefined,
 }));
 
-vi.mock("packages/utils/storage/platformStorage", () => ({
+vi.mock("packages/utils/core/storage/platformStorage", () => ({
   getSessionStorage: () => null,
 }));
 

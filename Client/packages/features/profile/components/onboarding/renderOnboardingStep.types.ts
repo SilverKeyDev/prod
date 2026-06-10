@@ -1,5 +1,6 @@
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import type { ProfileStepId } from "packages/features/profile/types/onboarding/profileStepIds";
+import type { HomePriceResult } from "packages/utils/transaction/affordability";
 
 export type RenderOnboardingStepProps = {
   stepId: ProfileStepId;
@@ -12,4 +13,10 @@ export type RenderOnboardingStepProps = {
   ) => void;
   scriptsReady?: boolean;
   loadError?: string | null;
+  homePriceLoading?: boolean;
+  homePriceError?: string | null;
+  homePriceResult?: HomePriceResult | null;
+  isAffordabilityCollapsed?: boolean;
+  setIsAffordabilityCollapsed?: (collapsed: boolean) => void;
+  resolvedZipCode?: string;
 };

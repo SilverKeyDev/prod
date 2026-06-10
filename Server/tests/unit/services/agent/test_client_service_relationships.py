@@ -8,10 +8,11 @@ from app.services.agent.client_service import (
     get_user_agent_id,
     validate_agent_client_relationship,
 )
+from app.services.auth.user_role_helpers import ensure_user_role
 
 
 def _add_agent_client(db_session, agent: User, client_u: User) -> None:
-    db_session.session.add(UserRole(user_id=str(agent.id), role="agent"))
+    ensure_user_role(str(agent.id), "agent")
     db_session.session.add(AgentConnections(agent_id=str(agent.id), client_id=str(client_u.id)))
 
 
@@ -29,6 +30,7 @@ def test_agent_may_access_client_matches_validate(db_session):
         name="Client",
     )
     db_session.session.add_all([agent, client_u])
+
     _add_agent_client(db_session, agent, client_u)
     db_session.session.commit()
 
@@ -50,6 +52,7 @@ def test_validate_agent_client_relationship_true_from_connection(db_session):
         name="Client",
     )
     db_session.session.add_all([agent, client_u])
+
     _add_agent_client(db_session, agent, client_u)
     db_session.session.commit()
 
@@ -70,6 +73,7 @@ def test_validate_agent_client_relationship_true_from_connection_only(db_session
         name="Client 2",
     )
     db_session.session.add_all([agent, client_u])
+
     _add_agent_client(db_session, agent, client_u)
     db_session.session.commit()
 
@@ -96,7 +100,8 @@ def test_validate_agent_client_relationship_false_when_unrelated(db_session):
         name="Other",
     )
     db_session.session.add_all([agent, client_u, other])
-    db_session.session.add(UserRole(user_id="rel-a3", role="agent"))
+
+    ensure_user_role("rel-a3", "agent")
     db_session.session.add(AgentConnections(agent_id="rel-a3", client_id="rel-c-other"))
     db_session.session.commit()
 
@@ -123,7 +128,8 @@ def test_get_agent_client_ids_from_connections(db_session):
         name="Two",
     )
     db_session.session.add_all([agent, c1, c2])
-    db_session.session.add(UserRole(user_id="gac-a", role="agent"))
+
+    ensure_user_role("gac-a", "agent")
     db_session.session.add(AgentConnections(agent_id="gac-a", client_id="gac-1"))
     db_session.session.add(AgentConnections(agent_id="gac-a", client_id="gac-2"))
     db_session.session.commit()
@@ -152,6 +158,7 @@ def test_get_connected_agent_ids_for_client_from_connections(db_session):
         name="Client",
     )
     db_session.session.add_all([agent_a, agent_b, client_u])
+
     db_session.session.add(UserRole(user_id="gca-a", role="agent"))
     db_session.session.add(UserRole(user_id="gca-b", role="agent"))
     db_session.session.add(AgentConnections(agent_id="gca-a", client_id="gca-c"))
@@ -176,6 +183,7 @@ def test_get_user_agent_id_from_connection(db_session):
         name="Client",
     )
     db_session.session.add_all([agent, client_u])
+
     _add_agent_client(db_session, agent, client_u)
     db_session.session.commit()
 
@@ -196,6 +204,7 @@ def test_get_user_agent_id_falls_back_to_connection(db_session):
         name="Client 2",
     )
     db_session.session.add_all([agent, client_u])
+
     _add_agent_client(db_session, agent, client_u)
     db_session.session.commit()
 

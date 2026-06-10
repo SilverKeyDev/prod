@@ -1,6 +1,6 @@
 // Shared types and interfaces for onboarding and personalization
 
-import type { BuyerPreferenceExtensions } from "@/features/profile/types/sections/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 
 import type { ProfileStepId } from "./profileStepIds";
 
@@ -10,9 +10,17 @@ export type OnboardingData = {
 
   // Demographics
   /** Draft-only: first-screen role selection; stripped from preferences API payload. */
-  primary_onboarding_role?: "buyer" | "seller" | "agent" | "integration_partner" | "investor";
+  primary_onboarding_role?:
+    | "buyer"
+    | "seller"
+    | "renter"
+    | "agent"
+    | "brokerage"
+    | "integration_partner"
+    | "investor";
+  /** Shell-only onboarding scaffold; stripped from preferences API payload. */
+  workspace_shell_test_input?: string;
   name?: string;
-  is_agent?: string;
   pets?: string;
   age?: number;
   why_joining_silverkey?: string[];
@@ -72,11 +80,31 @@ export type OnboardingData = {
 
   // Communication
   communication_frequency?: string;
+  preferred_contact_method?: string;
   information_detail_level?: string;
   has_buyers_agent?: string; // 'yes' | 'no'
   looking_for_buyers_agent?: boolean;
 
-  // Agent profile (only when is_agent is yes/am_agent)
+  // Buyer About Me (SIL-182) — flat form keys; persisted via buyer_about_me ext + comm prefs
+  buyer_about_moving_with?: string[];
+  buyer_about_kids_ages?: string;
+  buyer_about_has_pets?: boolean;
+  buyer_about_pet_types?: string[];
+  buyer_about_move_motivation?: string;
+
+  // Buyer Financing (SIL-182) — flat form keys; persisted via price_financing ext + user_financials
+  lender_status?: string;
+  lender_name?: string;
+  want_lender_connection?: boolean;
+  loan_type?: string;
+  down_payment_band?: string;
+  first_home?: string;
+  max_monthly_payment?: number;
+  rent_or_own?: string;
+  need_to_sell_first?: string;
+  move_timeline?: string;
+
+  // Agent profile (only when user has agent role / primary_onboarding_role is agent)
   agent_physical_mailing_address?: string;
   agent_licensed_states?: string[];
   agent_license_types?: string[];

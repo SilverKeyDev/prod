@@ -3,17 +3,22 @@
 import json
 from datetime import date, timedelta
 
+from sqlalchemy import select
+
 from app import db
+from app.dtos.documents import ChecklistFormDTO
 from app.models import AgreementLink, ChecklistForm
-from app.services.agent.conversation_list import get_conversation
-from app.services.agent.conversation_messages import send_message as send_conversation_message
-from app.services.agent.conversation_service import create_conversation
+from app.services.agent.conversation import (
+    create_conversation,
+    get_conversation,
+)
+from app.services.agent.conversation import (
+    send_message as send_conversation_message,
+)
 from app.services.transactions.retrieval import get_checklist_definition
-from app.utils.security.app_logging import get_logger
+from logger import log
 
 from .s3_service import s3_service
-
-logger = get_logger()
 
 SHARED_ATTACHMENT_PREFIX = "__SK_SHARE__"
 _MAX_OPTIONAL_MESSAGE_LEN = 4000
@@ -53,7 +58,9 @@ class FormsService:
         step = next((item for item in items if item.get("id") == item_id), None)
 
         if not step:
-            logger.warning(f"Step not found: {section}.{item_id}")
+            log.warn(
+                "DOCUMENTS", "Checklist step not found", {"section": section, "item_id": item_id}
+            )
             return []
 
         # Get suggested_form_ids from step
@@ -62,36 +69,47 @@ class FormsService:
             return []
 
         # Query ChecklistForm records
-        forms = ChecklistForm.query.filter(ChecklistForm.form_key.in_(suggested_form_ids)).all()
+        forms = db.session.scalars(
+            select(ChecklistForm).where(ChecklistForm.form_key.in_(suggested_form_ids))
+        ).all()
 
         if not forms:
-            logger.info(
-                f"No forms found in database for step {section}.{item_id} "
-                f"(suggested: {suggested_form_ids})"
+            log.info(
+                "DOCUMENTS",
+                "No forms found in database for checklist step",
+                {
+                    "section": section,
+                    "item_id": item_id,
+                    "suggested_form_ids": suggested_form_ids,
+                },
             )
             return []
 
         # Build response with presigned URLs
         result = []
         for form in forms:
-            form_dict = form.to_dict()
-
-            # Generate presigned download URL
             download_url = s3_service.generate_presigned_url(form.s3_template_path)
-            if download_url:
-                form_dict["download_url"] = download_url
-            else:
-                logger.warning(f"Failed to generate presigned URL for form {form.form_key}")
-                form_dict["download_url"] = None
+            if not download_url:
+                log.warn(
+                    "DOCUMENTS",
+                    "Failed to generate presigned URL for checklist form",
+                    {"form_key": form.form_key},
+                )
 
-            # Calculate deadline if transaction start date provided
+            deadline = None
             if transaction_start_date:
-                deadline = FormsService.calculate_deadline(section, item_id, transaction_start_date)
-                form_dict["deadline"] = deadline.isoformat() if deadline else None
-            else:
-                form_dict["deadline"] = None
+                deadline_date = FormsService.calculate_deadline(
+                    section, item_id, transaction_start_date
+                )
+                deadline = deadline_date.isoformat() if deadline_date else None
 
-            result.append(form_dict)
+            result.append(
+                ChecklistFormDTO.to_with_download(
+                    form,
+                    download_url=download_url,
+                    deadline=deadline,
+                ).model_dump(mode="json")
+            )
 
         return result
 
@@ -155,12 +173,14 @@ class FormsService:
             participant_user_id=str(buyer_user_id),
         )
         linked_item_id = f"{section}.{item_id}"
-        existing = AgreementLink.query.filter_by(
-            transaction_id=str(tx_id),
-            agreement_id=agreement.id,
-            linked_item_type="checklist_item",
-            linked_item_id=linked_item_id,
-        ).first()
+        existing = db.session.scalar(
+            select(AgreementLink).where(
+                AgreementLink.transaction_id == str(tx_id),
+                AgreementLink.agreement_id == agreement.id,
+                AgreementLink.linked_item_type == "checklist_item",
+                AgreementLink.linked_item_id == linked_item_id,
+            )
+        )
         if not existing:
             db.session.add(
                 AgreementLink(

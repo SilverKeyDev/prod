@@ -1,3 +1,5 @@
+> **Status:** partial
+> **Last verified:** 2026-06-04
 # Transaction design options
 
 Tradeoff documents and recommended v1 paths. See [10-implementation-order.md](../10-implementation-order.md) for build sequence.

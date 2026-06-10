@@ -1,7 +1,7 @@
 import type { GoogleEvent } from "packages/api";
 import { googleCalendarApi } from "packages/features/calendar/api";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { log } from "packages/logger";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 /**
  * Build the queryFn for a single calendar's events list.
@@ -12,7 +12,7 @@ export function buildEventsListQueryFn(
   timeMax: string | undefined
 ): () => Promise<GoogleEvent[]> {
   return async () => {
-    log.debug(LOG_CATEGORIES.CALENDAR, "Fetching Google Calendar events (not in cache)", {
+    log.debug("CALENDAR", "Fetching Google Calendar events (not in cache)", {
       calendarId,
     });
     const response = await googleCalendarApi.listEvents({
@@ -27,7 +27,7 @@ export function buildEventsListQueryFn(
       ...event,
       calendarId: event.calendarId || calendarId,
     }));
-    log.debug(LOG_CATEGORIES.CALENDAR, "Fetched Google Calendar events", {
+    log.debug("CALENDAR", "Fetched Google Calendar events", {
       calendarId,
       eventCount: events.length,
     });

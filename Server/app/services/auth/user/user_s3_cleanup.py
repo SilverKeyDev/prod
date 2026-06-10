@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from sqlalchemy import select
+
+from app import db
 from app.models import Document, User
 from app.services.auth.user.delete_user_external_cleanup import (
     USER_S3_PREFIX_TEMPLATES,
     _delete_user_s3_objects,
 )
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 def collect_user_s3_keys(user_id: str, *, user: User | None = None) -> list[str]:
@@ -19,14 +22,16 @@ def collect_user_s3_keys(user_id: str, *, user: User | None = None) -> list[str]
     keys: list[str] = []
     seen: set[str] = set()
 
-    profile_user = user if user is not None else User.query.filter_by(id=uid).one_or_none()
+    profile_user = (
+        user if user is not None else db.session.scalar(select(User).where(User.id == uid))
+    )
     if profile_user and profile_user.profile_picture:
         key = str(profile_user.profile_picture).strip()
         if key and key not in seen:
             seen.add(key)
             keys.append(key)
 
-    for doc in Document.query.filter_by(user_id=uid).all():
+    for doc in db.session.scalars(select(Document).where(Document.user_id == uid)).all():
         if doc.file_path:
             key = str(doc.file_path).strip()
             if key and key not in seen:
@@ -49,7 +54,7 @@ def delete_user_scoped_s3_objects(
         return _delete_user_s3_objects(uid, extra_s3_keys)
     except Exception as exc:
         log.warn(
-            LOG_CATEGORIES["API"],
+            "API",
             "delete_user_scoped_s3_objects failed",
             {"user_id": uid, "error": str(exc)},
         )

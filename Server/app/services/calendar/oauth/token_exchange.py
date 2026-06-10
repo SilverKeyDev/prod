@@ -11,14 +11,12 @@ from app.services.calendar.permissions import get_scopes_from_tokeninfo
 from app.services.calendar.permissions.google_calendar_oauth import (
     normalize_google_oauth_scope_list,
 )
-from app.utils.security.app_logging import get_logger
 from app.utils.security.security import (
     log_oauth_event,
     redact_sensitive_data,
     sanitize_error_message,
 )
-
-logger = get_logger()
+from logger import log
 
 
 def exchange_code_for_tokens(
@@ -47,25 +45,21 @@ def exchange_code_for_tokens(
         Dictionary containing token response from Google
     """
     request_id = str(uuid.uuid4())[:8]
-
-    logger.info(
+    log.info(
+        "CALENDAR",
         "GOOGLE_TOKEN_EXCHANGE_START",
-        extra={
+        {
             "request_id": request_id,
             "user_id": user_id,
             "has_code": bool(code),
             "code_length": len(code) if code else 0,
         },
     )
-
     try:
-        # Validate inputs before making request
         if not code or not code.strip():
             raise ValueError("Authorization code is empty or missing")
-
         if not redirect_uri or not redirect_uri.strip():
             raise ValueError("Redirect URI is empty or missing")
-
         token_data = {
             "client_id": client_id,
             "client_secret": client_secret,
@@ -73,11 +67,10 @@ def exchange_code_for_tokens(
             "grant_type": "authorization_code",
             "redirect_uri": redirect_uri,
         }
-
-        # Log request details (redact sensitive data)
-        logger.info(
+        log.info(
+            "CALENDAR",
             "GOOGLE_TOKEN_EXCHANGE_REQUEST",
-            extra={
+            {
                 "request_id": request_id,
                 "user_id": user_id,
                 "has_code": bool(code),
@@ -90,12 +83,11 @@ def exchange_code_for_tokens(
                 "has_client_secret": bool(client_secret),
             },
         )
-
         response = session.post(token_endpoint, data=token_data)
-
-        logger.info(
+        log.info(
+            "CALENDAR",
             "GOOGLE_TOKEN_EXCHANGE_RESPONSE",
-            extra={
+            {
                 "request_id": request_id,
                 "user_id": user_id,
                 "status_code": response.status_code,
@@ -103,9 +95,7 @@ def exchange_code_for_tokens(
                 "content_type": response.headers.get("Content-Type", "unknown"),
             },
         )
-
         if response.status_code != 200:
-            # Try to parse error response for better error messages
             error_details = {}
             try:
                 error_json = response.json()
@@ -115,10 +105,7 @@ def exchange_code_for_tokens(
                     "error_uri": error_json.get("error_uri", ""),
                 }
             except (ValueError, KeyError):
-                # If response is not JSON, use text
                 error_details = {"raw_response": response.text[:500]}
-
-            # Log detailed error information
             log_oauth_event(
                 "token_exchange_failed",
                 user_id,
@@ -127,47 +114,22 @@ def exchange_code_for_tokens(
                 error_description=error_details.get("error_description"),
                 response_text=response.text[:500],
             )
-
-            # Provide more specific error messages based on Google's error codes
             error_code = error_details.get("error", "unknown")
             error_description = error_details.get("error_description", "")
-
             if error_code == "invalid_grant":
-                # This usually means the code was already used or expired
-                error_msg = (
-                    f"Authorization code is invalid, expired, or already used. "
-                    f"Please restart the OAuth flow. "
-                    f"Details: {error_description or 'Code may have expired or been used already'}"
-                )
+                error_msg = f"Authorization code is invalid, expired, or already used. Please restart the OAuth flow. Details: {error_description or 'Code may have expired or been used already'}"
             elif error_code == "invalid_client":
-                error_msg = (
-                    f"Invalid client credentials. "
-                    f"Please check GOOGLE_CLIENT_ID and GOOGLE_CALENDAR_SECRET configuration. "
-                    f"Details: {error_description or 'Client authentication failed'}"
-                )
+                error_msg = f"Invalid client credentials. Please check GOOGLE_CLIENT_ID and GOOGLE_CALENDAR_SECRET configuration. Details: {error_description or 'Client authentication failed'}"
             elif error_code == "redirect_uri_mismatch":
-                error_msg = (
-                    f"Redirect URI mismatch. "
-                    f"The redirect_uri used in token exchange ({redirect_uri}) must exactly match "
-                    f"the redirect_uri used in the authorization request. "
-                    f"Details: {error_description or 'Redirect URI does not match'}"
-                )
+                error_msg = f"Redirect URI mismatch. The redirect_uri used in token exchange ({redirect_uri}) must exactly match the redirect_uri used in the authorization request. Details: {error_description or 'Redirect URI does not match'}"
             elif error_code == "internal_failure":
-                error_msg = (
-                    f"Google OAuth internal error. This may be temporary. "
-                    f"Common causes: redirect_uri mismatch, code already used, or temporary Google service issue. "
-                    f"Redirect URI used: {redirect_uri}. "
-                    f"Details: {error_description or 'Google returned internal_failure'}"
-                )
+                error_msg = f"Google OAuth internal error. This may be temporary. Common causes: redirect_uri mismatch, code already used, or temporary Google service issue. Redirect URI used: {redirect_uri}. Details: {error_description or 'Google returned internal_failure'}"
             else:
-                error_msg = (
-                    f"Token exchange failed with error '{error_code}'. "
-                    f"Response: {response.text[:500]}"
-                )
-
-            logger.error(
+                error_msg = f"Token exchange failed with error '{error_code}'. Response: {response.text[:500]}"
+            log.error(
+                "ERRORS",
                 "GOOGLE_TOKEN_EXCHANGE_FAILED",
-                extra={
+                {
                     "request_id": request_id,
                     "user_id": user_id,
                     "status_code": response.status_code,
@@ -178,102 +140,78 @@ def exchange_code_for_tokens(
                     ),
                 },
             )
-
             raise RuntimeError(error_msg)
-
         tokens = response.json()
-
-        # CRITICAL: Get authoritative scopes from tokeninfo endpoint
-        # This is the canonical source of truth - scopes are embedded in the access token
-        # Google does not provide an API to list all scopes - they're in the token itself
         access_token = tokens.get("access_token")
         actual_scopes = get_scopes_from_tokeninfo(access_token) if access_token else None
-
         if actual_scopes:
-            # Use scopes from tokeninfo (authoritative source)
             granted_scopes = actual_scopes.split() if actual_scopes else []
-            logger.info(f"Using scopes from tokeninfo for user {user_id}: {actual_scopes}")
+            log.info("CALENDAR", f"Using scopes from tokeninfo for user {user_id}: {actual_scopes}")
         else:
-            # Fallback to scopes from token response if tokeninfo fails
             granted_scopes = tokens.get("scope", "").split() if tokens.get("scope") else []
-            # If no scopes in response, use the requested scopes
             if not granted_scopes:
                 granted_scopes = scopes
-            logger.warning(
-                f"Tokeninfo failed for user {user_id}, using scopes from token response: {' '.join(granted_scopes)}"
+            log.warn(
+                "CALENDAR",
+                f"Tokeninfo failed for user {user_id}, using scopes from token response: {' '.join(granted_scopes)}",
             )
-
         granted_scopes = normalize_google_oauth_scope_list(
             [str(s).strip() for s in granted_scopes if str(s).strip()]
         )
-
-        # Get existing tokens to preserve refresh_token if Google doesn't return one
         existing_tokens = tokens_get(user_id)
         existing_refresh_token = existing_tokens.get("refresh_token") if existing_tokens else None
-
-        # Google may not return refresh_token on subsequent consents
-        # Preserve existing refresh_token if new one is not provided (handle None and empty string)
         new_refresh_token = tokens.get("refresh_token")
-        # Treat empty string as missing (Google shouldn't return this, but be defensive)
         if not new_refresh_token or (
-            isinstance(new_refresh_token, str) and not new_refresh_token.strip()
+            isinstance(new_refresh_token, str) and (not new_refresh_token.strip())
         ):
             if existing_refresh_token:
-                logger.info(
-                    f"Google did not return refresh_token, preserving existing one for user {user_id}"
+                log.info(
+                    "CALENDAR",
+                    f"Google did not return refresh_token, preserving existing one for user {user_id}",
                 )
                 new_refresh_token = existing_refresh_token
             else:
-                logger.warning(
-                    f"Google did not return refresh_token and no existing refresh_token found for user {user_id}"
+                log.warn(
+                    "CALENDAR",
+                    f"Google did not return refresh_token and no existing refresh_token found for user {user_id}",
                 )
                 new_refresh_token = None
         else:
-            logger.info(f"Google returned new refresh_token for user {user_id}")
-
-        # Store tokens with actual granted scopes from tokeninfo (authoritative source)
-        # Note: client_secret is not stored - always use config value
+            log.info("CALENDAR", f"Google returned new refresh_token for user {user_id}")
         token_data = {
             "access_token": tokens["access_token"],
-            "refresh_token": new_refresh_token,  # Will be None if no existing token and Google didn't return one
+            "refresh_token": new_refresh_token,
             "token_uri": token_endpoint,
             "client_id": client_id,
-            # client_secret removed - always use config value
-            "scopes": actual_scopes
-            if actual_scopes
-            else " ".join(granted_scopes),  # Prefer tokeninfo scopes
+            "scopes": actual_scopes if actual_scopes else " ".join(granted_scopes),
             "expiry": datetime.now(timezone.utc)
             + timedelta(seconds=tokens.get("expires_in", 3600)),
         }
-
-        # Store tokens and update permissions from scopes
         if not tokens_upsert(user_id, token_data):
             raise RuntimeError(f"Failed to store tokens for user {user_id}")
-
-        logger.info(
+        log.info(
+            "CALENDAR",
             "GOOGLE_TOKEN_EXCHANGE_SUCCESS",
-            extra={
+            {
                 "request_id": request_id,
                 "user_id": user_id,
                 "has_refresh_token": bool(new_refresh_token),
                 "google_returned_refresh_token": bool(tokens.get("refresh_token")),
                 "preserved_existing_refresh_token": bool(
-                    existing_refresh_token and not tokens.get("refresh_token")
+                    existing_refresh_token and (not tokens.get("refresh_token"))
                 ),
                 "expires_in": tokens.get("expires_in"),
                 "granted_scopes": granted_scopes,
             },
         )
-
         log_oauth_event("tokens_stored", user_id, granted_scopes=granted_scopes)
         return tokens
-
     except Exception as e:
         error_msg = sanitize_error_message(e)
-        logger.error(
+        log.error(
+            "ERRORS",
             "GOOGLE_TOKEN_EXCHANGE_ERROR",
-            extra={"request_id": request_id, "user_id": user_id, "error": error_msg},
-            exc_info=True,
+            {"request_id": request_id, "user_id": user_id, "error": error_msg},
         )
         log_oauth_event("token_exchange_error", user_id, error=error_msg)
         raise

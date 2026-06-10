@@ -15,7 +15,6 @@ export type UserProfile = {
   brokerage?: string | null;
   preferences_version?: string | null;
   has_preferences: boolean;
-  is_agent: boolean;
   roles?: UserRole[];
   auth_method?: AuthMethod; // NEW: Track authentication method
   profile_picture?: string | null;

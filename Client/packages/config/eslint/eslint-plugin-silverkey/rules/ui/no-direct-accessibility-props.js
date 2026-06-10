@@ -34,7 +34,7 @@ module.exports = {
   create(context) {
     const filename = context.getFilename();
     const opt = context.options[0] || {};
-    const allowedInPaths = opt.allowedInPaths || ["packages/ui/components/ui/"];
+    const allowedInPaths = opt.allowedInPaths || ["packages/ui/components/media/ui/"];
 
     const isAllowed = allowedInPaths.some((p) => filename.includes(p));
     if (isAllowed) return {};

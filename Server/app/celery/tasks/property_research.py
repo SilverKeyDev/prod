@@ -2,7 +2,7 @@ import os
 import time
 
 from app.celery.celery_worker import celery
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 # Property Research Tasks
@@ -70,7 +70,7 @@ def research_property_task(self, params, address=None, skip_pros_cons=False, res
 
         elapsed = time.time() - start_time
         log.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "Property research Celery task completed",
             {"elapsed_seconds": round(elapsed, 2)},
         )
@@ -83,7 +83,7 @@ def research_property_task(self, params, address=None, skip_pros_cons=False, res
         }
 
     except Exception as e:
-        log.error(LOG_CATEGORIES["ERRORS"], "Property research Celery task failed", e)
+        log.error("ERRORS", "Property research Celery task failed", e)
         return {
             "success": False,
             "error": str(e),
@@ -155,7 +155,7 @@ def compare_property_task(self, params, address=None, research_body=None):
 
         elapsed = time.time() - start_time
         log.info(
-            LOG_CATEGORIES["API"],
+            "API",
             "Property compare Celery task completed",
             {"elapsed_seconds": round(elapsed, 2)},
         )
@@ -168,7 +168,7 @@ def compare_property_task(self, params, address=None, research_body=None):
         }
 
     except Exception as e:
-        log.error(LOG_CATEGORIES["ERRORS"], "Property compare Celery task failed", e)
+        log.error("ERRORS", "Property compare Celery task failed", e)
         return {
             "success": False,
             "error": str(e),

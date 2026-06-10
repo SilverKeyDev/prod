@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from sqlalchemy import select
+
+from app import db
 from app.models import Transaction
 
 
@@ -10,4 +13,4 @@ def get_transaction_by_id(transaction_id: str) -> Transaction | None:
     key = str(transaction_id).strip()
     if not key:
         return None
-    return Transaction.query.filter_by(id=key).first()
+    return db.session.scalar(select(Transaction).where(Transaction.id == key))

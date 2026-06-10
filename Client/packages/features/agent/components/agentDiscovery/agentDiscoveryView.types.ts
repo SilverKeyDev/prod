@@ -14,4 +14,6 @@ export type AgentDiscoveryViewProps = {
   /** Called after a connection request is sent from the search section. */
   onConnectionSuccess?: () => void;
   className?: string;
+  /** When true, renders nothing while recommendations load (embedded checklist rows). */
+  suppressRecommendationsLoading?: boolean;
 };

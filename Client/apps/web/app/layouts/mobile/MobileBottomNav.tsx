@@ -6,17 +6,18 @@ import { useLocation } from "react-router-dom";
 import { useLocalization } from "packages/contexts";
 import { SearchNavLink } from "packages/features/search";
 import { useActiveWorkspace } from "packages/hooks/store";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Link } from "packages/navigation";
 import { useNotificationStore } from "packages/store";
-import Region from "packages/ui/components/accessibility/Region";
-import { Portal } from "packages/ui/components/portal";
-import { Box } from "packages/ui/components/primitives";
-import { NotificationBadge } from "packages/ui/components/primitives/index.web";
-import { getWorkspaceNavTabs } from "packages/utils/workspace/workspaceNavConfig";
+import { Portal } from "packages/ui/components/structure/portal";
+import { Box } from "packages/ui/components/structure/primitives";
+import { NotificationBadge } from "packages/ui/components/structure/primitives/index.web";
+import Region from "packages/ui/components/system/accessibility/Region";
+import { getDocument } from "packages/utils/core/platform";
+import { getWorkspaceNavTabs } from "packages/utils/product/workspace/workspaceNavConfig";
 
-import { useDashboardShellRoutePrefetch } from "@/app/layouts/dashboard/useDashboardShellRoutePrefetch.web";
 import { SIDEBAR_TABS, type SidebarTab } from "@/app/layouts/sidebar/sidebarTabs.web";
+import { useDashboardShellRoutePrefetch } from "@/app/navigation/useDashboardShellRoutePrefetch.web";
 import type { UserProfile } from "@/features/homeauth/types";
 
 function genNavId(): string {
@@ -102,7 +103,7 @@ function BottomNavItems({
             onTouchStart={() => onPrefetchHref(item.href)}
             onClick={() => {
               const navId = genNavId();
-              log.info(LOG_CATEGORIES.ROUTING, "[NAV] MobileBottomNav click", {
+              log.info("ROUTING", "[NAV] MobileBottomNav click", {
                 navId,
                 from: pathname,
                 to: item.href,
@@ -149,7 +150,7 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
   });
 
   const handleSearchNavigateClick = (navId: string) => {
-    log.info(LOG_CATEGORIES.ROUTING, "[NAV] MobileBottomNav Search click", {
+    log.info("ROUTING", "[NAV] MobileBottomNav Search click", {
       navId,
       pathname: location.pathname,
     });
@@ -181,6 +182,6 @@ export default function MobileBottomNav(_props: MobileBottomNavProps) {
     </Region>
   );
 
-  if (!mounted || typeof document === "undefined") return null;
+  if (!mounted || !getDocument()) return null;
   return <Portal>{nav}</Portal>;
 }

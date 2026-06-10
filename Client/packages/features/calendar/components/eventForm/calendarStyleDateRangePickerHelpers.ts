@@ -1,4 +1,4 @@
-import { dayjs } from "packages/utils/date";
+import { dayjs } from "packages/utils/core/date";
 
 export function orderedRange(a: string, b: string): { lo: string; hi: string } {
   const da = dayjs(a, "YYYY-MM-DD", true);

@@ -6,30 +6,29 @@ See also: [Client/ARCHITECTURE.md](../../../Client/ARCHITECTURE.md), [documentat
 
 ## Directory roles
 
-### 1. `packages/config/` — configuration and API clients
+### 1. `packages/config/` — configuration and React Query setup
 
-**Purpose:** Thin, type-safe API client wrappers and configuration constants.
+**Purpose:** Environment, HTTP constants, and React Query setup. **API client barrels** live in **`packages/api/`** (canonical); `packages/config/http/api.ts` re-exports for backward compatibility.
 
 **Contains:**
 
-- `config/api/*` — API client functions (e.g. `authApi`, `userApi`, `searchApi`)
-- `config/http.ts` — HTTP configuration constants
-- `config/env.ts` — environment variables
+- `packages/api/*` — Canonical API client barrel (re-exports feature `api/` modules and contract types)
+- `config/http/*`, `config/env.ts`, `config/auth/*` — HTTP config and env
 - `config/query/*` — React Query setup
 
 **Rules:**
 
-- MUST only import from `services/http/*` and `services/security/*`
-- MUST NOT import from `services/*` (business logic services)
+- API modules MUST only import from `services/http/*` and `services/security/*`
+- MUST NOT import from business `services/*`
 - MUST NOT import from `hooks/*` or `store/*`
 - MUST NOT import from `apps/web/*` or feature components
 
 **Example:**
 
 ```typescript
-// ✅ CORRECT: config/api/auth.ts
-import { apiPost, apiGet } from "../../services/http/compatibility";
-import { log } from "../../services/security/secureLogger";
+// ✅ CORRECT: packages/features/auth/api/authApi.ts (or packages/api barrel)
+import { apiPost, apiGet } from "packages/services/http/compatibility";
+import { log } from "packages/logger";
 
 export const authApi = {
   login: async (data: LoginData) => {
@@ -38,7 +37,7 @@ export const authApi = {
 };
 
 // ❌ WRONG: Importing business logic service
-import { agentService } from "../../services/agent"; // FORBIDDEN
+import { agentService } from "packages/services/agent"; // FORBIDDEN in API layer
 ```
 
 ### 2. `packages/services/` — business logic and infrastructure
@@ -53,7 +52,7 @@ import { agentService } from "../../services/agent"; // FORBIDDEN
 
 **Rules:**
 
-- Services MUST use `config/api/*` for all API calls
+- Services MUST use `packages/api` (or feature `api/` modules) for all API calls
 - Services MUST NOT import from `hooks/*` or `store/*` directly
 - Services MUST NOT import from `apps/web/*` or `packages/features/*` (UI)
 - Services can import from `services/http/*` and `services/security/*`
@@ -65,7 +64,7 @@ import { agentService } from "../../services/agent"; // FORBIDDEN
 
 **Rules:**
 
-- `hooks/data/*` MUST use `config/api/*` directly, never business `services/*` (except `services/http` utilities)
+- `hooks/data/*` MUST use `packages/api/*` (or legacy `packages/config/http/api`) directly, never business `services/*` (except `services/http` utilities)
 - `hooks/store/*` can use `hooks/data/*` and `store/*`
 - `hooks/ui/*` should be pure UI state (no API calls)
 - Hooks MUST NOT import from `apps/web/*` or feature components
@@ -88,8 +87,8 @@ import { agentService } from "../../services/agent"; // FORBIDDEN
 
 **Rules:**
 
-- Feature UI MUST compose `packages/ui` primitives and shared hooks; MUST NOT import `config/api/*` or `services/*` directly in components — use hooks
-- Cross-feature imports are constrained by ESLint (`eslint-plugin-silverkey`); prefer shared `packages/utils` or `packages/hooks` when multiple features need the same thing
+- Feature UI MUST compose `packages/ui` primitives and shared hooks; MUST NOT import `packages/api/*` or `services/*` directly in components — use hooks
+- Cross-feature imports follow [cross-feature-composition.md](./cross-feature-composition.md) (barrels, orchestrator hubs); ESLint only **warns** on value imports from another feature’s `utils/`. Prefer `packages/utils` or `packages/hooks` when three or more features need the same non-UI logic
 
 ### 6. `apps/web/` and `apps/mobile/` — thin composition
 
@@ -97,7 +96,7 @@ import { agentService } from "../../services/agent"; // FORBIDDEN
 
 **Rules:**
 
-- Pages/screens MUST use hooks, not `config/api/*` or business `services/*` directly
+- Pages/screens MUST use hooks, not `packages/api/*` or business `services/*` directly
 - Do NOT add standalone `.ts` logic under `apps/web/components/` or `apps/web/features/`; use `packages/utils/`, `packages/hooks/`, or `packages/schemas/`
 
 ## Import rules summary
@@ -108,17 +107,17 @@ import { agentService } from "../../services/agent"; // FORBIDDEN
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/web/*`, `apps/mobile/*` | `hooks/*`, `store/*` (selectors/hooks per state-boundaries rule), `schemas/*`, `utils/*`, `contexts/*`, `packages/features/*`, `packages/ui/*`            |
 | `packages/features/*`         | `hooks/*`, `store/*`, `schemas/*`, `utils/*`, `contexts/*`, `packages/ui/*`, sibling paths within feature and other features **only where ESLint allows** |
-| `hooks/data/*`                | `config/api/*`, `store/*`, `schemas/*`, `services/http/*`, `services/security/*`                                                                          |
+| `hooks/data/*`                | `packages/api/*`, `store/*`, `schemas/*`, `services/http/*`, `services/security/*`                                                                          |
 | `hooks/store/*`               | `hooks/data/*`, `store/*`, `schemas/*`                                                                                                                    |
 | `hooks/ui/*`                  | `utils/*` (no API calls)                                                                                                                                  |
-| `config/api/*`                | `services/http/*`, `services/security/*`, `schemas/*`                                                                                                     |
-| `services/*`                  | `config/api/*`, `services/http/*`, `services/security/*`, `schemas/*`                                                                                     |
+| `packages/api/*`, feature `api/` | `services/http/*`, `services/security/*`, `schemas/*`                                                                                                 |
+| `services/*`                  | `packages/api/*`, `services/http/*`, `services/security/*`, `schemas/*`                                                                                     |
 | `store/*`                     | `schemas/*`                                                                                                                                               |
 
 ### Forbidden imports
 
-- ❌ UI (apps or `packages/features`) → `config/api/*` or business `services/*` (use hooks)
-- ❌ Hooks → business `services/*` (use `config/api/*`)
+- ❌ UI (apps or `packages/features`) → `packages/api/*` or business `services/*` (use hooks)
+- ❌ Hooks → business `services/*` (use `packages/api/*`)
 - ❌ Services → `hooks/*` or `store/*`
 - ❌ Config → business `services/*` (only HTTP/security utilities)
 
@@ -126,19 +125,19 @@ import { agentService } from "../../services/agent"; // FORBIDDEN
 
 ### Component using API directly
 
-Use a data hook that calls `config/api/*`.
+Use a data hook that calls `packages/api/*`.
 
 ### Component using service directly
 
-Same: add or use a hook; hooks call `config/api/*`, not class services.
+Same: add or use a hook; hooks call `packages/api/*`, not class services.
 
 ### Service importing hooks or store
 
-Pass data as parameters or use `config/api/*` for server-side/session validation patterns.
+Pass data as parameters or use `packages/api/*` for server-side/session validation patterns.
 
 ## Exceptions
 
-- `services/http/*` and `services/security/*` can be imported by `config/api/*`
+- `services/http/*` and `services/security/*` can be imported by `packages/api/*` and feature `api/` modules
 - `store/*` can be imported by `hooks/store/*`
 - Type-only imports from `schemas/*` are allowed where TypeScript permits
 - Utility functions from `utils/*` can be imported broadly subject to architecture linters

@@ -4,39 +4,34 @@ import type { BuildEventRequestPayloadFromCreateFormStateInput } from "@/feature
 import { buildEventRequestPayloadFromCreateFormState } from "@/features/messaging/utils/buildEventRequestPayloadFromCreateFormState";
 
 const baseInput: BuildEventRequestPayloadFromCreateFormStateInput = {
-  eventTitle: "Property viewings",
-  eventDescription: "",
-  eventLocation: "",
+  eventTitle: "Meeting",
+  eventDescription: "Notes",
+  eventLocation: "123 Main St",
   startDate: "2026-05-07",
   endDate: "2026-05-07",
   startTime: "09:00",
   endTime: "10:00",
   isAllDay: false,
-  isPropertyViewing: true,
-  viewingStops: [],
-  viewingStartSelection: { kind: "omit" },
-  viewingTourAnchors: [],
-  viewingEndMode: "last_property",
-  viewingEndFixed: null,
 };
 
 describe("buildEventRequestPayloadFromCreateFormState", () => {
-  it("returns error when property viewing has no stop addresses", () => {
+  it("builds payload with title, schedule, location, and description", () => {
     const r = buildEventRequestPayloadFromCreateFormState(baseInput);
-    expect("error" in r).toBe(true);
-    if ("error" in r) {
-      expect(r.error.length).toBeGreaterThan(0);
+    expect("payload" in r).toBe(true);
+    if ("payload" in r) {
+      expect(r.payload.title).toBe("Meeting");
+      expect(r.payload.description).toBe("Notes");
+      expect(r.payload.location).toBe("123 Main St");
+      expect(r.payload.start).toMatch(/2026-05-07/);
+      expect(r.payload.end).toMatch(/2026-05-07/);
     }
   });
 
-  it("includes itinerary when property viewing has at least one address", () => {
+  it("returns error when title is empty", () => {
     const r = buildEventRequestPayloadFromCreateFormState({
       ...baseInput,
-      viewingStops: [{ address: "123 Main St" }],
+      eventTitle: "   ",
     });
-    expect("payload" in r).toBe(true);
-    if ("payload" in r) {
-      expect(r.payload.itinerary?.stops?.length).toBe(1);
-    }
+    expect("error" in r).toBe(true);
   });
 });

@@ -4,8 +4,8 @@ import type {
   BuyerAvailabilityPrefs,
   BuyerPreferenceExtensions,
 } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
-import { dayjs } from "packages/utils/date";
-import { getWindow } from "packages/utils/platform";
+import { dayjs } from "packages/utils/core/date";
+import { getWindow } from "packages/utils/core/platform";
 
 import { parseAvailabilitySyntheticEventId } from "./profileAvailabilityEventIds";
 

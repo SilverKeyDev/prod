@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { OnboardingData } from "@/features/profile/types/onboarding/onboarding";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 
 import { validateSettingsData } from "./validation";
 

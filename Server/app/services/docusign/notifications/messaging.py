@@ -8,11 +8,11 @@ specialised agreement event cards in the messaging thread.
 import json
 from datetime import datetime, timezone
 
+from sqlalchemy import select
+
 from app import db
 from app.models import AgentConnections, Agreement, ChatHistory
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 AGREEMENT_EVENT_PREFIX = "__AGREEMENT_EVENT__"
 
@@ -62,8 +62,8 @@ def send_agreement_message(
     """
     try:
         if not agreement.agent_id or not agreement.buyer_id:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Cannot send agreement message - missing agent_id or buyer_id",
                 {"agreement_id": agreement.id},
             )
@@ -71,23 +71,27 @@ def send_agreement_message(
 
         # Idempotency: skip if a message for this agreement+event already exists
         dedupe_key = _build_dedupe_key(agreement.id, event_type)
-        existing = ChatHistory.query.filter(ChatHistory.message.like(f"%{dedupe_key}%")).first()
+        existing = db.session.scalar(
+            select(ChatHistory).where(ChatHistory.message.like(f"%{dedupe_key}%"))
+        )
         if existing:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Duplicate agreement event message skipped",
                 {"agreement_id": agreement.id, "event_type": event_type},
             )
             return existing.id
 
-        conversation = AgentConnections.query.filter_by(
-            agent_id=agreement.agent_id,
-            client_id=agreement.buyer_id,
-        ).first()
+        conversation = db.session.scalar(
+            select(AgentConnections).where(
+                AgentConnections.agent_id == agreement.agent_id,
+                AgentConnections.client_id == agreement.buyer_id,
+            )
+        )
 
         if not conversation:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "No conversation found between agent and client for agreement notification",
                 {
                     "agreement_id": agreement.id,
@@ -133,8 +137,8 @@ def send_agreement_message(
         else:
             db.session.flush()
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Agreement event message sent in conversation",
             {
                 "agreement_id": agreement.id,
@@ -149,8 +153,8 @@ def send_agreement_message(
     except Exception as e:
         if auto_commit:
             db.session.rollback()
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             "Failed to send agreement event message",
             {"agreement_id": agreement.id, "event_type": event_type, "error": str(e)},
         )

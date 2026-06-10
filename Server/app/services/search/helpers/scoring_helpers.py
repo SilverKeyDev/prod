@@ -10,7 +10,8 @@ import zlib
 from typing import Any, cast
 
 import redis
-from flask import current_app
+
+from logger import log
 
 from ..home_matching.config.match import find_best_matches
 from ..home_matching.mcda import MCDA_CONFIG, score_listing_mcda
@@ -66,10 +67,58 @@ def _listings_have_scoring_payload(properties: list[dict[str, Any]]) -> bool:
     return False
 
 
+_DISPLAY_STRETCH_RANGE_THRESHOLD = 18.0
+_DISPLAY_STRETCH_UNIQUE_THRESHOLD = 4
+_DISPLAY_STRETCH_MIN_LISTINGS = 3
+_DISPLAY_STRETCH_FLOOR_OFFSET = 5.0
+_DISPLAY_STRETCH_CEILING_OFFSET = 1.0
+_DISPLAY_STRETCH_QUALITY_CAP_RATIO = 0.35
+
+
+def _score_cluster_detected(score_map: dict[str, float]) -> bool:
+    if len(score_map) < _DISPLAY_STRETCH_MIN_LISTINGS:
+        return False
+    values = list(score_map.values())
+    raw_min = min(values)
+    raw_max = max(values)
+    if raw_max - raw_min < _DISPLAY_STRETCH_RANGE_THRESHOLD:
+        return True
+    rounded = {round(v, 1) for v in values}
+    return len(rounded) < _DISPLAY_STRETCH_UNIQUE_THRESHOLD
+
+
+def _apply_result_set_display_spread(score_map: dict[str, float]) -> None:
+    """
+    Affine min-max stretch within a search batch when raw MCDA scores cluster.
+    Order-preserving; quality cap prevents inflating mediocre batches to the high 90s.
+    """
+    if not _score_cluster_detected(score_map):
+        return
+
+    out_lo = float(MCDA_CONFIG["output_display_min"])
+    out_hi = float(MCDA_CONFIG["output_display_max"])
+    values = list(score_map.values())
+    raw_min = min(values)
+    raw_max = max(values)
+    if raw_max <= raw_min:
+        return
+
+    stretch_lo = out_lo + _DISPLAY_STRETCH_FLOOR_OFFSET
+    stretch_hi = out_hi - _DISPLAY_STRETCH_CEILING_OFFSET
+    span = raw_max - raw_min
+
+    for zpid, raw in score_map.items():
+        normalized = (raw - raw_min) / span
+        stretched = stretch_lo + normalized * (stretch_hi - stretch_lo)
+        quality_cap = raw + (out_hi - raw) * _DISPLAY_STRETCH_QUALITY_CAP_RATIO
+        display = min(stretched, quality_cap)
+        score_map[zpid] = round(max(out_lo, min(out_hi, display)), 1)
+
+
 def _apply_deterministic_score_tiebreak(
     score_map: dict[str, float], properties: list[dict[str, Any]]
 ) -> None:
-    """When every listing rounds to the same score, spread by 0.1 steps for sort and UI."""
+    """When every listing rounds to the same score, spread deterministically for sort and UI."""
     if len(score_map) < 2 or not _listings_have_scoring_payload(properties):
         return
     rounded = {zpid: round(score, 1) for zpid, score in score_map.items()}
@@ -77,11 +126,19 @@ def _apply_deterministic_score_tiebreak(
         return
     out_lo = float(MCDA_CONFIG["output_display_min"])
     out_hi = float(MCDA_CONFIG["output_display_max"])
+    stretch_lo = out_lo + _DISPLAY_STRETCH_FLOOR_OFFSET
+    stretch_hi = out_hi - _DISPLAY_STRETCH_CEILING_OFFSET
     base = next(iter(rounded.values()))
     zpids_sorted = sorted(
         score_map.keys(), key=lambda z: (zlib.crc32(str(z).encode("utf-8")), str(z))
     )
     n = len(zpids_sorted)
+    if n >= _DISPLAY_STRETCH_MIN_LISTINGS:
+        for i, zpid in enumerate(zpids_sorted):
+            frac = i / (n - 1) if n > 1 else 0.5
+            adjusted = stretch_lo + frac * (stretch_hi - stretch_lo)
+            score_map[zpid] = round(max(out_lo, min(out_hi, adjusted)), 1)
+        return
     for i, zpid in enumerate(zpids_sorted):
         offset = (i - (n - 1) / 2.0) * 0.1
         adjusted = base + offset
@@ -151,6 +208,7 @@ def score_and_sort_properties(
                     mcda = round(mcda, 1)
             score_map[zkey] = mcda
 
+        _apply_result_set_display_spread(score_map)
         _apply_deterministic_score_tiebreak(score_map, properties)
 
         # Try Redis sorting first
@@ -162,7 +220,7 @@ def score_and_sort_properties(
         return _sort_with_python(properties, score_map)
 
     except Exception as e:
-        current_app.logger.error(f"⚠️ Property scoring failed: {str(e)}")
+        log.error("ERRORS", "Property scoring failed", e)
         # Return properties with default scores
         for prop in properties:
             prop["_score"] = 0.0
@@ -209,8 +267,10 @@ def _sort_with_redis(
         return scored_properties
 
     except Exception as redis_error:
-        current_app.logger.warning(
-            f"⚠️ Redis sorting failed: {str(redis_error)}, falling back to Python sort"
+        log.warn(
+            "SEARCH",
+            "Redis sorting failed; falling back to Python sort",
+            {"error": str(redis_error)},
         )
         return []
 

@@ -1,11 +1,10 @@
 import React, { useCallback } from "react";
 
 import { useLocalization } from "packages/contexts";
+import type { OnboardingData } from "packages/features/profile";
 import { useClearUserPreferences } from "packages/hooks/data/user/useClearUserPreferences";
 import { useIsAgent } from "packages/hooks/store";
 import { Button } from "packages/ui";
-
-import type { OnboardingData } from "@/features/profile/utils";
 
 export type ClearPreferencesButtonProps = {
   selectedClientId?: string | null;

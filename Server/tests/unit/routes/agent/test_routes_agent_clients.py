@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import jwt as pyjwt
 
-from app.models import User
+from app.models import User, UserRole
 from tests.jwt_test_secret import TEST_JWT_HMAC_SECRET
 
 # Create a properly formatted mock JWT token for testing
@@ -24,9 +24,9 @@ class TestAgentClientsRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
 
         # Create client users
         client1 = User(
@@ -34,14 +34,12 @@ class TestAgentClientsRoutes:
             cognito_id="cognito-client-1",
             email="client1@example.com",
             name="Client One",
-            is_agent=False,
         )
         client2 = User(
             id="client-2",
             cognito_id="cognito-client-2",
             email="client2@example.com",
             name="Client Two",
-            is_agent=False,
         )
         db_session.session.add_all([client1, client2])
         db_session.session.commit()
@@ -94,7 +92,6 @@ class TestAgentClientsRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Regular User",
-            is_agent=False,
         )
         db_session.session.add(non_agent)
         db_session.session.commit()

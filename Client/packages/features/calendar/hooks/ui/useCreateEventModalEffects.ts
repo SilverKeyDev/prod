@@ -2,14 +2,13 @@ import { useEffect, useRef } from "react";
 
 import type { Dispatch, SetStateAction } from "react";
 
-import type { ViewingStop } from "packages/api/viewings";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import {
   CREATE_EVENT_TIME_STEP_MINUTES,
   googleAllDayEndExclusiveToInclusiveEndYmd,
   quantizeHourMinute,
-} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
-import { dateParseISO, dayjs } from "packages/utils/date";
+} from "packages/utils/comms/calendar/createEvent/eventFormGooglePayload";
+import { dateParseISO, dayjs } from "packages/utils/core/date";
 
 import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import {
@@ -17,13 +16,6 @@ import {
   type CalendarEventKindId,
 } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { defaultCreateEventTimedRange } from "@/features/calendar/utils/createEventModal/createEventModalDefaults";
-import type {
-  ViewingRouteEndMode,
-  ViewingRouteEndpoint,
-  ViewingTourAnchor,
-  ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
-import { inferViewingTourStartSelection } from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 export type UseCreateEventModalEffectsParams = {
   isOpen: boolean;
@@ -45,12 +37,7 @@ export type UseCreateEventModalEffectsParams = {
   setSelectedClientId: (v: string | null) => void;
   setLoadError: (v: string | null) => void;
   setIsSavingUnscheduled: (v: boolean) => void;
-  setViewingStops: (stops: ViewingStop[]) => void;
   setEventKindId: (id: CalendarEventKindId) => void;
-  viewingTourAnchors: ViewingTourAnchor[];
-  setViewingStartSelection: (v: ViewingTourStartSelection) => void;
-  setViewingEndMode: (v: ViewingRouteEndMode) => void;
-  setViewingEndFixed: (v: ViewingRouteEndpoint | null) => void;
 };
 
 /**
@@ -77,15 +64,9 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
     setSelectedClientId,
     setLoadError,
     setIsSavingUnscheduled,
-    setViewingStops,
     setEventKindId,
-    viewingTourAnchors,
-    setViewingStartSelection,
-    setViewingEndMode,
-    setViewingEndFixed,
   } = p;
 
-  /** Avoid re-seeding on every `existingEvent` reference change (parent re-renders), which cleared edits on blur. */
   const editFormSeededForEventIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -108,26 +89,9 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
     setEventTitle(existingEvent.summary || "");
     setEventDescription(existingEvent.description || "");
     setEventLocation(existingEvent.location || "");
-    const itinerary = existingEvent.itinerary;
-    const itineraryStops = itinerary?.stops;
-    if (itineraryStops && itineraryStops.length > 0) {
-      setViewingStops(itineraryStops);
-      setEventKindId("property_viewings");
-      setViewingStartSelection(
-        inferViewingTourStartSelection(itinerary?.start ?? null, viewingTourAnchors)
-      );
-      setViewingEndMode(
-        (itinerary?.end_mode as ViewingRouteEndMode | undefined) ?? "last_property"
-      );
-      setViewingEndFixed(itinerary?.end ?? null);
-    } else {
-      setViewingStops([]);
-      setViewingStartSelection({ kind: "omit" });
-      setViewingEndMode("last_property");
-      setViewingEndFixed(null);
-      const matched = calendarEventKindFromSummary(existingEvent.summary || "");
-      setEventKindId(matched ?? "other");
-    }
+    const matched = calendarEventKindFromSummary(existingEvent.summary || "");
+    setEventKindId(matched ?? "other");
+
     const allDay = Boolean(existingEvent.start?.date && !existingEvent.start?.dateTime);
     setIsAllDay(allDay);
     if (allDay && existingEvent.start?.date) {
@@ -180,12 +144,7 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
     setSelectedCalendarId,
     setStartDate,
     setStartTime,
-    setViewingStops,
     setEventKindId,
-    viewingTourAnchors,
-    setViewingStartSelection,
-    setViewingEndMode,
-    setViewingEndFixed,
   ]);
 
   useEffect(() => {
@@ -207,7 +166,6 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
       const qe = quantizeHourMinute(endDt.hour(), endDt.minute(), CREATE_EVENT_TIME_STEP_MINUTES);
       setEndTime(`${String(qe.hour).padStart(2, "0")}:${String(qe.minute).padStart(2, "0")}`);
     } else {
-      // Single calendar day from picker: default to timed (not all-day).
       setIsAllDay(false);
       setStartDate(dateStr);
       setEndDate(dateStr);
@@ -228,7 +186,7 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
 
   useEffect(() => {
     if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      log.error("ERRORS", "Google Maps loading error", googleMapsError);
       setLoadError("Failed to load Google Maps script.");
       return;
     }
@@ -257,10 +215,6 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
       setEventTitle("");
       setEventDescription("");
       setEventLocation("");
-      setViewingStops([]);
-      setViewingStartSelection({ kind: "omit" });
-      setViewingEndMode("last_property");
-      setViewingEndFixed(null);
       setSelectedClientId(null);
       setIsAllDay(false);
       setStartDate("");
@@ -268,7 +222,7 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
       setStartTime("09:00");
       setEndTime("10:00");
       setIsSavingUnscheduled(false);
-      setEventKindId("other");
+      setEventKindId("meeting");
     }
   }, [
     isOpen,
@@ -282,10 +236,6 @@ export function useCreateEventModalEffects(p: UseCreateEventModalEffectsParams):
     setSelectedClientId,
     setStartDate,
     setStartTime,
-    setViewingStops,
     setEventKindId,
-    setViewingStartSelection,
-    setViewingEndMode,
-    setViewingEndFixed,
   ]);
 }

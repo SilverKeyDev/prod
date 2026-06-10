@@ -1,5 +1,5 @@
 import type { ApiResponse } from "packages/types/domain/api";
-import { resolveUserFacingMessage } from "packages/utils/errorHandling";
+import { resolveUserFacingMessage } from "packages/utils/core/errorHandling";
 
 export function isApiResponse<T>(response: unknown): response is ApiResponse<T> {
   return (

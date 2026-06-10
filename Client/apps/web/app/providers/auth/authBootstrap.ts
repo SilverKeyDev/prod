@@ -6,7 +6,7 @@
 
 import type { AuthBootstrapSetters } from "packages/features/homeauth/hooks/data/authBootstrap";
 import { runAuthBootstrap as runSharedAuthBootstrap } from "packages/features/homeauth/hooks/data/authBootstrap";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 /**
  * Web-specific auth bootstrap that uses shared core logic.

@@ -1,5 +1,6 @@
 """TransactionAddress model - saved transaction/finding-home address."""
 
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 

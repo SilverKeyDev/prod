@@ -218,9 +218,8 @@
 ## 📞 Support Resources
 
 ### Documentation
-- Full adoption summary: `.cursor/openapi-full-adoption-summary.md`
-- Audit fixes: `.cursor/openapi-audit-fixes-summary.md`
-- Strict validation: `Server/docs/validation-strict-mode-rollout.md`
+- Full adoption summary: [openapi-full-adoption-summary.md](./openapi-full-adoption-summary.md) (audit-fix detail merged here; no separate file)
+- Strict validation: [documentation/server/openapi-validation-rollout.md](../../server/openapi-validation-rollout.md)
 - Document naming: `documentation/client/architecture/document-schema-naming.md`
 
 ### Commands

@@ -82,7 +82,6 @@ class TestAuthRoutes:
                 cognito_id="cognito-refresh-1",
                 email="refresh@example.com",
                 name="Refresh User",
-                is_agent=False,
             )
         )
         db_session.session.commit()
@@ -147,7 +146,6 @@ class TestAuthRoutes:
                 cognito_id="cognito-fp-1",
                 email="test@example.com",
                 name="Forgot PW User",
-                is_agent=False,
             )
         )
         db_session.session.commit()
@@ -215,7 +213,6 @@ class TestAuthRoutes:
             cognito_id="cognito-profile-1",
             email="test@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -236,14 +233,55 @@ class TestAuthRoutes:
             assert profile.get("email") == "test@example.com"
 
     def test_missing_required_fields(self, client):
-        """Login without password fails (OpenAPI gradual mode may still enter handler)."""
+        """Invalid bodies are rejected by OpenAPI request validation before handlers run."""
         response = client.post("/api/v1/auth/login", json={"email": "test@example.com"})
-        assert response.status_code in (400, 401, 422, 500)
+        assert response.status_code == 400
         data = response.get_json()
-        assert data is None or data.get("success") is not True
+        assert data is not None
+        assert data.get("success") is not True
+        assert isinstance(data.get("field_errors"), dict)
+        assert data.get("validation_errors") is None
 
         response = client.post(
             "/api/v1/auth/signup",
             json={"password": "Password123!", "name": "New User"},
         )
         assert response.status_code == 400
+
+    def test_forgot_password_unknown_user_enumeration_safe(self, client, mock_cognito_service):
+        """Unknown email still returns generic success from the route handler."""
+        with patch(
+            "app.routes.auth.handlers.password.forgot.ensure_cognito_account_for_user",
+            return_value=(None, "User not found", False),
+        ):
+            response = client.post(
+                "/api/v1/auth/forgot-password",
+                json={"email": "missing@example.com"},
+            )
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["success"] is True
+
+    def test_reset_password_invalid_code(self, client, mock_cognito_service):
+        """Invalid reset code returns validation error envelope."""
+        mock_cognito_service.confirm_forgot_password.return_value = {
+            "success": False,
+            "error": "CodeMismatchException",
+            "message": "Invalid verification code provided, please try again.",
+        }
+
+        response = client.post(
+            "/api/v1/auth/reset-password",
+            json={
+                "email": "test@example.com",
+                "code": "999999",
+                "new_password": "NewPassword123!",
+            },
+        )
+
+        assert response.status_code == 400
+        data = response.get_json()
+        assert data["success"] is False
+        assert data.get("error_id")
+        assert "invalid" in data["message"].lower()

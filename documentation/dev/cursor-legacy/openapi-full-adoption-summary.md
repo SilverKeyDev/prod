@@ -238,7 +238,7 @@ response_dict = UserDTO.to_response(
 **Status:** Manual completion (shell agent tool error)
 
 **Delivered:**
-- `Server/docs/validation-strict-mode-rollout.md`
+- [documentation/server/openapi-validation-rollout.md](../../server/openapi-validation-rollout.md)
 - 4-week rollout plan (staging → pre-prod → production)
 - Monitoring strategy (validation stats endpoint, log queries, alerts)
 - Success criteria (<1% failure rate, no customer issues)
@@ -253,9 +253,8 @@ response_dict = UserDTO.to_response(
 ## 📁 Files Created/Modified
 
 ### New Documentation
-- `.cursor/openapi-full-adoption-summary.md` (this file)
-- `.cursor/openapi-audit-fixes-summary.md` (detailed audit fixes)
-- `Server/docs/validation-strict-mode-rollout.md`
+- [openapi-full-adoption-summary.md](./openapi-full-adoption-summary.md) (this file; historical OpenAPI adoption log)
+- [documentation/server/openapi-validation-rollout.md](../../server/openapi-validation-rollout.md)
 - `documentation/client/architecture/document-schema-naming.md`
 
 ### OpenAPI Schemas (24 enhanced, 4 new)

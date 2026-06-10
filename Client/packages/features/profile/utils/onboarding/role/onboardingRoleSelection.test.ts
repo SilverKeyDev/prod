@@ -1,51 +1,73 @@
 import { describe, expect, it } from "vitest";
 
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
-
-import { formDataToPreferencesPayload } from "@/features/profile/utils/onboarding/sync/profileFormSync";
+import { formDataToPreferencesPayload } from "packages/features/profile/utils/onboarding/sync/profileFormSync";
 
 import {
   applyOnboardingRoleSelection,
+  isBuyerOnboardingRole,
   isSelectableOnboardingRole,
   primaryOnboardingRoleFromForm,
+  shouldShowBuyerOnboardingUi,
   WHY_JOIN_FOR_ROLE,
 } from "./onboardingRoleSelection";
 
 describe("applyOnboardingRoleSelection", () => {
-  it("maps agent to is_agent yes and clears why_joining", () => {
+  it("maps agent to primary_onboarding_role and clears why_joining", () => {
     const patches: Record<string, unknown> = {};
     applyOnboardingRoleSelection("agent", (k, v) => {
       patches[String(k)] = v;
     });
     expect(patches.primary_onboarding_role).toBe("agent");
-    expect(patches.is_agent).toBe("yes");
     expect(patches.why_joining_silverkey).toEqual([]);
   });
 
-  it("maps buyer to is_agent no and buying_house", () => {
+  it("maps buyer to primary_onboarding_role and buying_house", () => {
     const patches: Record<string, unknown> = {};
     applyOnboardingRoleSelection("buyer", (k, v) => {
       patches[String(k)] = v;
     });
     expect(patches.primary_onboarding_role).toBe("buyer");
-    expect(patches.is_agent).toBe("no");
     expect(patches.why_joining_silverkey).toEqual([WHY_JOIN_FOR_ROLE.buyer]);
   });
 
-  it("does not apply patches for coming-soon seller tile", () => {
+  it("maps seller to primary_onboarding_role and buyer+seller tags", () => {
     const patches: Record<string, unknown> = {};
     applyOnboardingRoleSelection("seller", (k, v) => {
       patches[String(k)] = v;
     });
-    expect(patches).toEqual({});
+    expect(patches.primary_onboarding_role).toBe("seller");
+    expect(patches.why_joining_silverkey).toEqual([
+      WHY_JOIN_FOR_ROLE.buyer,
+      WHY_JOIN_FOR_ROLE.seller,
+    ]);
   });
 
-  it("does not apply patches for coming-soon integration partner tile", () => {
+  it("maps renter to primary_onboarding_role and renting_house tag", () => {
+    const patches: Record<string, unknown> = {};
+    applyOnboardingRoleSelection("renter", (k, v) => {
+      patches[String(k)] = v;
+    });
+    expect(patches.primary_onboarding_role).toBe("renter");
+    expect(patches.why_joining_silverkey).toEqual([WHY_JOIN_FOR_ROLE.renter]);
+  });
+
+  it("maps brokerage to primary_onboarding_role", () => {
+    const patches: Record<string, unknown> = {};
+    applyOnboardingRoleSelection("brokerage", (k, v) => {
+      patches[String(k)] = v;
+    });
+    expect(patches.primary_onboarding_role).toBe("brokerage");
+    expect(patches.why_joining_silverkey).toEqual([]);
+  });
+
+  it("maps integration partner to primary_onboarding_role", () => {
     const patches: Record<string, unknown> = {};
     applyOnboardingRoleSelection("integration_partner", (k, v) => {
       patches[String(k)] = v;
     });
-    expect(patches).toEqual({});
+    expect(patches.primary_onboarding_role).toBe("integration_partner");
+    expect(patches.why_joining_silverkey).toEqual([]);
   });
 });
 
@@ -54,19 +76,17 @@ describe("primaryOnboardingRoleFromForm", () => {
     expect(
       primaryOnboardingRoleFromForm({
         primary_onboarding_role: "seller",
-        is_agent: "no",
       })
     ).toBe("seller");
   });
 
-  it("infers agent from is_agent yes", () => {
-    expect(primaryOnboardingRoleFromForm({ is_agent: "yes" })).toBe("agent");
+  it("infers agent from auth roles when draft role missing", () => {
+    expect(primaryOnboardingRoleFromForm({}, { roles: ["agent"] })).toBe("agent");
   });
 
   it("infers buyer from why_joining", () => {
     expect(
       primaryOnboardingRoleFromForm({
-        is_agent: "no",
         why_joining_silverkey: ["buying_house"],
       })
     ).toBe("buyer");
@@ -75,29 +95,45 @@ describe("primaryOnboardingRoleFromForm", () => {
   it("infers seller when buyer and seller intents both exist", () => {
     expect(
       primaryOnboardingRoleFromForm({
-        is_agent: "no",
         why_joining_silverkey: [WHY_JOIN_FOR_ROLE.buyer, WHY_JOIN_FOR_ROLE.seller],
       })
     ).toBe("seller");
   });
+
+  it("infers renter from renting_house tag", () => {
+    expect(
+      primaryOnboardingRoleFromForm({
+        why_joining_silverkey: [WHY_JOIN_FOR_ROLE.renter],
+      })
+    ).toBe("renter");
+  });
 });
 
 describe("formDataToPreferencesPayload", () => {
-  it("omits draft-only primary_onboarding_role", () => {
+  it("includes primary_onboarding_role for server role sync", () => {
     const payload = formDataToPreferencesPayload({
-      is_agent: "no",
       primary_onboarding_role: "buyer",
     } as OnboardingData);
-    expect(Object.prototype.hasOwnProperty.call(payload, "primary_onboarding_role")).toBe(false);
+    expect(payload.primary_onboarding_role).toBe("buyer");
+  });
+
+  it("strips workspace_shell_test_input from preferences payload", () => {
+    const payload = formDataToPreferencesPayload({
+      primary_onboarding_role: "seller",
+      workspace_shell_test_input: "draft-only",
+    } as OnboardingData);
+    expect(payload.workspace_shell_test_input).toBeUndefined();
   });
 });
 
 describe("isSelectableOnboardingRole", () => {
-  it("allows buyer and agent only", () => {
+  it("allows all public onboarding roles", () => {
     expect(isSelectableOnboardingRole("buyer")).toBe(true);
     expect(isSelectableOnboardingRole("agent")).toBe(true);
-    expect(isSelectableOnboardingRole("seller")).toBe(false);
-    expect(isSelectableOnboardingRole("integration_partner")).toBe(false);
+    expect(isSelectableOnboardingRole("seller")).toBe(true);
+    expect(isSelectableOnboardingRole("renter")).toBe(true);
+    expect(isSelectableOnboardingRole("brokerage")).toBe(true);
+    expect(isSelectableOnboardingRole("integration_partner")).toBe(true);
   });
 });
 
@@ -106,8 +142,45 @@ describe("legacy investor draft", () => {
     expect(
       primaryOnboardingRoleFromForm({
         primary_onboarding_role: "investor",
-        is_agent: "no",
       })
     ).toBe("buyer");
+  });
+});
+
+describe("isBuyerOnboardingRole", () => {
+  it("returns true for buyer primary role", () => {
+    expect(isBuyerOnboardingRole({ primary_onboarding_role: "buyer" })).toBe(true);
+  });
+
+  it("returns false for agent primary role", () => {
+    expect(isBuyerOnboardingRole({ primary_onboarding_role: "agent" })).toBe(false);
+  });
+
+  it("returns true for buyer primary even when auth roles include agent", () => {
+    expect(isBuyerOnboardingRole({ primary_onboarding_role: "buyer" }, { roles: ["agent"] })).toBe(
+      true
+    );
+  });
+
+  it("infers buyer from legacy why_joining only", () => {
+    expect(isBuyerOnboardingRole({ why_joining_silverkey: [WHY_JOIN_FOR_ROLE.buyer] })).toBe(true);
+  });
+});
+
+describe("shouldShowBuyerOnboardingUi", () => {
+  it("shows buyer UI for pure buyer", () => {
+    expect(shouldShowBuyerOnboardingUi({ primary_onboarding_role: "buyer" })).toBe(true);
+  });
+
+  it("hides buyer UI for agent shell", () => {
+    expect(shouldShowBuyerOnboardingUi({ primary_onboarding_role: "agent" })).toBe(false);
+  });
+
+  it("hides buyer UI for seller", () => {
+    expect(shouldShowBuyerOnboardingUi({ primary_onboarding_role: "seller" })).toBe(false);
+  });
+
+  it("hides buyer UI for renter", () => {
+    expect(shouldShowBuyerOnboardingUi({ primary_onboarding_role: "renter" })).toBe(false);
   });
 });

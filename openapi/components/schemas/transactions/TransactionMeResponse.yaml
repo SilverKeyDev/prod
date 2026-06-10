@@ -5,11 +5,14 @@ properties:
   success:
     type: boolean
   data:
-    $ref: "./Transaction.yaml"
+    $ref: "./TransactionMeData.yaml"
 example:
   success: true
   data:
-    id: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
-    buyer_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-    primary_agent_id: "b2c3d4e5-f6a7-8901-bcde-f12345678901"
-    brokerage_org_id: "a0000000-0000-4000-8000-000000000001"
+    transaction:
+      id: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+      buyer_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      primary_agent_id: "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+      brokerage_org_id: "a0000000-0000-4000-8000-000000000001"
+    active_transaction_id: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+    address: null

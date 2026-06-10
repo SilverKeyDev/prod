@@ -2,8 +2,8 @@ import type { PartnerPlacement } from "packages/features/partners/api/partners";
 import { PartnerPlacementList } from "packages/features/partners/components/PartnerPlacementList";
 import { usePartnerPlacementPresentation } from "packages/features/partners/hooks/usePartnerPlacementPresentation";
 import { usePartnerPlacements } from "packages/features/partners/hooks/usePartnerPlacements";
-import { Box } from "packages/ui/components/primitives";
-import type { Workspace } from "packages/utils/workspace";
+import { Box } from "packages/ui/components/structure/primitives";
+import type { Workspace } from "packages/utils/product/workspace";
 
 type PartnerRevSharePlacementProps = {
   stepId: string;

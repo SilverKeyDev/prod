@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import jwt as pyjwt
 
-from app.models import User
+from app.models import User, UserRole
 from tests.jwt_test_secret import TEST_JWT_HMAC_SECRET
 
 # Create a properly formatted mock JWT token for testing
@@ -23,9 +23,9 @@ class TestAgentTodosRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -67,7 +67,6 @@ class TestAgentTodosRoutes:
             cognito_id="cognito-client-1",
             email="client@example.com",
             name="Test Client",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -108,9 +107,9 @@ class TestAgentTodosRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -152,9 +151,9 @@ class TestAgentTodosRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -200,9 +199,9 @@ class TestAgentTodosRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -225,9 +224,9 @@ class TestAgentTodosRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -245,7 +244,9 @@ class TestAgentTodosRoutes:
             assert response.status_code == 400
             data = response.get_json()
             assert data["success"] is False
-            assert "due_date" in data["error"].lower()
+            assert "error_id" in data
+            field_errors = data.get("field_errors") or {}
+            assert any("due" in key.lower() for key in field_errors)
 
     def test_update_todo_success(self, client, db_session):
         """Test PUT /api/v1/agent/todos/<id> - happy path"""
@@ -254,9 +255,9 @@ class TestAgentTodosRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -293,9 +294,9 @@ class TestAgentTodosRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -310,7 +311,10 @@ class TestAgentTodosRoutes:
                     json={"title": "Updated"},
                 )
 
-                assert response.status_code == 400
+                assert response.status_code == 404
+                data = response.get_json()
+                assert data["success"] is False
+                assert data["error"] == "RESOURCE_NOT_FOUND"
 
     def test_delete_todo_success(self, client, db_session):
         """Test DELETE /api/v1/agent/todos/<id> - happy path"""
@@ -319,9 +323,9 @@ class TestAgentTodosRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -346,9 +350,9 @@ class TestAgentTodosRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         with patch("app.services.auth.get_current_user") as mock_get_user:
@@ -362,4 +366,7 @@ class TestAgentTodosRoutes:
                     headers={"Authorization": f"Bearer {MOCK_JWT_TOKEN}"},
                 )
 
-                assert response.status_code == 400
+                assert response.status_code == 404
+                data = response.get_json()
+                assert data["success"] is False
+                assert data["error"] == "RESOURCE_NOT_FOUND"

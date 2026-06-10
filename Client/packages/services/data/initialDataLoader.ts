@@ -4,9 +4,9 @@ import type { AgentConversation, GoogleCalendar } from "packages/config/http/api
 import { agentApi } from "packages/config/http/api";
 import { queryKeys } from "packages/config/query/keys";
 import { INITIAL_CHAT_HISTORY_LIMIT } from "packages/features/messaging/hooks/data/useAgentChats";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UserProfile } from "packages/types";
-import { prefetchRemoteImage } from "packages/utils/media/prefetchRemoteImage";
+import { prefetchRemoteImage } from "packages/utils/product/media/prefetchRemoteImage";
 
 import { DATA_ROUTES, getInitialLoadRoutes } from "./dataConfig";
 
@@ -28,12 +28,12 @@ export class InitialDataLoader {
    */
   async prefetchAllData(user: UserProfile | null): Promise<void> {
     if (!user) {
-      log.warn(LOG_CATEGORIES.API, "Prefetch called with null user");
+      log.warn("API", "Prefetch called with null user");
       return;
     }
 
-    const isAgent = user.is_agent ?? false;
-    log.info(LOG_CATEGORIES.API, "Starting initial data prefetch", {
+    const isAgent = (user.roles ?? []).includes("agent");
+    log.info("API", "Starting initial data prefetch", {
       userId: user.id,
       isAgent,
     });
@@ -41,7 +41,7 @@ export class InitialDataLoader {
     prefetchRemoteImage(user.profile_picture_url);
 
     const routes = getInitialLoadRoutes(user);
-    log.debug(LOG_CATEGORIES.API, "Routes to prefetch", {
+    log.debug("API", "Routes to prefetch", {
       routeCount: routes.length,
       routeKeys: routes.map((r) => r.key),
     });
@@ -54,7 +54,7 @@ export class InitialDataLoader {
       const succeeded = results.filter((r) => r.status === "fulfilled").length;
       const failed = results.filter((r) => r.status === "rejected").length;
 
-      log.info(LOG_CATEGORIES.API, "Initial route prefetch completed", {
+      log.info("API", "Initial route prefetch completed", {
         total: routes.length,
         succeeded,
         failed,
@@ -67,7 +67,7 @@ export class InitialDataLoader {
       // No need for separate prefetchGoogleEvents call
     } catch (error) {
       // Don't throw - allow app to continue even if some prefetches fail
-      log.error(LOG_CATEGORIES.API, "Error during initial data prefetch", error);
+      log.error(`API.${error}`, "Error during initial data prefetch");
     }
   }
 
@@ -82,18 +82,12 @@ export class InitialDataLoader {
       // Handle googleEvents specially - prefetch events per calendar with proper query keys
       // This matches the exact query structure used by useCalendarEvents hook
       if (route.key === "googleEvents") {
-        log.debug(
-          LOG_CATEGORIES.CALENDAR,
-          "Prefetching google events (primary + SilverKey metadata)"
-        );
+        log.debug("CALENDAR", "Prefetching google events (primary + SilverKey metadata)");
 
         const prefetchResult = await route.queryFn(user);
 
         if (!prefetchResult || Array.isArray(prefetchResult)) {
-          log.debug(
-            LOG_CATEGORIES.CALENDAR,
-            "No google events to prefetch (user not connected or no data)"
-          );
+          log.debug("CALENDAR", "No google events to prefetch (user not connected or no data)");
           return;
         }
 
@@ -102,7 +96,7 @@ export class InitialDataLoader {
           !("events" in prefetchResult) ||
           !Array.isArray(prefetchResult.events)
         ) {
-          log.debug(LOG_CATEGORIES.CALENDAR, "Invalid prefetch result structure", {
+          log.debug("CALENDAR", "Invalid prefetch result structure", {
             resultType: typeof prefetchResult,
             hasEvents:
               prefetchResult && typeof prefetchResult === "object" && "events" in prefetchResult,
@@ -125,7 +119,7 @@ export class InitialDataLoader {
             queryKeys.scheduling.silverKeyCalendar(),
             typedResult.silverKeyCalendar
           );
-          log.info(LOG_CATEGORIES.CALENDAR, "Stored SilverKey calendar in cache", {
+          log.info("CALENDAR", "Stored SilverKey calendar in cache", {
             calendarId: typedResult.silverKeyCalendar.id,
           });
         }
@@ -156,7 +150,7 @@ export class InitialDataLoader {
 
           // Log cache storage details (only for non-empty calendars to reduce noise)
           if (eventsWithCalendarId.length > 0) {
-            log.debug(LOG_CATEGORIES.CALENDAR, "Stored Google Calendar events in cache", {
+            log.debug("CALENDAR", "Stored Google Calendar events in cache", {
               calendarId: result.calendarId,
               eventCount: eventsWithCalendarId.length,
             });
@@ -165,7 +159,7 @@ export class InitialDataLoader {
 
         // No need to wait - setQueryData is synchronous
 
-        log.info(LOG_CATEGORIES.CALENDAR, "Successfully prefetched google events", {
+        log.info("CALENDAR", "Successfully prefetched google events", {
           batchCount: typedResult.events.length,
           totalEvents: typedResult.events.reduce(
             (sum, r) => sum + (r.events as unknown[]).length,
@@ -175,7 +169,7 @@ export class InitialDataLoader {
         return;
       }
 
-      log.debug(LOG_CATEGORIES.API, "Prefetching route", {
+      log.debug("API", "Prefetching route", {
         routeKey: route.key,
       });
 
@@ -185,12 +179,12 @@ export class InitialDataLoader {
         staleTime: route.staleTime,
       });
 
-      log.debug(LOG_CATEGORIES.API, "Successfully prefetched route", {
+      log.debug("API", "Successfully prefetched route", {
         routeKey: route.key,
       });
     } catch (error) {
       // Log error but don't throw - individual prefetch failures shouldn't block others
-      log.warn(LOG_CATEGORIES.API, "Failed to prefetch route", {
+      log.warn("API", "Failed to prefetch route", {
         routeKey: route.key,
         error: error instanceof Error ? error.message : String(error),
       });

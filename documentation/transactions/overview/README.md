@@ -1,3 +1,5 @@
+> **Status:** partial
+> **Last verified:** 2026-06-04
 # Transaction overview
 
 High-level scope, domain model, and user flows for checklist-driven transactions.

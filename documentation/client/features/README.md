@@ -33,9 +33,9 @@ Product-specific client documentation. Package code: `Client/packages/features/`
 
 | Package | Status | Pointer |
 |---------|--------|---------|
-| brokerage | Planned | [to-implement-soon/broker-workspace/](../../to-implement-soon/broker-workspace/) |
-| seller | Planned | Workspace shells doc |
-| integrationPartner | Planned | Package stub |
+| brokerage | Partial | Placeholder shell in `workspace/` — [workspaces-placeholder-shells.md](../architecture/workspaces-placeholder-shells.md) |
+| seller | Partial | Placeholder shell in `workspace/` — same doc |
+| integration_partner (workspace role) | Partial | No dedicated package; `integration_partner` workspace via `workspace/` placeholder |
 
 ## Cross-cutting
 

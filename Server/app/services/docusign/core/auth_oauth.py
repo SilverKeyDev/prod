@@ -8,11 +8,12 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 from docusign_esign import ApiClient
+from sqlalchemy import select
 
 from app import db
 from app.config import Config
 from app.models import DocusignOAuthToken
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..errors import DocusignAuthError
 from .api_client_rest import configure_rest_api_root
@@ -25,8 +26,6 @@ from .auth_oauth_flow import (
 from .auth_oauth_flow import (
     extract_user_id_from_state as flow_extract_user_id_from_state,
 )
-
-logger = get_logger()
 
 
 class DocusignOAuthService:
@@ -59,8 +58,8 @@ class DocusignOAuthService:
             Updated token
         """
         try:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Refreshing OAuth token",
                 {
                     "user_id": token.user_id,
@@ -97,8 +96,8 @@ class DocusignOAuthService:
 
             db.session.commit()
 
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "OAuth token refreshed successfully",
                 {
                     "user_id": token.user_id,
@@ -110,8 +109,8 @@ class DocusignOAuthService:
             return token
 
         except Exception as e:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 "Token refresh failed",
                 {"error": str(e), "user_id": token.user_id},
             )
@@ -128,14 +127,14 @@ class DocusignOAuthService:
         Returns:
             DocusignOAuthToken or None if not connected
         """
-        logger.debug(LOG_CATEGORIES["DOCUSIGN"], "Getting valid OAuth token", {"user_id": user_id})
+        log.debug("DOCUSIGN", "Getting valid OAuth token", {"user_id": user_id})
 
-        token = DocusignOAuthToken.query.filter_by(user_id=user_id).first()
+        token = db.session.scalar(
+            select(DocusignOAuthToken).where(DocusignOAuthToken.user_id == user_id)
+        )
 
         if not token:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"], "No OAuth token found for user", {"user_id": user_id}
-            )
+            log.debug("DOCUSIGN", "No OAuth token found for user", {"user_id": user_id})
             return None
 
         # Check if token is expired (with 5 minute buffer)
@@ -143,16 +142,16 @@ class DocusignOAuthService:
         is_expired = datetime.now(timezone.utc) >= (token.token_expires_at - buffer)
 
         if is_expired:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "OAuth token expired, refreshing",
                 {"user_id": user_id, "expired_at": token.token_expires_at.isoformat()},
             )
             # Refresh token
             token = DocusignOAuthService.refresh_token(token)
         else:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "OAuth token is valid",
                 {"user_id": user_id, "expires_at": token.token_expires_at.isoformat()},
             )
@@ -181,14 +180,14 @@ class DocusignOAuthService:
                 timeout=15,
             )
             if response.status_code >= 400:
-                logger.warning(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                log.warning(
+                    "DOCUSIGN",
                     "DocuSign OAuth revoke returned non-success status",
                     {"status_code": response.status_code},
                 )
         except Exception as e:
-            logger.warning(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warning(
+                "DOCUSIGN",
                 "DocuSign OAuth revoke request failed",
                 {"error": str(e)},
             )
@@ -203,25 +202,25 @@ class DocusignOAuthService:
         Args:
             user_id: User ID
         """
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"], "Disconnecting DocuSign OAuth", {"user_id": user_id}
-        )
+        log.debug("DOCUSIGN", "Disconnecting DocuSign OAuth", {"user_id": user_id})
 
-        token = DocusignOAuthToken.query.filter_by(user_id=user_id).first()
+        token = db.session.scalar(
+            select(DocusignOAuthToken).where(DocusignOAuthToken.user_id == user_id)
+        )
 
         if token:
             DocusignOAuthService._revoke_token_at_provider(token.refresh_token)
             db.session.delete(token)
             db.session.commit()
 
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "DocuSign OAuth disconnected successfully",
                 {"user_id": user_id, "account_id": token.account_id},
             )
         else:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "No OAuth token found to disconnect",
                 {"user_id": user_id},
             )
@@ -238,8 +237,8 @@ class DocusignOAuthService:
         configure_rest_api_root(api_client, token.base_uri)
         api_client.set_default_header("Authorization", f"Bearer {token.access_token}")
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "OAuth API client created successfully",
             {"user_id": token.user_id, "base_uri": token.base_uri},
         )
@@ -257,13 +256,13 @@ class DocusignOAuthService:
         Returns:
             Configured ApiClient or None if not connected
         """
-        logger.debug(LOG_CATEGORIES["DOCUSIGN"], "Creating OAuth API client", {"user_id": user_id})
+        log.debug("DOCUSIGN", "Creating OAuth API client", {"user_id": user_id})
 
         token = DocusignOAuthService.get_valid_token(user_id)
 
         if not token:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Cannot create API client - no valid token",
                 {"user_id": user_id},
             )

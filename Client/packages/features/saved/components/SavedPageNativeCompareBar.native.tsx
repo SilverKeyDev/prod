@@ -4,7 +4,7 @@ import Button from "@ui/button/Button";
 
 import { useLocalization } from "packages/contexts";
 import type { SavedHome } from "packages/types";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 type SavedPageNativeCompareBarProps = {
   selectedHomesData: SavedHome[];

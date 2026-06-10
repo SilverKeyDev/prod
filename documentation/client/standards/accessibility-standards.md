@@ -138,5 +138,5 @@ Run `pnpm lint:contrast` (see `Client/scripts/lint.d/`) after token changes.
 ## Out of scope
 
 - Formal VPAT/ACR procurement documents
-- Third-party iframe content (e.g. Move Concierge embed — partner responsibility)
+- Third-party iframe or partner-hosted content opened from placement links (partner responsibility)
 - Server JSON API responses (no HTML UI surface)

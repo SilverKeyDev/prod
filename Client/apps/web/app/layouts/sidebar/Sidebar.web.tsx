@@ -6,10 +6,10 @@ import { useLocalization } from "packages/contexts";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { useViewStore, type ViewState } from "packages/store";
 import { useNotificationStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
-import { SIDEBAR_CHROME_SHELL } from "packages/ui/components/sidebar/sidebarTheme";
+import { Box } from "packages/ui/components/structure/primitives";
+import { SIDEBAR_CHROME_SHELL } from "packages/ui/components/structure/sidebar/sidebarTheme";
 
-import { useDashboardShellRoutePrefetch } from "@/app/layouts/dashboard/useDashboardShellRoutePrefetch.web";
+import { useDashboardShellRoutePrefetch } from "@/app/navigation/useDashboardShellRoutePrefetch.web";
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
 import type { UserProfile } from "@/features/homeauth/types";
 

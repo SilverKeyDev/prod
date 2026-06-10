@@ -1,3 +1,5 @@
+> **Status:** Planned
+> **Last verified:** 2026-06-04
 # Reels MVP 3: Production
 
 ## Goal

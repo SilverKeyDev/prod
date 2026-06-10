@@ -8,24 +8,24 @@ import {
   loadClientHubModule,
   loadClientListModule,
 } from "packages/features/agent/components/loading/agentDashboardDynamicImports";
+import { submitAgentAgendaTodo } from "packages/features/agent/hooks/data/agenda/agentAgendaTodoSubmit";
 import type { AgendaTodoDTO } from "packages/features/calendar/types/agenda";
 import { useDocumentsDataIntegration } from "packages/features/documents";
-import { useActiveWorkspace } from "packages/features/homeauth";
-import { submitAgentAgendaTodo } from "packages/hooks/data/agenda/agentAgendaTodoSubmit";
 import {
   useCompletedSigningTodos,
   useSigningTodos,
-} from "packages/hooks/data/agenda/useSigningTodos";
+} from "packages/features/documents/hooks/data/agenda/useSigningTodos";
+import { useActiveWorkspace } from "packages/features/homeauth";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import Button from "packages/ui/components/button/Button";
-import { Box } from "packages/ui/components/primitives";
-import { buildClientHubPath, parseClientHubPathname } from "packages/utils/dashboard";
-import { stripWorkspaceShellPrefix } from "packages/utils/layout/dashboardLayoutConfig";
-import { traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
+import Button from "packages/ui/components/actions/button/Button";
+import { Box } from "packages/ui/components/structure/primitives";
+import { stripWorkspaceShellPrefix } from "packages/utils/core/layout/dashboardLayoutConfig";
+import { traceLazyImport } from "packages/utils/core/perf/shellRouteLoadTiming";
+import { buildClientHubPath, parseClientHubPathname } from "packages/utils/product/dashboard";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/clientHub/useAgentTodos";
 import { useCalendarOAuthCallback } from "@/features/calendar/hooks/data";
@@ -41,7 +41,7 @@ import {
 // Lazy-loaded so the dashboard shell can commit before the agenda/calendar subtree
 // (EventList, modals, useUpcomingEventsData, etc.) is parsed and rendered.
 const UpcomingEventsLazy = lazy(
-  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:UpcomingEvents", () =>
+  traceLazyImport("DASHBOARD", "lazy:UpcomingEvents", () =>
     loadUpcomingEventsModule().then((m) => ({ default: m.UpcomingEvents }))
   )
 );
@@ -50,34 +50,24 @@ const UpcomingEventsLazy = lazy(
 // agent-only client list / client-only checklists chunks finish loading.
 // Loaders are memoized in dashboardFeatureDynamicImports so route prefetch hits
 // the same import() promise as React.lazy.
-const ClientList = lazy(
-  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:ClientList", loadClientListModule)
-);
+const ClientList = lazy(traceLazyImport("DASHBOARD", "lazy:ClientList", loadClientListModule));
 const ClientHubScreenLazy = lazy(
-  traceLazyImport(LOG_CATEGORIES.DASHBOARD, "lazy:ClientHubScreen", () =>
+  traceLazyImport("DASHBOARD", "lazy:ClientHubScreen", () =>
     loadClientHubModule().then((m) => ({ default: m.ClientHubScreen }))
   )
 );
 const DashboardChecklists = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.DASHBOARD,
-    "lazy:DashboardChecklists",
-    loadDashboardChecklistsModule
-  )
+  traceLazyImport("DASHBOARD", "lazy:DashboardChecklists", loadDashboardChecklistsModule)
 );
 const DashboardAgreementSigningModals = lazy(
   traceLazyImport(
-    LOG_CATEGORIES.DASHBOARD,
+    "DASHBOARD",
     "lazy:DashboardAgreementSigningModals",
     loadDashboardAgreementSigningModalsModule
   )
 );
 const DashboardCalendarPanel = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.DASHBOARD,
-    "lazy:DashboardCalendarPanel",
-    loadDashboardCalendarPanelModule
-  )
+  traceLazyImport("DASHBOARD", "lazy:DashboardCalendarPanel", loadDashboardCalendarPanelModule)
 );
 
 const dashboardCalendarSkeleton = (
@@ -93,14 +83,14 @@ type DashboardFeatureProps = {
 };
 
 export function DashboardFeature({ setMobileHeaderActions }: DashboardFeatureProps) {
-  useFirstRenderCommitTimer(LOG_CATEGORIES.DASHBOARD, "DashboardFeature");
+  useFirstRenderCommitTimer("DASHBOARD", "DashboardFeature");
   const { navigateToPath, getCurrentRoute } = useNavigation();
   const isAgentWorkspace = useActiveWorkspace() === "agent";
   const queryClient = useQueryClient();
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   useCalendarOAuthCallback({ enqueueToast });
 
-  const { todos, createTodo, updateTodo } = useAgentTodos(false);
+  const { todos, createTodo, updateTodo, deleteTodo } = useAgentTodos(true);
   const signingTodos = useSigningTodos(isAgentWorkspace);
   const completedSigningTodos = useCompletedSigningTodos();
   const {
@@ -128,9 +118,33 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
     try {
       await updateTodo(id, { completed: !todo.completed });
     } catch (error) {
-      log.error(LOG_CATEGORIES.DASHBOARD, "Failed to update todo", error);
+      log.error("DASHBOARD", "Failed to update todo", error);
     }
   };
+
+  const handleUpdateAgendaTodo = useCallback(
+    async (id: string, data: Parameters<typeof updateTodo>[1]) => {
+      try {
+        await updateTodo(id, data);
+      } catch (error) {
+        log.error("DASHBOARD", "Failed to update agenda to-do", error);
+        throw error;
+      }
+    },
+    [updateTodo]
+  );
+
+  const handleDeleteAgendaTodo = useCallback(
+    async (id: string) => {
+      try {
+        await deleteTodo(id);
+      } catch (error) {
+        log.error("DASHBOARD", "Failed to delete agenda to-do", error);
+        throw error;
+      }
+    },
+    [deleteTodo]
+  );
 
   const handleSigningAgendaPress = useCallback(
     async (agreementId: string) => {
@@ -145,7 +159,7 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
       try {
         await signAgreementNow(doc);
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Agenda DocuSign signing failed", error);
+        log.error("ERRORS", "Agenda DocuSign signing failed", error);
         enqueueToast({
           type: "error",
           message: error instanceof Error ? error.message : "Signing could not start.",
@@ -210,6 +224,8 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
             agendaTodos={agendaTodos}
             onToggleAgendaTodo={handleToggleAgendaTodo}
             canEditAgendaTodos={true}
+            updateAgendaTodo={handleUpdateAgendaTodo}
+            deleteAgendaTodo={handleDeleteAgendaTodo}
             onSigningAgendaPress={handleSigningAgendaPress}
             headerActions={headerActions}
           />
@@ -253,7 +269,7 @@ export function DashboardFeature({ setMobileHeaderActions }: DashboardFeaturePro
                   }
                 );
               } catch (error) {
-                log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create agenda to-do", error);
+                log.error("DASHBOARD", "Failed to create agenda to-do", error);
                 throw error;
               }
             }}

@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [workspace.md](../../client/features/workspace.md).
+
 ## External parties and invites
 
 **Buyer ↔ agent connection** is shipped via connection requests. Inviting TC, loan officers, escrow, or other transaction participants is **not**.

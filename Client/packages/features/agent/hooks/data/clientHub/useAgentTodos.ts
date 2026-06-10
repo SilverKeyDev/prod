@@ -1,15 +1,94 @@
 import { useCallback, useMemo } from "react";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { showErrorToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import type { CreateTodoRequest, TodoItem, UpdateTodoRequest } from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";
+
+const TODO_LIST_QUERY_FLAGS = [false, true] as const;
+
+type TodoCacheSnapshot = Array<{
+  key: ReturnType<typeof queryKeys.agent.todos>;
+  data: TodoItem[] | undefined;
+}>;
+
+function snapshotTodoCaches(queryClient: QueryClient): TodoCacheSnapshot {
+  return TODO_LIST_QUERY_FLAGS.map((includeCompleted) => ({
+    key: queryKeys.agent.todos(includeCompleted),
+    data: queryClient.getQueryData<TodoItem[]>(queryKeys.agent.todos(includeCompleted)),
+  }));
+}
+
+function restoreTodoCaches(queryClient: QueryClient, snapshots: TodoCacheSnapshot) {
+  for (const { key, data } of snapshots) {
+    queryClient.setQueryData(key, data);
+  }
+}
+
+function writeTodoToCaches(queryClient: QueryClient, todo: TodoItem) {
+  for (const includeCompleted of TODO_LIST_QUERY_FLAGS) {
+    const key = queryKeys.agent.todos(includeCompleted);
+    queryClient.setQueryData<TodoItem[]>(key, (old) => {
+      if (!old) {
+        return old;
+      }
+      const index = old.findIndex((item) => item.id === todo.id);
+      if (!includeCompleted && todo.completed) {
+        return index === -1 ? old : old.filter((item) => item.id !== todo.id);
+      }
+      if (index === -1) {
+        return includeCompleted ? [...old, todo] : old;
+      }
+      const next = [...old];
+      next[index] = todo;
+      return next;
+    });
+  }
+}
+
+function applyOptimisticTodoRemoval(queryClient: QueryClient, id: string) {
+  for (const includeCompleted of TODO_LIST_QUERY_FLAGS) {
+    const key = queryKeys.agent.todos(includeCompleted);
+    queryClient.setQueryData<TodoItem[]>(key, (old) => {
+      if (!old) {
+        return old;
+      }
+      const index = old.findIndex((item) => item.id === id);
+      if (index === -1) {
+        return old;
+      }
+      return old.filter((item) => item.id !== id);
+    });
+  }
+}
+
+function applyOptimisticTodoPatch(queryClient: QueryClient, id: string, patch: UpdateTodoRequest) {
+  for (const includeCompleted of TODO_LIST_QUERY_FLAGS) {
+    const key = queryKeys.agent.todos(includeCompleted);
+    queryClient.setQueryData<TodoItem[]>(key, (old) => {
+      if (!old) {
+        return old;
+      }
+      const index = old.findIndex((item) => item.id === id);
+      if (index === -1) {
+        return old;
+      }
+      const merged = { ...old[index], ...patch };
+      if (!includeCompleted && merged.completed) {
+        return old.filter((item) => item.id !== id);
+      }
+      const next = [...old];
+      next[index] = merged;
+      return next;
+    });
+  }
+}
 
 export type UseAgentTodosReturn = {
   todos: TodoItem[];
@@ -18,8 +97,10 @@ export type UseAgentTodosReturn = {
   refetch: () => Promise<void>;
   createTodo: (data: CreateTodoRequest) => Promise<TodoItem | null>;
   updateTodo: (id: string, data: UpdateTodoRequest) => Promise<TodoItem | null>;
+  deleteTodo: (id: string) => Promise<void>;
   isCreating: boolean;
   isUpdating: boolean;
+  isDeleting: boolean;
 };
 
 /**
@@ -51,10 +132,7 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     // Use placeholderData function to check cache reactively when enabled changes
     // Note: Only use cached data if we're querying with includeCompleted=false (what's prefetched)
     placeholderData: () => {
-      if (includeCompleted === false) {
-        return queryClient.getQueryData<TodoItem[]>(queryKeys.agent.todos(false));
-      }
-      return undefined;
+      return queryClient.getQueryData<TodoItem[]>(queryKeys.agent.todos(includeCompleted));
     },
     staleTime: 3 * 60 * 1000, // 3 minutes
     refetchOnMount: false,
@@ -73,7 +151,7 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
       void queryClient.invalidateQueries({ queryKey: queryKeys.agent.all });
     },
     onError: (error) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Create todo failed", error);
+      log.error("ERRORS", "Create todo failed", error);
       showErrorToast("Failed to create todo. Please try again.");
     },
   });
@@ -87,11 +165,23 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
       }
       return response.todo ?? null;
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.agent.all });
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.agent.todos() });
+      const snapshots = snapshotTodoCaches(queryClient);
+      applyOptimisticTodoPatch(queryClient, id, data);
+      return { snapshots };
     },
-    onError: (error) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Update todo failed", error);
+    onSuccess: (serverTodo) => {
+      if (serverTodo) {
+        writeTodoToCaches(queryClient, serverTodo);
+      }
+      void queryClient.invalidateQueries({ queryKey: queryKeys.agent.notificationCounter() });
+    },
+    onError: (error, _variables, context) => {
+      if (context?.snapshots) {
+        restoreTodoCaches(queryClient, context.snapshots);
+      }
+      log.error("ERRORS", "Update todo failed", error);
       showErrorToast("Failed to update todo. Please try again.");
     },
   });
@@ -114,6 +204,38 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     [updateTodoMutation]
   );
 
+  const deleteTodoMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await agentApi.deleteTodo(id);
+      if (!response.success) {
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to delete todo"));
+      }
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.agent.todos() });
+      const snapshots = snapshotTodoCaches(queryClient);
+      applyOptimisticTodoRemoval(queryClient, id);
+      return { snapshots };
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.agent.notificationCounter() });
+    },
+    onError: (error, _variables, context) => {
+      if (context?.snapshots) {
+        restoreTodoCaches(queryClient, context.snapshots);
+      }
+      log.error("ERRORS", "Delete todo failed", error);
+      showErrorToast("Failed to delete to-do. Please try again.");
+    },
+  });
+
+  const deleteTodo = useCallback(
+    async (id: string) => {
+      await deleteTodoMutation.mutateAsync(id);
+    },
+    [deleteTodoMutation]
+  );
+
   return {
     todos: todosResponse ?? [],
     isLoading,
@@ -121,7 +243,9 @@ export function useAgentTodos(includeCompleted = false): UseAgentTodosReturn {
     refetch,
     createTodo,
     updateTodo,
+    deleteTodo,
     isCreating: createTodoMutation.isPending,
     isUpdating: updateTodoMutation.isPending,
+    isDeleting: deleteTodoMutation.isPending,
   };
 }

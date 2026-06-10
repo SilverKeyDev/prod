@@ -1,6 +1,6 @@
 import { CancelButton } from "packages/ui";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
 
 import { BodyText } from "@/components/ui";
 

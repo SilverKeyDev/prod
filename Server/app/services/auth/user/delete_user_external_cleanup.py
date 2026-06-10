@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 USER_S3_PREFIX_TEMPLATES = (
     "{user_id}/",
@@ -30,7 +30,7 @@ def _delete_cognito_user(*, email: str | None, cognito_id: str | None) -> dict[s
 
         if not AWS_COGNITO_service.user_pool_id:
             log.warn(
-                LOG_CATEGORIES["API"],
+                "API",
                 "delete_user: Cognito user pool not configured; skipping Cognito delete",
                 {},
             )
@@ -48,7 +48,7 @@ def _delete_cognito_user(*, email: str | None, cognito_id: str | None) -> dict[s
         }
     except Exception as exc:
         log.warn(
-            LOG_CATEGORIES["API"],
+            "API",
             "delete_user: Cognito delete failed",
             {"error": str(exc)},
         )
@@ -62,7 +62,7 @@ def _revoke_google_calendar_oauth(user_id: str) -> bool:
         return bool(google_calendar_service.revoke_access(user_id))
     except Exception as exc:
         log.warn(
-            LOG_CATEGORIES["API"],
+            "API",
             "delete_user: Google OAuth revoke failed",
             {"user_id": user_id, "error": str(exc)},
         )
@@ -77,7 +77,7 @@ def _revoke_docusign_oauth(user_id: str) -> bool:
         return True
     except Exception as exc:
         log.warn(
-            LOG_CATEGORIES["API"],
+            "API",
             "delete_user: DocuSign OAuth disconnect failed",
             {"user_id": user_id, "error": str(exc)},
         )
@@ -89,7 +89,7 @@ def _delete_user_s3_objects(user_id: str, extra_s3_keys: list[str] | None) -> di
 
     stats = {"prefix_deleted": 0, "keys_deleted": 0}
     if not s3_service._ensure_s3_client():
-        log.warn(LOG_CATEGORIES["API"], "delete_user: S3 client unavailable", {"user_id": user_id})
+        log.warn("API", "delete_user: S3 client unavailable", {"user_id": user_id})
         return stats
 
     prefixes = [template.format(user_id=user_id) for template in USER_S3_PREFIX_TEMPLATES]
@@ -132,7 +132,7 @@ def cleanup_external_resources_for_user(
         "s3": _delete_user_s3_objects(uid, extra_s3_keys),
     }
     log.info(
-        LOG_CATEGORIES["API"],
+        "API",
         "delete_user: external resource cleanup finished",
         summary,
     )

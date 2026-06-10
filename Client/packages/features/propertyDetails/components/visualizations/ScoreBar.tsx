@@ -1,7 +1,7 @@
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 export type ScoreBarProps = {
   /** Numeric score (e.g. 7 for 7/10). */

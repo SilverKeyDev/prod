@@ -1,6 +1,6 @@
 import type { AreaSearchResult } from "packages/types/domain/api";
 import { hasProperty } from "packages/utils";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 // ---------------------------------------------------------------------------
 // Suggestion types

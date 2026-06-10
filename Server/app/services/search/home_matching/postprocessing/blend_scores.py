@@ -2,18 +2,17 @@
 Ensemble scoring logic using embedding-based methods.
 """
 
-import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
+
+from logger import log
 
 from ..config.settings import DEFAULT_TOP_K
 from ..embeddings.scorer import EmbeddingScorer
 from .batch_scoring import score_home_batch
 from .comparison import compare_scoring_methods
 from .stats import get_ensemble_stats
-
-logger = logging.getLogger(__name__)
 
 
 class EnsembleScorer:
@@ -62,7 +61,7 @@ class EnsembleScorer:
             return float(rounded_score)
 
         except Exception as e:
-            logger.error(f"Error scaling score: {e}")
+            log.error("ERRORS", f"Error scaling score: {e}")
             return 0.0
 
     def score_user_home_pair(
@@ -95,7 +94,7 @@ class EnsembleScorer:
                 )
                 result["scores"]["embedding"] = embedding_score
             except Exception as e:
-                logger.error(f"Embedding scoring failed: {e}")
+                log.error("ERRORS", f"Embedding scoring failed: {e}")
                 result["scores"]["embedding"] = 0.0
                 result["errors"] = result.get("errors", {})
                 result["errors"]["embedding"] = str(e)
@@ -124,7 +123,7 @@ class EnsembleScorer:
                         session_id=session_id,
                     )
                 except Exception as e:
-                    logger.warning(f"Failed to track scoring event to DB: {e}")
+                    log.warn("SEARCH", f"Failed to track scoring event to DB: {e}")
 
             # Track performance
             self.score_history.append(
@@ -134,7 +133,7 @@ class EnsembleScorer:
             return result
 
         except Exception as e:
-            logger.error(f"Error scoring user-home pair: {e}")
+            log.error("ERRORS", f"Error scoring user-home pair: {e}")
             return {
                 "user_id": user_data.get("user_id", "unknown"),
                 "home_id": home_data.get("home_id", "unknown"),
@@ -209,8 +208,9 @@ class EnsembleScorer:
                         completed_batches += 1
 
                     except Exception as e:
-                        logger.error(
-                            f"❌ Error processing batch starting at index {batch_start_idx}: {e}"
+                        log.error(
+                            "ERRORS",
+                            f"❌ Error processing batch starting at index {batch_start_idx}: {e}",
                         )
                         # Fill with error results
                         for i, home_data in enumerate(batch_homes):
@@ -242,7 +242,7 @@ class EnsembleScorer:
                             request_id=request_id, home_id=home_id, rank_position=i + 1
                         )
                     except Exception as e:
-                        logger.warning(f"Failed to update rank position in DB: {e}")
+                        log.warn("SEARCH", f"Failed to update rank position in DB: {e}")
 
             # Return top-k results
             top_homes: list[dict[str, Any]] = filtered_homes[:top_k]
@@ -250,7 +250,7 @@ class EnsembleScorer:
             return top_homes
 
         except Exception as e:
-            logger.error(f"Error ranking homes: {e}")
+            log.error("ERRORS", f"Error ranking homes: {e}")
             return []
 
     def compare_scoring_methods(
@@ -282,8 +282,9 @@ class EnsembleScorer:
         """Track a scoring event to the database."""
         # Skip tracking if home_id is None or empty (required by database)
         if not home_id:
-            logger.debug(
-                f"Skipping scoring event tracking: home_id is None or empty (request_id={request_id}, user_id={user_id})"
+            log.debug(
+                "SEARCH",
+                f"Skipping scoring event tracking: home_id is None or empty (request_id={request_id}, user_id={user_id})",
             )
             return
 
@@ -326,7 +327,7 @@ class EnsembleScorer:
             db.session.commit()
 
         except Exception as e:
-            logger.error(f"Error tracking scoring event: {e}", exc_info=True)
+            log.error("ERRORS", f"Error tracking scoring event: {e}")
             # Rollback on error
             try:
                 db.session.rollback()
@@ -335,14 +336,19 @@ class EnsembleScorer:
 
     def _update_rank_position(self, request_id: str, home_id: str, rank_position: int) -> None:
         """Update rank position for an existing scoring event."""
+        from sqlalchemy import select
+
         from app import db
         from app.models import ScoringResultsTracker
 
         try:
-            event = (
-                ScoringResultsTracker.query.filter_by(request_id=request_id, home_id=home_id)
+            event = db.session.scalar(
+                select(ScoringResultsTracker)
+                .where(
+                    ScoringResultsTracker.request_id == request_id,
+                    ScoringResultsTracker.home_id == home_id,
+                )
                 .order_by(ScoringResultsTracker.created_at.desc())
-                .first()
             )
 
             if event:
@@ -350,7 +356,7 @@ class EnsembleScorer:
                 db.session.commit()
 
         except Exception as e:
-            logger.warning(f"Error updating rank position: {e}")
+            log.warn("SEARCH", f"Error updating rank position: {e}")
             try:
                 db.session.rollback()
             except Exception:

@@ -1,0 +1,1639 @@
+{
+  "edges": [
+    {
+      "from": "saved",
+      "to": "documents",
+      "count": 26,
+      "refs": [
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/utils/librarySort.ts"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/hooks/useSavedDocumentsCoordinator.ts"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/hooks/useSavedFeatureSignatureFlow.ts"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/hooks/ui/useSavedLibraryChrome.ts"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/hooks/data/useSavedPageMobileHeader.ts"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/DocumentsViewWithSubtabs.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/SavedFeature.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/SavedFeatureSigningModals.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/SavedHomesContent.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/SavedHomesContent.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/SavedPageModals.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents/components/pdf/PdfModalBridge",
+          "file": "packages/features/saved/components/SavedPageNativeModals.native.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/upload/DocumentUpload.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/upload/DocumentUploadModal.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/layout/SavedDocumentsList.native.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/layout/SavedHeader.native.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/layout/SavedPageLayout.native.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/layout/SavedPageLayout.native.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/layout/SavedPageLayout.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents/components/pdf/PdfModalBridge",
+          "file": "packages/features/saved/components/layout/SavedPageLayout.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/header/LibrarySortControl.native.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/header/LibrarySortSelect.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/header/SavedHomesHeader.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/header/SavedLayout.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/header/SavedPageTabsAndSearch.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/saved/components/header/SavedPageViewUnderlineTabs.tsx"
+        }
+      ]
+    },
+    {
+      "from": "agent",
+      "to": "messaging",
+      "count": 17,
+      "refs": [
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging",
+          "file": "packages/features/agent/hooks/ui/useMessagingScreenNativeController.ts"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/hooks/data/useAgentChats",
+          "file": "packages/features/agent/hooks/data/connections/useAgentConnectionDisplayStatus.ts"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/hooks/data/useAgentChats",
+          "file": "packages/features/agent/hooks/data/calendar/useCalendarEventRequestForm.ts"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging",
+          "file": "packages/features/agent/components/workspace/ClientManagement.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/components/AgentMessaging/AgentMessaging",
+          "file": "packages/features/agent/components/messaging/AgentMessaging.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/components/ClientMessaging/ClientMessaging",
+          "file": "packages/features/agent/components/messaging/ClientMessaging.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRow.native.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/hooks/data/messaging/types",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRow.native.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRowNativeAttachmentCards.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRowNativeBubbleBody.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/components/cards/AgreementEventCard",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRowNativeBubbleBody.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/hooks/data/messaging/types",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRowNativeBubbleBody.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/utils/agreementEventPayload",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRowNativeBubbleBody.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/utils/eventRequestPayload",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRowNativeBubbleBody.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/hooks/data/messaging/types",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRowNativeEventRequest.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/utils/eventRequestPayload",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRowNativeEventRequest.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport",
+          "file": "packages/features/agent/components/loading/prefetchAgentMessagingChunks.ts"
+        }
+      ]
+    },
+    {
+      "from": "agent",
+      "to": "documents",
+      "count": 14,
+      "refs": [
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/hooks/ui/useMessagingScreenNativeController.ts"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/hooks/data/clientHub/useClientHubAgendaTodos.ts"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/components/modals/search/SelectDocumentModal.native.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/components/modals/search/SelectDocumentModal.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeOverlays.native.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents/components/pdf/PdfModalBridge",
+          "file": "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeOverlays.native.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRow.native.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRowNativeAttachmentCards.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/components/clientHub/ClientHubDocumentSigningModals.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/components/clientHub/saved-homes/ClientSavedHomes.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents/components/pdf/PdfModalBridge",
+          "file": "packages/features/agent/components/clientHub/saved-homes/ClientSavedHomes.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/components/clientHub/library/ClientHubLibraryPanel.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents/components/pdf/PdfModalBridge",
+          "file": "packages/features/agent/components/clientHub/library/ClientHubLibraryPanel.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/agent/components/clientHub/agenda/ClientHubAgenda.tsx"
+        }
+      ]
+    },
+    {
+      "from": "checklists",
+      "to": "profile",
+      "count": 12,
+      "refs": [
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/types/onboarding/onboarding",
+          "file": "packages/features/checklists/utils/integration/checklistIntegrationCompleteness.test.ts"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/types/onboarding/onboarding",
+          "file": "packages/features/checklists/utils/integration/checklistIntegrationCompleteness.ts"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/types/onboarding/onboarding",
+          "file": "packages/features/checklists/utils/integration/checklistIntegrationCompletenessByKey.ts"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/components/onboarding",
+          "file": "packages/features/checklists/components/integrations/criteria/DefineCriteriaSection.native.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/components/sections/housing/HousingSection",
+          "file": "packages/features/checklists/components/integrations/criteria/DefineCriteriaSection.web.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/components/settings/inputs/PreferencesFormContent.web",
+          "file": "packages/features/checklists/components/integrations/criteria/DefineCriteriaSection.web.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/types/onboarding/onboarding",
+          "file": "packages/features/checklists/components/integrations/budget/SetBudgetSection.native.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/components/profileScreen/sections/financial/ProfileFinancialSection",
+          "file": "packages/features/checklists/components/integrations/budget/SetBudgetSection.web.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/utils",
+          "file": "packages/features/checklists/components/integrations/budget/SetBudgetSection.web.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/types/onboarding/onboarding",
+          "file": "packages/features/checklists/components/integrations/areas/ChooseAreasSection.native.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/components/sections/LocationSection",
+          "file": "packages/features/checklists/components/integrations/areas/ChooseAreasSection.web.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "profile",
+          "importPath": "packages/features/profile/components/settings/inputs/PreferencesFormContent.web",
+          "file": "packages/features/checklists/components/integrations/areas/ChooseAreasSection.web.tsx"
+        }
+      ]
+    },
+    {
+      "from": "agent",
+      "to": "checklists",
+      "count": 9,
+      "refs": [
+        {
+          "from": "agent",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/types/checklists",
+          "file": "packages/features/agent/utils/clientList/buildClientListSubtitle.ts"
+        },
+        {
+          "from": "agent",
+          "to": "checklists",
+          "importPath": "packages/features/checklists",
+          "file": "packages/features/agent/hooks/data/clientHub/useClientHubChecklistPrefetch.test.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "checklists",
+          "importPath": "packages/features/checklists",
+          "file": "packages/features/agent/hooks/data/clientHub/useClientHubChecklistPrefetch.ts"
+        },
+        {
+          "from": "agent",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/api/checklists",
+          "file": "packages/features/agent/hooks/data/calendar/useCalendarEventRequestForm.ts"
+        },
+        {
+          "from": "agent",
+          "to": "checklists",
+          "importPath": "packages/features/checklists",
+          "file": "packages/features/agent/components/clientHub/ClientHubHeaderCard.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "checklists",
+          "importPath": "packages/features/checklists",
+          "file": "packages/features/agent/components/clientHub/ClientHubRoadmapPanel.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/types/roadmapTracker",
+          "file": "packages/features/agent/components/clientHub/ClientHubRoadmapPanel.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "checklists",
+          "importPath": "packages/features/checklists",
+          "file": "packages/features/agent/components/clientHub/ClientHubScreen.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "checklists",
+          "importPath": "packages/features/checklists",
+          "file": "packages/features/agent/components/clientHub/checklists/ClientChecklists.tsx"
+        }
+      ]
+    },
+    {
+      "from": "messaging",
+      "to": "agent",
+      "count": 8,
+      "refs": [
+        {
+          "from": "messaging",
+          "to": "agent",
+          "importPath": "packages/features/agent/components/messaging/screen/messagingConfig",
+          "file": "packages/features/messaging/components/layout/chrome/UnifiedMessagingSidebarClientList.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "agent",
+          "importPath": "packages/features/agent/components/messaging/screen/messagingConfig",
+          "file": "packages/features/messaging/components/layout/chrome/UnifiedMessagingSidebarClientList.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "agent",
+          "importPath": "packages/features/agent/utils/agentClientListLabels",
+          "file": "packages/features/messaging/components/layout/chrome/UnifiedMessagingSidebarClientList.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "agent",
+          "importPath": "packages/features/agent/utils/agentClientListSort",
+          "file": "packages/features/messaging/components/layout/chrome/UnifiedMessagingSidebarClientList.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "agent",
+          "importPath": "packages/features/agent/components/modals/inbox/ConnectionRequestsInbox",
+          "file": "packages/features/messaging/components/layout/chrome/UnifiedMessagingSidebarInbox.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "agent",
+          "importPath": "packages/features/agent/components/messaging/screen/messagingConfig",
+          "file": "packages/features/messaging/components/AgentMessaging/AgentMessaging.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "agent",
+          "importPath": "packages/features/agent/hooks/data/clients/useAgentClients",
+          "file": "packages/features/messaging/components/AgentMessaging/AgentMessaging.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "agent",
+          "importPath": "packages/features/agent/hooks/ui/useAgentAutoSelectClient",
+          "file": "packages/features/messaging/components/AgentMessaging/AgentMessaging.tsx"
+        }
+      ]
+    },
+    {
+      "from": "messaging",
+      "to": "documents",
+      "count": 7,
+      "refs": [
+        {
+          "from": "messaging",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/messaging/utils/messagingAttachmentAvailability.test.ts"
+        },
+        {
+          "from": "messaging",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/messaging/utils/messagingAttachmentAvailability.ts"
+        },
+        {
+          "from": "messaging",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/messaging/components/layout/threadRow/UnifiedMessageThreadRow.types.ts"
+        },
+        {
+          "from": "messaging",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/messaging/components/layout/threadRow/UnifiedMessageThreadRowBubble.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/messaging/components/layout/messagesList/UnifiedMessagesList.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListOverlays.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "documents",
+          "importPath": "packages/features/documents/components/pdf/PdfModalBridge",
+          "file": "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListOverlays.tsx"
+        }
+      ]
+    },
+    {
+      "from": "agent",
+      "to": "calendar",
+      "count": 6,
+      "refs": [
+        {
+          "from": "agent",
+          "to": "calendar",
+          "importPath": "packages/features/calendar",
+          "file": "packages/features/agent/utils/mapTodosToAgendaDTO.ts"
+        },
+        {
+          "from": "agent",
+          "to": "calendar",
+          "importPath": "packages/features/calendar/types/agenda",
+          "file": "packages/features/agent/hooks/data/clientHub/useClientHubAgendaTodos.ts"
+        },
+        {
+          "from": "agent",
+          "to": "calendar",
+          "importPath": "packages/features/calendar",
+          "file": "packages/features/agent/hooks/data/calendar/useCalendarEventRequestForm.ts"
+        },
+        {
+          "from": "agent",
+          "to": "calendar",
+          "importPath": "packages/features/calendar",
+          "file": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestFormCore.native.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "calendar",
+          "importPath": "packages/features/calendar",
+          "file": "packages/features/agent/components/clientHub/calendar/ClientCalendar.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "calendar",
+          "importPath": "packages/features/calendar",
+          "file": "packages/features/agent/components/clientHub/agenda/ClientHubAgenda.tsx"
+        }
+      ]
+    },
+    {
+      "from": "profile",
+      "to": "homeauth",
+      "count": 6,
+      "refs": [
+        {
+          "from": "profile",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/api/clientSettings",
+          "file": "packages/features/profile/utils/onboarding/submit/submitHandler.ts"
+        },
+        {
+          "from": "profile",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/components/account/AccountLogoutAction",
+          "file": "packages/features/profile/components/ProfileScreen.tsx"
+        },
+        {
+          "from": "profile",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/components/account/AccountLogoutAction",
+          "file": "packages/features/profile/components/settings/inputs/ProfileFeature.tsx"
+        },
+        {
+          "from": "profile",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/api/auth",
+          "file": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.web.tsx"
+        },
+        {
+          "from": "profile",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/api/user",
+          "file": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.web.tsx"
+        },
+        {
+          "from": "profile",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm",
+          "file": "packages/features/profile/components/onboarding/OnboardingScreen.native.tsx"
+        }
+      ]
+    },
+    {
+      "from": "search",
+      "to": "profile",
+      "count": 6,
+      "refs": [
+        {
+          "from": "search",
+          "to": "profile",
+          "importPath": "packages/features/profile",
+          "file": "packages/features/search/components/header/filters/SearchFilterBar.web.tsx"
+        },
+        {
+          "from": "search",
+          "to": "profile",
+          "importPath": "packages/features/profile",
+          "file": "packages/features/search/components/header/filters/SearchFiltersContent.tsx"
+        },
+        {
+          "from": "search",
+          "to": "profile",
+          "importPath": "packages/features/profile",
+          "file": "packages/features/search/components/header/filters/SearchFiltersSheet.web.tsx"
+        },
+        {
+          "from": "search",
+          "to": "profile",
+          "importPath": "packages/features/profile",
+          "file": "packages/features/search/components/filters/OtherFilterContent.web.tsx"
+        },
+        {
+          "from": "search",
+          "to": "profile",
+          "importPath": "packages/features/profile",
+          "file": "packages/features/search/components/filters/OtherFilterDropdown.web.tsx"
+        },
+        {
+          "from": "search",
+          "to": "profile",
+          "importPath": "packages/features/profile",
+          "file": "packages/features/search/components/filters/SearchPreferencesContent.web.tsx"
+        }
+      ]
+    },
+    {
+      "from": "agent",
+      "to": "homeauth",
+      "count": 5,
+      "refs": [
+        {
+          "from": "agent",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth",
+          "file": "packages/features/agent/hooks/ui/useMessagingScreenNativeController.ts"
+        },
+        {
+          "from": "agent",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth",
+          "file": "packages/features/agent/components/AgentFeature.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth",
+          "file": "packages/features/agent/components/modals/search/ClientSearchModal.native.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth",
+          "file": "packages/features/agent/components/clientHub/ClientHubScreen.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth",
+          "file": "packages/features/agent/components/clientHub/checklists/ClientChecklists.tsx"
+        }
+      ]
+    },
+    {
+      "from": "checklists",
+      "to": "documents",
+      "count": 5,
+      "refs": [
+        {
+          "from": "checklists",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/checklists/hooks/useChecklistStepSigningFooter.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/checklists/components/steps/ChecklistStepForms.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "documents",
+          "importPath": "packages/features/documents/components/pdf/PdfModalBridge",
+          "file": "packages/features/checklists/components/steps/ChecklistStepForms.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "documents",
+          "importPath": "packages/features/documents/hooks/data/useDocumentActions",
+          "file": "packages/features/checklists/components/steps/ChecklistStepForms.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/checklists/components/steps/FormCard.tsx"
+        }
+      ]
+    },
+    {
+      "from": "dashboard",
+      "to": "calendar",
+      "count": 5,
+      "refs": [
+        {
+          "from": "dashboard",
+          "to": "calendar",
+          "importPath": "packages/features/calendar",
+          "file": "packages/features/dashboard/components/widgets/MobileAgendaAddButton.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "calendar",
+          "importPath": "packages/features/calendar/types/agenda",
+          "file": "packages/features/dashboard/components/shell/DashboardFeature.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "calendar",
+          "importPath": "packages/features/calendar",
+          "file": "packages/features/dashboard/components/shell/DashboardScreen.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "calendar",
+          "importPath": "packages/features/calendar",
+          "file": "packages/features/dashboard/components/panels/DashboardCalendarPanel.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "calendar",
+          "importPath": "packages/features/calendar",
+          "file": "packages/features/dashboard/components/panels/DashboardCalendarPanel.tsx"
+        }
+      ]
+    },
+    {
+      "from": "homeauth",
+      "to": "profile",
+      "count": 5,
+      "refs": [
+        {
+          "from": "homeauth",
+          "to": "profile",
+          "importPath": "packages/features/profile/components/onboarding",
+          "file": "packages/features/homeauth/native.ts"
+        },
+        {
+          "from": "homeauth",
+          "to": "profile",
+          "importPath": "packages/features/profile/utils",
+          "file": "packages/features/homeauth/hooks/data/onboarding/useOnboardingAffordability.ts"
+        },
+        {
+          "from": "homeauth",
+          "to": "profile",
+          "importPath": "packages/features/profile/components/layout",
+          "file": "packages/features/homeauth/components/flows/OnboardingFeature.tsx"
+        },
+        {
+          "from": "homeauth",
+          "to": "profile",
+          "importPath": "packages/features/profile/components/onboarding/renderOnboardingStep.web",
+          "file": "packages/features/homeauth/components/flows/OnboardingFeature.tsx"
+        },
+        {
+          "from": "homeauth",
+          "to": "profile",
+          "importPath": "packages/features/profile/types/onboarding/profileStepIds",
+          "file": "packages/features/homeauth/components/flows/OnboardingFeature.tsx"
+        }
+      ]
+    },
+    {
+      "from": "partners",
+      "to": "checklists",
+      "count": 5,
+      "refs": [
+        {
+          "from": "partners",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/types/checklists",
+          "file": "packages/features/partners/utils/checklistStepPicker.ts"
+        },
+        {
+          "from": "partners",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/types/componentRegistry",
+          "file": "packages/features/partners/components/PartnerTransactionIntegration.native.tsx"
+        },
+        {
+          "from": "partners",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/types/componentRegistry",
+          "file": "packages/features/partners/components/PartnerTransactionIntegration.tsx"
+        },
+        {
+          "from": "partners",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/types/checklists",
+          "file": "packages/features/partners/components/admin/ChecklistStepPicker.tsx"
+        },
+        {
+          "from": "partners",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/types/checklists",
+          "file": "packages/features/partners/components/admin/ChecklistStepPicker.tsx"
+        }
+      ]
+    },
+    {
+      "from": "saved",
+      "to": "homeauth",
+      "count": 5,
+      "refs": [
+        {
+          "from": "saved",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/types/auth/user",
+          "file": "packages/features/saved/utils/mapToAddFavoriteHomePayload.ts"
+        },
+        {
+          "from": "saved",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/types/auth/user",
+          "file": "packages/features/saved/types/favorites.ts"
+        },
+        {
+          "from": "saved",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/api/auth",
+          "file": "packages/features/saved/api/savedHomes.ts"
+        },
+        {
+          "from": "saved",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/api/user",
+          "file": "packages/features/saved/api/savedHomes.ts"
+        },
+        {
+          "from": "saved",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth/types/auth/user",
+          "file": "packages/features/saved/api/savedHomes.ts"
+        }
+      ]
+    },
+    {
+      "from": "search",
+      "to": "feed",
+      "count": 5,
+      "refs": [
+        {
+          "from": "search",
+          "to": "feed",
+          "importPath": "packages/features/feed",
+          "file": "packages/features/search/hooks/ui/controller/useSearchFeatureController.ts"
+        },
+        {
+          "from": "search",
+          "to": "feed",
+          "importPath": "packages/features/feed",
+          "file": "packages/features/search/components/reels/DesktopReelsViewImpl.native.tsx"
+        },
+        {
+          "from": "search",
+          "to": "feed",
+          "importPath": "packages/features/feed",
+          "file": "packages/features/search/components/reels/DesktopReelsViewImpl.web.tsx"
+        },
+        {
+          "from": "search",
+          "to": "feed",
+          "importPath": "packages/features/feed",
+          "file": "packages/features/search/components/reels/ReelsView.tsx"
+        },
+        {
+          "from": "search",
+          "to": "feed",
+          "importPath": "packages/features/feed",
+          "file": "packages/features/search/components/reels/ReelsView.web.tsx"
+        }
+      ]
+    },
+    {
+      "from": "agent",
+      "to": "search",
+      "count": 4,
+      "refs": [
+        {
+          "from": "agent",
+          "to": "search",
+          "importPath": "packages/features/search/store/searchContext.slice",
+          "file": "packages/features/agent/utils/agentDiscovery/buildAgentDiscoveryRecommendationInput.ts"
+        },
+        {
+          "from": "agent",
+          "to": "search",
+          "importPath": "packages/features/search",
+          "file": "packages/features/agent/components/modals/search/SelectHomeModal.native.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "search",
+          "importPath": "packages/features/search",
+          "file": "packages/features/agent/components/messaging/messageRow/MessagingMessageRow.native.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "search",
+          "importPath": "packages/features/search",
+          "file": "packages/features/agent/components/clientHub/saved-homes/ClientSavedHomes.tsx"
+        }
+      ]
+    },
+    {
+      "from": "checklists",
+      "to": "partners",
+      "count": 4,
+      "refs": [
+        {
+          "from": "checklists",
+          "to": "partners",
+          "importPath": "packages/features/partners/api/partners",
+          "file": "packages/features/checklists/types/componentRegistry.ts"
+        },
+        {
+          "from": "checklists",
+          "to": "partners",
+          "importPath": "packages/features/partners",
+          "file": "packages/features/checklists/components/slots/ChecklistIntegrationSlot.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "partners",
+          "importPath": "packages/features/partners/hooks/usePartnerPlacements",
+          "file": "packages/features/checklists/components/slots/ChecklistIntegrationSlot.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "partners",
+          "importPath": "packages/features/partners/components/PartnerTransactionIntegration",
+          "file": "packages/features/checklists/components/integrations/componentRegistry.ts"
+        }
+      ]
+    },
+    {
+      "from": "dashboard",
+      "to": "agent",
+      "count": 4,
+      "refs": [
+        {
+          "from": "dashboard",
+          "to": "agent",
+          "importPath": "packages/features/agent",
+          "file": "packages/features/dashboard/components/shell/DashboardFeature.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "agent",
+          "importPath": "packages/features/agent/components/loading/agentDashboardDynamicImports",
+          "file": "packages/features/dashboard/components/shell/DashboardFeature.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "agent",
+          "importPath": "packages/features/agent",
+          "file": "packages/features/dashboard/components/shell/DashboardScreen.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "agent",
+          "importPath": "packages/features/agent/components/loading/prefetchAgentDashboardChunks",
+          "file": "packages/features/dashboard/components/shell/prefetchDashboardFeatureChunks.ts"
+        }
+      ]
+    },
+    {
+      "from": "dashboard",
+      "to": "checklists",
+      "count": 4,
+      "refs": [
+        {
+          "from": "dashboard",
+          "to": "checklists",
+          "importPath": "packages/features/checklists",
+          "file": "packages/features/dashboard/components/DashboardChecklists/DashboardChecklists.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/components/shared/ChecklistSigningModals",
+          "file": "packages/features/dashboard/components/DashboardChecklists/DashboardChecklists.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/hooks/useChecklistStepSigningFooter",
+          "file": "packages/features/dashboard/components/DashboardChecklists/DashboardChecklists.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "checklists",
+          "importPath": "packages/features/checklists",
+          "file": "packages/features/dashboard/components/DashboardChecklists/DashboardChecklistsHeader.tsx"
+        }
+      ]
+    },
+    {
+      "from": "messaging",
+      "to": "search",
+      "count": 4,
+      "refs": [
+        {
+          "from": "messaging",
+          "to": "search",
+          "importPath": "packages/features/search",
+          "file": "packages/features/messaging/components/layout/threadRow/UnifiedMessageThreadRow.types.ts"
+        },
+        {
+          "from": "messaging",
+          "to": "search",
+          "importPath": "packages/features/search",
+          "file": "packages/features/messaging/components/layout/threadRow/UnifiedMessageThreadRowBubble.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "search",
+          "importPath": "packages/features/search",
+          "file": "packages/features/messaging/components/layout/messagesList/UnifiedMessagesList.tsx"
+        },
+        {
+          "from": "messaging",
+          "to": "search",
+          "importPath": "packages/features/search",
+          "file": "packages/features/messaging/components/cards/SharedHomeBundleCard.tsx"
+        }
+      ]
+    },
+    {
+      "from": "agent",
+      "to": "saved",
+      "count": 3,
+      "refs": [
+        {
+          "from": "agent",
+          "to": "saved",
+          "importPath": "packages/features/saved",
+          "file": "packages/features/agent/components/clientHub/saved-homes/ClientSavedHomes.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "saved",
+          "importPath": "packages/features/saved/hooks/ui/useLibrarySortPreference",
+          "file": "packages/features/agent/components/clientHub/saved-homes/ClientSavedHomes.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "saved",
+          "importPath": "packages/features/saved/hooks/ui/useLibraryViewMode",
+          "file": "packages/features/agent/components/clientHub/saved-homes/ClientSavedHomes.tsx"
+        }
+      ]
+    },
+    {
+      "from": "homeauth",
+      "to": "agent",
+      "count": 3,
+      "refs": [
+        {
+          "from": "homeauth",
+          "to": "agent",
+          "importPath": "packages/features/agent/types/agent",
+          "file": "packages/features/homeauth/types/index.ts"
+        },
+        {
+          "from": "homeauth",
+          "to": "agent",
+          "importPath": "packages/features/agent",
+          "file": "packages/features/homeauth/components/signup/SignupFeature.tsx"
+        },
+        {
+          "from": "homeauth",
+          "to": "agent",
+          "importPath": "packages/features/agent",
+          "file": "packages/features/homeauth/components/login/LoginFeature.tsx"
+        }
+      ]
+    },
+    {
+      "from": "profile",
+      "to": "calendar",
+      "count": 3,
+      "refs": [
+        {
+          "from": "profile",
+          "to": "calendar",
+          "importPath": "packages/features/calendar/types/calendarQuickCreate",
+          "file": "packages/features/profile/utils/availability/profileAvailabilityMutations.ts"
+        },
+        {
+          "from": "profile",
+          "to": "calendar",
+          "importPath": "packages/features/calendar/types/googleEvent",
+          "file": "packages/features/profile/utils/availability/profileAvailabilityMutations.ts"
+        },
+        {
+          "from": "profile",
+          "to": "calendar",
+          "importPath": "packages/features/calendar/components/shell/LocalAvailabilityCalendar",
+          "file": "packages/features/profile/components/sections/AvailabilitySection.tsx"
+        }
+      ]
+    },
+    {
+      "from": "agent",
+      "to": "profile",
+      "count": 2,
+      "refs": [
+        {
+          "from": "agent",
+          "to": "profile",
+          "importPath": "packages/features/profile",
+          "file": "packages/features/agent/components/clientHub/ClientHubScreen.tsx"
+        },
+        {
+          "from": "agent",
+          "to": "profile",
+          "importPath": "packages/features/profile/components/AgentPublicProfileView",
+          "file": "packages/features/agent/components/agentProfile/AgentProfileScreen.native.tsx"
+        }
+      ]
+    },
+    {
+      "from": "calendar",
+      "to": "profile",
+      "count": 2,
+      "refs": [
+        {
+          "from": "calendar",
+          "to": "profile",
+          "importPath": "packages/features/profile/types/sections/buyerPreferenceExtensions",
+          "file": "packages/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability.ts"
+        },
+        {
+          "from": "calendar",
+          "to": "profile",
+          "importPath": "packages/features/profile/types/sections/buyerPreferenceExtensions",
+          "file": "packages/features/calendar/components/shell/LocalAvailabilityCalendar.tsx"
+        }
+      ]
+    },
+    {
+      "from": "checklists",
+      "to": "messaging",
+      "count": 2,
+      "refs": [
+        {
+          "from": "checklists",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/hooks/data/useAgentChats",
+          "file": "packages/features/checklists/hooks/useAutoCompleteChecklistIntegrations.ts"
+        },
+        {
+          "from": "checklists",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/hooks/data/useAgentChats",
+          "file": "packages/features/checklists/components/integrations/partnerAgent/PartnerAgentSection.tsx"
+        }
+      ]
+    },
+    {
+      "from": "checklists",
+      "to": "calendar",
+      "count": 2,
+      "refs": [
+        {
+          "from": "checklists",
+          "to": "calendar",
+          "importPath": "packages/features/calendar/components/view/agenda/TodoAgendaRow",
+          "file": "packages/features/checklists/components/shared/ChecklistStepSigningFooter.tsx"
+        },
+        {
+          "from": "checklists",
+          "to": "calendar",
+          "importPath": "packages/features/calendar/types/agenda",
+          "file": "packages/features/checklists/components/shared/ChecklistStepSigningFooter.tsx"
+        }
+      ]
+    },
+    {
+      "from": "dashboard",
+      "to": "documents",
+      "count": 2,
+      "refs": [
+        {
+          "from": "dashboard",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/dashboard/components/shell/DashboardFeature.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "documents",
+          "importPath": "packages/features/documents",
+          "file": "packages/features/dashboard/components/panels/DashboardAgreementSigningModals.tsx"
+        }
+      ]
+    },
+    {
+      "from": "dashboard",
+      "to": "homeauth",
+      "count": 2,
+      "refs": [
+        {
+          "from": "dashboard",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth",
+          "file": "packages/features/dashboard/components/shell/DashboardFeature.tsx"
+        },
+        {
+          "from": "dashboard",
+          "to": "homeauth",
+          "importPath": "packages/features/homeauth",
+          "file": "packages/features/dashboard/components/shell/DashboardScreen.tsx"
+        }
+      ]
+    },
+    {
+      "from": "documents",
+      "to": "search",
+      "count": 2,
+      "refs": [
+        {
+          "from": "documents",
+          "to": "search",
+          "importPath": "packages/features/search/types/search/formatters/address",
+          "file": "packages/features/documents/utils/forms/checklistFormToDocumentData.ts"
+        },
+        {
+          "from": "documents",
+          "to": "search",
+          "importPath": "packages/features/search/types/search/formatters/address",
+          "file": "packages/features/documents/components/pdf/DocumentPdfModal.web.tsx"
+        }
+      ]
+    },
+    {
+      "from": "documents",
+      "to": "compare",
+      "count": 2,
+      "refs": [
+        {
+          "from": "documents",
+          "to": "compare",
+          "importPath": "packages/features/compare/hooks/store/useCompareSessionStoreIntegration",
+          "file": "packages/features/documents/hooks/ui/useSavedPageModals.ts"
+        },
+        {
+          "from": "documents",
+          "to": "compare",
+          "importPath": "packages/features/compare/store",
+          "file": "packages/features/documents/hooks/ui/useSavedPageModals.ts"
+        }
+      ]
+    },
+    {
+      "from": "partners",
+      "to": "propertyDetails",
+      "count": 2,
+      "refs": [
+        {
+          "from": "partners",
+          "to": "propertyDetails",
+          "importPath": "packages/features/propertyDetails/components/visualizations/DonutChart",
+          "file": "packages/features/partners/components/admin/AdminPartnersAnalyticsTab.tsx"
+        },
+        {
+          "from": "partners",
+          "to": "propertyDetails",
+          "importPath": "packages/features/propertyDetails/components/visualizations/VerticalBarChart",
+          "file": "packages/features/partners/components/admin/AdminPartnersAnalyticsTab.tsx"
+        }
+      ]
+    },
+    {
+      "from": "saved",
+      "to": "compare",
+      "count": 2,
+      "refs": [
+        {
+          "from": "saved",
+          "to": "compare",
+          "importPath": "packages/features/compare",
+          "file": "packages/features/saved/components/SavedHomeCard.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "compare",
+          "importPath": "packages/features/compare",
+          "file": "packages/features/saved/components/SavedPageModals.tsx"
+        }
+      ]
+    },
+    {
+      "from": "saved",
+      "to": "agent",
+      "count": 2,
+      "refs": [
+        {
+          "from": "saved",
+          "to": "agent",
+          "importPath": "packages/features/agent",
+          "file": "packages/features/saved/components/SavedPageNativeModals.native.tsx"
+        },
+        {
+          "from": "saved",
+          "to": "agent",
+          "importPath": "packages/features/agent",
+          "file": "packages/features/saved/components/layout/SavedPageLayout.native.tsx"
+        }
+      ]
+    },
+    {
+      "from": "search",
+      "to": "agent",
+      "count": 2,
+      "refs": [
+        {
+          "from": "search",
+          "to": "agent",
+          "importPath": "packages/features/agent/hooks/data/search/useAgentSyncPreferencesWhenClientSelected",
+          "file": "packages/features/search/hooks/ui/controller/useSearchFeatureController.ts"
+        },
+        {
+          "from": "search",
+          "to": "agent",
+          "importPath": "packages/features/agent/hooks/data/search/useAgentSyncPreferencesWhenClientSelected",
+          "file": "packages/features/search/components/SearchScreen.tsx"
+        }
+      ]
+    },
+    {
+      "from": "admin",
+      "to": "partners",
+      "count": 1,
+      "refs": [
+        {
+          "from": "admin",
+          "to": "partners",
+          "importPath": "packages/features/partners",
+          "file": "packages/features/admin/components/sections/partners/AdminPartnersSection.tsx"
+        }
+      ]
+    },
+    {
+      "from": "calendar",
+      "to": "checklists",
+      "count": 1,
+      "refs": [
+        {
+          "from": "calendar",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/api/checklists",
+          "file": "packages/features/calendar/hooks/data/createEvent/useCreateEventModalChecklists.ts"
+        }
+      ]
+    },
+    {
+      "from": "calendar",
+      "to": "messaging",
+      "count": 1,
+      "refs": [
+        {
+          "from": "calendar",
+          "to": "messaging",
+          "importPath": "packages/features/messaging/hooks/data/useAgentChats",
+          "file": "packages/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability.ts"
+        }
+      ]
+    },
+    {
+      "from": "checklists",
+      "to": "dashboard",
+      "count": 1,
+      "refs": [
+        {
+          "from": "checklists",
+          "to": "dashboard",
+          "importPath": "packages/features/dashboard/components/panels/DashboardAgreementSigningModals",
+          "file": "packages/features/checklists/components/shared/ChecklistSigningModals.tsx"
+        }
+      ]
+    },
+    {
+      "from": "checklists",
+      "to": "search",
+      "count": 1,
+      "refs": [
+        {
+          "from": "checklists",
+          "to": "search",
+          "importPath": "packages/features/search/types/domain/translations",
+          "file": "packages/features/checklists/components/integrations/areas/ChooseAreasSection.web.tsx"
+        }
+      ]
+    },
+    {
+      "from": "documents",
+      "to": "agent",
+      "count": 1,
+      "refs": [
+        {
+          "from": "documents",
+          "to": "agent",
+          "importPath": "packages/features/agent/hooks/data/clients/useAgentClients",
+          "file": "packages/features/documents/components/docusign/DocusignUseTemplateModal.tsx"
+        }
+      ]
+    },
+    {
+      "from": "feed",
+      "to": "profile",
+      "count": 1,
+      "refs": [
+        {
+          "from": "feed",
+          "to": "profile",
+          "importPath": "packages/features/profile/utils",
+          "file": "packages/features/feed/components/Modals/FeedAffordabilityBadge.tsx"
+        }
+      ]
+    },
+    {
+      "from": "homeauth",
+      "to": "checklists",
+      "count": 1,
+      "refs": [
+        {
+          "from": "homeauth",
+          "to": "checklists",
+          "importPath": "packages/features/checklists/hooks/data/useChecklistData",
+          "file": "packages/features/homeauth/hooks/data/checklist/useChecklistData.ts"
+        }
+      ]
+    },
+    {
+      "from": "messaging",
+      "to": "calendar",
+      "count": 1,
+      "refs": [
+        {
+          "from": "messaging",
+          "to": "calendar",
+          "importPath": "packages/features/calendar",
+          "file": "packages/features/messaging/components/layout/threadRow/UnifiedMessageThreadRowBubble.tsx"
+        }
+      ]
+    },
+    {
+      "from": "saved",
+      "to": "negotiate",
+      "count": 1,
+      "refs": [
+        {
+          "from": "saved",
+          "to": "negotiate",
+          "importPath": "packages/features/negotiate",
+          "file": "packages/features/saved/components/SavedPageModals.tsx"
+        }
+      ]
+    },
+    {
+      "from": "saved",
+      "to": "propertyDetails",
+      "count": 1,
+      "refs": [
+        {
+          "from": "saved",
+          "to": "propertyDetails",
+          "importPath": "packages/features/propertyDetails",
+          "file": "packages/features/saved/components/SavedPageModals.tsx"
+        }
+      ]
+    },
+    {
+      "from": "saved",
+      "to": "search",
+      "count": 1,
+      "refs": [
+        {
+          "from": "saved",
+          "to": "search",
+          "importPath": "packages/features/search",
+          "file": "packages/features/saved/components/layout/SavedPageLayout.tsx"
+        }
+      ]
+    },
+    {
+      "from": "search",
+      "to": "compare",
+      "count": 1,
+      "refs": [
+        {
+          "from": "search",
+          "to": "compare",
+          "importPath": "packages/features/compare",
+          "file": "packages/features/search/components/list/SidebarList.web.tsx"
+        }
+      ]
+    },
+    {
+      "from": "search",
+      "to": "propertyDetails",
+      "count": 1,
+      "refs": [
+        {
+          "from": "search",
+          "to": "propertyDetails",
+          "importPath": "packages/features/propertyDetails",
+          "file": "packages/features/search/components/layout/SearchPageModals.tsx"
+        }
+      ]
+    }
+  ]
+}

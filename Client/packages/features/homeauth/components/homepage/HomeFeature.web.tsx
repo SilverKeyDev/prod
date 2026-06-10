@@ -1,6 +1,6 @@
 import { LANDING_NAV_MAIN_OFFSET_CLASS } from "packages/features/homeauth/utils/landingChrome";
 import { useLandingHashScroll, useNavigation } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import {
   LandingBrokerages,

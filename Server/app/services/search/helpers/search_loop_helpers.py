@@ -8,9 +8,7 @@ import json
 import time
 from typing import Any
 
-from flask import current_app
-
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from ..data.client import slipstream_get
 from ..data.config import SLIPSTREAM_MARKET
@@ -74,12 +72,15 @@ def search_properties_paginated(
 
                 if resp.status_code == 429:
                     rate_retries += 1
-                    current_app.logger.warning(
-                        "⏳ %s - Rate limited, sleeping... (page=%s, attempt=%s/%s)",
-                        request_id,
-                        page,
-                        rate_retries,
-                        _MAX_429_RETRIES_PER_PAGE,
+                    log.warn(
+                        "POLYGON_SEARCH",
+                        "Rate limited, sleeping",
+                        {
+                            "request_id": request_id,
+                            "page": page,
+                            "attempt": rate_retries,
+                            "max_attempts": _MAX_429_RETRIES_PER_PAGE,
+                        },
                     )
                     if rate_retries > _MAX_429_RETRIES_PER_PAGE:
                         errors.append(
@@ -89,10 +90,10 @@ def search_properties_paginated(
                                 "text": "rate_limit_retries_exhausted",
                             }
                         )
-                        current_app.logger.error(
-                            "❌ %s - Rate limit retries exhausted for page %s",
-                            request_id,
-                            page,
+                        log.error(
+                            "POLYGON_SEARCH",
+                            "Rate limit retries exhausted",
+                            {"request_id": request_id, "page": page},
                         )
                         page_fetched = True
                         break
@@ -107,10 +108,10 @@ def search_properties_paginated(
                             "text": resp.text[:300],
                         }
                     )
-                    current_app.logger.error(
-                        "❌ %s - API error: status=%s",
-                        request_id,
-                        resp.status_code,
+                    log.error(
+                        "POLYGON_SEARCH",
+                        "Slipstream API error",
+                        {"request_id": request_id, "status": resp.status_code},
                     )
                     page_fetched = True
                     break
@@ -126,16 +127,19 @@ def search_properties_paginated(
                 raw_listings = result.get("listings") or []
                 paging = result.get("paging") or {}
 
-                current_app.logger.debug(
-                    "[POLYGON_SEARCH] %s - page=%s listings=%s paging=%s",
-                    request_id,
-                    page,
-                    len(raw_listings),
-                    paging,
+                log.debug(
+                    "POLYGON_SEARCH",
+                    "Paginated search page fetched",
+                    {
+                        "request_id": request_id,
+                        "page": page,
+                        "listings_count": len(raw_listings),
+                        "paging": paging,
+                    },
                 )
 
                 log.debug(
-                    LOG_CATEGORIES["API"],
+                    "API",
                     "Slipstream /ws/listings/search response (paginated, first home only)",
                     {
                         "caller": "search_properties_paginated",

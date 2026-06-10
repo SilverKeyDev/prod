@@ -41,7 +41,6 @@ def mock_apply():
             is_active=True,
             has_preferences=False,
             preferences_version=None,
-            is_agent=False,
             user_roles=[SimpleNamespace(role="admin"), SimpleNamespace(role="buyer")],
         )
         yield mock_fn

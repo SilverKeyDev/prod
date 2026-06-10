@@ -2,15 +2,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { PreferencesSubmitResult } from "packages/features/profile/types/onboarding/submitHandler";
 
-import { handleSubmit, postOnboardingPathForForm } from "./submitHandler";
+import { handleSubmit } from "./submitHandler";
 
 const { removeItemMock, patchClientSettingsMock } = vi.hoisted(() => ({
   removeItemMock: vi.fn(),
   patchClientSettingsMock: vi.fn().mockResolvedValue({ success: true }),
 }));
 
-vi.mock("packages/utils/storage/platformStorage", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("packages/utils/storage/platformStorage")>();
+vi.mock("packages/utils/core/storage/platformStorage", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("packages/utils/core/storage/platformStorage")>();
   return {
     ...actual,
     getLocalStorage: () => ({
@@ -28,28 +29,6 @@ vi.mock("packages/features/homeauth/api/clientSettings", () => ({
     patch: patchClientSettingsMock,
   },
 }));
-
-describe("postOnboardingPathForForm", () => {
-  it("routes seller to dashboard", () => {
-    expect(
-      postOnboardingPathForForm({
-        primary_onboarding_role: "seller",
-        is_agent: "no",
-        why_joining_silverkey: ["buying_house", "selling_house"],
-      })
-    ).toBe("/dashboard");
-  });
-
-  it("routes buyer to search", () => {
-    expect(
-      postOnboardingPathForForm({
-        primary_onboarding_role: "buyer",
-        is_agent: "no",
-        why_joining_silverkey: ["buying_house"],
-      })
-    ).toBe("/search");
-  });
-});
 
 describe("onboarding submission validation bypass", () => {
   beforeEach(() => {
@@ -73,7 +52,7 @@ describe("onboarding submission validation bypass", () => {
     const navigate = vi.fn<(path: string) => void>();
 
     await handleSubmit({
-      formData: { primary_onboarding_role: "buyer", is_agent: "no" },
+      formData: { primary_onboarding_role: "buyer" },
       submitPreferences,
       setLoading,
       setValidationResult,
@@ -83,7 +62,7 @@ describe("onboarding submission validation bypass", () => {
       skipValidation: true,
     });
 
-    expect(navigate).toHaveBeenCalledWith("/search");
+    expect(navigate).toHaveBeenCalledWith("/dashboard");
 
     expect(validateFunction).not.toHaveBeenCalled();
     expect(submitPreferences).toHaveBeenCalledTimes(1);

@@ -1,3 +1,8 @@
 name = "silverkey-linter-structure-enforcer"
-description = "Enforce linting, formatting, imports, and SilverKey architecture/UI/logging rules without changing runtime behavior."
-developer_instructions = "@../../.cursor/agents/silverkey-linter-structure-enforcer.md"
+description = """Enforce linting, formatting, imports, and SilverKey architecture/UI/logging rules without changing runtime behavior."""
+developer_instructions = """
+Before work: read and follow `.cursor/agents/silverkey-linter-structure-enforcer.md` (canonical persona).
+Apply always-on rules under `.cursor/rules/shared/` and scoped `.mdc` rules when paths match.
+Engineering gates: `AGENTS.md` — `make check-client`, `make lint`, `make test-be` as appropriate.
+Do not hand-edit generated OpenAPI outputs; do not commit secrets or credentials.
+"""

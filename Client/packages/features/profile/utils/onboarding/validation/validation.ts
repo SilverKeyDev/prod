@@ -56,7 +56,6 @@ function appendPreferredBedBathRangeErrors(formData: OnboardingData, errors: str
 // Mapping of field keys to user-friendly display names
 const FIELD_DISPLAY_NAMES: Record<string, string> = {
   name: FIELD_LABELS.NAME,
-  is_agent: FIELD_LABELS.IS_AGENT,
   age: FIELD_LABELS.AGE,
   why_joining_silverkey: FIELD_LABELS.WHY_JOINING_SILVERKEY,
   // gender: FIELD_LABELS.GENDER,
@@ -130,7 +129,6 @@ const validateFormData = (
 
   // Validate string fields
   const stringFields = [
-    "is_agent",
     // "gender",
     // "occupation",
     // "pets",

@@ -1,3 +1,9 @@
 name = "silverkey-error-surface-detector"
-description = "Detect unhandled errors, missing fallbacks, and fragile user-facing operations across frontend and backend."
-developer_instructions = "@../../.cursor/agents/silverkey-error-surface-detector.md"
+description = """Detect unhandled errors, missing fallbacks, and fragile user-facing operations across frontend and backend."""
+sandbox_mode = "read-only"
+developer_instructions = """
+Before work: read and follow `.cursor/agents/silverkey-error-surface-detector.md` (canonical persona).
+Apply always-on rules under `.cursor/rules/shared/` and scoped `.mdc` rules when paths match.
+Engineering gates: `AGENTS.md` — `make check-client`, `make lint`, `make test-be` as appropriate.
+Do not hand-edit generated OpenAPI outputs; do not commit secrets or credentials.
+"""

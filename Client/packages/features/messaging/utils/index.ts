@@ -1,5 +1,6 @@
 export * from "./agentId";
 export * from "./agreementEventPayload";
+export * from "./buildEventRequestPayloadFromCreateFormState";
 export * from "./eventRequestPayload";
 export * from "./messageDateUtils";
 export * from "./messagePreview";

@@ -3,15 +3,14 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocalization } from "packages/contexts";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import { isChooseSearchAreaStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
+import { userPreferencesToOnboardingData } from "packages/features/profile";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
-
-import { userPreferencesToOnboardingData } from "@/features/profile/utils";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 type ChooseAreasSectionProps = {
   onComplete?: () => void;

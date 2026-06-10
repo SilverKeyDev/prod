@@ -1,5 +1,6 @@
 """Rev-share partner placement models."""
 
+# pyright: reportUndefinedVariable=false
 from .buyer_step_view import BuyerStepView
 from .partner import Partner
 from .rev_share_link import RevShareLink

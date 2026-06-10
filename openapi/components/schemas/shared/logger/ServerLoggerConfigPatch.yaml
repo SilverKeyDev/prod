@@ -1,0 +1,55 @@
+# AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY.
+# Modify scripts/log_contracts/categories.yaml, then run: make log-contracts
+type: object
+description: >
+  Partial server logger config for admin updates. All fields optional; server deep-merges
+  into stored deployment overrides.
+additionalProperties: false
+properties:
+  polling:
+    type: boolean
+  pages:
+    type: boolean
+  hooks:
+    type: boolean
+  auth:
+    type: boolean
+  http:
+    type: boolean
+  api:
+    type: boolean
+  errors:
+    type: boolean
+  security:
+    type: boolean
+  search:
+    type: boolean
+  polygonSearch:
+    type: boolean
+  mapRendering:
+    type: boolean
+  propertyDetails:
+    type: boolean
+  negotiation:
+    type: boolean
+  checklists:
+    type: boolean
+  calendar:
+    type: boolean
+  dashboard:
+    type: boolean
+  messages:
+    type: boolean
+  feed:
+    type: boolean
+  routing:
+    type: boolean
+  docusign:
+    type: boolean
+  documents:
+    type: boolean
+  profilePreferences:
+    type: boolean
+  logLevel:
+    type: string
+    enum: [DEBUG, INFO, WARN, ERROR]

@@ -7,7 +7,8 @@ from __future__ import annotations
 import os
 
 import requests
-from flask import current_app
+
+from logger import log
 
 
 def simplify_polygon(
@@ -78,7 +79,7 @@ def geocode_address_google(address: str) -> tuple[float, float] | None:
     try:
         google_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
         if not google_api_key:
-            current_app.logger.error("🗺️ GEOCODING: ❌ Google Maps API key not configured")
+            log.error("API", "Google Maps API key not configured")
             return None
 
         url = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -96,31 +97,34 @@ def geocode_address_google(address: str) -> tuple[float, float] | None:
             lat, lon = location["lat"], location["lng"]
             return (lat, lon)
         else:
-            current_app.logger.warning(f"🗺️ GEOCODING: ⚠️ Geocoding failed for address: '{address}'")
-            current_app.logger.warning(f"🗺️ GEOCODING: ⚠️ Status: {status}")
-            current_app.logger.warning(
-                f"🗺️ GEOCODING: ⚠️ Error message: {data.get('error_message', 'No error message')}"
+            log.warn(
+                "API",
+                "Geocoding failed for address",
+                {
+                    "address": address,
+                    "status": status,
+                    "error_message": data.get("error_message", "No error message"),
+                },
             )
             if status == "ZERO_RESULTS":
-                current_app.logger.warning("🗺️ GEOCODING: ⚠️ No results found for this address")
+                log.warn("API", "No geocoding results for address", {"address": address})
             elif status == "OVER_QUERY_LIMIT":
-                current_app.logger.error("🗺️ GEOCODING: ❌ API quota exceeded")
+                log.error("API", "Google geocoding API quota exceeded")
             elif status == "REQUEST_DENIED":
-                current_app.logger.error("🗺️ GEOCODING: ❌ API request denied - check API key")
+                log.error("API", "Google geocoding API request denied")
             elif status == "INVALID_REQUEST":
-                current_app.logger.error(
-                    "🗺️ GEOCODING: ❌ Invalid request - missing address parameter"
-                )
+                log.error("API", "Invalid geocoding request (missing address)")
             return None
 
     except requests.exceptions.RequestException as e:
-        current_app.logger.error(f"🗺️ GEOCODING: ❌ Network error geocoding '{address}': {e}")
-        current_app.logger.error(f"🗺️ GEOCODING: ❌ Error type: {type(e)}")
+        log.error(
+            "ERRORS",
+            "Network error geocoding address",
+            {"address": address, "error": str(e), "error_type": type(e).__name__},
+        )
         return None
     except Exception as e:
-        current_app.logger.error(f"🗺️ GEOCODING: ❌ Unexpected error geocoding '{address}': {e}")
-        current_app.logger.error(f"🗺️ GEOCODING: ❌ Error type: {type(e)}")
-        current_app.logger.error("🗺️ GEOCODING: ❌ Error traceback:", exc_info=True)
+        log.error("ERRORS", "Unexpected geocoding error", e)
         return None
 
 

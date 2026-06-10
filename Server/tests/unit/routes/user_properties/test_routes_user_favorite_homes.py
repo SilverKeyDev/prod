@@ -172,7 +172,8 @@ class TestFavoriteHomes:
                 assert response.status_code == 400
                 data = response.get_json()
                 assert data["success"] is False
-                assert "address" in data["error"].lower()
+                assert data["error"] == "validation_error"
+                assert "Address" in (data.get("field_errors") or {})
 
     def test_remove_favorite_home(self, client, app: Flask, db_session):
         """Test POST /api/v1/user/favorite-homes/remove"""

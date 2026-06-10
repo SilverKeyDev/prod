@@ -1,10 +1,10 @@
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import {
   sidebarInsetHeaderCollapseButtonClass,
   sidebarInsetHeaderGhostButtonClass,
   sidebarInsetHeaderTitleClass,
-} from "packages/ui/components/sidebar/sidebarTheme";
+} from "packages/ui/components/structure/sidebar/sidebarTheme";
 
 import { BodyText, Button, Title } from "@/components/ui";
 

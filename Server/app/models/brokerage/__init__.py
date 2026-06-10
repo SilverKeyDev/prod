@@ -1,3 +1,4 @@
+# pyright: reportUndefinedVariable=false
 from .brokerage_org import BrokerageOrg
 from .user_org_membership import UserOrgMembership
 

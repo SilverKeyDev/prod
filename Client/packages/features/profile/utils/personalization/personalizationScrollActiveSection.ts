@@ -1,4 +1,4 @@
-import { getDocument } from "packages/utils/platform";
+import { getDocument } from "packages/utils/core/platform";
 
 /**
  * Computes which personalization section id should be "active" from the current scroll position.

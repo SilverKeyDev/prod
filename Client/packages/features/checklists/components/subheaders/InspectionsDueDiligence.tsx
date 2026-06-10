@@ -25,7 +25,7 @@ export default function InspectionsChecklist({
       title={CHECKLIST_TITLES.inspections}
       subtitle={CHECKLIST_SUBTITLES.inspections}
       sectionTitle="To-Do Items"
-      apiEndpoint="/api/v1/tasks?type=insurance"
+      checklistType="insurance"
       showLoadingScreen={true}
       setClosePageHeaderData={setClosePageHeaderData}
     />

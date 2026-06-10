@@ -20,6 +20,42 @@ def _format_age_bucket_value(value: Any) -> str:
     return str(value)
 
 
+def enrich_neighborhood_overview_with_census(
+    neighborhood_overview: dict[str, Any],
+    property_address: str | None,
+) -> dict[str, Any]:
+    """Attach census distribution charts to neighborhood overview for streaming/API clients."""
+    addr = (property_address or "").strip()
+    if not addr or not isinstance(neighborhood_overview, dict):
+        return neighborhood_overview
+
+    nov_out = dict(neighborhood_overview)
+
+    age_dist = get_age_distribution(addr)
+    if isinstance(age_dist, dict) and "error" not in age_dist and age_dist:
+        nov_out["age_distribution"] = {k: _format_age_bucket_value(v) for k, v in age_dist.items()}
+
+    race_dist = get_race_distribution(addr)
+    if isinstance(race_dist, dict) and "error" not in race_dist and race_dist:
+        nov_out["race_distribution"] = {
+            k: _format_age_bucket_value(v) for k, v in race_dist.items()
+        }
+
+    income_dist = get_income_distribution(addr)
+    if isinstance(income_dist, dict) and "error" not in income_dist and income_dist:
+        nov_out["income_distribution"] = {
+            k: _format_age_bucket_value(v) for k, v in income_dist.items()
+        }
+
+    education_dist = get_education_distribution(addr)
+    if isinstance(education_dist, dict) and "error" not in education_dist and education_dist:
+        nov_out["education_distribution"] = {
+            k: _format_age_bucket_value(v) for k, v in education_dist.items()
+        }
+
+    return nov_out
+
+
 def finalize_property_analysis_payload(
     property_analysis: dict[str, Any] | None,
     property_address: str | None,
@@ -51,34 +87,9 @@ def finalize_property_analysis_payload(
             pa["neighborhood_overview"] = nb
 
     nov_out = pa.get("neighborhood_overview")
-    addr = (property_address or "").strip()
-    if isinstance(nov_out, dict) and addr:
-        # Fetch age distribution
-        age_dist = get_age_distribution(addr)
-        if isinstance(age_dist, dict) and "error" not in age_dist and age_dist:
-            age_distribution = {k: _format_age_bucket_value(v) for k, v in age_dist.items()}
-            nov_out = {**nov_out, "age_distribution": age_distribution}
-
-        # Fetch race distribution
-        race_dist = get_race_distribution(addr)
-        if isinstance(race_dist, dict) and "error" not in race_dist and race_dist:
-            race_distribution = {k: _format_age_bucket_value(v) for k, v in race_dist.items()}
-            nov_out = {**nov_out, "race_distribution": race_distribution}
-
-        # Fetch income distribution
-        income_dist = get_income_distribution(addr)
-        if isinstance(income_dist, dict) and "error" not in income_dist and income_dist:
-            income_distribution = {k: _format_age_bucket_value(v) for k, v in income_dist.items()}
-            nov_out = {**nov_out, "income_distribution": income_distribution}
-
-        # Fetch education distribution
-        education_dist = get_education_distribution(addr)
-        if isinstance(education_dist, dict) and "error" not in education_dist and education_dist:
-            education_distribution = {
-                k: _format_age_bucket_value(v) for k, v in education_dist.items()
-            }
-            nov_out = {**nov_out, "education_distribution": education_distribution}
-
-        pa["neighborhood_overview"] = nov_out
+    if isinstance(nov_out, dict):
+        pa["neighborhood_overview"] = enrich_neighborhood_overview_with_census(
+            nov_out, property_address
+        )
 
     return pa

@@ -1,0 +1,11 @@
+type: object
+required:
+  - success
+  - contacts
+properties:
+  success:
+    type: boolean
+  contacts:
+    type: array
+    items:
+      $ref: "./EligibleContact.yaml"

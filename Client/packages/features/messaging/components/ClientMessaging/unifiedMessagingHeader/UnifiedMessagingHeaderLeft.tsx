@@ -1,11 +1,11 @@
 import { useLocalization } from "packages/contexts";
-import MiniLogo from "packages/ui/components/asset/MiniLogo";
-import { Box } from "packages/ui/components/primitives";
+import MiniLogo from "packages/ui/components/media/asset/MiniLogo";
+import { Box } from "packages/ui/components/structure/primitives";
 import {
   sidebarInsetHeaderIconButtonClass,
   sidebarInsetHeaderMenuToggleClass,
   sidebarInsetHeaderTitleClass,
-} from "packages/ui/components/sidebar/sidebarTheme";
+} from "packages/ui/components/structure/sidebar/sidebarTheme";
 
 import { Button, Title } from "@/components/ui";
 

@@ -10,7 +10,7 @@ vi.mock("packages/config/env", () => ({
   getDefaultRetries: () => 3,
 }));
 
-vi.mock("packages/utils/platform", () => ({
+vi.mock("packages/utils/core/platform", () => ({
   getFetch: () => globalThis.fetch,
 }));
 

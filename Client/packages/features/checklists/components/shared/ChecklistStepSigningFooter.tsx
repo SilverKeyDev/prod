@@ -1,7 +1,7 @@
 import { TodoAgendaRow } from "packages/features/calendar/components/view/agenda/TodoAgendaRow";
 import type { AgendaTodoDTO } from "packages/features/calendar/types/agenda";
 import type { TaskChecklistItem } from "packages/features/checklists/api/checklists";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 type ChecklistStepSigningFooterProps = {
   item: TaskChecklistItem;

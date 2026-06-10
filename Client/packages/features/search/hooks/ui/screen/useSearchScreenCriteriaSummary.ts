@@ -42,7 +42,7 @@ export function useSearchScreenCriteriaSummary(
 ): string {
   return useMemo(() => {
     if (!userPreferences) return "";
-    const minPrice = (userPreferences.home_budget_min as number | undefined) ?? 100000;
+    const minPrice = (userPreferences.home_budget_min as number | undefined) ?? 0;
     const maxPrice = (userPreferences.home_budget_max as number | undefined) ?? 2000000;
     const minBeds = userPreferences.preferred_bedrooms_min as number | undefined;
     const maxBeds = userPreferences.preferred_bedrooms_max as number | undefined;

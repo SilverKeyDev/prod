@@ -1,4 +1,4 @@
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 export type DeviceLocationResult =
   | { status: "granted"; lat: number; lng: number }

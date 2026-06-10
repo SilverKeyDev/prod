@@ -8,7 +8,7 @@ import { subscribeWithSelector } from "zustand/middleware";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
-import { createPersistStorageProxy } from "packages/utils/storage/platformStorage";
+import { createPersistStorageProxy } from "packages/utils/core/storage/platformStorage";
 
 import { createResettableState } from "./resettableState";
 import { baseCreator } from "./sliceBase";
@@ -119,11 +119,13 @@ export {
 } from "./filters.slice";
 // Ephemeral search context: anchor, location bar, filter overrides, feed cursor
 export {
+  requestOpenSearchPreferencesPanel,
   type SearchContextAnchor,
   type SearchFilterOverrides,
   useSearchContextStore,
 } from "./searchContext.slice";
 // Results vs map view mode (list/map toggle)
+export { type GoogleMapsState, useGoogleMapsStore } from "./googleMaps.slice";
 export {
   SEARCH_VIEW_MODE_CHANGED_EVENT,
   type SearchViewMode,

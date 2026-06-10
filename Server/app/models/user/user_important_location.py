@@ -1,9 +1,12 @@
 """Important locations (structured, geo-ready). Replaces important_locations JSON. lat/lng nullable for later geocoding."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -30,7 +33,7 @@ class UserImportantLocation(db.Model):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    user = db.relationship("User", backref=db.backref("user_important_locations", lazy="dynamic"))
+    user: Mapped["User"] = relationship("User", back_populates="user_important_locations")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

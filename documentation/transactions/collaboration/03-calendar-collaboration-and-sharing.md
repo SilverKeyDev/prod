@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [docusign-integration.md](../../client/features/docusign-integration.md).
+
 ## Calendar collaboration and sharing
 
 Calendar is **user-scoped** (buyer or agent), not a transaction-participant workspace. Collaboration happens via Google sync, messaging event requests, and checklist-generated reminders.

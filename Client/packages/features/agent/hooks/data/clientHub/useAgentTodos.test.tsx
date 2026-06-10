@@ -13,6 +13,7 @@ vi.mock("@/features/agent/api/agent", () => ({
     getTodos: vi.fn(),
     updateTodo: vi.fn(),
     createTodo: vi.fn(),
+    deleteTodo: vi.fn(),
   },
 }));
 
@@ -45,6 +46,7 @@ describe("useAgentTodos", () => {
   beforeEach(() => {
     vi.mocked(agentApi.getTodos).mockReset();
     vi.mocked(agentApi.updateTodo).mockReset();
+    vi.mocked(agentApi.deleteTodo).mockReset();
   });
 
   it("fetches todos for authenticated users", async () => {
@@ -73,5 +75,64 @@ describe("useAgentTodos", () => {
 
     await result.current.updateTodo("todo-1", { completed: true });
     expect(agentApi.updateTodo).toHaveBeenCalledWith("todo-1", { completed: true });
+  });
+
+  it("updateTodo optimistically toggles completion before API resolves", async () => {
+    vi.mocked(agentApi.getTodos).mockResolvedValue({ success: true, todos: [todo] });
+
+    let resolveUpdate: (value: { success: boolean; todo: TodoItem }) => void = () => undefined;
+    vi.mocked(agentApi.updateTodo).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUpdate = resolve;
+        })
+    );
+
+    const { result } = renderHook(() => useAgentTodos(true), { wrapper });
+    await waitFor(() => expect(result.current.todos[0]?.completed).toBe(false));
+
+    const updatePromise = result.current.updateTodo("todo-1", { completed: true });
+
+    await waitFor(() => {
+      expect(result.current.todos[0]?.completed).toBe(true);
+    });
+
+    resolveUpdate({ success: true, todo: { ...todo, completed: true } });
+    await updatePromise;
+  });
+
+  it("deleteTodo removes todo via API", async () => {
+    vi.mocked(agentApi.getTodos).mockResolvedValue({ success: true, todos: [todo] });
+    vi.mocked(agentApi.deleteTodo).mockResolvedValue({ success: true });
+
+    const { result } = renderHook(() => useAgentTodos(false), { wrapper });
+    await waitFor(() => expect(result.current.todos).toHaveLength(1));
+
+    await result.current.deleteTodo("todo-1");
+    expect(agentApi.deleteTodo).toHaveBeenCalledWith("todo-1");
+  });
+
+  it("deleteTodo optimistically removes todo before API resolves", async () => {
+    vi.mocked(agentApi.getTodos).mockResolvedValue({ success: true, todos: [todo] });
+
+    let resolveDelete: (value: { success: boolean }) => void = () => undefined;
+    vi.mocked(agentApi.deleteTodo).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveDelete = resolve;
+        })
+    );
+
+    const { result } = renderHook(() => useAgentTodos(true), { wrapper });
+    await waitFor(() => expect(result.current.todos).toHaveLength(1));
+
+    const deletePromise = result.current.deleteTodo("todo-1");
+
+    await waitFor(() => {
+      expect(result.current.todos).toHaveLength(0);
+    });
+
+    resolveDelete({ success: true });
+    await deletePromise;
   });
 });

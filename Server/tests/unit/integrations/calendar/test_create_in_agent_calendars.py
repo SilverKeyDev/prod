@@ -126,16 +126,14 @@ class TestCreateInAgentCalendars:
             is_agent=False,
         )
 
-    @patch("app.services.calendar.events.creation.db.session")
+    @patch("app.services.calendar.events.creation.log")
     @patch("app.services.calendar.events.creation.get_connected_agent_ids_for_client")
     @patch("app.services.calendar.events.creation.tokens_get")
-    @patch("app.services.calendar.events.creation.logger")
     def test_agent_no_calendar_connected(
         self,
-        mock_logger,
         mock_tokens_get,
         mock_linked_agents,
-        mock_db_session,
+        mock_log,
         mock_event_data,
         mock_calendar_event,
     ):
@@ -153,9 +151,9 @@ class TestCreateInAgentCalendars:
             is_agent=False,
         )
 
-        mock_logger.warning.assert_called_once()
-        warning_call = mock_logger.warning.call_args[0]
-        assert "does not have Google Calendar connected" in warning_call[0]
+        mock_log.warn.assert_called_once()
+        warning_call = mock_log.warn.call_args[0]
+        assert "does not have Google Calendar connected" in warning_call[1]
 
     @patch("app.services.calendar.events.creation.db.session")
     @patch("app.services.calendar.events.creation.get_connected_agent_ids_for_client")
@@ -211,16 +209,16 @@ class TestCreateInAgentCalendars:
     @patch("app.services.calendar.events.creation.db.session")
     @patch("app.services.calendar.events.creation.get_connected_agent_ids_for_client")
     @patch("app.services.calendar.events.creation.tokens_get")
+    @patch("app.services.calendar.events.creation.log")
     @patch("app.services.calendar.events.creation.google_calendar_service")
-    @patch("app.services.calendar.events.creation.logger")
     @patch("app.services.calendar.events.creation.CalendarEvent")
     @patch("app.services.calendar.events.creation.extract_event_datetimes")
     def test_partial_failure_continues(
         self,
         mock_extract_datetimes,
         mock_calendar_event_class,
-        mock_logger,
         mock_google_service,
+        mock_log,
         mock_tokens_get,
         mock_linked_agents,
         mock_db_session,
@@ -260,8 +258,8 @@ class TestCreateInAgentCalendars:
             is_agent=False,
         )
 
-        mock_logger.error.assert_called()
-        error_call = mock_logger.error.call_args[0]
-        assert "Error creating event in agent" in error_call[0]
+        mock_log.error.assert_called()
+        error_call = mock_log.error.call_args[0]
+        assert "Error creating event in agent" in error_call[1]
         assert mock_google_service.create_event.call_count == 2
         assert succeeding_agent in mock_calendar_event.shared_with_user_ids

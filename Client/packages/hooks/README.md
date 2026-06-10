@@ -114,6 +114,7 @@ function Component() {
 
 ## Further Reading
 
-- [data/README.md](./data/README.md) - Data fetching hooks
-- [store/README.md](./store/README.md) - Store integration hooks
-- [ui/README.md](./ui/README.md) - UI state hooks
+- [documentation/client/architecture/layered-architecture-imports.md](../../../documentation/client/architecture/layered-architecture-imports.md)
+- [data/README.md](./data/README.md) — Data fetching hooks
+- [store/README.md](./store/README.md) — Store integration hooks
+- [ui/README.md](./ui/README.md) — UI state hooks

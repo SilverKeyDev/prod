@@ -1,54 +1,41 @@
 # SilverKey local setup
 
-Run **`make setup`** once on a new machine. The script walks through six steps automatically:
+Run **`make setup`** once on a new machine (six steps: prerequisites → build → AWS SSO → local DB init → verify → Cursor MCP). Skip AWS/secrets/local DB init: `make setup ARGS='--skip-secrets'`. After every `git pull`: **`make refresh`**.
 
-1. **Prerequisites** — Node 20+, pnpm 9.x, Python 3.10–3.13, Redis, libmagic (for secure file uploads), AWS CLI v2 (installs via Homebrew on macOS when possible, otherwise prints exact commands)
-2. **Build** — `pnpm install` + `Server/.venv`
-3. **AWS SSO** — `~/.aws/config` + `aws sso login`; optional per-repo profile pin in `Server/config/.aws-sso` (see below)
-4. **Secrets** — fetches `Server/.env` from AWS Secrets Manager
-5. **Verify** — smoke checks Client deps, Python imports, Redis, `.env` keys, and AWS session
-6. **Cursor MCP** — installs optional MCP runtimes (`npx`, `uvx`), seeds [`.cursor/mcp.json`](.cursor/mcp.json) from [`.cursor/mcp.example.json`](.cursor/mcp.example.json) when missing, runs checks, then prints a **summary** of all warnings/errors (does not stop at the first issue). MCP errors do not fail the rest of `make setup`.
+**First:** use a supported terminal — macOS Terminal, Linux shell, or **Windows via WSL2 (Ubuntu)**. Native Windows shells (PowerShell/CMD/Git Bash) are not supported; `make setup` stops and points you to [Windows (WSL2)](#windows-wsl2--required).
 
-Skip AWS/secrets (manual `.env`):
+Deep MCP and Cursor tuning: [`.cursor/README.md`](.cursor/README.md), [cursor-configuration-optimization.md](documentation/client/tooling/cursor-configuration-optimization.md), [cursor-agent-memory.md](documentation/client/tooling/cursor-agent-memory.md).
+
+---
+
+## TL;DR
+
+1. **Set up your terminal** — macOS/Linux shell, or [Windows WSL2 (Ubuntu)](#windows-wsl2--required) (not PowerShell/CMD/Git Bash).
+2. Install the [prerequisites](#prerequisites) for your platform, clone the repo, then from the repo root:
 
 ```bash
-make setup ARGS='--skip-secrets'
+make setup    # tools → Client+Server → AWS SSO → local DB init → MCP
+make dev      # web (http://localhost:5173) + API (http://localhost:5000)
 ```
 
-After every `git pull`: **`make refresh`** (clears stale dev caches, then refreshes pnpm and pip).
+3. After every `git pull`: `make refresh`.
+
+On Windows, complete step 1 (WSL2 + Ubuntu terminal) before installing prerequisites or running `make setup`.
+
+**No AWS access yet?** `make setup ARGS='--skip-secrets'` — sets up everything except SSO/secrets. **Re-check tools anytime:** `make check-deps`.
 
 ---
 
 ## One-time AWS config
 
-Before the first `make setup` (with secrets), configure SSO in your terminal (writes to `~/.aws/config`, not the repo):
-
 ```bash
-aws configure sso          # once — follow prompts
+aws configure sso
 export AWS_PROFILE=your-dev-profile-name
 export AWS_REGION=us-east-2
 aws sso login --profile "$AWS_PROFILE"
 ```
 
-If `~/.aws/config` has exactly one SSO profile, setup picks it automatically. With several profiles, either:
-
-- **Recommended (per repo):** `cp Server/config/aws-sso.example Server/config/.aws-sso` and set `AWS_PROFILE` to your SilverKey SSO profile name, or
-- **Shell-wide:** `export AWS_PROFILE=…` and `export AWS_REGION=us-east-2` in `~/.zshrc`
-
-During setup, step 3 runs `aws sso login` again if the session expired.
-
-### Optional: `Server/config/.aws-sso`
-
-Gitignored file (copy from [`Server/config/aws-sso.example`](Server/config/aws-sso.example)). Used by `make setup`, `make secrets`, and `make refresh --secrets`. It only stores **which profile name** and **region** to use — not passwords. SSO configuration remains in `~/.aws/config` via `aws configure sso`.
-
-```bash
-cp Server/config/aws-sso.example Server/config/.aws-sso
-# Edit AWS_PROFILE (from: aws configure list-profiles) and AWS_REGION in .aws-sso
-aws sso login --profile "$(grep '^export AWS_PROFILE=' Server/config/.aws-sso | cut -d= -f2- | tr -d '"')"
-make secrets
-```
-
-Shell `export AWS_PROFILE=…` overrides `.aws-sso` when already set in the environment.
+**Per-repo profile (recommended):** `cp Server/config/aws-sso.example Server/config/.aws-sso` — used by `make setup`, `make secrets`, `make refresh --secrets`. Shell `export AWS_PROFILE` overrides `.aws-sso`.
 
 ---
 
@@ -59,55 +46,58 @@ Shell `export AWS_PROFILE=…` overrides `.aws-sso` when already set in the envi
 | Node.js | 20+ |
 | pnpm | 9.x (`corepack prepare pnpm@9.0.0 --activate`) |
 | Python | 3.10–3.13 |
-| Redis | 6+ (`redis-server`, `redis-cli`; setup starts it on port 6379 if installed but stopped) |
-| libmagic | System library for `python-magic` (MIME validation on uploads; macOS: Homebrew `libmagic`) |
-| AWS CLI | v2 (for default setup) |
-| uv (`uvx`) | Optional — **aws-api** MCP in Cursor (step 6 / `make setup-mcp` can `brew install uv` on macOS) |
-| gcloud CLI | Optional — only if you use the **gcloud** MCP server |
+| Redis | 6+ |
+| libmagic | MIME validation on uploads |
+| AWS CLI | v2 (unless `--skip-secrets`) |
+| Docker | For local Postgres via `make db-up` |
 
-**For `make dev` (not installed by setup):** PostgreSQL — connection string in `DATABASE_URL` (`Server/.env`).
-
-### macOS
+### macOS (quick)
 
 ```bash
 brew install node python@3.12 redis libmagic awscli
 corepack enable && corepack prepare pnpm@9.0.0 --activate
-brew services start redis   # optional; setup can start redis-server if needed
-# optional for Cursor aws-api MCP (or let make setup-mcp install uv):
-brew install uv
+brew services start redis   # optional
 ```
 
-**Before `make dev` (macOS only):** The API binds to port **5000**, which macOS **AirPlay Receiver** also uses by default. If AirPlay keeps the port, `make dev` can pass the TCP check but fail waiting for `http://127.0.0.1:5000/healthz` (you may see `WARN: Some processes on port 5000 may still be running`).
+**Port 5000:** Disable **AirPlay Receiver** (System Settings → General → AirDrop & Handoff) if `make dev` cannot reach `/healthz`.
 
-Turn off AirPlay Receiver once:
+**iCloud-synced clones:** Prefer `~/Developer/…` — avoids duplicate `module 2.py` files; CI runs `scripts/ci/check-macos-duplicate-files.sh`.
 
-1. Open **System Settings → General → AirDrop & Handoff** (on some macOS versions: **Sharing**).
-2. Disable **AirPlay Receiver**.
+### Linux
 
-Confirm port 5000 is free: `lsof -i :5000` should not list `ControlCenter`. Then `curl -fsS http://127.0.0.1:5000/healthz` should succeed after the backend is running.
+Debian/Ubuntu: `python3`, `python3-venv`, `redis-server`, `libmagic1`, `awscli`. Fedora: `python3`, `redis`, `file-libs`, `awscli`.
 
-**iCloud Desktop/Documents:** If the clone lives under an iCloud-synced folder (common on macOS), concurrent writes from Cursor, git, and formatters can produce duplicate files named like `module 2.py` beside `module.py`. Prefer cloning to a non-iCloud path (e.g. `~/Developer/SilverKey`) or disable iCloud for that folder. CI and `make lint` run `scripts/check-macos-duplicate-files.sh` to block these copies from merging.
+### Windows (WSL2) — required
 
-### Debian / Ubuntu
+**You cannot run setup in PowerShell, CMD, or Git Bash.** The toolchain is Unix-based (bash setup scripts, GNU `make`, a Python venv, Redis, the `libmagic` system library). Those don't run reliably on native Windows — that's the confusing errors people hit. **WSL2 gives you a real Ubuntu Linux on Windows**, so the exact same commands your macOS/Linux teammates use just work. `make setup` will hard-stop with these steps if it detects a native Windows shell.
+
+**1. One-time — in an _admin_ PowerShell, then reboot:**
+
+```powershell
+wsl --install   # installs WSL2 + Ubuntu by default
+```
+
+Reboot, open **Ubuntu** from the Start menu, and create your Linux username/password.
+
+**2. Inside the Ubuntu (WSL) terminal — install prerequisites:**
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y python3 python3-venv python3-pip redis-server libmagic1 awscli
-sudo systemctl start redis-server   # or: redis-server --daemonize yes
-# Node 20+ from https://nodejs.org/ or NodeSource — then corepack as above
+sudo apt update
+sudo apt install -y build-essential git python3 python3-venv \
+  redis-server libmagic1 awscli
+# Node 20+ via nvm; corepack provides pnpm 9:
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+exec bash && nvm install 20 && corepack enable
 ```
 
-### Fedora
+**3. Clone _inside_ the Linux home dir (not `C:\` / `/mnt/c/...`) and run setup:**
 
 ```bash
-sudo dnf install -y python3 python3-pip redis file-libs awscli
-sudo systemctl start redis
-# Node 20+ from nodejs.org — then corepack
+cd ~ && git clone <repo-url> && cd <repo>
+make setup
 ```
 
-### Windows
-
-Use **WSL2** with Linux steps above.
+> **Gotcha:** Clone into `~` (the WSL filesystem), **not** a Windows path under `/mnt/c`. Windows-mounted paths are slow and cause line-ending and file-permission issues. Open the repo in Cursor/VS Code via the **WSL** extension ("Connect to WSL").
 
 ---
 
@@ -115,154 +105,115 @@ Use **WSL2** with Linux steps above.
 
 | Command | Purpose |
 | ------- | ------- |
-| `make setup` | Full first-time flow (steps 1–6) |
-| `make setup-mcp` | Cursor MCP only — install tools, seed/verify `.cursor/mcp.json`, print summary |
-| `make refresh` | Clear stale caches + refresh deps after `git pull` |
-| `make clean-caches` | Remove regenerable caches only (no install) |
-| `make secrets` | Re-fetch `Server/.env` only |
+| `make setup` | Full first-time flow |
+| `make setup-mcp` | Cursor MCP install/verify only |
+| `make refresh` | Post-pull cache clear + deps (`ARGS='--secrets'`, `--reset-db`, `--no-clean`, `--aggressive-clean`) |
+| `make check-deps` | Prerequisite scan |
+| `make secrets` | Re-fetch `Server/.env` |
+| `make db-up` | Start isolated local Postgres |
+| `make db-health` | Check local Postgres readiness |
+| `make db-down` | Stop local Postgres and clear the local dev DB volume |
+| `make db-reset` | Delete and recreate the local Postgres dev volume |
+| `make dev-db-init` | Reset local DB, refresh non-DB secrets, and run migrations |
 | `make dev` | Web + API |
-| `./scripts/setup/check-deps.sh` | Check node/pnpm/python/redis (+ aws unless `--skip-secrets`) |
-| `./scripts/setup/setup-mcp.sh` | Same as `make setup-mcp` |
+| `./scripts/setup/check-deps.sh` | Same as `make check-deps` |
 
 ### Setup flags
 
 | Flag | Effect |
 | ---- | ------ |
-| `--skip-secrets` | Skip SSO login and Secrets Manager |
-| `--force-venv` | Ignored (setup always recreates `Server/.venv` if it already exists) |
-| `--no-install` | Do not run `brew install` / corepack fixes |
-| `--ci` | Slimmer Python deps (`requirements/ci.txt`) |
+| `--skip-secrets` | Skip SSO + Secrets Manager |
+| `--no-install` | No Homebrew/corepack installs |
+| `--ci` | Slimmer Python (`requirements/ci.txt`) |
 
-Step 1 logs each prerequisite as it runs. Long installs honor `DEPS_CMD_TIMEOUT` (default 600s); override with `DEPS_CMD_TIMEOUT=1200 make setup` if needed.
+`DEPS_CMD_TIMEOUT` (default 600s) — increase for slow first `pnpm`/`corepack` runs.
+
+---
+
+## First run & verify
+
+After `make setup` completes, confirm the stack runs:
+
+```bash
+make dev
+```
+
+- **Web:** open <http://localhost:5173>
+- **API health:** `curl http://localhost:5000/healthz` → expect a `200` / OK response
+
+`make secrets` keeps non-database AWS secrets in sync but writes a local dev database URL by default: `postgresql://silverkey:silverkey@localhost:5432/silverkey_dev`. To intentionally fetch a shared database secret for an operator workflow, run `ALLOW_SHARED_DATABASE_URL=1 make secrets`.
+
+`make setup` resets the local Docker Postgres volume, fetches non-database secrets, and runs migrations. To repeat that database reset/init manually:
+
+```bash
+make dev-db-init
+make dev-backend
+```
+
+For post-pull dependency refreshes, local DB reset is opt-in:
+
+```bash
+make refresh ARGS='--secrets --reset-db'
+```
+
+Other entry points: `make dev-web` (web only), `make mobile` (Expo). If `/healthz` is unreachable on macOS, see the [port 5000 / AirPlay](#macos-quick) note.
 
 ---
 
 ## Cursor MCP (step 6)
 
-Cursor reads **`.cursor/mcp.json`** (gitignored). The repo ships **[`.cursor/mcp.example.json`](.cursor/mcp.example.json)** only — no real tokens in git.
-
-### What the setup script does
-
-Implementation: [`scripts/lib/setup-mcp.sh`](scripts/lib/setup-mcp.sh) (invoked by `make setup` step 6 and `make setup-mcp`).
-
-The script always runs **all four phases**, then prints one combined **summary** (warnings and errors). It does **not** exit on the first failed check.
-
-| Phase | Automated actions |
-| ----- | ----------------- |
-| **1 — Install** | Ensure `npx` (Node 20+) and `uvx` ([uv](https://docs.astral.sh/uv/)); on macOS may `brew install node` / `brew install uv` unless installs are disabled |
-| **2 — Configure** | If `.cursor/mcp.json` is missing, copy from `mcp.example.json`; if it already exists, **leave it unchanged** |
-| **3 — Verify** | Valid JSON; GitHub placeholder; `AWS_PROFILE` + `aws sts get-caller-identity`; gcloud application-default creds (if `gcloud` is installed); `npx` / `uvx` smoke checks |
-| **4 — Summary** | List every warning and error, then exit `0` (OK or warnings only) or `1` (hard errors, e.g. invalid JSON or missing example file) |
-
-**`make setup`:** runs the same MCP logic as step 6. If MCP reports **errors**, setup still finishes and prints `MCP step reported errors` — fix MCP separately with `make setup-mcp`.
-
-**`make setup-mcp`:** run anytime to re-check or after editing `.cursor/mcp.json`.
+- Seeds **`.cursor/mcp.json`** from [`.cursor/mcp.example.json`](.cursor/mcp.example.json) when missing; never commit real tokens.
+- **`make setup-mcp`** — install `npx`/`uvx`, validate JSON, AWS/gcloud checks, print one summary (warnings do not fail full `make setup`).
+- **Daily baseline:** `github`, `linear`, `slack` — enable Mercury/AWS/analytics only when needed.
 
 ```bash
 make setup-mcp
-# equivalent:
-./scripts/setup/setup-mcp.sh
-
-# Do not run Homebrew installs (check/verify only):
-MCP_NO_INSTALL=true make setup-mcp
+MCP_NO_INSTALL=true make setup-mcp   # verify only
+cp .cursor/mcp.example.json .cursor/mcp.json && make setup-mcp   # reset file
 ```
 
-### MCP profiles (recommended)
-
-The example file is intentionally a **daily baseline** to keep tool selection fast and low-noise.
-
-- **Daily coding baseline (default):** `github`, `linear`, `slack`
-- **Enable on demand:** `mercury`, `posthog`, `datadog`, `aws-*`, `gcloud`, `cursor-memory`
-- **Avoid duplicates:** enable each connector from one source only (either project `.cursor/mcp.json` or Cursor plugin, not both)
-
-### MCP servers in the default example profile
-
-| Server | Type | What you need locally |
-| ------ | ---- | --------------------- |
-| **github** | Hosted URL | Replace `YOUR_GITHUB_PAT` in `.cursor/mcp.json` with a fine-grained PAT or Copilot-compatible token |
-| **linear** | Hosted URL | Sign in via **Cursor → Settings → Tools & MCP** when prompted |
-| **slack** | Hosted URL | Connect workspace in **Tools & MCP** when prompted |
-
-### Optional add-on connectors
-
-Add these only when the task requires them:
-
-- **Finance:** `mercury` (runway, balances)
-- **Analytics/debug:** `posthog`, `datadog`
-- **Infra/deploy:** `aws-knowledge`, `aws-api`, `awsiac`, `awspricing`, `serverless`, `amplify`, `gcloud`
-- **Memory tooling:** `cursor-memory`
-
-For local command-based servers (`uvx`/`npx`), pin explicit package versions in your local config instead of `@latest` for reproducible startup behavior.
-
-### Finish in Cursor (manual, after the script)
-
-1. Open **Cursor → Settings → Tools & MCP** and confirm each server loads (green / connected).
-2. Set the **GitHub** Bearer token in `.cursor/mcp.json` if the script warned about `YOUR_GITHUB_PAT`.
-3. **Linear / Slack** — complete OAuth in the MCP UI when Cursor prompts you.
-4. **Optional AWS/GCP servers** — only if enabled: ensure `AWS_PROFILE`/SSO and gcloud ADC are configured.
-6. Reload the Cursor window if servers stay red after fixing the summary items.
-
-### Reset or recreate `mcp.json`
-
-| Goal | Command |
-| ---- | ------- |
-| Re-run checks only | `make setup-mcp` |
-| Fresh file from example (overwrites local edits) | `cp .cursor/mcp.example.json .cursor/mcp.json` then `make setup-mcp` |
-
-Never commit `.cursor/mcp.json` with real tokens. The file is gitignored.
-
-### MCP and AWS SSO
-
-Step 3 and optional MCP **aws-api** share the same AWS CLI session. Before `make setup-mcp`, in the same terminal (or your shell profile):
-
-```bash
-export AWS_PROFILE=your-dev-profile-name
-export AWS_REGION=us-east-2   # preferred SilverKey default region
-aws sso login --profile "$AWS_PROFILE"
-make setup-mcp
-```
-
-If you used `make setup ARGS='--skip-secrets'`, you can still configure MCP; AWS API checks will warn until `AWS_PROFILE` and SSO are set.
-
-See also [.cursor/README.md](.cursor/README.md) and [AGENTS.md](AGENTS.md).
+Finish in **Cursor → Settings → Tools & MCP** (GitHub PAT, Linear/Slack OAuth). AWS MCP shares SSO with `make secrets`.
 
 ---
 
-## Troubleshooting
+## Troubleshooting (common)
 
 | Problem | Fix |
 | ------- | --- |
-| Step 1 looks stuck (no output after header) | Setup now logs each tool (`[node]`, `[pnpm]`, …). First `pnpm`/`corepack` run may download for 1–2 min — wait for `still running…` heartbeats. Wrong pnpm (e.g. brew 11.x): `brew unlink pnpm` then re-run `make setup`, or `corepack enable && corepack prepare pnpm@9.0.0 --activate` |
-| `AWS_PROFILE` not set | `export AWS_PROFILE=<profile>` then `aws sso login --profile "$AWS_PROFILE"` |
-| SSO login failed | `aws sso login --profile <profile>` then `make setup` |
-| No SSO profile yet | Run `aws configure sso`, then `export AWS_PROFILE=...` and re-run `make setup` |
-| Wrong Python / broken venv | `export PYTHON=python3.12` then `make setup` (recreates `Server/.venv`) |
-| After `git pull` only | `make refresh` (clears `.turbo`, Vite/pytest caches, etc.; keeps venv; refreshes pip/pnpm). Skip cache clear: `make refresh ARGS='--no-clean'`. Deeper clean (Expo/Playwright): `make refresh ARGS='--aggressive-clean'` |
-| Invalid security token / secrets profile error | `aws sso login --profile <name>`; set profile via `Server/config/.aws-sso` or `export AWS_PROFILE=...` (not stale `~/.aws/credentials` default) |
-| `Token has expired and refresh failed` | On an interactive terminal, `make secrets` runs `aws sso login` for the profile in `Server/config/.aws-sso`. If it still fails, run login manually. CI: set `AWS_SSO_NO_AUTO_LOGIN=1` and provide credentials another way. |
-| `AWS profile not set` on `make secrets` | `cp Server/config/aws-sso.example Server/config/.aws-sso` or `export AWS_PROFILE=...` |
-| Verification: empty `DATABASE_URL` | Re-run `make secrets` or fix AWS access |
-| Redis not running after setup | `brew services start redis` or `redis-server --daemonize yes` then `redis-cli ping` |
-| Step 1: redis missing | `brew install redis` (macOS) or `sudo apt install redis-server` (Debian/Ubuntu) |
-| `failed to find libmagic` on `make dev` | `brew install libmagic` (macOS) or `sudo apt install libmagic1` (Debian/Ubuntu); re-run `make setup` or `make dev` |
-| `make dev`: timeout on `/healthz`, port 5000 “still running” (macOS) | **AirPlay Receiver** is using port 5000 — disable it under **System Settings → General → AirDrop & Handoff → AirPlay Receiver** (see macOS section above), then re-run `make dev` |
-| MCP step warnings after `make setup` | Run `make setup-mcp` and read the **summary** block; fix each bullet, then re-run |
-| `setup-mcp: errors` — invalid JSON | Fix `.cursor/mcp.json` syntax or reset: `cp .cursor/mcp.example.json .cursor/mcp.json` and re-apply secrets/tokens |
-| `setup-mcp: warnings` — AWS session | `export AWS_PROFILE=<profile>` then `aws sso login --profile "$AWS_PROFILE"` then `make setup-mcp` |
-| `setup-mcp: warnings` — uvx missing | `brew install uv` (macOS) or [install uv](https://docs.astral.sh/uv/); or `MCP_NO_INSTALL=false make setup-mcp` to let the script try brew |
-| `setup-mcp: warnings` — npx missing | Install Node 20+ (`brew install node`); ensure `npx` is on PATH |
-| `setup-mcp: warnings` — gcloud ADC | `gcloud auth application-default login` (only needed for gcloud MCP) |
-| MCP servers red / not loading in Cursor | Run `make setup-mcp`; fix summary items; set GitHub PAT; connect Linear/Slack in **Tools & MCP**; reload Cursor window |
-| `YOUR_GITHUB_PAT` still in `.cursor/mcp.json` | Edit `.cursor/mcp.json` locally — file is gitignored; re-run `make setup-mcp` to confirm |
+| On Windows / "native Windows shell detected" | Use **WSL2 (Ubuntu)** — see [Windows (WSL2)](#windows-wsl2--required). Run `make setup` inside the Ubuntu terminal, not PowerShell/Git Bash. |
+| Wrong/missing pnpm | `corepack prepare pnpm@9.0.0 --activate` or `brew unlink pnpm` |
+| AWS profile / SSO | `export AWS_PROFILE=…`; `aws sso login`; or `Server/config/.aws-sso` |
+| Broken venv | `export PYTHON=python3.12`; re-run `make setup` |
+| Redis down | `brew services start redis` or `redis-server --daemonize yes` |
+| Local Postgres down | `make db-up`; then `make db-health` |
+| Need a clean local DB | `make dev-db-init` (deletes only the local Docker Postgres volume) |
+| `libmagic` missing | `brew install libmagic` / `apt install libmagic1` |
+| macOS port 5000 | Disable AirPlay Receiver (see above) |
+| MCP red in Cursor | `make setup-mcp`; fix summary; reload window |
+| Empty `DATABASE_URL` | `make secrets`; it appends the local Postgres URL unless `ALLOW_SHARED_DATABASE_URL=1` is set |
+
+More: [scripts-guide.md](documentation/server/ops/scripts-guide.md), [README.md](README.md), [AGENTS.md](AGENTS.md).
 
 ---
 
 ## Quality gates
 
+`make setup` sets `git config core.hooksPath scripts/githooks`.
+
+| When | What |
+| ---- | ---- |
+| Commit | Prettier, ESLint, Ruff; OpenAPI drift |
+| Push | Client typecheck + contract tests |
+| PR (CI) | `pnpm check`, pytest, full lint |
+
 ```bash
-cd Client && pnpm typecheck && pnpm lint && pnpm check
+make precommit
+make openapi-verify
+SKIP=1 git commit ...    # once, emergency
+```
+
+```bash
+cd Client && pnpm check
 make lint
 cd Server && . .venv/bin/activate && pytest
 ```
-
-See also [README.md](README.md), [AGENTS.md](AGENTS.md), [Makefile](Makefile) (`make help`).

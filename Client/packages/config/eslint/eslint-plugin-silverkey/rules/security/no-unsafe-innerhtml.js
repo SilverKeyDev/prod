@@ -24,7 +24,7 @@ module.exports = {
     schema: [],
     messages: {
       unsafe:
-        "Avoid innerHTML with dynamic content. Use escapeHtml from packages/utils/dom/escapeHtml or add a static-pin allowlist entry.",
+        "Avoid innerHTML with dynamic content. Use escapeHtml from packages/utils/core/dom/escapeHtml or add a static-pin allowlist entry.",
     },
   },
   create(context) {

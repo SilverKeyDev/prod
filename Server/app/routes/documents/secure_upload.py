@@ -7,13 +7,13 @@ import uuid
 
 from flask import Blueprint, current_app, jsonify, request
 
+from app import db
 from app.config.constants import UPLOAD_FOLDER_DEFAULT
+from logger import log
 
-from ... import db
-from ...schemas import UploadResponse
+from ...schemas import EmptyRequest, SecureUploadDocumentForm, UploadResponse
 from ...services.documents import s3_service
-from ...utils.common_patterns import require_authenticated_user
-from ...utils.security.app_logging import get_logger
+from ...utils.common_patterns import require_authenticated_user, server_error
 from ...utils.security.file_security import (
     FileSecurityError,
     create_secure_upload_directory,
@@ -21,16 +21,21 @@ from ...utils.security.file_security import (
     validate_file_upload,
 )
 from ...utils.security.secure_errors import SecureErrorHandler
-from ...utils.validation import sanitize_optional_address, validate_response
+from ...utils.validation import (
+    sanitize_optional_address,
+    validate_form_request,
+    validate_request,
+    validate_response,
+)
 
-logger = get_logger()
 secure_upload_bp = Blueprint("secure_upload", __name__, url_prefix="/api/v1/upload")
 
 
 @secure_upload_bp.route("/document", methods=["POST"])
 @require_authenticated_user
+@validate_form_request(SecureUploadDocumentForm)
 @validate_response(UploadResponse)
-def upload_document(user):
+def upload_document(user, data: SecureUploadDocumentForm):
     """
     Secure document upload endpoint with comprehensive validation.
 
@@ -54,7 +59,11 @@ def upload_document(user):
         try:
             safe_filename, validated_mime_type = validate_file_upload(file)
         except FileSecurityError as e:
-            logger.warning(f"File validation failed for user {user.id}: {str(e)}")
+            log.warn(
+                "DOCUMENTS",
+                "secure_upload_validation_failed",
+                {"user_id": str(user.id), "error": str(e)},
+            )
             return SecureErrorHandler.handle_file_upload_error(
                 e, {"user_id": user.id, "original_filename": file.filename}
             )
@@ -81,7 +90,7 @@ def upload_document(user):
                 s3_key = f"documents/{user.id}/{safe_filename}"
                 s3_url = s3_service.upload_file(temp_file_path, s3_key)
             except Exception as e:
-                logger.error(f"S3 upload failed: {str(e)}")
+                log.error("DOCUMENTS", "secure_upload_s3_failed", e)
                 return SecureErrorHandler.handle_external_api_error(
                     e, "S3", {"user_id": user.id, "filename": safe_filename}
                 )
@@ -97,10 +106,11 @@ def upload_document(user):
         final_file_path = s3_url if s3_url else temp_file_path
 
         try:
-            address = sanitize_optional_address(request.form.get("address"))
+            raw_address = data.address
+            address = sanitize_optional_address(raw_address)
         except ValueError as exc:
-            return SecureErrorHandler.create_secure_response(
-                "file_upload_error", 400, additional_info={"message": str(exc)}
+            return SecureErrorHandler.handle_validation_error(
+                exc, context={"user_id": user.id, "function": "upload_document"}
             )
 
         document = Document(
@@ -143,14 +153,15 @@ def upload_document(user):
         ), 201
 
     except Exception as e:
-        logger.error(f"Unexpected error in file upload: {str(e)}")
-        return SecureErrorHandler.create_secure_response("server_error", 500)
+        log.error("DOCUMENTS", "secure_upload_document_unexpected", e)
+        return server_error(e, context={"function": "upload_document", "user_id": user.id})
 
 
 @secure_upload_bp.route("/image", methods=["POST"])
 @require_authenticated_user
+@validate_request(EmptyRequest)
 @validate_response(UploadResponse)
-def upload_image(user):
+def upload_image(user, _data: EmptyRequest):
     """
     Secure image upload endpoint with content validation.
 
@@ -180,7 +191,11 @@ def upload_image(user):
         try:
             safe_filename, validated_mime_type = validate_file_upload(file, allowed_image_types)
         except FileSecurityError as e:
-            logger.warning(f"Image validation failed for user {user.id}: {str(e)}")
+            log.warn(
+                "DOCUMENTS",
+                "secure_upload_image_validation_failed",
+                {"user_id": str(user.id), "error": str(e)},
+            )
             return SecureErrorHandler.handle_file_upload_error(
                 e, {"user_id": user.id, "original_filename": file.filename}
             )
@@ -203,7 +218,7 @@ def upload_image(user):
                 s3_key = f"images/{user.id}/{safe_filename}"
                 s3_url = s3_service.upload_file(temp_file_path, s3_key)
             except Exception as e:
-                logger.error(f"S3 upload failed: {str(e)}")
+                log.error("DOCUMENTS", "secure_upload_s3_failed", e)
                 return SecureErrorHandler.handle_external_api_error(
                     e, "S3", {"user_id": user.id, "filename": safe_filename}
                 )
@@ -230,5 +245,5 @@ def upload_image(user):
         ), 201
 
     except Exception as e:
-        logger.error(f"Unexpected error in image upload: {str(e)}")
-        return SecureErrorHandler.create_secure_response("server_error", 500)
+        log.error("DOCUMENTS", "secure_upload_image_unexpected", e)
+        return server_error(e, context={"function": "upload_image", "user_id": user.id})

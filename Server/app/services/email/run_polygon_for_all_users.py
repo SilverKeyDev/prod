@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone
 
 from flask import current_app
+from sqlalchemy import select
 
 # App imports
 from app import db
@@ -22,13 +23,13 @@ def _iter_users_with_prefs(
     If only_recently_logged_in is True, only includes users who logged in within the last month.
     Optional limit to bound the iteration for testing.
     """
-    query = session.query(User)
+    stmt = select(User)
     if only_recently_logged_in:
         one_month_ago = datetime.now(timezone.utc) - timedelta(days=30)
-        query = query.filter(User.last_logged_in.isnot(None), User.last_logged_in >= one_month_ago)
+        stmt = stmt.where(User.last_logged_in.isnot(None), User.last_logged_in >= one_month_ago)
     if isinstance(limit, int) and limit > 0:
-        query = query.limit(limit)
-    for user in query.all():
+        stmt = stmt.limit(limit)
+    for user in session.scalars(stmt).all():
         if not user_has_preferences(str(user.id)):
             continue
         prefs = get_preferences_dict_optional(str(user.id))
@@ -171,7 +172,7 @@ if __name__ == "__main__":
         only_recently_logged_in=only_recent,
     )
     # Minimal stdout summary for CI logs
-    from logger import LOG_CATEGORIES, log
+    from logger import log
 
     summary_log = {k: (v if k != "errors" else f"{len(v)} errors") for k, v in summary.items()}
-    log.info(LOG_CATEGORIES["API"], "Polygon search summary", summary_log)
+    log.info("API", "Polygon search summary", summary_log)

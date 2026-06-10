@@ -1,21 +1,11 @@
-import type { ViewingItinerary } from "packages/api/viewings";
 import type { EventRequestPayload } from "packages/features/messaging/types/eventRequest";
 import {
   buildCreateEventGoogleStartEnd,
   CREATE_EVENT_TIME_STEP_MINUTES,
-} from "packages/utils/calendar/createEvent/eventFormGooglePayload";
-import { dayjs } from "packages/utils/date";
+} from "packages/utils/comms/calendar/createEvent/eventFormGooglePayload";
+import { dayjs } from "packages/utils/core/date";
 
-import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
-import {
-  buildViewingItineraryDraftFromForm,
-  primaryLocationLabelFromItinerary,
-  type ViewingRouteEndMode,
-  type ViewingRouteEndpoint,
-  type ViewingTourAnchor,
-  type ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
 
 function googleStartEndToRequestIso(startEnd: Pick<GoogleEvent, "start" | "end">): {
   start: string;
@@ -64,12 +54,6 @@ export type BuildEventRequestPayloadFromCreateFormStateInput = {
   startTime: string;
   endTime: string;
   isAllDay: boolean;
-  isPropertyViewing: boolean;
-  viewingStops: ViewingStop[];
-  viewingStartSelection: ViewingTourStartSelection;
-  viewingTourAnchors: ViewingTourAnchor[];
-  viewingEndMode: ViewingRouteEndMode;
-  viewingEndFixed: ViewingRouteEndpoint | null;
 };
 
 export function buildEventRequestPayloadFromCreateFormState(
@@ -117,26 +101,6 @@ export function buildEventRequestPayloadFromCreateFormState(
     description: input.eventDescription.trim() || undefined,
     location: input.eventLocation.trim() || undefined,
   };
-
-  if (input.isPropertyViewing) {
-    const itineraryPayload = buildViewingItineraryDraftFromForm({
-      stops: input.viewingStops,
-      startSelection: input.viewingStartSelection,
-      anchors: input.viewingTourAnchors,
-      endMode: input.viewingEndMode,
-      endFixed: input.viewingEndFixed,
-    });
-    if (!itineraryPayload) {
-      return {
-        error: "Add at least one property address for the viewing tour.",
-      };
-    }
-    payload.itinerary = itineraryPayload as ViewingItinerary;
-    const loc = primaryLocationLabelFromItinerary(itineraryPayload);
-    if (loc) {
-      payload.location = loc;
-    }
-  }
 
   return { payload };
 }

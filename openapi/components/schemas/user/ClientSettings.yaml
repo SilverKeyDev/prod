@@ -37,11 +37,6 @@ properties:
           - month
         description: Main calendar shell (agent dashboard / Google-connected calendar).
     additionalProperties: false
-  viewing_tour:
-    allOf:
-      - $ref: ./ViewingTourClientSettings.yaml
-    nullable: true
-    description: Saved tour anchors and defaults for multi-stop property viewings.
   onboarding_draft:
     type: object
     nullable: true

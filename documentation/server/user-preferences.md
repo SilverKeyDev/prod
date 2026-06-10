@@ -38,9 +38,9 @@ users
 - `monthly_payment_max`: Maximum monthly payment
 
 #### `user_search_intent`
-- `preferred_bedrooms`: Minimum bedrooms
-- `preferred_bathrooms`: Minimum bathrooms
+- `preferred_bedrooms_min`: Minimum bedrooms
 - `preferred_bedrooms_max`: Maximum bedrooms
+- `preferred_bathrooms_min`: Minimum bathrooms
 - `preferred_bathrooms_max`: Maximum bathrooms
 - `preferred_housing_type`: e.g., "single_family", "condo"
 - `preferred_home_age`: e.g., "new", "5-10 years"
@@ -78,8 +78,10 @@ users
 {
   "home_budget_min": 300000,
   "home_budget_max": 500000,
-  "preferred_bedrooms": 3,
-  "preferred_bathrooms": 2,
+  "preferred_bedrooms_min": 3,
+  "preferred_bedrooms_max": 4,
+  "preferred_bathrooms_min": 2,
+  "preferred_bathrooms_max": 3,
   "preferred_housing_type": "single_family",
   "must_have": ["pool", "garage"],
   "deal_breakers": ["hoa"],
@@ -339,6 +341,27 @@ def agent_search_for_client(user):
 
     return jsonify({'success': True, 'properties': results})
 ```
+
+## preferences_version backfill
+
+`write_preferences_from_payload` persists `preferences_version` from the client payload when present; otherwise sets `"1.0"` on first save when the column is NULL.
+
+**One-time operator SQL** (run after deploy; not an Alembic migration):
+
+```sql
+UPDATE users
+SET preferences_version = '1.0'
+WHERE has_preferences = TRUE
+  AND preferences_version IS NULL;
+```
+
+Verify:
+
+```sql
+SELECT COUNT(*) FROM users WHERE has_preferences = TRUE AND preferences_version IS NULL;
+```
+
+GET `/api/v1/preferences` includes `preferences_version` and `has_preferences` on the aggregated preferences object.
 
 ## Best Practices
 

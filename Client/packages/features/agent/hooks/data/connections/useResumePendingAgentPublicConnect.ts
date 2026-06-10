@@ -2,37 +2,39 @@ import { useEffect, useRef } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { useUserData } from "packages/hooks/data/user/useUserData";
-import { ROUTES, useNavigation } from "packages/navigation";
 import { useAuthStore, useUIStore } from "packages/store";
 import {
   clearPendingPublicAgentConnect,
   peekPendingPublicAgentConnect,
-} from "packages/utils/agent";
+} from "packages/utils/growth/agent";
 
 import { connectionRequestApiErrorMessage } from "@/features/agent/utils/connectionRequestApiError";
 
 import { useConnectionRequests } from "./useConnectionRequests";
 
 /**
- * After login or signup/onboarding, completes a connection request when the user
+ * After onboarding completes, sends a pending connection request when the user
  * tapped Connect on a public agent profile while logged out (intent in sessionStorage).
+ * Does not navigate — routing stays on onboarding until submit, then the normal post-onboarding path.
  */
 export function useResumePendingAgentPublicConnect(): void {
   const { t } = useLocalization();
-  const { getCurrentRoute, navigate } = useNavigation();
   const authReady = useAuthStore((s) => s.authReady);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const authUser = useAuthStore((s) => s.user);
   const { userProfile, userProfileLoading } = useUserData();
   const { createRequestAsInitiator } = useConnectionRequests();
   const enqueueToast = useUIStore((s) => s.enqueueToast);
   const inFlightRef = useRef(false);
 
   useEffect(() => {
-    if (!authReady || !isAuthenticated || userProfileLoading || !userProfile?.id) {
+    if (!authReady || !isAuthenticated || !userProfile?.id) {
       return;
     }
-    const { pathname } = getCurrentRoute();
-    if (pathname === ROUTES.ONBOARDING || pathname.startsWith("/onboarding")) {
+    const onboardingComplete =
+      authUser?.has_preferences === true ||
+      (!userProfileLoading && userProfile.has_preferences === true);
+    if (!onboardingComplete) {
       return;
     }
 
@@ -50,7 +52,7 @@ export function useResumePendingAgentPublicConnect(): void {
         const { alreadyPending } = await createRequestAsInitiator(
           userProfile.id,
           pending,
-          userProfile.is_agent ?? false,
+          (userProfile.roles ?? []).includes("agent"),
           undefined
         );
         clearPendingPublicAgentConnect();
@@ -65,7 +67,6 @@ export function useResumePendingAgentPublicConnect(): void {
             message: t("profile.public.connect_toast_success"),
           });
         }
-        navigate("DASHBOARD", undefined, { replace: true });
       } catch (err: unknown) {
         clearPendingPublicAgentConnect();
         enqueueToast({
@@ -79,10 +80,9 @@ export function useResumePendingAgentPublicConnect(): void {
   }, [
     authReady,
     isAuthenticated,
+    authUser,
     userProfile,
     userProfileLoading,
-    getCurrentRoute,
-    navigate,
     createRequestAsInitiator,
     enqueueToast,
     t,

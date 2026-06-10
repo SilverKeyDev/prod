@@ -1,5 +1,6 @@
 > **Status:** Living build sequence — phases marked **Shipped**, **Partial**, or **Planned** per code on 2026-05-28.  
-> **Last verified:** 2026-05-28
+> **Last verified:** 2026-06-04  
+> **Shipped feature docs:** [checklists.md](../client/features/checklists.md), [workspace.md](../client/features/workspace.md).
 
 Practical order for checklist-driven transactions. Extend existing surfaces; avoid a parallel transactions-only app.
 
@@ -11,9 +12,9 @@ Practical order for checklist-driven transactions. Extend existing surfaces; avo
 
 | Step | Status | Notes | Code pointers |
 | ---- | ------ | ----- | ------------- |
-| 1. `Transaction` + address models | **Partial** | `Transaction` minimal; address is `TransactionAddress` per **user**, not per `transactions.id`. | `Server/app/models/transactions/transaction.py`, `transaction_address.py` |
-| 2. Create deal API | **Planned** | No `POST /api/v1/transactions` that returns a deal id for all downstream scopes. | — |
-| 3. In-flow address (Finding home) | **Partial** | Places autocomplete + save; `place_id` optional on server; no lat/lng. | `FindingHome.tsx`, `POST /api/v1/transactions/address` in `Server/app/routes/transactions.py` |
+| 1. `Transaction` + address models | **Partial** | Multi-row per buyer; address per `transactions.id`; `users.active_transaction_id`. Operator migration `k6f7a8b9c0d1`. | `transaction.py`, `transaction_address.py`, `selection.py` |
+| 2. Create deal API | **Shipped** | `POST/GET /api/v1/transactions`, `PUT /api/v1/transactions/me/active`. Pilot UI may omit list/create. | `Server/app/routes/transactions/__init__.py`, OpenAPI `transactions/*` |
+| 3. In-flow address (Finding home) | **Partial** | Places autocomplete + save on **active** deal; `place_id` optional; no lat/lng. | `FindingHome.tsx`, `POST /api/v1/transactions/address` |
 
 ---
 
@@ -21,9 +22,9 @@ Practical order for checklist-driven transactions. Extend existing surfaces; avo
 
 | Step | Status | Notes | Code pointers |
 | ---- | ------ | ----- | ------------- |
-| 3. Transaction-scoped checklist API | **Shipped** | `<transaction_id>` = buyer **user id**; agent access via client list. | `Server/app/routes/transactions.py`, `unified_task_checklist_*.py` |
-| 4. Client wiring | **Shipped** | `checklistSubjectUserId` / `transactionSubjectId`. | `useChecklistData.ts`, `checklists/api/checklists.ts` |
-| 5. Transaction switcher | **Planned** | No multi-deal picker; one checklist scope per buyer user today. | — |
+| 3. Transaction-scoped checklist API | **Shipped** | `<transaction_id>` = **`transactions.id`**; agent access via client `transaction_id`. | `Server/app/routes/transactions/__init__.py`, `unified_task_checklist_*.py` |
+| 4. Client wiring | **Shipped** | `transactionId` / `useResolvedTransactionId`. | `useChecklistData.ts`, `checklists/api/checklists.ts` |
+| 5. Transaction switcher | **Planned** | Backend ready; pilot uses `/transactions/me` only. | `PUT /api/v1/transactions/me/active` |
 
 ---
 
@@ -56,12 +57,12 @@ Practical order for checklist-driven transactions. Extend existing surfaces; avo
 
 ---
 
-## Phase 6 — Move Concierge and integration-backed tasks
+## Phase 6 — Partner placements and integration-backed tasks
 
 | Step | Status | Notes | Code pointers |
 | ---- | ------ | ----- | ------------- |
 | 14. `IntegrationTask` model | **Planned** | — | — |
-| 15. Move Concierge as first provider | **Shipped** (placement) | Rev-share embed + step views; not `IntegrationTask` callback. | `Client/packages/features/partners/`, `Server/app/routes/rev_share/` |
+| 15. Rev-share placements on checklist steps | **Shipped** | `closing:13` uses `partner_placements` + `PartnerTransactionIntegration`; step views + `/r/{link_id}`; not `IntegrationTask` callback. | `Client/packages/features/partners/`, `Server/app/routes/rev_share/` |
 
 ---
 

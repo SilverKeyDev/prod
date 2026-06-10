@@ -1,6 +1,9 @@
-# Compare committed Server/endpoints.json against PostHog api_request traffic (7d).
-# Informational: exits 0 when dead endpoints exist; fails only on script/API errors.
-# Requires repository secret: POSTHOG_QUERY_API_KEY (query:read; project id in posthog_constants.py)
+# Weekly refresh of dead-route coverage in PostHog (same strict sync script as inventory sync).
+#
+# Fails when PostHog secrets are missing, HogQL query fails, ingest fails, or verification
+# cannot find endpoint_inventory_sync / endpoint_dead_route for this SHA.
+#
+# Secrets: POSTHOG_PROJECT_TOKEN (ingest), POSTHOG_QUERY_API_KEY (query:read)
 name: PostHog dead endpoints check
 
 on:
@@ -21,6 +24,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Require PostHog secrets
+        env:
+          POSTHOG_PROJECT_TOKEN: ${{ secrets.POSTHOG_PROJECT_TOKEN }}
+          POSTHOG_QUERY_API_KEY: ${{ secrets.POSTHOG_QUERY_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${POSTHOG_PROJECT_TOKEN}" ]; then
+            echo "::error::POSTHOG_PROJECT_TOKEN is not set. Add the project ingest key (phc_…) in repo Secrets → Actions."
+            exit 1
+          fi
+          if [ -z "${POSTHOG_QUERY_API_KEY}" ]; then
+            echo "::error::POSTHOG_QUERY_API_KEY is not set. Add a personal API key with query:read in repo Secrets → Actions."
+            exit 1
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -32,7 +50,12 @@ jobs:
       - name: Verify endpoint inventory is present
         run: test -s Server/endpoints.json
 
-      - name: Diff inventory vs PostHog api_request (7d)
+      - name: Sync dead routes to PostHog and verify ingest
         env:
+          POSTHOG_PROJECT_TOKEN: ${{ secrets.POSTHOG_PROJECT_TOKEN }}
           POSTHOG_QUERY_API_KEY: ${{ secrets.POSTHOG_QUERY_API_KEY }}
-        run: python3 Server/scripts/endpoints/check_dead_endpoints.py
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python3 Server/scripts/endpoints/sync_inventory_posthog.py
+          echo "PostHog dead-route sync completed successfully."

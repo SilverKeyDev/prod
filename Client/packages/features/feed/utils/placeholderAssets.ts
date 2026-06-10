@@ -4,12 +4,12 @@
  * variety in test data and fallbacks.
  */
 
-import { DEFAULT_AVATAR_WEB_PATH } from "packages/utils/media/defaultAvatar";
+import { DEFAULT_AVATAR_WEB_PATH } from "packages/utils/product/media/defaultAvatar";
 import {
   DEFAULT_PLACEHOLDER_IMAGE,
   getPlaceholderImage,
   PLACEHOLDER_IMAGES,
-} from "packages/utils/media/placeholderAssets";
+} from "packages/utils/product/media/placeholderAssets";
 
 export { DEFAULT_PLACEHOLDER_IMAGE, getPlaceholderImage, PLACEHOLDER_IMAGES };
 

@@ -6,12 +6,12 @@ import { queryKeys } from "packages/config/query/keys";
 import { searchDisplayApi } from "packages/features/search/api/searchDisplay";
 import { useFiltersStore } from "packages/features/search/store/filters.slice";
 import type { SearchDisplayPayload } from "packages/features/search/types/domain/searchDisplay";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 
 /**
  * Loads search display settings from the API when authenticated and keeps Zustand in sync.
- * Patches persist server-side when local display fields change from the Display dropdown.
+ * Patches persist server-side when display fields change from search preferences (web panel or native filters).
  */
 export function useSearchDisplaySettings(authReady: boolean) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -51,7 +51,7 @@ export function useSearchDisplaySettings(authReady: boolean) {
       applySearchDisplayFromApi(data);
     },
     onError: (err) => {
-      log.error(LOG_CATEGORIES.API, "search display patch failed", err);
+      log.error(`API.${err}`, "search display patch failed");
     },
   });
 

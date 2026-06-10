@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { partnersApi } from "packages/features/partners/api/partners";
 import { useActiveWorkspace } from "packages/hooks/store";
-import type { Workspace } from "packages/utils/workspace";
+import type { Workspace } from "packages/utils/product/workspace";
 
 export function usePartnerPlacements(
   stepId: string | undefined,

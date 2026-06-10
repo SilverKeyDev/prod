@@ -2,13 +2,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { Icon } from "@ui/icons";
 
+import { useSearchLocationBarSuggestionEffects } from "packages/features/search/hooks/ui/useSearchLocationBarSuggestionEffects.web";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { useSearchContextStore } from "packages/store";
 import { Input } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import { getDocument, getWindow } from "packages/utils/platform";
-import { submitAfterTopSuggestionIfNeeded } from "packages/utils/search/autocomplete/autocompleteSubmit";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getDocument, getWindow } from "packages/utils/core/platform";
+import { submitAfterTopSuggestionIfNeeded } from "packages/utils/product/search/autocomplete/autocompleteSubmit";
 
 import { reverseGeocodeAndSearchForLocationBar } from "./searchLocationBarReverseGeocode";
 import {
@@ -21,7 +22,6 @@ import {
   selectSlipstreamSuggestionForLocationBar,
 } from "./searchLocationBarWebHandlers";
 import { SearchLocationSuggestionList } from "./SearchLocationSuggestionList.web";
-import { useSearchLocationBarSuggestionEffects } from "./useSearchLocationBarSuggestionEffects.web";
 
 export type {
   PreciseStreetAddressPayload,

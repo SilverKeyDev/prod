@@ -1,8 +1,10 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import event
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
 
 from app import db
 
@@ -34,46 +36,172 @@ class User(db.Model):
 
     has_preferences: Mapped[bool | None] = mapped_column(db.Boolean, default=False)
     preferences_version: Mapped[str | None] = mapped_column(db.String(10))
+    active_transaction_id: Mapped[str | None] = mapped_column(
+        db.String(36),
+        db.ForeignKey("transactions.id", ondelete="SET NULL", use_alter=True),
+        index=True,
+    )
+
+    google_oauth_token: Mapped["GoogleOAuthToken | None"] = relationship(
+        "GoogleOAuthToken",
+        back_populates="user",
+        uselist=False,
+        lazy="select",
+    )
+    user_financials: Mapped["UserFinancials | None"] = relationship(
+        "UserFinancials",
+        back_populates="user",
+        uselist=False,
+        lazy="select",
+    )
+    user_demographics: Mapped["UserDemographics | None"] = relationship(
+        "UserDemographics",
+        back_populates="user",
+        uselist=False,
+        lazy="select",
+    )
+    user_client_settings: Mapped["UserClientSettings | None"] = relationship(
+        "UserClientSettings",
+        back_populates="user",
+        uselist=False,
+        lazy="select",
+    )
+    user_communication_prefs: Mapped["UserCommunicationPrefs | None"] = relationship(
+        "UserCommunicationPrefs",
+        back_populates="user",
+        uselist=False,
+        lazy="select",
+    )
+    user_search_intent: Mapped["UserSearchIntent | None"] = relationship(
+        "UserSearchIntent",
+        back_populates="user",
+        uselist=False,
+        lazy="select",
+    )
+    user_search_display: Mapped["UserSearchDisplaySettings | None"] = relationship(
+        "UserSearchDisplaySettings",
+        back_populates="user",
+        uselist=False,
+        lazy="select",
+        cascade="all, delete-orphan",
+        single_parent=True,
+    )
+    user_agent_profile: Mapped["UserAgentProfile | None"] = relationship(
+        "UserAgentProfile",
+        back_populates="user",
+        uselist=False,
+        lazy="select",
+    )
+    user_calendar_connections: DynamicMapped["UserCalendarConnection"] = relationship(
+        "UserCalendarConnection",
+        back_populates="user",
+        lazy="dynamic",
+    )
+    user_intent_attributes: DynamicMapped["UserIntentAttribute"] = relationship(
+        "UserIntentAttribute",
+        back_populates="user",
+        lazy="dynamic",
+    )
+    user_important_locations: DynamicMapped["UserImportantLocation"] = relationship(
+        "UserImportantLocation",
+        back_populates="user",
+        lazy="dynamic",
+    )
+    user_roles: DynamicMapped["UserRole"] = relationship(
+        "UserRole",
+        back_populates="user",
+        lazy="dynamic",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    documents: Mapped[list["Document"]] = relationship(
+        "Document",
+        back_populates="user",
+        lazy=True,
+    )
+    docusign_token: Mapped["DocusignOAuthToken | None"] = relationship(
+        "DocusignOAuthToken",
+        back_populates="user",
+        uselist=False,
+    )
+    agent_conversations: Mapped[list["AgentConnections"]] = relationship(
+        "AgentConnections",
+        foreign_keys="AgentConnections.agent_id",
+        back_populates="agent",
+        lazy=True,
+    )
+    client_conversations: Mapped[list["AgentConnections"]] = relationship(
+        "AgentConnections",
+        foreign_keys="AgentConnections.client_id",
+        back_populates="client",
+        lazy=True,
+    )
+    sent_agent_requests: Mapped[list["AgentConnectionRequest"]] = relationship(
+        "AgentConnectionRequest",
+        foreign_keys="AgentConnectionRequest.agent_id",
+        back_populates="agent",
+        lazy=True,
+    )
+    received_agent_requests: Mapped[list["AgentConnectionRequest"]] = relationship(
+        "AgentConnectionRequest",
+        foreign_keys="AgentConnectionRequest.client_id",
+        back_populates="client",
+        lazy=True,
+    )
+    todos: Mapped[list["Todo"]] = relationship(
+        "Todo",
+        foreign_keys="Todo.agent_id",
+        back_populates="agent",
+        lazy=True,
+    )
+    client_todos: Mapped[list["Todo"]] = relationship(
+        "Todo",
+        foreign_keys="Todo.client_id",
+        back_populates="client",
+        lazy=True,
+    )
+    calendar_events: Mapped[list["CalendarEvent"]] = relationship(
+        "CalendarEvent",
+        foreign_keys="CalendarEvent.user_id",
+        back_populates="user",
+        lazy=True,
+    )
+    created_events: Mapped[list["CalendarEvent"]] = relationship(
+        "CalendarEvent",
+        foreign_keys="CalendarEvent.creator_id",
+        back_populates="creator",
+        lazy=True,
+    )
+    target_calendar_events: Mapped[list["CalendarEvent"]] = relationship(
+        "CalendarEvent",
+        foreign_keys="CalendarEvent.target_user_id",
+        back_populates="target_user",
+        lazy=True,
+    )
+    shared_calendars: Mapped[list["CalendarShare"]] = relationship(
+        "CalendarShare",
+        foreign_keys="CalendarShare.calendar_owner_id",
+        back_populates="calendar_owner",
+        lazy=True,
+    )
+    calendars_shared_with_me: Mapped[list["CalendarShare"]] = relationship(
+        "CalendarShare",
+        foreign_keys="CalendarShare.shared_with_user_id",
+        back_populates="shared_with_user",
+        lazy=True,
+    )
+    org_memberships: DynamicMapped["UserOrgMembership"] = relationship(
+        "UserOrgMembership",
+        back_populates="user",
+        lazy="dynamic",
+    )
+    user_tasks: DynamicMapped["TransactionTask"] = relationship(
+        "TransactionTask",
+        back_populates="user",
+        lazy="dynamic",
+    )
 
     def __init__(self, **kwargs):
-        init_is_agent = kwargs.pop("is_agent", None)
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-        if init_is_agent is not None:
-            self._init_is_agent = bool(init_is_agent)
-
-    @property
-    def is_agent(self) -> bool:
-        from app.services.auth.user_role_helpers import user_is_agent
-
-        return user_is_agent(self)
-
-    @is_agent.setter
-    def is_agent(self, value: bool) -> None:
-        from app.services.auth.user_role_helpers import set_user_is_agent
-
-        set_user_is_agent(str(self.id), bool(value))
-
-
-@event.listens_for(User, "after_insert")
-def _user_apply_init_agent_role(_mapper, connection, target) -> None:
-    if not getattr(target, "_init_is_agent", False):
-        return
-    import uuid
-    from datetime import datetime, timezone
-
-    from sqlalchemy import text
-
-    connection.execute(
-        text(
-            "INSERT INTO user_roles (id, user_id, role, created_at) "
-            "VALUES (:id, :uid, 'agent', :created_at) "
-            "ON CONFLICT DO NOTHING"
-        ),
-        {
-            "id": str(uuid.uuid4()),
-            "uid": str(target.id),
-            "created_at": datetime.now(timezone.utc),
-        },
-    )

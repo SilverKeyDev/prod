@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useHlsVideo } from "packages/hooks/ui";
 import { SEARCH_VIEW_MODE_CHANGED_EVENT } from "packages/store";
 import { useFeedStore } from "packages/store";
-import { Box, Image, Video } from "packages/ui/components/primitives";
+import { Box, Image, Video } from "packages/ui/components/structure/primitives";
 import { getDocument, getNavigator, getWindow } from "packages/utils";
 
 import type { FeedListing } from "@/features/feed/types/feed";

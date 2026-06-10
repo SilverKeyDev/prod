@@ -1,5 +1,7 @@
 > **Status:** Partial | **Last verified:** 2026-05-28
 
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
+
 ## Title, escrow, and closing preparation
 
 Title/escrow steps are **escrow + closing checklist items** plus document upload/signing—not title-company API integration or objection-deadline engine.

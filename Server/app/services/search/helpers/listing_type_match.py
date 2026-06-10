@@ -10,6 +10,17 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
+_KNOWN_LISTING_TYPE_PREFS: frozenset[str] = frozenset(
+    {
+        "agent_listed",
+        "owner_posted",
+        "new_construction",
+        "foreclosure_action",
+        "foreclosed",
+        "pre_foreclosed",
+    }
+)
+
 # Normalized statuses treated as typical MLS / agent-marketed active pipeline
 _AGENT_LISTED_STATUSES: frozenset[str] = frozenset(
     {
@@ -142,8 +153,7 @@ def _pref_matches(
             or "preforeclosure" in text_blob.replace(" ", "")
         )
 
-    # Unknown pref: preserve legacy substring behavior between pref and status
-    return pref_norm in status_norm or status_norm in pref_norm
+    return False
 
 
 def listing_type_prefs_are_owner_posted_only(prefs: list[Any]) -> bool:

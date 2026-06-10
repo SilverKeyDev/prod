@@ -2,8 +2,8 @@ import { ExternalLink } from "lucide-react";
 
 import { useLocalization } from "packages/contexts";
 import { Button } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 type DocuSignWidgetFooterProps = {
   showViewAll: boolean;

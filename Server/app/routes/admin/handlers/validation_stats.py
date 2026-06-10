@@ -10,12 +10,13 @@ from app.schemas import ValidationStatsApiResponse
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_authenticated_user,
-    standardize_error_response,
     standardize_success_response,
 )
 from app.utils.security.admin_roles import user_has_admin_role
 from app.utils.validation import validate_response
-from logger import LOG_CATEGORIES, log
+from logger import log
+
+from ._errors import admin_access_denied
 
 
 @handle_exceptions_with_logging
@@ -24,13 +25,11 @@ from logger import LOG_CATEGORIES, log
 def get_validation_stats(user):
     if not user_has_admin_role(user):
         log.security(
-            LOG_CATEGORIES["SECURITY"],
+            "SECURITY",
             "Unauthorized validation stats attempt",
             {"user_id": getattr(user, "id", None)},
         )
-        return standardize_error_response(
-            "Admin access required", status_code=403, error_code="admin_forbidden"
-        )
+        return admin_access_denied()
 
     try:
         raw_days = int(request.args.get("days", 7))
@@ -59,7 +58,7 @@ def get_validation_stats(user):
         "note": "This is a placeholder. Implement log querying for production use.",
         "implementation_guide": {
             "data_sources": [
-                "Query application logs with LOG_CATEGORIES['ERRORS']",
+                'Query application logs with "ERRORS"',
                 "Filter for 'OpenAPI validation failed' messages",
                 "Aggregate by route, schema, error type, and timestamp",
             ],

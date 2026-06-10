@@ -3,8 +3,8 @@ import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useIsAgent } from "packages/hooks/store";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import { calendarDateToKey } from "packages/utils/calendar/core/calendarDateKeys";
-import { getWindow } from "packages/utils/platform";
+import { calendarDateToKey } from "packages/utils/comms/calendar/core/calendarDateKeys";
+import { getWindow } from "packages/utils/core/platform";
 
 import type { CreateModalPrefilledCreateSnapshot } from "@/features/calendar/hooks/data/createEvent/useCreateEventModal.types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
@@ -189,8 +189,6 @@ export function useCalendarQuickCreateSession({
       selectedCalendarId: q.selectedCalendarId,
       defaultCalendarId,
       selectedClientId: q.selectedClientId,
-      isPropertyViewing: false,
-      viewingStops: [],
       onAddWithoutSchedule: undefined,
       createEvent,
       onEventCreated: () => {

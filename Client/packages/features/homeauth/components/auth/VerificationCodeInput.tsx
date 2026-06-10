@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 
 import Input from "@ui/form/Input";
 
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Label from "packages/ui/components/text/Label.web";
-import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Label from "packages/ui/components/structure/text/Label.web";
+import { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 export type VerificationCodeInputProps = {
   length?: number;

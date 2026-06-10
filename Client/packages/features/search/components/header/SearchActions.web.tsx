@@ -1,10 +1,9 @@
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
 import { Button, CancelButton } from "@/components/ui";
 
-import SearchDisplayDropdown from "./display/SearchDisplayDropdown.web";
 import SearchFiltersDropdown from "./filters/SearchFiltersDropdown.web";
 
 type SearchActionsProps = {
@@ -12,7 +11,7 @@ type SearchActionsProps = {
   onSearchProperties?: () => void;
   onCancelSearch?: () => void;
   isSearching?: boolean;
-  /** Retained for API compatibility; search availability is handled in SearchFeature (important locations vs location bar). */
+  /** Display-only: whether saved important locations exist (empty-state UI, not search gating). */
   hasLocations?: boolean;
   variant?: "desktop" | "mobile";
   /** When provided with onToggleMode, shows Reels button (only in map mode) */
@@ -164,7 +163,6 @@ export default function SearchActions({
         selectedClientId={selectedClientId}
         onClientChange={onClientChange}
       />
-      <SearchDisplayDropdown />
       {!desktopToolsOnly ? (
         <>
           <Button

@@ -54,7 +54,7 @@ vi.mock("packages/features/partners/api/partners", () => ({
   partnersApi: { uploadPartnerLogo: vi.fn() },
 }));
 
-vi.mock("packages/ui/components/modals", () => ({
+vi.mock("packages/ui/components/surfaces/modals", () => ({
   ConfirmationDialog: ({
     isOpen,
     title,

@@ -1,5 +1,5 @@
 /** Negotiate feature translation strings (negotiation, negotiate). */
-import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+import { ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 export const NEGOTIATE_TRANSLATIONS: Record<string, string> = {
   "negotiation.title": "Negotiate",

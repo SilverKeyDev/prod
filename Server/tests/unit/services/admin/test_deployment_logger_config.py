@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.services.admin.deployment_logger_config import (
+    ALWAYS_ON_LOGGER_CONFIG_KEYS,
     get_resolved_deployment_logger_config,
     merge_and_persist,
     resolve_client_config,
@@ -57,3 +58,33 @@ def test_get_resolved_deployment_logger_config_empty_db(mock_db_session) -> None
     config = get_resolved_deployment_logger_config()
     assert "client" in config
     assert "server" in config
+
+
+def test_merge_and_persist_ignores_always_on_keys(mock_db_session) -> None:
+    with patch(
+        "app.services.admin.deployment_logger_config.get_resolved_deployment_logger_config"
+    ) as mock_resolved:
+        mock_resolved.return_value = {
+            "client": resolve_client_config({}),
+            "server": resolve_server_config({}),
+        }
+        merge_and_persist(
+            "user-1",
+            {
+                "server": {"errors": False, "security": False, "polling": False},
+                "client": {"errors": False, "security": False, "search": True},
+            },
+        )
+
+    added_row = mock_db_session.session.add.call_args[0][0]
+    stored = added_row.config
+    for scope in ("client", "server"):
+        for key in ALWAYS_ON_LOGGER_CONFIG_KEYS:
+            assert key not in stored[scope]
+    assert stored["server"]["polling"] is False
+    assert stored["client"]["search"] is True
+
+
+def test_merge_and_persist_returns_none_for_only_always_on_updates(mock_db_session) -> None:
+    assert merge_and_persist("user-1", {"server": {"errors": False}}) is None
+    mock_db_session.session.commit.assert_not_called()

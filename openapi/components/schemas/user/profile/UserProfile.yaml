@@ -10,7 +10,6 @@ example:
   email: "alex.agent@example.com"
   name: "Alex Agent"
   is_active: true
-  is_agent: true
   mls_id: "MLS-48291"
   brokerage: "Silver Key Realty"
   cognito_id: "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890"

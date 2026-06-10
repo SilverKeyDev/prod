@@ -59,13 +59,15 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**/*.ipynb" = ["T201"]
 "app/__init__.py" = ["E402"]
-"scripts/lint/lint_*.py" = ["T201"]
-"scripts/lint/check_coverage_thresholds.py" = ["T201"]
+"scripts/lint/**/lint_*.py" = ["T201"]
+"scripts/misc/check_coverage_thresholds.py" = ["T201"]
+"scripts/misc/seed_georgia_forms.py" = ["T201", "E402"]
 "scripts/validate-schema-coverage.py" = ["T201"]
 "scripts/endpoints/extract_routes.py" = ["T201", "E402"]
 "scripts/endpoints/check_dead_endpoints.py" = ["T201"]
 "scripts/endpoints/sync_inventory_posthog.py" = ["T201"]
-"scripts/seed_georgia_forms.py" = ["T201", "E402"]
+# ORM relationship Mapped[] forward refs: quoted names for pyright; F821/UP037 waived in models.
+"app/models/**/*.py" = ["F821", "UP037"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
@@ -104,6 +106,47 @@ exclude = [
     # sentence-transformers + torch: test/runtime only (requirements/test.txt), not lint CI.
     "app/services/search/home_matching/embeddings/model_loader.py",
 ]
+# ORM forward refs: quoted Mapped["User"] + waiver (IDE may use workspace paths Server/app/models).
+[[tool.pyright.executionEnvironments]]
+root = "Server/app/models"
+reportUndefinedVariable = false
+extraPaths = ["Server", "scripts"]
+
+[[tool.pyright.executionEnvironments]]
+root = "app/models"
+reportUndefinedVariable = false
+extraPaths = ["."]
+
+# Mirror for basedpyright / Cursor (honors [tool.pyright] but explicit avoids extension drift).
+[tool.basedpyright]
+typeCheckingMode = "off"
+venvPath = "."
+venv = ".venv"
+extraPaths = ["../scripts"]
+reportMissingImports = true
+reportMissingModuleSource = true
+reportUndefinedVariable = true
+exclude = [
+    "venv",
+    ".venv",
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "migrations/versions",
+    "tests",
+    "app/schemas/generated.py",
+    "app/services/search/home_matching/embeddings/model_loader.py",
+]
+
+[[tool.basedpyright.executionEnvironments]]
+root = "Server/app/models"
+reportUndefinedVariable = false
+extraPaths = ["Server", "scripts"]
+
+[[tool.basedpyright.executionEnvironments]]
+root = "app/models"
+reportUndefinedVariable = false
+extraPaths = ["."]
 
 # --- Mypy: Optional gradual type checking ---
 [tool.mypy]
@@ -131,6 +174,7 @@ omit = [
     "**/.venv/**",
     "**/venv/**",
     "**/env/**",
+    "app/schemas/generated.py",
 ]
 
 [tool.coverage.report]

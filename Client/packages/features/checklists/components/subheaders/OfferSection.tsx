@@ -23,7 +23,7 @@ export default function OfferSection({ setClosePageHeaderData }: OfferSectionPro
       title={CHECKLIST_TITLES.offer}
       subtitle={CHECKLIST_SUBTITLES.offer}
       sectionTitle="Offer Tasks"
-      apiEndpoint="/api/v1/tasks?type=offer"
+      checklistType="offer"
       showLoadingScreen={true}
       setClosePageHeaderData={setClosePageHeaderData}
     />

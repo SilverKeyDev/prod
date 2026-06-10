@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
 import { Button } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 type TimeSlot = { start: Date; end: Date; isAvailable: boolean };
 
@@ -19,7 +19,12 @@ export function TimeSlotPicker({
   onSelectSlot,
   isLoading,
 }: TimeSlotPickerProps): ReactNode {
-  if (isLoading) return <BodyText as="span">Loading availability...</BodyText>;
+  if (isLoading)
+    return (
+      <BodyText as="span" muted>
+        Loading availability...
+      </BodyText>
+    );
   return (
     <Box className="space-y-2">
       {slots.map((slot, i) => (

@@ -4,15 +4,16 @@ import { useLocalization } from "packages/contexts";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import type { ChecklistIntegrationComponentProps } from "packages/features/checklists/types/componentRegistry";
 import { isDefineCriteriaStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
-import HousingSection from "packages/features/profile/components/sections/housing/HousingSection";
-import PreferencesFormContent from "packages/features/profile/components/settings/inputs/PreferencesFormContent.web";
+import type { OnboardingData } from "packages/features/profile";
+import {
+  HousingSection,
+  PreferencesFormContent,
+  PreferencesSaveStatusRow,
+} from "packages/features/profile";
 import { useResponsive } from "packages/hooks/ui";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
-import Card from "packages/ui/components/cards/Card";
-import Box from "packages/ui/components/primitives/box/Box";
-
-import PreferencesSaveStatusRow from "@/features/profile/components/settings/inputs/PreferencesSaveStatusRow";
-import type { OnboardingData } from "@/features/profile/utils";
+import Box from "packages/ui/components/structure/primitives/box/Box";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 export default function DefineCriteriaSection({ onComplete }: ChecklistIntegrationComponentProps) {
   const { t } = useLocalization();

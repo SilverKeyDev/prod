@@ -1,5 +1,6 @@
 """Document and agreement-related models."""
 
+# pyright: reportUndefinedVariable=false
 from .agreement import Agreement
 from .agreement_event import AgreementEvent
 from .agreement_link import AgreementLink

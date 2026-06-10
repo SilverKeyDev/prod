@@ -1,13 +1,13 @@
-import { logError } from "packages/utils/errorHandling/logging";
-import { normalizeError } from "packages/utils/errorHandling/normalize";
-import type { AppError } from "packages/utils/errorHandling/types";
+import { logError } from "packages/utils/core/errorHandling/logging";
+import { normalizeError } from "packages/utils/core/errorHandling/normalize";
+import type { AppError } from "packages/utils/core/errorHandling/types";
 
 import { errorReporter } from "./instance";
 
 /**
  * Logs an error locally and sends it to the backend (ErrorReporter).
  * Use this when you want both logging and reporting; use reportError from
- * packages/utils/errorHandling for log-only.
+ * packages/utils/core/errorHandling for log-only.
  */
 export function reportErrorWithCapture(
   error: AppError | unknown,

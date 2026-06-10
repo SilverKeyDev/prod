@@ -1,11 +1,10 @@
 """Agent todo endpoints."""
 
-import logging
 from datetime import datetime
 
 from flask import jsonify, request
-from jose.exceptions import ExpiredSignatureError, JWTError
 
+from app.routes.agent.handlers._errors import agent_value_error_response
 from app.schemas import CreateTodoRequest, CreateTodoResponse, UpdateTodoRequest, UpdateTodoResponse
 from app.services.agent import (
     create_todo,
@@ -15,13 +14,18 @@ from app.services.agent import (
     resolve_primary_agent_id_for_client,
     update_todo,
 )
-from app.services.auth import SecurityException
-from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.services.auth.user_role_helpers import user_is_agent
+from app.utils.common_patterns import (
+    handle_exceptions_with_logging,
+    invalid_request,
+    require_authenticated_user,
+    server_error,
+    unauthorized,
+    validation,
+)
 from app.utils.security import rate_limit
-from app.utils.security.secure_errors import SecureErrorHandler
 from app.utils.validation import validate_request, validate_response
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 @rate_limit(max_requests=200, window_seconds=60)
@@ -30,10 +34,10 @@ logger = logging.getLogger(__name__)
 def get_todos(user):
     """Todos for an agent (all their rows) or for a client (rows assigned to that client)."""
     if not user.id:
-        logger.error("User ID is None in get_todos")
-        return jsonify({"success": False, "error": "Invalid user session"}), 401
+        log.error("AUTH", "User ID is None in get_todos")
+        return unauthorized()
     include_completed = request.args.get("include_completed", "false").lower() == "true"
-    if user.is_agent:
+    if user_is_agent(user):
         todos = get_agent_todos(str(user.id), include_completed=include_completed)
     else:
         todos = get_client_todos(str(user.id), include_completed=include_completed)
@@ -45,37 +49,29 @@ def get_todos(user):
 @require_authenticated_user
 @validate_request(CreateTodoRequest)
 @validate_response(CreateTodoResponse)
-def create_todo_endpoint(user, data: CreateTodoRequest | None = None):
+def create_todo_endpoint(user, data: CreateTodoRequest):
     """Create a new todo (agent: any client_id they pass; client: always scoped to themselves)."""
     if not user.id:
-        logger.error("User ID is None in create_todo_endpoint")
-        return jsonify({"success": False, "error": "Invalid user session"}), 401
+        log.error("AUTH", "User ID is None in create_todo_endpoint")
+        return unauthorized()
     try:
-        if data is None:
-            request_data = request.get_json(silent=True) or {}
-            title = request_data.get("title")
-            due_date_str = request_data.get("due_date")
-            todo_type = request_data.get("type", "manual")
-            client_id = request_data.get("client_id")
-            description = request_data.get("description")
-        else:
-            request_data = data.model_dump(mode="json")
-            title = request_data["title"]
-            due_date_str = request_data.get("due_date")
-            todo_type = request_data.get("type") or "manual"
-            client_id = request_data.get("client_id")
-            description = request_data.get("description")
+        title = data.title
+        due_date_str = data.due_date
+        todo_type = data.type.value if data.type is not None else "manual"
+        client_id = data.client_id
+        description = data.description
         if not title:
-            return jsonify({"success": False, "error": "title is required"}), 400
+            return invalid_request("title is required")
         due_date = None
         if due_date_str:
             try:
                 due_date = datetime.fromisoformat(due_date_str.replace("Z", "+00:00"))
-            except Exception as e:
-                return jsonify(
-                    {"success": False, "error": f"Invalid due_date format: {str(e)}"}
-                ), 400
-        if user.is_agent:
+            except Exception:
+                return validation(
+                    "Invalid due_date format",
+                    field_errors={"due_date": "Invalid format"},
+                )
+        if user_is_agent(user):
             todo = create_todo(
                 agent_id=str(user.id),
                 title=title,
@@ -87,12 +83,7 @@ def create_todo_endpoint(user, data: CreateTodoRequest | None = None):
         else:
             agent_for_row = resolve_primary_agent_id_for_client(user)
             if not agent_for_row:
-                return jsonify(
-                    {
-                        "success": False,
-                        "error": "Connect with your agent before adding to-dos.",
-                    }
-                ), 400
+                return invalid_request("Connect with your agent before adding to-dos.")
             todo = create_todo(
                 agent_id=agent_for_row,
                 title=title,
@@ -103,10 +94,11 @@ def create_todo_endpoint(user, data: CreateTodoRequest | None = None):
             )
         return jsonify({"success": True, "todo": todo})
     except ValueError as e:
-        return jsonify({"success": False, "error": str(e)}), 400
+        return agent_value_error_response(e)
     except Exception as e:
-        return SecureErrorHandler.handle_database_error(
-            e, {"function": "create_todo", "user_id": getattr(user, "id", "unknown")}
+        return server_error(
+            e,
+            context={"function": "create_todo", "user_id": getattr(user, "id", "unknown")},
         )
 
 
@@ -115,16 +107,13 @@ def create_todo_endpoint(user, data: CreateTodoRequest | None = None):
 @require_authenticated_user
 @validate_request(UpdateTodoRequest)
 @validate_response(UpdateTodoResponse)
-def update_todo_endpoint(user, todo_id, data: UpdateTodoRequest | None = None):
+def update_todo_endpoint(user, todo_id, data: UpdateTodoRequest):
     """Update a todo"""
     if not user.id:
-        logger.error("User ID is None in update_todo_endpoint")
-        return jsonify({"success": False, "error": "Invalid user session"}), 401
+        log.error("AUTH", "User ID is None in update_todo_endpoint")
+        return unauthorized()
     try:
-        if data is None:
-            source = request.get_json(silent=True) or {}
-        else:
-            source = data.model_dump(mode="json", exclude_unset=True)
+        source = data.model_dump(mode="json", exclude_unset=True)
         update_data = {}
         if "title" in source:
             update_data["title"] = source["title"]
@@ -141,26 +130,26 @@ def update_todo_endpoint(user, todo_id, data: UpdateTodoRequest | None = None):
                         str(source["due_date"]).replace("Z", "+00:00")
                     )
                     update_data["due_date"] = due_date
-                except Exception as e:
-                    return jsonify(
-                        {"success": False, "error": f"Invalid due_date format: {str(e)}"}
-                    ), 400
+                except Exception:
+                    return validation(
+                        "Invalid due_date format",
+                        field_errors={"due_date": "Invalid format"},
+                    )
         if "completed" in source:
             update_data["completed"] = bool(source["completed"])
         if "client_id" in source:
             update_data["client_id"] = source["client_id"]
-        if user.is_agent:
+        if user_is_agent(user):
             todo = update_todo(todo_id, acting_agent_id=str(user.id), **update_data)
         else:
             todo = update_todo(todo_id, acting_client_id=str(user.id), **update_data)
         return jsonify({"success": True, "todo": todo})
-    except (SecurityException, ExpiredSignatureError, JWTError):
-        return jsonify({"success": False, "error": "Authentication required"}), 401
     except ValueError as e:
-        return jsonify({"success": False, "error": str(e)}), 400
+        return agent_value_error_response(e)
     except Exception as e:
-        return SecureErrorHandler.handle_database_error(
-            e, {"function": "update_todo", "user_id": "unknown"}
+        return server_error(
+            e,
+            context={"function": "update_todo", "user_id": getattr(user, "id", "unknown")},
         )
 
 
@@ -170,17 +159,18 @@ def update_todo_endpoint(user, todo_id, data: UpdateTodoRequest | None = None):
 def delete_todo_endpoint(user, todo_id):
     """Delete a todo"""
     if not user.id:
-        logger.error("User ID is None in delete_todo_endpoint")
-        return jsonify({"success": False, "error": "Invalid user session"}), 401
+        log.error("AUTH", "User ID is None in delete_todo_endpoint")
+        return unauthorized()
     try:
-        if user.is_agent:
+        if user_is_agent(user):
             delete_todo(todo_id, acting_agent_id=str(user.id))
         else:
             delete_todo(todo_id, acting_client_id=str(user.id))
         return jsonify({"success": True})
     except ValueError as e:
-        return jsonify({"success": False, "error": str(e)}), 400
+        return agent_value_error_response(e)
     except Exception as e:
-        return SecureErrorHandler.handle_database_error(
-            e, {"function": "delete_todo", "user_id": getattr(user, "id", "unknown")}
+        return server_error(
+            e,
+            context={"function": "delete_todo", "user_id": getattr(user, "id", "unknown")},
         )

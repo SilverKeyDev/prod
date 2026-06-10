@@ -1,5 +1,6 @@
 """Property and home-related models."""
 
+# pyright: reportUndefinedVariable=false
 from .home_comment import HomeComment
 from .home_not_interested import HomeNotInterested
 from .property_analysis_section import PropertyAnalysisSection

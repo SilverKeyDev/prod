@@ -5,16 +5,22 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
-from sqlalchemy import func
+from sqlalchemy import func, select
 
 from app import db
-from app.dtos.user import _try_presigned_profile_picture_url
+from app.dtos.user.user import _try_presigned_profile_picture_url
 from app.models import Agreement, TransactionTask, User, UserRole
 from app.services.transactions.checklist_support.checklist_constants import (
     PIPELINE_ORDER,
     PIPELINE_RANK,
     TASK_CATEGORIES,
 )
+from app.services.transactions.checklist_support.checklist_rules import (
+    merge_task_checklist_checked_ids,
+    sort_task_checklist_items,
+)
+from app.services.transactions.ensure import ensure_transaction
+from app.services.transactions.retrieval import get_checklist_definition
 
 _SECTION_UNLOCK_REQUIRES: dict[str, tuple[str, ...]] = {
     "search": (),
@@ -34,6 +40,8 @@ def _client_kind_from_roles(role_names: set[str]) -> str:
     roles = {r.lower() for r in role_names if r and str(r).lower() != "agent"}
     if "seller" in roles:
         return "seller"
+    if "renter" in roles:
+        return "renter"
     if "buyer" in roles:
         return "buyer"
     if "investor" in roles:
@@ -44,7 +52,7 @@ def _client_kind_from_roles(role_names: set[str]) -> str:
 def batch_client_kinds(user_ids: list[str]) -> dict[str, str]:
     if not user_ids:
         return {}
-    rows = UserRole.query.filter(UserRole.user_id.in_(user_ids)).all()
+    rows = db.session.scalars(select(UserRole).where(UserRole.user_id.in_(user_ids))).all()
     by_user: dict[str, set[str]] = defaultdict(set)
     for row in rows:
         by_user[row.user_id].add(row.role)
@@ -58,20 +66,19 @@ def batch_pipeline_stages(user_ids: list[str]) -> dict[str, str]:
     """
     if not user_ids:
         return {}
-    grouped = (
-        db.session.query(
+    grouped = db.session.execute(
+        select(
             TransactionTask.user_id,
             TransactionTask.category,
             func.max(TransactionTask.updated_at).label("latest_at"),
         )
-        .filter(
+        .where(
             TransactionTask.user_id.in_(user_ids),
             TransactionTask.category.in_(TASK_CATEGORIES),
             TransactionTask.status == "done",
         )
         .group_by(TransactionTask.user_id, TransactionTask.category)
-        .all()
-    )
+    ).all()
     best: dict[str, tuple] = {}
     for user_id, category, latest_at in grouped:
         if category not in PIPELINE_RANK:
@@ -98,14 +105,10 @@ def _item_id(item: dict[str, Any]) -> int | None:
 
 
 def _effective_checked_ids(user_id: str, category: str) -> set[int]:
+    # Lazy: unified_task_checklist_read → checklist_signature_completion → agent cycle.
     from app.services.transactions.checklist_signature_completion import (
         apply_signature_based_checked_ids,
     )
-    from app.services.transactions.checklist_support.checklist_rules import (
-        merge_task_checklist_checked_ids,
-    )
-    from app.services.transactions.ensure import ensure_transaction
-    from app.services.transactions.retrieval import get_checklist_definition
     from app.services.transactions.unified_task_checklist_read import (
         get_checked_ids_for_transaction,
     )
@@ -125,11 +128,6 @@ def _effective_checked_ids(user_id: str, category: str) -> set[int]:
 
 
 def _section_is_complete(user_id: str, category: str) -> bool:
-    from app.services.transactions.checklist_support.checklist_rules import (
-        sort_task_checklist_items,
-    )
-    from app.services.transactions.retrieval import get_checklist_definition
-
     items = get_checklist_definition(category)
     if not items:
         return True
@@ -146,10 +144,6 @@ def _section_is_complete(user_id: str, category: str) -> bool:
 
 def _first_incomplete_step_label(items: list[dict[str, Any]], checked: set[int]) -> str | None:
     """Port of Client getActiveChecklistItemIds — returns label for the first active step only."""
-    from app.services.transactions.checklist_support.checklist_rules import (
-        sort_task_checklist_items,
-    )
-
     sorted_items = sort_task_checklist_items(list(items))
     first_incomplete = None
     for item in sorted_items:
@@ -173,8 +167,6 @@ def _first_incomplete_step_label(items: list[dict[str, Any]], checked: set[int])
 
 
 def _current_step_for_user(user_id: str) -> tuple[str, str | None]:
-    from app.services.transactions.retrieval import get_checklist_definition
-
     completion_cache: dict[str, bool] = {
         cat: _section_is_complete(user_id, cat) for cat in PIPELINE_ORDER
     }
@@ -214,10 +206,12 @@ def batch_requires_signature(agent_id: str, client_ids: list[str]) -> dict[str, 
         return {}
 
     out = dict.fromkeys(client_ids, False)
-    agreements = Agreement.query.filter(
-        Agreement.agent_id == agent_id,
-        Agreement.buyer_id.in_(client_ids),
-        Agreement.status.in_(tuple(_AGREEMENT_ACTIVE_STATUSES)),
+    agreements = db.session.scalars(
+        select(Agreement).where(
+            Agreement.agent_id == agent_id,
+            Agreement.buyer_id.in_(client_ids),
+            Agreement.status.in_(tuple(_AGREEMENT_ACTIVE_STATUSES)),
+        )
     ).all()
 
     for agreement in agreements:

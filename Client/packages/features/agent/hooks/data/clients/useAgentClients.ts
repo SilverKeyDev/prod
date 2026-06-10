@@ -6,7 +6,7 @@ import { queryKeys } from "packages/config/query/keys";
 import { useIsAgent } from "packages/hooks/store";
 import { HttpError } from "packages/services/http/client";
 import { useAuthStore } from "packages/store";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import type { AgentClient } from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";

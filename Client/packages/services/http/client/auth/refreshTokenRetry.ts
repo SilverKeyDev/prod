@@ -1,8 +1,8 @@
 import { getEnv } from "packages/config/env";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { normalizeUrl } from "packages/services/http/client/request/httpRequestHeaders";
 import { createHttpRequestId } from "packages/services/http/client/request/requestId";
-import { getFetch } from "packages/utils/platform";
+import { getFetch } from "packages/utils/core/platform";
 
 export type RefreshTokenAttemptResult = {
   ok: boolean;
@@ -64,7 +64,7 @@ export async function postRefreshTokenWithRetry(
       const retryable = isRetryableRefreshResponse(response.status, body);
       if (retryable && attempt < maxAttempts) {
         const delay = REFRESH_BACKOFF_MS[attempt - 1] ?? 1000;
-        log.warn(LOG_CATEGORIES.AUTH, "Refresh-token transient failure; retrying", {
+        log.warn("AUTH", "Refresh-token transient failure; retrying", {
           correlationId,
           attempt,
           status: response.status,
@@ -84,7 +84,7 @@ export async function postRefreshTokenWithRetry(
     } catch (error) {
       if (attempt < maxAttempts) {
         const delay = REFRESH_BACKOFF_MS[attempt - 1] ?? 1000;
-        log.warn(LOG_CATEGORIES.AUTH, "Refresh-token request threw; retrying", {
+        log.warn("AUTH", "Refresh-token request threw; retrying", {
           correlationId,
           attempt,
           delayMs: delay,
@@ -92,7 +92,7 @@ export async function postRefreshTokenWithRetry(
         await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
-      log.warn(LOG_CATEGORIES.AUTH, "Refresh-token request failed after retries", {
+      log.warn("AUTH", "Refresh-token request failed after retries", {
         correlationId,
         error: error instanceof Error ? error.message : "unknown",
       });

@@ -11,10 +11,10 @@ import {
 import { DocuSignWidgetPendingColumn } from "packages/features/documents/components/docusign/docuSignWidget/DocuSignWidgetPendingColumn";
 import { DocuSignWidgetRecentColumn } from "packages/features/documents/components/docusign/docuSignWidget/DocuSignWidgetRecentColumn";
 import { DocuSignWidgetStatsCards } from "packages/features/documents/components/docusign/docuSignWidget/DocuSignWidgetStatsCards";
-import type { ListDocusignTemplate } from "packages/features/documents/components/docusign/docuSignWidget/useDocuSignWidgetController";
-import { useDocuSignWidgetController } from "packages/features/documents/components/docusign/docuSignWidget/useDocuSignWidgetController";
 import { DocuSignWidgetSavedTemplatesSection } from "packages/features/documents/components/docusign/DocuSignWidgetSavedTemplatesSection";
-import { Box } from "packages/ui/components/primitives";
+import type { ListDocusignTemplate } from "packages/features/documents/hooks/ui/useDocuSignWidgetController";
+import { useDocuSignWidgetController } from "packages/features/documents/hooks/ui/useDocuSignWidgetController";
+import { Box } from "packages/ui/components/structure/primitives";
 
 /** Dashboard DocuSign agreements widget: templates, stats, pending and recent lists. */
 export default function DocuSignWidget() {

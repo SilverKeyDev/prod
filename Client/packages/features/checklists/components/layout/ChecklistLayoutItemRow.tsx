@@ -13,9 +13,9 @@ import { checklistCheckboxRowClassNames } from "packages/features/checklists/uti
 import { CHECKLIST_ROW_INTERACTIVE_SELECTOR } from "packages/features/checklists/utils/presentation/checklistRowInteractiveSelector";
 import type { ChecklistItemToggleEligibility } from "packages/features/checklists/utils/rules/checklistRules";
 import { ChecklistCheckbox } from "packages/ui";
-import { ConfirmationDialog } from "packages/ui/components/modals";
-import { Box, TouchableBox } from "packages/ui/components/primitives";
-import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/primitives/divider/dividerStyles";
+import { Box, TouchableBox } from "packages/ui/components/structure/primitives";
+import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/structure/primitives/divider/dividerStyles";
+import { ConfirmationDialog } from "packages/ui/components/surfaces/modals";
 
 import { IconButton } from "@/components/ui";
 
@@ -115,6 +115,12 @@ function ChecklistLayoutItemRowInner({
   }, [expanded, item.id, toggleExpand]);
 
   const expandRowAccessibilityLabel = `${item.label}. Expand step`;
+  const toggleRowAccessibilityLabel = `${item.label}. Toggle step`;
+
+  const ignoreNestedRowPress = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    return Boolean(target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR));
+  }, []);
 
   const checklistItem: ChecklistCloseLayoutCheckboxItem = {
     id: item.id,
@@ -126,7 +132,7 @@ function ChecklistLayoutItemRowInner({
     optional: item.optional ?? undefined,
   };
 
-  const headerRow = (
+  const headerRowContent = (
     <Box className="flex flex-row items-start gap-2">
       <Box className="min-w-0 flex-1">
         <ChecklistCheckbox
@@ -134,6 +140,7 @@ function ChecklistLayoutItemRowInner({
           checked={rowChecked}
           onToggle={handleCheckboxToggle}
           disabled={checkboxDisabled}
+          deferInteractionToParent
           itemLabelClass={itemLabel}
           itemExplanationClass={itemExplanation}
           checkboxContainerClass={checkboxContainer}
@@ -155,24 +162,35 @@ function ChecklistLayoutItemRowInner({
     </Box>
   );
 
-  const collapsedHeaderRow = (
+  const headerRow = expanded ? (
+    <TouchableBox
+      label={toggleRowAccessibilityLabel}
+      onPress={handleCheckboxToggle}
+      className="w-full text-left"
+      onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+        if (ignoreNestedRowPress(e)) {
+          return;
+        }
+        e.stopPropagation();
+        handleCheckboxToggle();
+      }}
+    >
+      {headerRowContent}
+    </TouchableBox>
+  ) : (
     <TouchableBox
       label={expandRowAccessibilityLabel}
       onPress={handleExpandRowPress}
       className="w-full text-left"
       onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-        const target = e.target as HTMLElement;
-        if (target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR)) {
+        if (ignoreNestedRowPress(e)) {
           return;
-        }
-        if (target.closest("label")) {
-          e.preventDefault();
         }
         e.stopPropagation();
         handleExpandRowPress();
       }}
     >
-      {headerRow}
+      {headerRowContent}
     </TouchableBox>
   );
 
@@ -194,7 +212,7 @@ function ChecklistLayoutItemRowInner({
             : ""
         }`}
       >
-        {expanded ? headerRow : collapsedHeaderRow}
+        {headerRow}
         <ChecklistStepAttachments
           item={item}
           expanded={expanded}

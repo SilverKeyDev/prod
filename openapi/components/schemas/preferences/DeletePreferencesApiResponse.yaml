@@ -1,0 +1,14 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    required:
+      - has_preferences
+    properties:
+      has_preferences:
+        type: boolean
+        enum: [false]
+      preferences:
+        nullable: true
+      message:
+        type: string
+        description: Confirmation copy after clearing preferences.

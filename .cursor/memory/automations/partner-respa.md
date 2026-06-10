@@ -8,7 +8,7 @@
 2. Brokerage-level placement — not buyer-personalized steering.
 3. Add **RESPA compliance comment block** on new partner exposure paths.
 4. Log partner exposure events (auditable, no PII in logs).
-5. Real partners only: Better, Move Concierge, eXp — no invented deals.
+5. Real partners only: Better, eXp — no invented deals.
 
 ## Key code areas
 

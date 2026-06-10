@@ -2,7 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button } from "@/components/ui";
 
@@ -44,7 +44,7 @@ export function ImportantLocationSuggestionsList({
             size="sm"
             onClick={() => onSelect(suggestion)}
             className={`w-full cursor-pointer !justify-start px-3 py-2 text-sm [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start ${
-              highlightedIndex === index ? "bg-primary-muted" : "hover:bg-primary-muted"
+              highlightedIndex === index ? "bg-neutral-200" : "hover:bg-neutral-100"
             }`}
           >
             <Box className="flex w-full items-center justify-start gap-2 text-left">

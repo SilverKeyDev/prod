@@ -9,11 +9,11 @@ import type { PropertyDetailsSectionId } from "packages/features/propertyDetails
 import { PROPERTY_DETAILS_SECTION_ORDER } from "packages/features/propertyDetails/types/sectionOrder";
 import { useNavigation } from "packages/navigation";
 import { ConnectedCardHeartSave } from "packages/ui";
-import ShareHomeModal from "packages/ui/components/modals/ShareHomeModal";
-import { Box, Text } from "packages/ui/components/primitives";
-import type { UnderlineTabItem } from "packages/ui/components/tabs/UnderlineTabs";
-import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
-import { setToStorage } from "packages/utils/storage";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import type { UnderlineTabItem } from "packages/ui/components/structure/tabs/UnderlineTabs";
+import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTabs";
+import ShareHomeModal from "packages/ui/components/surfaces/modals/ShareHomeModal";
+import { setToStorage } from "packages/utils/core/storage";
 
 function getDisplayAddress(address: unknown): string | null {
   if (typeof address === "string" && address.trim().length > 0) return address;

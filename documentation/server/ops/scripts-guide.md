@@ -10,6 +10,7 @@ Canonical reference for every script in the SilverKey monorepo. The **Makefile**
 |---|---|
 | First-time machine setup | `make setup` |
 | Refresh deps after `git pull` | `make refresh` |
+| Reset/init the local dev database | `make dev-db-init` |
 | Start full dev stack (web + backend) | `make dev` |
 | Start backend only | `make dev-backend` |
 | Run all linters (client + server) | `make lint` |
@@ -23,6 +24,7 @@ Canonical reference for every script in the SilverKey monorepo. The **Makefile**
 | Extract Flask route inventory | `make routes-extract` |
 | Rotate AWS secrets → `.env` | `make secrets` |
 | Run pre-commit hooks on all files | `make precommit` |
+| Run pre-push hooks manually | `make pre-push-check` |
 | Investigate auth logout incident | `./scripts/ops/correlate-auth-incident.sh <ID>` |
 | Audit HTTP client call sites | `./scripts/ops/list-auth-http-entrypoints.sh` |
 
@@ -42,9 +44,9 @@ Orchestration scripts called directly from the Makefile or used by git hooks.
 
 | Script | Purpose | Called by |
 |--------|---------|-----------|
-| `setup/setup-local.sh` | First-time onboarding: deps, build, AWS SSO, secrets, verify, MCP | `make setup` |
+| `setup/setup-local.sh` | First-time onboarding: deps, build, AWS SSO, local DB init, verify, MCP | `make setup` |
 | `setup/setup-mcp.sh` | Cursor MCP config install and verify only | `make setup-mcp`; tail of `setup-local.sh` |
-| `setup/refresh.sh` | Post-`git pull` refresh: clean caches, pnpm install, bootstrap-venv, optional secrets | `make refresh` |
+| `setup/refresh.sh` | Post-`git pull` refresh: clean caches, pnpm install, bootstrap-venv, optional secrets, optional DB reset | `make refresh` |
 | `setup/check-deps.sh` | Scan local machine prerequisites | Manual |
 
 ### `ci/` — CI and quality gates
@@ -52,13 +54,17 @@ Orchestration scripts called directly from the Makefile or used by git hooks.
 | Script | Purpose | Called by |
 |--------|---------|-----------|
 | `ci/run-all-linters.sh` | Unified lint entry point: fix phase then client + server gate | `make lint`; `.github/workflows/lint.yml` |
-| `ci/sync-openapi.sh` | Bundle OpenAPI, regen types, drift check, contract tests, typecheck | `make openapi-verify`; `scripts/githooks/pre-push` |
+| `ci/sync-openapi.sh` | Bundle OpenAPI, regen types, drift check, contract tests, typecheck | `make openapi-verify`; pre-commit `openapi-drift` hook |
+| `ci/githook-path-filters.sh` | Path patterns for scoped git hooks | `pre-push-check.sh` |
+| `ci/pre-commit-openapi-drift.sh` | OpenAPI regen when spec/generated paths change (`--advisory`) | `.pre-commit-config.yaml` |
+| `ci/pre-push-check.sh` | Scoped typecheck / contract tests; blocking via `make`, advisory on `git push` | `scripts/githooks/pre-push`; `make pre-push-check` |
+| `ci/check-script-references.sh` | Fail on stale flat `scripts/*.sh` references after reorganization | `make check-docs` |
 | `ci/check-doc-placement.sh` | Fail if forbidden `docs/` paths or misplaced long markdown are detected | `make check-docs`; `.github/workflows/doc-check.yml` |
 | `ci/check-doc-links.sh` | Check internal markdown links | `make check-docs`; `.github/workflows/doc-check.yml` |
 | `ci/check-macos-duplicate-files.sh` | Fail on iCloud-style duplicate filenames | First step of `run-all-linters.sh` |
 | `ci/run-pre-commit.sh` | Locate and invoke `pre-commit run --all-files`; never blocks | `make precommit` |
 | `ci/pre-commit-prettier-client.sh` | Run Prettier on staged Client files via project Node toolchain | `.pre-commit-config.yaml` `prettier-client` hook |
-| `ci/pre-commit-eslint-client.sh` | Run ESLint `--fix` on staged Client files; non-blocking | `.pre-commit-config.yaml` `eslint-client` hook |
+| `ci/pre-commit-eslint-client.sh` | ESLint `--fix` on staged Client files (advisory) | `.pre-commit-config.yaml` `eslint-client` hook |
 
 See `scripts/ci/README.md` for the add-a-script policy.
 
@@ -99,8 +105,8 @@ See `scripts/ci/README.md` for the add-a-script policy.
 
 | File | Purpose |
 |------|---------|
-| `pre-commit` | Run pre-commit hooks on staged files; never blocks commit |
-| `pre-push` | Run `make openapi-verify-pre-push` + `test-fe` / `test-be` in parallel before push |
+| `pre-commit` | Advisory: format/lint autofix + OpenAPI regen; re-stages fixes; never blocks commit |
+| `pre-push` | Advisory: scoped typecheck / contract tests; never blocks push. Strict: `PRE_PUSH_BLOCKING=1 make pre-push-check` |
 
 Install with: `git config core.hooksPath scripts/githooks`
 
@@ -108,7 +114,9 @@ Install with: `git config core.hooksPath scripts/githooks`
 
 | Path | Purpose | Called by |
 |------|---------|-----------|
-| `deploy/prod-parity/docker-compose.yml` | Local prod-parity stack: app, Redis, Celery worker, Beat | `make prod-parity` / `make prod-parity-build` |
+| `deploy/prod-parity/compose.sh` | Prod-parity compose wrapper; `build` passes all `Client/.env` keys as `--build-arg` | `make prod-parity-build` |
+| `deploy/prod-parity/docker-compose.yml` | Local prod-parity stack: app, Redis, Celery worker, Beat | `make prod-parity` via `compose.sh` |
+| `deploy/prod-parity/smoke.sh` | Build, boot, `/livez` + `/readyz`, tear down | `make prod-parity-smoke` (before Docker/deploy PRs) |
 
 Canonical production deploy lives in `.github/scripts/ec2-deploy.sh`, invoked by `.github/workflows/ci_web.yml` via SSH.
 
@@ -124,14 +132,12 @@ See `scripts/load/README.md` for usage.
 
 ### `ops/` — manual ops and audit helpers
 
-Most scripts here are manual ops helpers. Monitoring scripts may be wired to cron/systemd on an external monitor host.
+Not wired to any Makefile target or CI workflow. Run directly when investigating production issues.
 
 | Script | Purpose |
 |--------|---------|
 | `ops/correlate-auth-incident.sh <ID>` | Correlate client + server logs for an unexpected logout via X-Request-ID |
 | `ops/list-auth-http-entrypoints.sh` | List `apiRequest` vs `httpClient`/`fetchJson` call sites for auth surface audit |
-| `ops/check_health_alert.py` | External `/healthz` probe; posts Slack alert on process-down/unhealthy app |
-| `ops/celery_healthcheck.py` | Kombu broker connectivity check |
 
 ---
 
@@ -143,7 +149,8 @@ Backend-specific scripts. Activate `Server/.venv` before running Python scripts 
 |--------|---------|-----------|
 | `generate-pydantic-models.sh` | OpenAPI → `app/schemas/generated.py` | Root `openapi:generate`; `scripts/ci/sync-openapi.sh`; `.github/workflows/openapi-sync.yml` |
 | `bootstrap-venv.sh` | Create or refresh `.venv`, install requirements | `scripts/setup/setup-local.sh`; `scripts/setup/refresh.sh` |
-| `secrets.sh` | AWS Secrets Manager → `Server/.env` | `make secrets`; `scripts/setup/refresh.sh --secrets` |
+| `secrets.sh` | AWS Secrets Manager → `Server/.env` with local dev `DATABASE_URL`; does not reset or migrate DBs | `make secrets`; `scripts/setup/refresh.sh --secrets` |
+| `prod-db-secrets.sh` | Production DB secret → `Server/.env.prod-db`; requires prod/admin AWS access | `make prod-db-secrets` |
 | `gunicorn-entrypoint.sh` | Env-driven Gunicorn launcher (workers, timeout, bind from env) | `Dockerfile.web` CMD; `run-backend.sh --production`; EC2 health checks |
 
 ### `lint/` — server linters (invoked by `run-all-linters.sh`)
@@ -166,7 +173,7 @@ Python linters:
 | `lint/lint_folder_count.py` | Warn / error on crowded directories |
 | `lint/lint_import_time_env.py` | Ban `os.environ` raises at import time in `app/` |
 | `lint/lint_timezone_aware.py` | Detect naive `datetime.now()` calls |
-| `lint/check_coverage_thresholds.py` | Enforce per-module coverage floors from `coverage.json` |
+| `misc/check_coverage_thresholds.py` | Enforce per-module coverage floors from `coverage.json` |
 
 ### `endpoints/` — route inventory and PostHog sync
 
@@ -174,20 +181,21 @@ Python linters:
 |--------|---------|-----------|
 | `endpoints/extract_routes.py` | Write `Server/endpoints.json` from Flask route registry | `make routes-extract`; `test-callable.yml` |
 | `endpoints/check_dead_endpoints.py` | Diff route inventory vs PostHog `api_request` events | `make endpoints-check-dead`; `endpoints-check-dead.yml` |
-| `endpoints/sync_inventory_posthog.py` | POST route inventory to PostHog | `make endpoints-sync-posthog`; `endpoints-sync-posthog.yml` |
+| `endpoints/endpoint_coverage.py` | Shared inventory vs `api_request` diff (7d) | Imported by check/sync scripts |
+| `endpoints/sync_inventory_posthog.py` | POST inventory + dead routes to PostHog | `make endpoints-sync-posthog`; `endpoints-sync-posthog.yml` |
 | `endpoints/posthog_constants_loader.py` | Load PostHog constants without Flask app context | Imported by check/sync scripts |
-| `monitoring/alert_5xx_spike.py` | Query PostHog `api_request` 5xx count and post Slack on threshold | `make monitor-5xx-alert`; external cron/systemd |
 
 ### Operator / manual tools
 
 | Script | Purpose |
 |--------|---------|
 | `validate-schema-coverage.py` | OpenAPI decorator coverage report (advisory) |
-| `seed_georgia_forms.py` | Seed Georgia form library data into DB |
+| `misc/seed_georgia_forms.py` | Seed Georgia form library data into DB |
 | `misc/delete_user_by_id.py` | Delete a user and related data by UUID |
 | `postgres/export_postgres_docs.py` | Export Postgres schema docs |
 | `redis_healthcheck.py` | Redis PING connectivity check |
 | `db_healthcheck.py` | DB connectivity check via `DATABASE_URL` |
+| `celery_healthcheck.py` | Kombu broker connectivity check (uses `Config.CELERY_URL`) |
 
 ### SQL templates (DBA reference, not CI)
 
@@ -209,8 +217,8 @@ Frontend-specific scripts. Run from the `Client/` directory with `pnpm` or `node
 | `run-client-linters.sh` | Run `lint.d/*.sh` then `pnpm check` | `scripts/ci/run-all-linters.sh` (client gate) |
 | `generate-api-types.sh` | `openapi-typescript` → `packages/types/api.generated.ts` | `pnpm generate:api-types`; root `openapi:generate` |
 | `npm-audit-critical.sh` | `npm audit` for critical vulnerabilities (pnpm audit workaround) | `pnpm audit`; `pnpm check` |
-| `assert-github-bundle-secrets.mjs` | Fail CI build if required bundle env secrets are absent | `.github/workflows/ci_web.yml` |
-| `verify-web-maps-map-id.mjs` | Verify Google Maps Map ID is inlined in web dist | `pnpm verify:web:maps`; `Dockerfile.web` |
+| `assert-bundle-secrets.mjs` | Fail CI build if required bundle env is absent/invalid | `.github/workflows/ci_web.yml` |
+| `export-bundle-docker-build-args.mjs` | Emit Docker `--build-arg` flags from manifest | `.github/workflows/ci_web.yml` |
 | `verify-web-posthog-config.mjs` | Verify PostHog key is inlined in web dist | `pnpm verify:web:posthog`; `Dockerfile.web` |
 | `verify-web-bundle-env.mjs` | Validate required env vars are present in web dist | Manual / documented for Docker |
 | `check-web-dist-no-native.mjs` | Fail if web dist contains React Native imports | `@silverkey/web` `postbuild` |
@@ -265,7 +273,9 @@ Scripts run exclusively inside GitHub Actions. Do not invoke locally unless debu
 | Script | Purpose | Called by |
 |--------|---------|-----------|
 | `ec2-deploy.sh` | Full EC2 deploy: ECR pull, Secrets Manager env merge, Docker stack (app/worker/beat/redis), static frontend sync | `.github/workflows/ci_web.yml` via SSH |
-| `_secrets-env.sh` | AWS Secrets Manager merge + `.env.example` validation helpers | Sourced by `ec2-deploy.sh` |
+| `_secrets-env.sh` | AWS Secrets Manager merge + `.env.example` validation helpers | Sourced by `ec2-deploy.sh`, `fetch-client-bundle-env.sh` |
+| `fetch-client-bundle-env.sh` | Fetch `EXPO_PUBLIC_*` from SM into `GITHUB_ENV` for ci_web Docker build | `.github/workflows/ci_web.yml` |
+| `apply-bundle-env-github-fallback.sh` | GitHub secrets fallback when SM omits bundle keys (planned for removal) | `.github/workflows/ci_web.yml` |
 | `gh-db-upgrade.sh` | Build `Dockerfile.web --target migrate`, run `flask db upgrade` against prod DB secret | `.github/workflows/db-migrate-main.yml` |
 | `summarize-openapi-sync-diff.sh` | Human-readable drift summary for generated OpenAPI artifacts | `.github/workflows/openapi-sync.yml` on failure |
 
@@ -276,10 +286,10 @@ Scripts run exclusively inside GitHub Actions. Do not invoke locally unless debu
 | Workflow | Scripts invoked |
 |----------|----------------|
 | `lint.yml` | `scripts/ci/run-all-linters.sh` |
-| `test-callable.yml` | `pytest`; `pnpm test:coverage`; `Server/scripts/lint/check_coverage_thresholds.py`; `Server/scripts/endpoints/extract_routes.py` |
+| `test-callable.yml` | `pytest`; `pnpm test:coverage`; `Server/scripts/misc/check_coverage_thresholds.py`; `Server/scripts/endpoints/extract_routes.py` |
 | `openapi-sync.yml` | `Server/scripts/generate-pydantic-models.sh`; `Client/scripts/generate-api-types.sh`; `.github/scripts/summarize-openapi-sync-diff.sh` |
 | `doc-check.yml` | `scripts/ci/check-doc-placement.sh`; `scripts/ci/check-doc-links.sh` |
-| `ci_web.yml` | `Client/scripts/assert-github-bundle-secrets.mjs`; `.github/scripts/ec2-deploy.sh` |
+| `ci_web.yml` | `fetch-client-bundle-env.sh`; `apply-bundle-env-github-fallback.sh`; `assert-bundle-secrets.mjs`; `export-bundle-docker-build-args.mjs`; `.github/scripts/ec2-deploy.sh` |
 | `db-migrate-main.yml` | `.github/scripts/gh-db-upgrade.sh` |
 | `endpoints-check-dead.yml` | `Server/scripts/endpoints/check_dead_endpoints.py` |
 | `endpoints-sync-posthog.yml` | `Server/scripts/endpoints/sync_inventory_posthog.py` |
@@ -294,7 +304,7 @@ Scripts run exclusively inside GitHub Actions. Do not invoke locally unless debu
 | Shell scripts (runnable) | `verb-noun.sh` | `sync-openapi.sh`, `check-doc-links.sh` |
 | Shell scripts (sourced lib) | `noun.sh` or `verb-noun.sh` inside `lib/` | `lib/deps.sh`, `lib/aws-setup.sh` |
 | Python scripts (standalone) | `verb_noun.py` (snake_case) | `extract_routes.py`, `lint_file_length.py` |
-| Node / ESM scripts | `verb-noun.mjs` | `audit-button-icons.mjs`, `verify-web-maps-map-id.mjs` |
+| Node / ESM scripts | `verb-noun.mjs` | `audit-button-icons.mjs`, `verify-web-posthog-config.mjs` |
 | CI-only scripts | `verb-noun.sh` in `.github/scripts/` | `ec2-deploy.sh`, `gh-db-upgrade.sh` |
 | Operator / one-off tools | `verb_noun.py` in `Server/scripts/misc/` or `verb-noun.sh` in `scripts/ops/` | `delete_user_by_id.py` |
 
@@ -339,6 +349,7 @@ Called by: make <target>; <workflow>.yml; or "Manual — ops only"
 | Called from two or more CI workflows | `scripts/ci/` |
 | Backend lint / quality gate | `Server/scripts/lint/` |
 | Backend route or data ops | `Server/scripts/endpoints/` or `Server/scripts/misc/` |
+| Backend operator data backfill | `Server/scripts/ops/` |
 | Frontend quality gate or audit | `Client/scripts/` |
 | Frontend ordered lint hook | `Client/scripts/lint.d/` (prefix with two-digit order number) |
 | CI-only; not needed locally | `.github/scripts/` |

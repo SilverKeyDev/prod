@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from sqlalchemy import select
+
+from app import db
 from app.models import Transaction
 
 
@@ -11,7 +14,7 @@ def resolve_transaction(subject_or_transaction_id: str) -> Transaction | None:
     Accept either that subject id or a real ``transactions.id``.
     """
     key = str(subject_or_transaction_id)
-    by_buyer = Transaction.query.filter_by(buyer_id=key).first()
+    by_buyer = db.session.scalar(select(Transaction).where(Transaction.buyer_id == key))
     if by_buyer:
         return by_buyer
-    return Transaction.query.filter_by(id=key).first()
+    return db.session.scalar(select(Transaction).where(Transaction.id == key))

@@ -1,0 +1,18 @@
+type: object
+required:
+  - contact_id
+  - contact_type
+  - display_name
+  - kind
+properties:
+  contact_id:
+    type: string
+  contact_type:
+    type: string
+  display_name:
+    type: string
+  kind:
+    $ref: "./WorkspaceConversationKind.yaml"
+  metadata:
+    type: object
+    additionalProperties: true

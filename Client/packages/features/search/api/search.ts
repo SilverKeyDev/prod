@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { apiGet, apiPost, buildApiUrl, HttpError, isAbortError } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
 import type {
@@ -47,6 +47,7 @@ function summarizePolygonSearchRequestForLog(req: SearchByPolygonRequest) {
     perBucketPages: req.perBucketPages,
     forceSearch: req.forceSearch,
     onlyCached: req.onlyCached,
+    hydrateListings: req.hydrateListings,
     preferencesStrictFilter: req.preferences_strict_filter === true,
     userPreferenceKeyCount: upKeys.length,
     userPreferenceKeysSample: upKeys.slice(0, 12),
@@ -88,7 +89,7 @@ export const searchApi = {
     })
       .then((resp) => {
         const respWithComps = resp as typeof resp & { comps?: unknown[] };
-        log.debug(LOG_CATEGORIES.API, "getPropertyComps response", {
+        log.debug("API", "getPropertyComps response", {
           success: resp?.success,
           compsCount: Array.isArray(respWithComps?.comps) ? respWithComps.comps.length : undefined,
           hasError: !!resp?.error,
@@ -97,7 +98,7 @@ export const searchApi = {
       })
       .catch((error) => {
         if (!isAbortError(error)) {
-          log.error(LOG_CATEGORIES.ERRORS, "getPropertyComps error", {
+          log.error("ERRORS", "getPropertyComps error", {
             message: String(error),
           });
         }
@@ -114,7 +115,7 @@ export const searchApi = {
   ): Promise<PolygonSearchResponse> => {
     const url = "/api/v1/search/properties-by-polygon";
     const xRequestId = createSearchCorrelationId();
-    log.info(LOG_CATEGORIES.POLYGON_SEARCH, "searchByPolygon API request", {
+    log.info("POLYGON_SEARCH", "searchByPolygon API request", {
       url,
       xRequestId,
       requestSummary: summarizePolygonSearchRequestForLog(data),
@@ -130,7 +131,7 @@ export const searchApi = {
       .then((resp) => {
         const rawCount = Array.isArray(resp.properties) ? resp.properties.length : 0;
         const meta = resp.meta;
-        log.info(LOG_CATEGORIES.POLYGON_SEARCH, "searchByPolygon API response", {
+        log.info("POLYGON_SEARCH", "searchByPolygon API response", {
           success: resp.success,
           error: resp.error,
           propertiesCount: rawCount,
@@ -147,7 +148,7 @@ export const searchApi = {
       })
       .catch((error) => {
         if (!isAbortError(error)) {
-          log.error(LOG_CATEGORIES.ERRORS, "Search API error", error);
+          log.error("ERRORS", "Search API error", error);
         }
         throw error;
       });
@@ -175,7 +176,7 @@ export const searchApi = {
       }
       if (isIsochroneMissingCommuteHttpError(error)) {
         const body = error.parsedBody as { error?: string; message?: string };
-        log.warn(LOG_CATEGORIES.SEARCH, "Isochrone skipped: no commute locations in preferences", {
+        log.warn("SEARCH", "Isochrone skipped: no commute locations in preferences", {
           error: body.error,
         });
         return {
@@ -184,7 +185,7 @@ export const searchApi = {
           message: body.message ?? null,
         } as unknown as IsochroneResponse;
       }
-      log.error(LOG_CATEGORIES.ERRORS, "Isochrone API error", error);
+      log.error("ERRORS", "Isochrone API error", error);
       throw error;
     }
   },
@@ -206,7 +207,7 @@ export const searchApi = {
       ...options,
     }).catch((error) => {
       if (!isAbortError(error)) {
-        log.error(LOG_CATEGORIES.ERRORS, "getAreaSuggestions error", {
+        log.error("ERRORS", "getAreaSuggestions error", {
           message: String(error),
         });
       }
@@ -229,7 +230,7 @@ export const searchApi = {
       ...options,
     }).catch((error) => {
       if (!isAbortError(error)) {
-        log.error(LOG_CATEGORIES.ERRORS, "getAreaBoundary error", {
+        log.error("ERRORS", "getAreaBoundary error", {
           message: String(error),
         });
       }
@@ -252,7 +253,7 @@ export const searchApi = {
       ...options,
     }).catch((error) => {
       if (!isAbortError(error)) {
-        log.error(LOG_CATEGORIES.ERRORS, "getMonthlyCostEstimates error", {
+        log.error("ERRORS", "getMonthlyCostEstimates error", {
           message: String(error),
         });
       }

@@ -4,16 +4,14 @@ from datetime import datetime
 from typing import Any
 
 from app.models import Agreement, AgreementParticipant
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def update_participants(agreement: Agreement, recipients: dict[str, Any]):
     """Update participant statuses from recipient data."""
 
-    logger.debug(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.debug(
+        "DOCUSIGN",
         "Updating participant statuses",
         {
             "agreement_id": agreement.id,
@@ -28,8 +26,8 @@ def update_participants(agreement: Agreement, recipients: dict[str, Any]):
         if participant:
             update_participant_status(participant, signer)
         else:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Participant not found for signer",
                 {
                     "agreement_id": agreement.id,
@@ -44,8 +42,8 @@ def update_participants(agreement: Agreement, recipients: dict[str, Any]):
         if participant:
             update_participant_status(participant, cc)
         else:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Participant not found for CC",
                 {
                     "agreement_id": agreement.id,
@@ -79,8 +77,8 @@ def update_participant_status(participant: AgreementParticipant, recipient_data:
         participant.recipient_status = status
 
         if old_status != status:
-            logger.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.info(
+                "DOCUSIGN",
                 "Participant status changed",
                 {
                     "participant_id": participant.id,
@@ -96,8 +94,8 @@ def update_participant_status(participant: AgreementParticipant, recipient_data:
                 recipient_data["sentDateTime"].replace("Z", "+00:00")
             )
         except (ValueError, TypeError) as e:
-            logger.warn(
-                LOG_CATEGORIES["API"],
+            log.warn(
+                "API",
                 "Failed to parse recipient sentDateTime",
                 {
                     "participant_id": participant.id,
@@ -112,8 +110,8 @@ def update_participant_status(participant: AgreementParticipant, recipient_data:
                 recipient_data["deliveredDateTime"].replace("Z", "+00:00")
             )
         except (ValueError, TypeError) as e:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Failed to parse recipient deliveredDateTime",
                 {
                     "participant_id": participant.id,
@@ -128,8 +126,8 @@ def update_participant_status(participant: AgreementParticipant, recipient_data:
                 recipient_data["signedDateTime"].replace("Z", "+00:00")
             )
         except (ValueError, TypeError) as e:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Failed to parse recipient signedDateTime",
                 {
                     "participant_id": participant.id,
@@ -144,8 +142,8 @@ def update_participant_status(participant: AgreementParticipant, recipient_data:
                 recipient_data["declinedDateTime"].replace("Z", "+00:00")
             )
         except (ValueError, TypeError) as e:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Failed to parse recipient declinedDateTime",
                 {
                     "participant_id": participant.id,

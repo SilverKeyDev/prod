@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 
 import { color } from "packages/design-tokens";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 const CONNECT_DISTANCE = 95;
 const MOUSE_RADIUS = 95;

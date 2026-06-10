@@ -5,13 +5,10 @@ These models define the data structures passed to the LLM scorer,
 optimized for prompt building.
 """
 
-import logging
 from typing import Any
 
 from .base import BaseInputModel
 from .llm_home_input import LLMHomeInput
-
-logger = logging.getLogger(__name__)
 
 __all__ = ["LLMUserInput", "LLMHomeInput"]
 

@@ -6,6 +6,7 @@ Monorepo structure, import layers, workspaces, and package layout.
 |-----|-------------|
 | [thin-app-architecture.md](./thin-app-architecture.md) | Thin apps, fat packages — what lives in `apps/` vs `packages/`. |
 | [layered-architecture-imports.md](./layered-architecture-imports.md) | Import matrix and layer rules. |
+| [cross-feature-composition.md](./cross-feature-composition.md) | Cross-feature import tiers, orchestrators, audit edges. |
 | [workspace-first-architecture.md](./workspace-first-architecture.md) | `useActiveWorkspace`, buyer/agent/seller/brokerage shells. |
 | [workspaces-placeholder-shells.md](./workspaces-placeholder-shells.md) | Seller / brokerage / integration_partner shell-only UX. |
 | [apps-folder-contents.md](./apps-folder-contents.md) | Literal breakdown of `apps/web` and `apps/mobile`. |

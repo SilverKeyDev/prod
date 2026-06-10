@@ -6,13 +6,12 @@ Renders React Email components to HTML by calling the Node.js render script.
 
 import base64
 import json
-import logging
 import os
 import subprocess
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 def get_workspace_root() -> Path:
@@ -41,7 +40,7 @@ def get_logo_data_url() -> str | None:
         logo_path = workspace_root / "Client" / "public" / "logo.png"
 
         if not logo_path.exists():
-            logger.warning(f"Logo file not found at {logo_path}")
+            log.warn("API", "Logo file not found for email render", {"logo_path": str(logo_path)})
             return None
 
         # Read the logo file and convert to base64
@@ -55,11 +54,15 @@ def get_logo_data_url() -> str | None:
         base64_data = base64.b64encode(logo_data).decode("utf-8")
         data_url = f"data:{mime_type};base64,{base64_data}"
 
-        logger.debug(f"Successfully loaded logo as data URL ({len(data_url)} chars)")
+        log.debug(
+            "API",
+            "Loaded logo as data URL for email render",
+            {"data_url_length": len(data_url)},
+        )
         return data_url
 
     except Exception as e:
-        logger.warning(f"Failed to load logo as data URL: {e}")
+        log.warn("API", "Failed to load logo as data URL", {"error": str(e)})
         return None
 
 
@@ -151,9 +154,14 @@ def render_email_html(template_name: str, props: dict[str, Any]) -> str:
                 else:
                     raise RuntimeError("Cannot find tsx. Install dependencies with: pnpm install")
 
-        logger.info(
-            f"Rendering email template '{template_name}' using {package_manager} "
-            f"with props keys: {list(props.keys())}"
+        log.info(
+            "API",
+            "Rendering email template",
+            {
+                "template_name": template_name,
+                "package_manager": package_manager,
+                "props_keys": list(props.keys()),
+            },
         )
 
         # Run the render script
@@ -172,7 +180,11 @@ def render_email_html(template_name: str, props: dict[str, Any]) -> str:
                 f"Email render script returned empty output. Stderr: {result.stderr}"
             )
 
-        logger.info(f"Successfully rendered email template '{template_name}' ({len(html)} chars)")
+        log.info(
+            "API",
+            "Successfully rendered email template",
+            {"template_name": template_name, "html_length": len(html)},
+        )
         return html
 
     except subprocess.TimeoutExpired as e:

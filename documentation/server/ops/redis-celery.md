@@ -21,10 +21,11 @@ redis-cli ping   # expect PONG
 
 ## Run Celery worker (local)
 
-From repo root with backend stack:
+From repo root:
 
 ```bash
-make dev-backend   # includes Redis + Flask + Celery when using run-web.sh
+make dev-backend   # scripts/run/run-backend.sh — Redis + Flask + Celery
+make dev           # full stack (same backend path, then Vite web)
 ```
 
 Or manually from `Server/` with venv active and `Server/.env` loaded.

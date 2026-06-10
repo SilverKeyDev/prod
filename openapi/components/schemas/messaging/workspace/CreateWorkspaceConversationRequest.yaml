@@ -1,0 +1,21 @@
+type: object
+required:
+  - kind
+properties:
+  kind:
+    $ref: "./WorkspaceConversationKind.yaml"
+  brokerage_org_id:
+    type: string
+    nullable: true
+  partner_id:
+    type: string
+    nullable: true
+  agent_user_id:
+    type: string
+    nullable: true
+  support_category:
+    type: string
+    nullable: true
+    enum:
+      - brokerage
+      - integrator

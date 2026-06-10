@@ -37,14 +37,14 @@ function buildMockLocation() {
   return location;
 }
 
-vi.mock("packages/utils/platform", () => ({
+vi.mock("packages/utils/core/platform", () => ({
   getWindow: () => ({
     location: buildMockLocation(),
     dispatchEvent: vi.fn(),
   }),
 }));
 
-vi.mock("packages/utils/storage/platformStorage", () => ({
+vi.mock("packages/utils/core/storage/platformStorage", () => ({
   getSessionStorage: () => ({ removeItem: vi.fn() }),
   getLocalStorage: () => ({ removeItem: vi.fn() }),
 }));

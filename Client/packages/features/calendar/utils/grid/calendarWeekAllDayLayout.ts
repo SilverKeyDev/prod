@@ -1,4 +1,4 @@
-import { getEventLocalDayKeys } from "packages/utils/calendar/parsing/eventParsing";
+import { getEventLocalDayKeys } from "packages/utils/comms/calendar/parsing/eventParsing";
 
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 

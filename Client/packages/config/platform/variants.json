@@ -30,8 +30,8 @@
   {
     "id": "virtuoso-adapter",
     "description": "Virtualized list adapter uses different implementations on web and native.",
-    "webPath": "packages/ui/components/adapters/virtuoso/Virtuoso.web.tsx",
-    "nativePath": "packages/ui/components/adapters/virtuoso/Virtuoso.native.tsx",
+    "webPath": "packages/ui/components/system/adapters/virtuoso/Virtuoso.web.tsx",
+    "nativePath": "packages/ui/components/system/adapters/virtuoso/Virtuoso.native.tsx",
     "reason": "Uses react-virtuoso on web and React Native list primitives on native."
   },
   {
@@ -44,8 +44,8 @@
   {
     "id": "animate-presence",
     "description": "Animation wrapper with platform-specific implementations.",
-    "webPath": "packages/ui/components/adapters/motion/AnimatePresence.web.tsx",
-    "nativePath": "packages/ui/components/adapters/motion/AnimatePresence.native.tsx",
+    "webPath": "packages/ui/components/system/adapters/motion/AnimatePresence.web.tsx",
+    "nativePath": "packages/ui/components/system/adapters/motion/AnimatePresence.native.tsx",
     "reason": "Web uses framer-motion library, native provides custom fallback that renders children without animations."
   },
   {
@@ -72,8 +72,8 @@
   {
     "id": "underline-tabs",
     "description": "Unified underline tabs component matching search Results/Saved styling.",
-    "webPath": "packages/ui/components/tabs/UnderlineTabs.tsx",
-    "nativePath": "packages/ui/components/tabs/UnderlineTabs.tsx",
+    "webPath": "packages/ui/components/structure/tabs/UnderlineTabs.tsx",
+    "nativePath": "packages/ui/components/structure/tabs/UnderlineTabs.tsx",
     "reason": "Single shared implementation: cross-platform Button (Pressable) and layout primitives so native matches web."
   },
   {
@@ -210,13 +210,6 @@
     "reason": "RN WebView embed and Linking API for partner placements."
   },
   {
-    "id": "home-concierge-checklist",
-    "description": "Move Concierge close checklist card: web iframe embed vs native WebView and external browser.",
-    "webPath": "packages/features/checklists/components/integrations/concierge/HomeConcierge.tsx",
-    "nativePath": "packages/features/checklists/components/integrations/concierge/HomeConcierge.native.tsx",
-    "reason": "Native uses react-native-webview and Linking; web uses iframe and window.open."
-  },
-  {
     "id": "feed-item-with-gesture",
     "description": "Feed item with platform-specific gesture handling for reels.",
     "webPath": "packages/features/feed/components/Reels/components/FeedItemWithGesture.tsx",
@@ -257,6 +250,13 @@
     "webPath": "packages/features/homeauth/components/auth/GoogleSignInButton.tsx",
     "nativePath": "packages/features/homeauth/components/auth/GoogleSignInButton.native.tsx",
     "reason": "Native uses Google Sign-In SDK; web uses OAuth flow."
+  },
+  {
+    "id": "auth-terms-disclaimer",
+    "description": "Auth terms and privacy disclaimer copy with platform-specific link handling.",
+    "webPath": "packages/features/homeauth/components/core/AuthTermsDisclaimer.tsx",
+    "nativePath": "packages/features/homeauth/components/core/AuthTermsDisclaimer.native.tsx",
+    "reason": "Web uses react-router AuthLink; native uses react-navigation Text onPress with StyleSheet."
   },
   {
     "id": "auth-page-layout",
@@ -393,10 +393,10 @@
   },
   {
     "id": "search-display-sheet",
-    "description": "Search display settings: desktop web uses Popover dropdown; mobile web embeds panel in filters sheet; native embeds SearchDisplaySection in filters modal.",
-    "webPath": "packages/features/search/components/header/display/SearchDisplayDropdown.web.tsx",
+    "description": "Search display settings embedded in preferences: web uses SearchDisplayPanelWeb inside filters popover/sheet; native uses SearchDisplaySection in filters modal.",
+    "webPath": "packages/features/search/components/header/display/SearchDisplayPanel.web.tsx",
     "nativePath": "packages/features/search/components/header/display/SearchDisplaySection.native.tsx",
-    "reason": "Web desktop uses Headless UI Popover with SearchDisplayPanelWeb; mobile surfaces merge display into filters; native uses RN controls inside filters sheet."
+    "reason": "Web embeds SearchDisplayPanelWeb in preferences dropdown/sheet; native uses RN controls inside filters modal."
   },
   {
     "id": "reels-view",
@@ -436,295 +436,295 @@
   {
     "id": "use-embla-carousel",
     "description": "Embla carousel hook for web only.",
-    "webPath": "packages/ui/components/adapters/carousel/useEmblaCarousel.web.ts",
+    "webPath": "packages/ui/components/system/adapters/carousel/useEmblaCarousel.web.ts",
     "nativePath": null,
     "reason": "Embla is DOM-based; native uses FlatList."
   },
   {
     "id": "dialog-impl",
     "description": "Dialog implementation with platform-specific modal.",
-    "webPath": "packages/ui/components/adapters/headless/DialogImpl.web.tsx",
-    "nativePath": "packages/ui/components/adapters/headless/DialogImpl.native.tsx",
+    "webPath": "packages/ui/components/system/adapters/headless/DialogImpl.web.tsx",
+    "nativePath": "packages/ui/components/system/adapters/headless/DialogImpl.native.tsx",
     "reason": "Web uses Headless UI; native uses RN Modal."
   },
   {
     "id": "tab-impl",
     "description": "Tab implementation with platform-specific UI.",
-    "webPath": "packages/ui/components/adapters/headless/TabImpl.web.tsx",
-    "nativePath": "packages/ui/components/adapters/headless/TabImpl.native.tsx",
+    "webPath": "packages/ui/components/system/adapters/headless/TabImpl.web.tsx",
+    "nativePath": "packages/ui/components/system/adapters/headless/TabImpl.native.tsx",
     "reason": "Different tab implementations per platform."
   },
   {
     "id": "transition-impl",
     "description": "Transition implementation with platform-specific animation.",
-    "webPath": "packages/ui/components/adapters/headless/TransitionImpl.web.tsx",
-    "nativePath": "packages/ui/components/adapters/headless/TransitionImpl.native.tsx",
+    "webPath": "packages/ui/components/system/adapters/headless/TransitionImpl.web.tsx",
+    "nativePath": "packages/ui/components/system/adapters/headless/TransitionImpl.native.tsx",
     "reason": "Web uses CSS/framer-motion; native uses Reanimated."
   },
   {
     "id": "use-hls-video",
     "description": "HLS video hook for web.",
-    "webPath": "packages/ui/components/adapters/hls/useHlsVideo.web.ts",
+    "webPath": "packages/ui/components/system/adapters/hls/useHlsVideo.web.ts",
     "nativePath": null,
     "reason": "HLS.js is web-only; native has built-in HLS."
   },
   {
     "id": "motion-button",
     "description": "Motion button with platform-specific animation.",
-    "webPath": "packages/ui/components/adapters/motion/MotionButton.web.tsx",
-    "nativePath": "packages/ui/components/adapters/motion/MotionButton.native.tsx",
+    "webPath": "packages/ui/components/system/adapters/motion/MotionButton.web.tsx",
+    "nativePath": "packages/ui/components/system/adapters/motion/MotionButton.native.tsx",
     "reason": "Web uses framer-motion; native uses Reanimated."
   },
   {
     "id": "motion-span",
     "description": "Motion span with platform-specific animation.",
-    "webPath": "packages/ui/components/adapters/motion/MotionSpan.web.tsx",
-    "nativePath": "packages/ui/components/adapters/motion/MotionSpan.native.tsx",
+    "webPath": "packages/ui/components/system/adapters/motion/MotionSpan.web.tsx",
+    "nativePath": "packages/ui/components/system/adapters/motion/MotionSpan.native.tsx",
     "reason": "Different animation libraries per platform."
   },
   {
     "id": "motion-view",
     "description": "Motion view with platform-specific animation.",
-    "webPath": "packages/ui/components/adapters/motion/MotionView.web.tsx",
-    "nativePath": "packages/ui/components/adapters/motion/MotionView.native.tsx",
+    "webPath": "packages/ui/components/system/adapters/motion/MotionView.web.tsx",
+    "nativePath": "packages/ui/components/system/adapters/motion/MotionView.native.tsx",
     "reason": "Different animation libraries per platform."
   },
   {
     "id": "app-image",
     "description": "App image with platform-specific loading.",
-    "webPath": "packages/ui/components/asset/AppImage.tsx",
-    "nativePath": "packages/ui/components/asset/AppImage.native.tsx",
+    "webPath": "packages/ui/components/media/asset/AppImage.tsx",
+    "nativePath": "packages/ui/components/media/asset/AppImage.native.tsx",
     "reason": "HTML img vs RN Image component."
   },
   {
     "id": "key-turn-loader",
     "description": "Key turn loader with platform-specific animation.",
-    "webPath": "packages/ui/components/asset/loading/KeyTurnLoader.web.tsx",
-    "nativePath": "packages/ui/components/asset/loading/KeyTurnLoader.native.tsx",
+    "webPath": "packages/ui/components/media/asset/loading/KeyTurnLoader.web.tsx",
+    "nativePath": "packages/ui/components/media/asset/loading/KeyTurnLoader.native.tsx",
     "reason": "Different animation implementations."
   },
   {
     "id": "loading",
     "description": "Loading component with platform-specific spinner.",
-    "webPath": "packages/ui/components/asset/loading/Loading.tsx",
-    "nativePath": "packages/ui/components/asset/loading/Loading.native.tsx",
+    "webPath": "packages/ui/components/media/asset/loading/Loading.tsx",
+    "nativePath": "packages/ui/components/media/asset/loading/Loading.native.tsx",
     "reason": "Web uses CSS; native uses RN ActivityIndicator."
   },
   {
     "id": "ripple-background",
     "description": "Ripple background with platform-specific effect.",
-    "webPath": "packages/ui/components/backgrounds/RippleBackground.web.tsx",
-    "nativePath": "packages/ui/components/backgrounds/RippleBackground.native.tsx",
+    "webPath": "packages/ui/components/surfaces/backgrounds/RippleBackground.web.tsx",
+    "nativePath": "packages/ui/components/surfaces/backgrounds/RippleBackground.native.tsx",
     "reason": "Web uses CSS; native uses RN-specific effects."
   },
   {
     "id": "button-component",
     "description": "Button component with platform-specific press handling.",
-    "webPath": "packages/ui/components/button/core/Button.tsx",
-    "nativePath": "packages/ui/components/button/core/Button.native.tsx",
+    "webPath": "packages/ui/components/actions/button/core/Button.tsx",
+    "nativePath": "packages/ui/components/actions/button/core/Button.native.tsx",
     "reason": "Web uses DOM button; native uses Pressable."
   },
   {
     "id": "client-selector",
     "description": "Client selector with platform-specific dropdown.",
-    "webPath": "packages/ui/components/button/propertyActions/ClientSelector.tsx",
-    "nativePath": "packages/ui/components/button/propertyActions/ClientSelector.native.tsx",
+    "webPath": "packages/ui/components/actions/button/propertyActions/ClientSelector.tsx",
+    "nativePath": "packages/ui/components/actions/button/propertyActions/ClientSelector.native.tsx",
     "reason": "Different dropdown implementations."
   },
   {
     "id": "heart-save",
     "description": "Heart save button with platform-specific touch.",
-    "webPath": "packages/ui/components/button/propertyActions/HeartSave.tsx",
-    "nativePath": "packages/ui/components/button/propertyActions/HeartSave.native.tsx",
+    "webPath": "packages/ui/components/actions/button/propertyActions/HeartSave.tsx",
+    "nativePath": "packages/ui/components/actions/button/propertyActions/HeartSave.native.tsx",
     "reason": "Different touch handling per platform."
   },
   {
     "id": "icon-button",
     "description": "Icon button with platform-specific press handling.",
-    "webPath": "packages/ui/components/button/core/IconButton.tsx",
-    "nativePath": "packages/ui/components/button/core/IconButton.native.tsx",
+    "webPath": "packages/ui/components/actions/button/core/IconButton.tsx",
+    "nativePath": "packages/ui/components/actions/button/core/IconButton.native.tsx",
     "reason": "Web uses DOM; native uses Pressable."
   },
   {
     "id": "card-component",
     "description": "Card component with platform-specific layout.",
-    "webPath": "packages/ui/components/cards/Card.tsx",
-    "nativePath": "packages/ui/components/cards/Card.native.tsx",
+    "webPath": "packages/ui/components/surfaces/cards/Card.tsx",
+    "nativePath": "packages/ui/components/surfaces/cards/Card.native.tsx",
     "reason": "Web uses div; native uses View."
   },
   {
     "id": "blur-view",
     "description": "Blur view with platform-specific blur effect.",
-    "webPath": "packages/ui/components/primitives/blur/BlurView.web.tsx",
-    "nativePath": "packages/ui/components/primitives/blur/BlurView.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/blur/BlurView.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/blur/BlurView.native.tsx",
     "reason": "Web uses CSS backdrop-filter; native uses expo-blur."
   },
   {
     "id": "universal-gradient",
     "description": "Universal gradient with platform-specific rendering.",
-    "webPath": "packages/ui/components/primitives/gradient/UniversalGradient.web.tsx",
-    "nativePath": "packages/ui/components/primitives/gradient/UniversalGradient.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/gradient/UniversalGradient.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/gradient/UniversalGradient.native.tsx",
     "reason": "Web uses CSS; native uses expo-linear-gradient."
   },
   {
     "id": "box-primitive",
     "description": "Box primitive with platform-specific element.",
-    "webPath": "packages/ui/components/primitives/box/Box.web.tsx",
-    "nativePath": "packages/ui/components/primitives/box/Box.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/box/Box.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/box/Box.native.tsx",
     "reason": "Web uses div; native uses View."
   },
   {
     "id": "button-primitive",
     "description": "Button primitive with platform-specific element.",
-    "webPath": "packages/ui/components/primitives/button/Button.web.tsx",
-    "nativePath": "packages/ui/components/primitives/button/Button.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/button/Button.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/button/Button.native.tsx",
     "reason": "Web uses button; native uses Pressable."
   },
   {
     "id": "dashed-divider",
     "description": "Dashed divider with platform-specific rendering.",
-    "webPath": "packages/ui/components/primitives/divider/DashedDivider.web.tsx",
-    "nativePath": "packages/ui/components/primitives/divider/DashedDivider.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/divider/DashedDivider.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/divider/DashedDivider.native.tsx",
     "reason": "Different rendering per platform."
   },
   {
     "id": "input-primitive",
     "description": "Input primitive with platform-specific element.",
-    "webPath": "packages/ui/components/primitives/input/Input.web.tsx",
-    "nativePath": "packages/ui/components/primitives/input/Input.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/input/Input.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/input/Input.native.tsx",
     "reason": "HTML input vs TextInput."
   },
   {
     "id": "form-input",
     "description": "Design-system form Input with field chrome (icons, password toggle).",
-    "webPath": "packages/ui/components/form/inputs/Input.web.tsx",
-    "nativePath": "packages/ui/components/form/inputs/Input.native.tsx",
+    "webPath": "packages/ui/components/inputs/form/inputs/Input.web.tsx",
+    "nativePath": "packages/ui/components/inputs/form/inputs/Input.native.tsx",
     "reason": "Web uses HTML input and DOM aria patterns; native uses React Native TextInput and RN accessibility props."
   },
   {
     "id": "list-primitive",
     "description": "List primitive with platform-specific rendering.",
-    "webPath": "packages/ui/components/primitives/list/List.web.tsx",
-    "nativePath": "packages/ui/components/primitives/list/List.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/list/List.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/list/List.native.tsx",
     "reason": "Web uses ul/ol; native uses FlatList."
   },
   {
     "id": "image-primitive",
     "description": "Image primitive with platform-specific loading.",
-    "webPath": "packages/ui/components/primitives/media/Image.web.tsx",
-    "nativePath": "packages/ui/components/primitives/media/Image.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/media/Image.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/media/Image.native.tsx",
     "reason": "HTML img vs RN Image."
   },
   {
     "id": "video-primitive",
     "description": "Video primitive with platform-specific playback.",
-    "webPath": "packages/ui/components/primitives/media/Video.web.tsx",
-    "nativePath": "packages/ui/components/primitives/media/Video.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/media/Video.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/media/Video.native.tsx",
     "reason": "HTML video vs expo-av."
   },
   {
     "id": "row-primitive",
     "description": "Row primitive with platform-specific layout.",
-    "webPath": "packages/ui/components/primitives/row/Row.web.tsx",
-    "nativePath": "packages/ui/components/primitives/row/Row.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/row/Row.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/row/Row.native.tsx",
     "reason": "Web uses div; native uses View."
   },
   {
     "id": "scroll-view-primitive",
     "description": "Scroll view with platform-specific scrolling.",
-    "webPath": "packages/ui/components/primitives/scroll/ScrollView.web.tsx",
-    "nativePath": "packages/ui/components/primitives/scroll/ScrollView.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/scroll/ScrollView.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/scroll/ScrollView.native.tsx",
     "reason": "Web uses overflow; native uses ScrollView."
   },
   {
     "id": "text-primitive",
     "description": "Text primitive with platform-specific rendering.",
-    "webPath": "packages/ui/components/primitives/text/Text.web.tsx",
-    "nativePath": "packages/ui/components/primitives/text/Text.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/text/Text.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/text/Text.native.tsx",
     "reason": "Web uses span/p; native uses Text."
   },
   {
     "id": "touchable-box",
     "description": "Touchable box with platform-specific press handling.",
-    "webPath": "packages/ui/components/primitives/touchable/TouchableBox.tsx",
-    "nativePath": "packages/ui/components/primitives/touchable/TouchableBox.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/touchable/TouchableBox.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/touchable/TouchableBox.native.tsx",
     "reason": "Web uses div+onClick; native uses Pressable."
   },
   {
     "id": "base-modal",
     "description": "Base modal with platform-specific presentation.",
-    "webPath": "packages/ui/components/modals/BaseModal.web.tsx",
-    "nativePath": "packages/ui/components/modals/BaseModal.native.tsx",
+    "webPath": "packages/ui/components/surfaces/modals/BaseModal.web.tsx",
+    "nativePath": "packages/ui/components/surfaces/modals/BaseModal.native.tsx",
     "reason": "Web uses Portal; native uses RN Modal."
   },
   {
     "id": "cover",
     "description": "Full-screen overlay (Cover) with platform-specific presentation.",
-    "webPath": "packages/ui/components/modals/cover/Cover.web.tsx",
-    "nativePath": "packages/ui/components/modals/cover/Cover.native.tsx",
+    "webPath": "packages/ui/components/surfaces/modals/cover/Cover.web.tsx",
+    "nativePath": "packages/ui/components/surfaces/modals/cover/Cover.native.tsx",
     "reason": "Web uses Portal + fixed viewport; native uses RN Modal full-screen."
   },
   {
     "id": "pdf-modal",
     "description": "PDF modal with platform-specific viewer.",
     "webPath": "packages/features/documents/components/pdf/DocumentPdfModal.web.tsx",
-    "nativePath": "packages/ui/components/modals/PdfModal/index.native.tsx",
+    "nativePath": "packages/ui/components/surfaces/modals/PdfModal/index.native.tsx",
     "reason": "Different PDF viewing per platform."
   },
   {
     "id": "confirmation-dialog",
     "description": "Confirmation dialog with platform-specific presentation.",
-    "webPath": "packages/ui/components/modals/dialogs/ConfirmationDialog.web.tsx",
-    "nativePath": "packages/ui/components/modals/dialogs/ConfirmationDialog.native.tsx",
+    "webPath": "packages/ui/components/surfaces/modals/dialogs/ConfirmationDialog.web.tsx",
+    "nativePath": "packages/ui/components/surfaces/modals/dialogs/ConfirmationDialog.native.tsx",
     "reason": "Web uses overlay; native uses RN Modal."
   },
   {
     "id": "popover",
     "description": "Popover with platform-specific positioning.",
-    "webPath": "packages/ui/components/popover/Popover.tsx",
-    "nativePath": "packages/ui/components/popover/Popover.native.tsx",
+    "webPath": "packages/ui/components/surfaces/popover/Popover.tsx",
+    "nativePath": "packages/ui/components/surfaces/popover/Popover.native.tsx",
     "reason": "Web uses floating-ui; native uses different positioning."
   },
   {
     "id": "portal",
     "description": "Portal for web-only DOM rendering.",
-    "webPath": "packages/ui/components/portal/Portal.web.tsx",
+    "webPath": "packages/ui/components/structure/portal/Portal.web.tsx",
     "nativePath": null,
     "reason": "Portal is DOM-specific; native renders in place."
   },
   {
     "id": "secure-file-upload",
     "description": "Secure file upload with platform-specific picker.",
-    "webPath": "packages/ui/components/security/SecureFileUpload.tsx",
-    "nativePath": "packages/ui/components/security/SecureFileUpload.native.tsx",
+    "webPath": "packages/ui/components/system/security/SecureFileUpload.tsx",
+    "nativePath": "packages/ui/components/system/security/SecureFileUpload.native.tsx",
     "reason": "Web uses input; native uses document picker."
   },
   {
     "id": "phone-input",
     "description": "Phone input with platform-specific keyboard.",
-    "webPath": "packages/ui/components/form/PhoneInput/PhoneInput.web.tsx",
-    "nativePath": "packages/ui/components/form/PhoneInput/PhoneInput.native.tsx",
+    "webPath": "packages/ui/components/inputs/form/PhoneInput/PhoneInput.web.tsx",
+    "nativePath": "packages/ui/components/inputs/form/PhoneInput/PhoneInput.native.tsx",
     "reason": "Different keyboard and validation per platform."
   },
   {
     "id": "range-input",
     "description": "Range input with platform-specific slider.",
-    "webPath": "packages/ui/components/form/pickers/RangeInput.tsx",
-    "nativePath": "packages/ui/components/form/pickers/RangeInput.native.tsx",
+    "webPath": "packages/ui/components/inputs/form/pickers/RangeInput.tsx",
+    "nativePath": "packages/ui/components/inputs/form/pickers/RangeInput.native.tsx",
     "reason": "HTML range vs RN Slider."
   },
   {
     "id": "icon-component",
     "description": "Icon component with platform-specific rendering.",
-    "webPath": "packages/ui/components/icons/Icon.web.tsx",
-    "nativePath": "packages/ui/components/icons/Icon.native.tsx",
+    "webPath": "packages/ui/components/media/icons/Icon.web.tsx",
+    "nativePath": "packages/ui/components/media/icons/Icon.native.tsx",
     "reason": "Web uses SVG; native uses vector icons."
   },
   {
     "id": "icon-map-impl",
     "description": "Icon map implementation with platform-specific icons.",
-    "webPath": "packages/ui/components/icons/iconMapImpl.web.tsx",
-    "nativePath": "packages/ui/components/icons/iconMapImpl.native.tsx",
+    "webPath": "packages/ui/components/media/icons/iconMapImpl.web.tsx",
+    "nativePath": "packages/ui/components/media/icons/iconMapImpl.native.tsx",
     "reason": "lucide-react vs @expo/vector-icons."
   },
   {
@@ -744,8 +744,8 @@
   {
     "id": "platform-utils",
     "description": "Platform detection utilities.",
-    "webPath": "packages/utils/platform/platform.ts",
-    "nativePath": "packages/utils/platform/platform.native.ts",
+    "webPath": "packages/utils/core/platform/platform.ts",
+    "nativePath": "packages/utils/core/platform/platform.native.ts",
     "reason": "Different platform APIs for detection."
   },
   {
@@ -786,15 +786,15 @@
   {
     "id": "native-google-maps-cloud-config",
     "description": "Google Cloud Map ID and provider selection for react-native-maps.",
-    "webPath": "packages/utils/maps/native/nativeGoogleMapsCloudConfig.ts",
-    "nativePath": "packages/utils/maps/native/nativeGoogleMapsCloudConfig.native.ts",
+    "webPath": "packages/utils/product/maps/native/nativeGoogleMapsCloudConfig.ts",
+    "nativePath": "packages/utils/product/maps/native/nativeGoogleMapsCloudConfig.native.ts",
     "reason": "Native implementation uses Expo Constants and React Native Platform; web uses a no-op stub."
   },
   {
     "id": "pros-cons-star-row",
     "description": "Pros/cons 1–5 star row: Tailwind fill classes on web vs explicit SVG color/fill on native.",
-    "webPath": "packages/ui/components/ui/ProsConsStarRow.tsx",
-    "nativePath": "packages/ui/components/ui/ProsConsStarRow.native.tsx",
+    "webPath": "packages/ui/components/media/ui/ProsConsStarRow.tsx",
+    "nativePath": "packages/ui/components/media/ui/ProsConsStarRow.native.tsx",
     "reason": "Web uses lucide-react with Tailwind fill/text utilities. Native uses lucide-react-native with explicit color and fill props and a React Native View for the grouped image accessibility label."
   },
   {
@@ -819,20 +819,6 @@
     "reason": "Web uses semantic Tailwind classes (border-border, bg-accent-muted). Native uses React Native StyleSheet and packages/design-tokens color() helpers; no Tailwind on RN."
   },
   {
-    "id": "viewing-stop-list",
-    "description": "Multi-stop viewing itinerary editor: web uses AddressInput + Maps Places; native uses TextInput only.",
-    "webPath": "packages/features/calendar/components/viewings/ViewingStopList.tsx",
-    "nativePath": "packages/features/calendar/components/viewings/ViewingStopList.native.tsx",
-    "reason": "Web relies on DOM-based AddressInput and Google Places autocomplete. Native has no equivalent widget in shared packages; manual TextInput per stop until a shared RN address field exists."
-  },
-  {
-    "id": "viewing-route-plan-editor",
-    "description": "Viewing anchors + property stops + debounced route preview.",
-    "webPath": "packages/features/calendar/components/viewings/ViewingRoutePlanEditor.tsx",
-    "nativePath": "packages/features/calendar/components/viewings/ViewingRoutePlanEditor.native.tsx",
-    "reason": "Web uses @/components/ui Title, lucide Icon, and DOM-safe debouncing for /viewings/route preview. Native uses Text headings, omits web-only icons in dropdown rows, and clearTimeout without window."
-  },
-  {
     "id": "calendar-event-request-form-core",
     "description": "Agent “request calendar event” body: web uses CreateEventModalForm; native uses an inline RN form.",
     "webPath": "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestModal.tsx",
@@ -842,22 +828,22 @@
   {
     "id": "external-anchor",
     "description": "External links (mailto, tel, http(s)) in shared UI.",
-    "webPath": "packages/ui/components/accessibility/ExternalAnchor.web.tsx",
-    "nativePath": "packages/ui/components/accessibility/ExternalAnchor.native.tsx",
+    "webPath": "packages/ui/components/system/accessibility/ExternalAnchor.web.tsx",
+    "nativePath": "packages/ui/components/system/accessibility/ExternalAnchor.native.tsx",
     "reason": "Web uses a semantic anchor with target/rel for http(s). Native has no DOM anchor; opens URLs via Linking.openURL and Pressable."
   },
   {
     "id": "safe-area-edges-view",
     "description": "Safe-area padding wrapper for notched devices on native; web is a no-op div.",
-    "webPath": "packages/ui/components/primitives/safeArea/SafeAreaEdgesView.web.tsx",
-    "nativePath": "packages/ui/components/primitives/safeArea/SafeAreaEdgesView.native.tsx",
+    "webPath": "packages/ui/components/structure/primitives/safeArea/SafeAreaEdgesView.web.tsx",
+    "nativePath": "packages/ui/components/structure/primitives/safeArea/SafeAreaEdgesView.native.tsx",
     "reason": "Native applies padding from react-native-safe-area-context insets; web has no system insets in shared packages."
   },
   {
     "id": "platform-screen-dimensions",
     "description": "Screen size helper: browser viewport on web vs React Native Dimensions API.",
-    "webPath": "packages/utils/platform/dimensions.web.ts",
-    "nativePath": "packages/utils/platform/dimensions.native.ts",
+    "webPath": "packages/utils/core/platform/dimensions.web.ts",
+    "nativePath": "packages/utils/core/platform/dimensions.native.ts",
     "reason": "Web reads viewport via platform adapter; native uses react-native Dimensions.get('window')."
   },
   {
@@ -870,15 +856,36 @@
   {
     "id": "account-privacy-data-section",
     "description": "Account privacy & data export: DOM download on web vs Linking on native.",
-    "webPath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.web.tsx",
-    "nativePath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.native.tsx",
+    "webPath": "packages/features/profile/components/profileScreen/tabs/privacy/AccountPrivacyDataSection.web.tsx",
+    "nativePath": "packages/features/profile/components/profileScreen/tabs/privacy/AccountPrivacyDataSection.native.tsx",
     "reason": "Web triggers JSON download via document/window APIs and modals. Native uses React Native Linking and has no DOM download path."
   },
   {
     "id": "feedback-toast",
     "description": "Toast notifications: web Tailwind shell vs React Native layout and shadows.",
-    "webPath": "packages/ui/components/feedback/Toast.tsx",
-    "nativePath": "packages/ui/components/feedback/Toast.native.tsx",
+    "webPath": "packages/ui/components/surfaces/feedback/Toast.tsx",
+    "nativePath": "packages/ui/components/surfaces/feedback/Toast.native.tsx",
     "reason": "Web uses fixed positioning and Tailwind with IconButton. Native uses RN shadow tokens, NativeWind on primitives, and Metro resolves .native.tsx for mobile."
+  },
+  {
+    "id": "admin-workspace-layout",
+    "description": "Admin console workspace shell with react-router and step-up auth.",
+    "webPath": "packages/features/admin/components/layout/AdminWorkspaceLayout.web.tsx",
+    "nativePath": null,
+    "reason": "Web-only admin console uses react-router-dom Outlet, window beforeunload, and desktop sidebar navigation; no native admin workspace."
+  },
+  {
+    "id": "navigation-outlet",
+    "description": "Web-only react-router Outlet wrapper for nested feature routes.",
+    "webPath": "packages/navigation/router/NavigationOutlet.web.tsx",
+    "nativePath": null,
+    "reason": "Re-exports react-router-dom Outlet; React Navigation uses screen components instead of DOM outlets."
+  },
+  {
+    "id": "search-strict-preferences-control",
+    "description": "Strict preferences toggle: web OliveCheckbox vs native Switch.",
+    "webPath": "packages/features/search/components/filters/SearchStrictPreferencesControl.web.tsx",
+    "nativePath": "packages/features/search/components/filters/SearchStrictPreferencesControl.native.tsx",
+    "reason": "Web uses design-system OliveCheckbox. Native uses React Native Switch and StyleSheet for row layout."
   }
 ]

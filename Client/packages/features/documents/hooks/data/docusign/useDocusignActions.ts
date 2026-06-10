@@ -83,9 +83,9 @@ export type UseDocusignActionsReturn = {
  *   const handleSubmit = async (data) => {
  *     try {
  *       const agreement = await createAgreement(data);
- *       console.log('Created:', agreement.id);
+ *       log.info('DOCUSIGN', 'Agreement created', { agreementId: agreement.id });
  *     } catch (error) {
- *       console.error('Failed:', error);
+ *       log.error('DOCUSIGN', 'Agreement create failed', error);
  *     }
  *   };
  *

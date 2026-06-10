@@ -42,7 +42,7 @@ describe("useProsAndConsData", () => {
     const { result } = renderHook(() =>
       useProsAndConsData({
         property_analysis: {
-          pros: ["Spacious kitchen"],
+          pros: [{ text: "Spacious kitchen", score: 4 }],
           cons: [{ text: "Busy road", severity: "warning" }],
         },
         _score: 85,

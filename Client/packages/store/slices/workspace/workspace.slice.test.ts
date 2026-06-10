@@ -10,7 +10,6 @@ describe("useWorkspaceStore", () => {
   it("syncFromIdentity allows agent and brokerage shells for agents with orgs", () => {
     useWorkspaceStore.getState().syncFromIdentity({
       user: {
-        is_agent: true,
         roles: ["agent"],
         brokerage_org_ids: ["org-1"],
       },
@@ -24,7 +23,7 @@ describe("useWorkspaceStore", () => {
 
   it("syncFromIdentity resets to buyer-only when user is cleared", () => {
     useWorkspaceStore.getState().syncFromIdentity({
-      user: { is_agent: true, roles: ["agent"], brokerage_org_ids: ["org-1"] },
+      user: { roles: ["agent"], brokerage_org_ids: ["org-1"] },
     });
 
     useWorkspaceStore.getState().syncFromIdentity({ user: null });
@@ -32,12 +31,11 @@ describe("useWorkspaceStore", () => {
     const state = useWorkspaceStore.getState();
     expect(state.allowedWorkspaces).toEqual(["buyer"]);
     expect(state.activeWorkspace).toBe("buyer");
-    expect(state.devPreviewAllWorkspaces).toBe(false);
   });
 
-  it("setActiveWorkspace ignores disallowed workspace when not in dev preview", () => {
+  it("setActiveWorkspace ignores disallowed workspace", () => {
     useWorkspaceStore.getState().syncFromIdentity({
-      user: { is_agent: false, roles: [], brokerage_org_ids: [] },
+      user: { roles: [], brokerage_org_ids: [] },
     });
 
     useWorkspaceStore.getState().setActiveWorkspace("brokerage");

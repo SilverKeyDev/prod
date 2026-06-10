@@ -2,17 +2,16 @@
 Data preprocessing utilities for user and home data.
 """
 
-import logging
 import re
 from typing import Any
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
+from logger import log
+
 from ..config.settings import MAX_TEXT_LENGTH
 from .feature_engineering import _distance_to_numeric_range
-
-logger = logging.getLogger(__name__)
 
 
 class DataPreprocessor:
@@ -253,7 +252,7 @@ class DataPreprocessor:
     def transform_features(self, feature_vector: np.ndarray) -> np.ndarray:
         """Transform features using fitted scalers."""
         if not self.fitted or self.scaler is None:
-            logger.warning("Scalers not fitted, returning original features")
+            log.warn("SEARCH", "Scalers not fitted, returning original features")
             return feature_vector
 
         out = self.scaler.transform(feature_vector.reshape(1, -1))[0]

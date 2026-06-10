@@ -2,12 +2,12 @@ import React, { type RefObject } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { PasswordValidation } from "@/components/feedback/PasswordValidation";
 import { Button, Input, VerificationCodeInput } from "@/components/ui";
 export type ResetPasswordStep = "request" | "verify" | "reset";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 type ResetPasswordFormProps = {
   step: ResetPasswordStep;
   email: string;
@@ -70,7 +70,7 @@ export function ResetPasswordForm({
             onChange={setCode}
             onComplete={(completedCode) => {
               setCode(completedCode);
-              log.debug(LOG_CATEGORIES.AUTH, "Verification code input completed", {
+              log.debug("AUTH", "Verification code input completed", {
                 code: completedCode,
               });
             }}

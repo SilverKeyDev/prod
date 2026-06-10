@@ -8,7 +8,7 @@ import {
   assertTranslationMapWithAllowedPrefixes,
   collectTranslationKeysUsedInDir,
   keysWithPrefix,
-} from "packages/utils/test/translationAssertions";
+} from "packages/utils/core/test/translationAssertions";
 
 import { NEGOTIATE_TRANSLATIONS } from "./translations";
 

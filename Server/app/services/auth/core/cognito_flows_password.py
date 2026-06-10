@@ -1,15 +1,14 @@
 """Cognito forgot-password and confirm-forgot-password flows."""
 
-import logging
 import random
 import time
 from collections.abc import Callable
 
 from botocore.exceptions import ClientError
 
-from ..utils.code_delivery import normalize_cognito_code_delivery
+from logger import log
 
-logger = logging.getLogger(__name__)
+from ..utils.code_delivery import normalize_cognito_code_delivery
 
 
 def forgot_password(
@@ -27,18 +26,17 @@ def forgot_password(
     start_time = time.time()
     masked_username = username[:3] + "***" + username[-3:] if username else "missing"
     try:
-        logger.info(
+        log.info(
+            "AUTH",
             "FORGOT_PASSWORD_COGNITO_CALL_START",
-            extra={
+            {
                 "request_id": local_request_id,
                 "username": masked_username,
                 "user_status_at_call_time": user_status,
             },
         )
         response = client.forgot_password(
-            ClientId=client_id,
-            SecretHash=get_secret_hash(username),
-            Username=username,
+            ClientId=client_id, SecretHash=get_secret_hash(username), Username=username
         )
         duration_ms = int((time.time() - start_time) * 1000)
         metadata = response.get("ResponseMetadata", {}) or {}
@@ -46,9 +44,10 @@ def forgot_password(
         delivery_medium = code_delivery.get("DeliveryMedium", "UNKNOWN")
         destination = code_delivery.get("Destination", "UNKNOWN")
         attribute_name = code_delivery.get("AttributeName", "UNKNOWN")
-        logger.info(
+        log.info(
+            "AUTH",
             "FORGOT_PASSWORD_EMAIL_DELIVERY_INFO",
-            extra={
+            {
                 "request_id": local_request_id,
                 "username": masked_username,
                 "user_status_at_call_time": user_status,
@@ -66,9 +65,10 @@ def forgot_password(
             },
         )
         if delivery_medium not in ["EMAIL", "SMS"]:
-            logger.warning(
+            log.warn(
+                "AUTH",
                 "FORGOT_PASSWORD_UNEXPECTED_DELIVERY_MEDIUM",
-                extra={
+                {
                     "request_id": local_request_id,
                     "username": masked_username,
                     "delivery_medium": delivery_medium,
@@ -77,9 +77,10 @@ def forgot_password(
                 },
             )
         if destination == "UNKNOWN" or not destination:
-            logger.warning(
+            log.warn(
+                "AUTH",
                 "FORGOT_PASSWORD_NO_DESTINATION",
-                extra={
+                {
                     "request_id": local_request_id,
                     "username": masked_username,
                     "code_delivery": code_delivery,
@@ -87,9 +88,10 @@ def forgot_password(
                 },
             )
         if not code_delivery:
-            logger.warning(
+            log.warn(
+                "AUTH",
                 "FORGOT_PASSWORD_NO_CODE_DELIVERY_DETAILS",
-                extra={
+                {
                     "request_id": local_request_id,
                     "username": masked_username,
                     "aws_request_id": metadata.get("RequestId"),
@@ -110,11 +112,10 @@ def forgot_password(
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
         metadata = e.response.get("ResponseMetadata", {}) or {}
-        logger.error(
-            "FORGOT_PASSWORD_COGNITO_ERROR: %s - %s",
-            error_code,
-            error_message,
-            extra={
+        log.error(
+            "ERRORS",
+            f"FORGOT_PASSWORD_COGNITO_ERROR: {error_code} - {error_message}",
+            {
                 "request_id": local_request_id,
                 "username": masked_username,
                 "error_code": error_code,
@@ -131,15 +132,15 @@ def forgot_password(
             "aws_http_status": metadata.get("HTTPStatusCode"),
         }
     except Exception as e:
-        logger.error(
+        log.error(
+            "ERRORS",
             "FORGOT_PASSWORD_UNEXPECTED_ERROR",
-            extra={
+            {
                 "request_id": local_request_id,
                 "username": masked_username,
                 "error_type": type(e).__name__,
                 "error_message": str(e),
             },
-            exc_info=True,
         )
         return {
             "success": False,
@@ -167,7 +168,7 @@ def confirm_forgot_password(
         )
         return {"success": True}
     except ClientError as e:
-        logger.error("Error confirming forgot password: %s", e)
+        log.error("ERRORS", f"Error confirming forgot password: {e}", e)
         return {
             "success": False,
             "error": e.response["Error"]["Code"],

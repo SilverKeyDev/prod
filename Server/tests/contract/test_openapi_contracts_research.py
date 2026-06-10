@@ -19,9 +19,7 @@ from app.schemas.generated import (
     SearchByPolygonResponse,
     TaskStatusResponse,
 )
-from app.schemas.generated import (
-    User as UserOpenApi,
-)
+from app.schemas.generated import UserModel as UserOpenApi
 
 MOCK_POLYGON_AUTH = "app.routes.search.search.get_authenticated_user"
 MOCK_RUN_POLYGON_SEARCH = "app.routes.search.search.run_polygon_search"
@@ -89,7 +87,7 @@ class TestOpenAPIContractsResearch:
     def test_research_property_queued_matches_task_status_schema(
         self, authenticated_client: FlaskClient
     ) -> None:
-        with patch("app.routes.search.research.research_property_task") as mock_task:
+        with patch("app.routes.research.research.research_property_task") as mock_task:
             mock_celery_result = Mock()
             mock_celery_result.id = "contract-task-123"
             mock_task.delay.return_value = mock_celery_result

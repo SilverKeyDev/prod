@@ -1,12 +1,11 @@
 import { useCallback, useState } from "react";
 
-import type { UpdateUserSystemRolesRequest } from "packages/api/admin";
+import { useUpdateUserSystemRolesMutation } from "packages/features/admin/hooks/data/useUpdateUserSystemRolesMutation";
 import type { AdminSectionBaseProps } from "packages/features/admin/types/adminScope";
 import { DEFAULT_ADMIN_SCOPE } from "packages/features/admin/types/adminScope";
-import { useUpdateUserSystemRolesMutation } from "packages/hooks/data/admin/useUpdateUserSystemRolesMutation";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { HttpError } from "packages/services/http/client";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import {
@@ -19,40 +18,18 @@ import {
   Title,
 } from "@/components/ui";
 
-type Intent = "unchanged" | "grant" | "revoke";
-
-const INTENT_LABELS: Record<Intent, string> = {
-  unchanged: "Leave as-is",
-  grant: "Grant",
-  revoke: "Revoke",
-};
-
-const INTENT_OPTIONS = (["unchanged", "grant", "revoke"] as const).map((value) => ({
-  value,
-  label: INTENT_LABELS[value],
-}));
-
-function intentsToPayload(
-  admin: Intent,
-  sup: Intent
-): Pick<UpdateUserSystemRolesRequest, "grant" | "revoke"> {
-  const grant: ("admin" | "super_admin")[] = [];
-  const revoke: ("admin" | "super_admin")[] = [];
-
-  if (admin === "grant") grant.push("admin");
-  if (admin === "revoke") revoke.push("admin");
-  if (sup === "grant") grant.push("super_admin");
-  if (sup === "revoke") revoke.push("super_admin");
-
-  return { grant, revoke };
-}
+import {
+  GATE_ROLE_INTENT_OPTIONS,
+  type GateRoleIntent,
+  gateRoleIntentsToPayload,
+} from "./adminGateRoleIntents";
 
 export function AdminUserSystemRolesSection({
   scope: _scope = DEFAULT_ADMIN_SCOPE,
 }: AdminSectionBaseProps) {
   const [userIdInput, setUserIdInput] = useState("");
-  const [adminIntent, setAdminIntent] = useState<Intent>("unchanged");
-  const [superIntent, setSuperIntent] = useState<Intent>("unchanged");
+  const [adminIntent, setAdminIntent] = useState<GateRoleIntent>("unchanged");
+  const [superIntent, setSuperIntent] = useState<GateRoleIntent>("unchanged");
   const [confirmed, setConfirmed] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -72,7 +49,7 @@ export function AdminUserSystemRolesSection({
       return;
     }
 
-    const { grant, revoke } = intentsToPayload(adminIntent, superIntent);
+    const { grant, revoke } = gateRoleIntentsToPayload(adminIntent, superIntent);
     if (grant.length === 0 && revoke.length === 0) {
       setErrorMessage('Choose at least one "Grant" or "Revoke" action for admin or super admin.');
       return;
@@ -86,7 +63,7 @@ export function AdminUserSystemRolesSection({
       setAdminIntent("unchanged");
       setSuperIntent("unchanged");
       setConfirmed(false);
-      log.security(LOG_CATEGORIES.SECURITY, "[ADMIN_SUPER] Updated gate roles via admin API", {
+      log.security("SECURITY", "[ADMIN_SUPER] Updated gate roles via admin API", {
         target_user_id: result.user_id,
         gate_roles: result.gate_roles,
       });
@@ -99,7 +76,7 @@ export function AdminUserSystemRolesSection({
         }
       }
       setErrorMessage(messageErr);
-      log.error(LOG_CATEGORIES.ERRORS, "[ADMIN_SUPER] gate role mutation failed", err);
+      log.error("ERRORS", "[ADMIN_SUPER] gate role mutation failed", err);
     }
   }, [adminIntent, confirmed, mutation, superIntent, userIdInput]);
 
@@ -132,7 +109,7 @@ export function AdminUserSystemRolesSection({
               hideLabel
               size="sm"
               value={adminIntent}
-              options={INTENT_OPTIONS}
+              options={GATE_ROLE_INTENT_OPTIONS}
               onChange={setAdminIntent}
               disabled={mutation.isPending}
             />
@@ -145,7 +122,7 @@ export function AdminUserSystemRolesSection({
               hideLabel
               size="sm"
               value={superIntent}
-              options={INTENT_OPTIONS}
+              options={GATE_ROLE_INTENT_OPTIONS}
               onChange={setSuperIntent}
               disabled={mutation.isPending}
             />

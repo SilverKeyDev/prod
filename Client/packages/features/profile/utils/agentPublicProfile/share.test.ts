@@ -14,8 +14,7 @@ describe("isAgentIdentityForProfileUi", () => {
   it("is false for client profile", () => {
     expect(
       isAgentIdentityForProfileUi(false, {
-        is_agent: false,
-        roles: ["client"],
+        roles: ["buyer"],
       })
     ).toBe(false);
   });
@@ -27,17 +26,17 @@ describe("resolveAgentPublicProfileShare", () => {
       resolveAgentPublicProfileShare({
         storeIsAgent: true,
         authUser: { id: "a1", name: "A" },
-        userProfile: { id: "p1", name: "P", is_agent: false },
+        userProfile: { id: "p1", name: "P", roles: ["buyer"] },
       })
     ).toEqual({ show: true, agentId: "p1", displayName: "P" });
   });
 
-  it("shows when profile has is_agent and id, store false", () => {
+  it("shows when profile has agent role and id, store false", () => {
     expect(
       resolveAgentPublicProfileShare({
         storeIsAgent: false,
         authUser: null,
-        userProfile: { id: "u9", is_agent: true, name: "N" },
+        userProfile: { id: "u9", roles: ["agent"], name: "N" },
       })
     ).toEqual({ show: true, agentId: "u9", displayName: "N" });
   });
@@ -67,7 +66,7 @@ describe("resolveAgentPublicProfileShare", () => {
       resolveAgentPublicProfileShare({
         storeIsAgent: false,
         authUser: { id: "x" },
-        userProfile: { id: "x", is_agent: false },
+        userProfile: { id: "x", roles: ["buyer"] },
       })
     ).toEqual({ show: false, agentId: "x", displayName: undefined });
   });

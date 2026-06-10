@@ -1,1 +1,1 @@
-export * from "packages/utils/format/property/addressFormatting";
+export * from "packages/utils/core/format/property/addressFormatting";

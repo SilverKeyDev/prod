@@ -2,16 +2,16 @@
 import { useCallback, useRef, useState } from "react";
 
 import { color } from "packages/design-tokens";
-import { Box, Text } from "packages/ui/components/primitives";
-import { quantizeMinutesFromMidnight } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
-import { canResizeWeekTimedEvent } from "packages/utils/calendar/grid/calendarWeekTimedEventResize";
-import { getDocument } from "packages/utils/platform";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { quantizeMinutesFromMidnight } from "packages/utils/comms/calendar/createEvent/eventFormGooglePayload";
+import { canResizeWeekTimedEvent } from "packages/utils/comms/calendar/grid/calendarWeekTimedEventResize";
+import { getDocument } from "packages/utils/core/platform";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import {
   calendarColorForEvent,
-  hexToRgba,
+  calendarEventChipStyle,
 } from "@/features/calendar/utils/createEventModal/calendarEventColors";
 import type { PlacedTimedEventSlice } from "@/features/calendar/utils/grid/calendarGridLayout";
 
@@ -149,9 +149,7 @@ export function CalendarWeekTimedEventBlock({
         width: `${laneW - 2}%`,
         borderRadius: 4,
         overflow: "hidden",
-        borderLeftWidth: 3,
-        borderLeftColor: evColor,
-        backgroundColor: hexToRgba(evColor, 0.18),
+        ...calendarEventChipStyle(evColor),
         paddingHorizontal: 4,
         paddingVertical: 2,
         zIndex: 1,
@@ -174,22 +172,12 @@ export function CalendarWeekTimedEventBlock({
             }
           : null),
       }}
-      onPointerDown={(e) => {
+      onClick={(e) => {
         if (!interactionEnabled || isDraft) {
-          return;
-        }
-        if ((e.target as Node) !== (e.currentTarget as Node)) {
           return;
         }
         e.stopPropagation();
         onSelect();
-      }}
-      onDoubleClick={(e) => {
-        if (!interactionEnabled || isDraft) {
-          return;
-        }
-        e.preventDefault();
-        e.stopPropagation();
         onOpenEdit();
       }}
     >

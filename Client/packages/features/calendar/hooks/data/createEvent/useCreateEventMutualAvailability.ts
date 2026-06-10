@@ -8,15 +8,15 @@ import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentCh
 import { toBuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { useUserData, useUserPreferences } from "packages/hooks/data/user/useUserData";
 import { useGoogleCalendarStore } from "packages/store";
-import { CREATE_EVENT_TIME_STEP_MINUTES } from "packages/utils/calendar/createEvent/eventFormGooglePayload";
-import { dayjs } from "packages/utils/date";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { CREATE_EVENT_TIME_STEP_MINUTES } from "packages/utils/comms/calendar/createEvent/eventFormGooglePayload";
 import {
   type AvailabilityParty,
   type BuyerAvailabilityPrefs,
   isMutualUtcRangeAvailable,
   mutualDayHasAvailableSlot,
-} from "packages/utils/scheduling/eventRequestAvailability";
+} from "packages/utils/comms/scheduling/eventRequestAvailability";
+import { dayjs } from "packages/utils/core/date";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import {
   queryAvailability,

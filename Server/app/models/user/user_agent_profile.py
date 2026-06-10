@@ -1,8 +1,11 @@
 """UserAgentProfile - agent-specific profile fields (license, brokerage, etc.)."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -36,6 +39,4 @@ class UserAgentProfile(db.Model):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    user = db.relationship(
-        "User", backref=db.backref("user_agent_profile", uselist=False, lazy="select")
-    )
+    user: Mapped["User"] = relationship("User", back_populates="user_agent_profile")

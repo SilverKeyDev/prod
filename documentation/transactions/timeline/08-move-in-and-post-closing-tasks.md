@@ -1,13 +1,15 @@
-> **Status:** Partial | **Last verified:** 2026-05-28
+> **Status:** Partial | **Last verified:** 2026-06-04
+
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [rev-share-partners.md](../../client/features/rev-share-partners.md).
 
 ## Move-in and post-closing tasks
 
-Post-closing guidance is in **closing checklist items** plus a live **Move Concierge** partner embed on configured checklist steps.
+Post-closing guidance is in **closing checklist items**, with optional **partner placements** on configured steps (e.g. *Schedule move-in concierge* at `closing:13`).
 
 ### Shipped
 
 - `CLOSING_ITEMS`: utilities transfer, homestead filing, address change, maintenance calendar, optional HOA.
-- **Move Concierge:** Admin-configured checklist integration; embed URL + prefill via `moveConciergeEmbed.ts`; `PartnerTransactionIntegration` (registry key `home_concierge` → shared partner component).
+- **Partner placements:** Admin-configured rows for `step_id` `closing:13`; buyers see `PartnerTransactionIntegration` when `component_key` / `integration_key` are `partner_placements`.
 - RESPA: brokerage-level placement; exposure logged—not agent referral steering.
 
 ### Gaps
@@ -20,8 +22,6 @@ Post-closing guidance is in **closing checklist items** plus a live **Move Conci
 | Area | Path |
 | ---- | ---- |
 | Closing / move-in items | `Server/app/services/transactions/closing/items.py` |
-| Move Concierge embed | `Client/packages/features/partners/utils/moveConciergeEmbed.ts` |
-| Embed hook | `Client/packages/features/partners/hooks/useMoveConciergeEmbedUrl.ts` |
 | Checklist integration UI | `Client/packages/features/partners/components/PartnerTransactionIntegration.tsx` |
 | Registry | `Client/packages/features/checklists/components/integrations/componentRegistry.ts` |
 | Closing UI | `Client/packages/features/checklists/components/subheaders/ClosingMovingIn.tsx` |

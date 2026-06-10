@@ -1,9 +1,12 @@
-"""Per-domain strict OpenAPI validation rollout."""
+"""Per-domain strict OpenAPI validation rollout (env helpers; decorators are strict-only)."""
 
 import os
 
 # Comma-separated path prefixes, e.g. "/api/v1/auth,/api/v1/login,/api/v1/agent"
-_STRICT_PREFIXES_RAW = os.getenv("OPENAPI_VALIDATION_STRICT_DOMAINS", "")
+_STRICT_PREFIXES_RAW = os.getenv(
+    "OPENAPI_VALIDATION_STRICT_DOMAINS",
+    "/api/v1/auth,/api/v1/admin/logger-config",
+)
 
 
 def strict_path_prefixes() -> tuple[str, ...]:

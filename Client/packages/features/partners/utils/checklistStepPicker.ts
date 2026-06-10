@@ -1,7 +1,7 @@
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
 import type { ChecklistStepOption } from "packages/features/partners/api/partners";
-import { CHECKLIST_SECTION_ORDER } from "packages/utils/checklists/sectionOrder";
-import type { Workspace } from "packages/utils/workspace";
+import { CHECKLIST_SECTION_ORDER } from "packages/utils/product/checklists/sectionOrder";
+import type { Workspace } from "packages/utils/product/workspace";
 
 export const CHECKLIST_TARGET_ROLES: Workspace[] = ["buyer", "seller"];
 

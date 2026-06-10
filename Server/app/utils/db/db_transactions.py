@@ -6,10 +6,9 @@ Provides context managers and decorators for safe database operations.
 from collections.abc import Callable
 from contextlib import contextmanager
 
-from flask import current_app
-
 from app import db
 from app.utils.security.db_reliability import reliable_db_commit
+from logger import log
 
 
 @contextmanager
@@ -32,7 +31,7 @@ def db_transaction():
                 # If any exception occurs here, rollback is automatic
         except Exception as e:
             # Transaction already rolled back
-            logger.error(f"Transaction failed: {e}")
+            log.error("ERRORS", "Transaction failed", {"error": str(e)})
     """
     try:
         yield
@@ -83,6 +82,10 @@ def safe_db_commit(operation_name: str = "database operation") -> None:
             db_session=db.session, db_engine=db.engine, operation_name=operation_name
         )
     except Exception as e:
-        current_app.logger.error(f"Failed to commit {operation_name}: {str(e)}")
+        log.error(
+            "ERRORS",
+            "Failed to commit database operation",
+            {"operation": operation_name, "error": str(e)},
+        )
         db.session.rollback()
         raise

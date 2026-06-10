@@ -30,6 +30,8 @@ export {
 } from "./utils/map/locationBoundsOverlay";
 export { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 export { useSavedHomesStoreIntegration } from "packages/hooks/store";
+/** Native-only screen export for mobile tab stack. */
+export { SearchScreen as SearchScreenNative } from "./components/SearchScreen";
 export type {
   AutocompleteSuggestion,
   GoogleMapsWindow,

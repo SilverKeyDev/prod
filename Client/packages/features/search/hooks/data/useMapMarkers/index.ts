@@ -2,10 +2,10 @@ import { useCallback, useRef, useState } from "react";
 
 import { renderImportantLocationMarkers } from "packages/features/search/types/search/map/importantLocationRenderer";
 import { resetMapToListingFocusZoom } from "packages/features/search/utils/googleMaps";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { SearchResult } from "packages/types";
 import type { IsochroneData } from "packages/types/domain/api";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 import { clearMapMarkers, removeCardMarkersOnly, teardownAdvancedMarker } from "./clearMarkers";
 import { addFocusedCardMarkers } from "./focusedCardMarker";
@@ -185,7 +185,7 @@ export const useMapMarkers = ({
             onBatchComplete: pinBatchComplete,
           });
         } catch (error: unknown) {
-          log.error(LOG_CATEGORIES.MAP_RENDERING, "updateMapMarkers failed", error);
+          log.error("MAP_RENDERING", "updateMapMarkers failed", error);
           setIsUpdatingMarkers(false);
         }
       };

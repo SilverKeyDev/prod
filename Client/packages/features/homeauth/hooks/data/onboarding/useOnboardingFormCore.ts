@@ -1,23 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { usePreferencesSubmit } from "packages/features/homeauth/hooks/data/usePreferencesSubmit";
-import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
-import { useSetActiveWorkspace } from "packages/hooks/store";
-import { showErrorToast } from "packages/hooks/ui";
-
-import type { ProfileStep } from "@/features/profile/utils";
+import type { ProfileStep } from "packages/features/profile";
 import {
   handleSubmit as handleSubmitUtil,
   mergeOnboardingServerAndDraft,
   nextPreferencesVersion,
   type OnboardingData,
+  postOnboardingWorkspaceForPrimaryRole,
   primaryOnboardingRoleFromForm,
-} from "@/features/profile/utils";
+} from "packages/features/profile";
+import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
+import { useSetActiveWorkspace } from "packages/hooks/store";
+import { showErrorToast } from "packages/hooks/ui";
 
 import { getOnboardingDraftFromStorage, persistOnboardingDraft } from "./useOnboardingForm.helpers";
 
 export type UseOnboardingFormCoreOptions = {
-  /** Steps depend on formData so agent steps can be included when is_agent is yes/am_agent. */
+  /** Steps depend on formData so agent steps apply when primary_onboarding_role is agent. */
   getSteps: (formData: OnboardingData) => ProfileStep[];
   /** When provided, called on successful submit instead of navigate (e.g. React Native). */
   onSubmitSuccess?: () => void;
@@ -107,9 +107,10 @@ export function useOnboardingFormCore(options: UseOnboardingFormCoreOptions) {
       setLoading,
       navigate,
       onSuccess: () => {
-        if (primaryOnboardingRoleFromForm(dataToSave) === "seller") {
-          setActiveWorkspace("seller");
-        }
+        const workspace = postOnboardingWorkspaceForPrimaryRole(
+          primaryOnboardingRoleFromForm(dataToSave)
+        );
+        setActiveWorkspace(workspace);
         afterPreferencesSuccess?.();
       },
       onSuccessNavigate: onSubmitSuccess,

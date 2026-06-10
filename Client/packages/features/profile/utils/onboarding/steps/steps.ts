@@ -3,11 +3,10 @@ import type {
   GetOnboardingStepsOptions,
   GetPersonalizationStepsOptions,
 } from "packages/features/profile/types/onboarding/stepsOptions";
-
 import {
   buildOnboardingFlowFromOptions,
   buildPersonalizationFlowFromOptions,
-} from "@/features/profile/utils/onboarding/registry";
+} from "packages/features/profile/utils/onboarding/registry";
 
 export type {
   GetOnboardingStepsOptions,
@@ -35,13 +34,13 @@ export const getPersonalizationSteps = (options?: GetPersonalizationStepsOptions
   buildPersonalizationFlowFromOptions({ isAgent: options?.isAgent });
 
 /**
- * Onboarding steps for mobile. Excludes financial step.
+ * Onboarding steps for mobile. Financial step included for buyers (same as web).
  * Pass isAgent: true to include agent steps after demographics.
  */
 export const getOnboardingStepsMobile = (options?: GetOnboardingStepsOptions): ProfileStep[] =>
   buildOnboardingFlowFromOptions({
     isAgent: options?.isAgent,
     primaryRole: options?.primaryRole,
-    excludeFinancial: true,
+    excludeFinancial: options?.excludeFinancial ?? options?.primaryRole !== "buyer",
     platform: "mobile",
   });

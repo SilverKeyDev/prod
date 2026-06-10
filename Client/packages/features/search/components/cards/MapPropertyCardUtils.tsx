@@ -5,7 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 
 import { queryClient } from "packages/config/query/queryClient";
 import { LocalizationProvider } from "packages/contexts";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import MapPropertyCard, { type MapPropertyCardProps } from "./MapPropertyCard";
 
@@ -31,11 +31,7 @@ export const renderMapPropertyCard = (
     try {
       existingRoot.unmount();
     } catch (error) {
-      log.warn(
-        LOG_CATEGORIES.MAP_RENDERING,
-        "Error unmounting existing MapPropertyCard root",
-        error
-      );
+      log.warn("MAP_RENDERING", "Error unmounting existing MapPropertyCard root", error);
     }
     rootMap.delete(container);
   }
@@ -69,7 +65,7 @@ export const cleanupMapPropertyCard = (container: HTMLElement): void => {
         root.unmount();
         rootMap.delete(container);
       } catch (error) {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Error during MapPropertyCard cleanup", error);
+        log.warn("MAP_RENDERING", "Error during MapPropertyCard cleanup", error);
         // Still remove from map even if unmount fails
         rootMap.delete(container);
       }

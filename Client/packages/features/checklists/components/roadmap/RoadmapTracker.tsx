@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { RoadmapTrackerProps } from "packages/features/checklists/types/roadmapTracker";
-import Region from "packages/ui/components/accessibility/Region";
-import IconButton from "packages/ui/components/button/IconButton";
-import { Box } from "packages/ui/components/primitives";
+import IconButton from "packages/ui/components/actions/button/IconButton";
+import { Box } from "packages/ui/components/structure/primitives";
+import Region from "packages/ui/components/system/accessibility/Region";
 
 import { PhaseNode } from "./PhaseNode";
 import { PhaseSequenceChevron } from "./PhaseSequenceChevron";

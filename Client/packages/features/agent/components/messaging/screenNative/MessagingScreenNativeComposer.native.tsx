@@ -4,7 +4,7 @@ import Input from "@ui/form/Input";
 import { View } from "react-native";
 
 import { useLocalization } from "packages/contexts";
-import { Pressable, Text } from "packages/ui/components/primitives";
+import { Pressable, Text } from "packages/ui/components/structure/primitives";
 
 import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 

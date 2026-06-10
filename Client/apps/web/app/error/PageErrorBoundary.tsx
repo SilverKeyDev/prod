@@ -7,9 +7,9 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Link } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 type PageErrorBoundaryProps = {
@@ -30,7 +30,7 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
     return { hasError: true, error };
   }
   componentDidCatch(error: Error, _errorInfo: ErrorInfo): void {
-    log.error(LOG_CATEGORIES.ERRORS, "PageErrorBoundary caught error", error);
+    log.error("ERRORS", "PageErrorBoundary caught error", error);
   }
   handleRetry = (): void => {
     this.setState({ hasError: false, error: null });

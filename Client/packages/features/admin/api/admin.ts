@@ -1,6 +1,7 @@
 import { apiGet, apiPost } from "packages/services/http";
+import { buildApiUrl } from "packages/services/http/urlHelpers";
 import type { components } from "packages/types/api.generated";
-import { resolveApiResultErrorMessage } from "packages/utils/errorHandling";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 // Re-export types from generated schema
 export type ServerLoggerConfig = components["schemas"]["ServerLoggerConfig"];
@@ -17,8 +18,15 @@ export type DeleteUserByIdResult = Required<
 export type UpdateUserSystemRolesRequest = components["schemas"]["UpdateUserSystemRolesRequest"];
 export type UpdateUserSystemRolesResponse = components["schemas"]["UpdateUserSystemRolesResponse"];
 
+export type AdminGateUser = components["schemas"]["AdminGateUser"];
+export type ListAdminGateUsersResponse = components["schemas"]["ListAdminGateUsersResponse"];
+
 export type UpdateUserSystemRolesResult = Required<
   Pick<components["schemas"]["UpdateUserSystemRolesResponse"], "user_id" | "gate_roles">
+>;
+
+export type ListAdminGateUsersResult = Required<
+  Pick<components["schemas"]["ListAdminGateUsersResponse"], "admins">
 >;
 
 export type UpdateAgentStatusRequest = components["schemas"]["UpdateAgentStatusRequest"];
@@ -28,21 +36,17 @@ export type SetCurrentUserDevWorkspaceRequest =
   components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
 export type SetCurrentUserDevWorkspaceResponse =
   components["schemas"]["SetCurrentUserDevWorkspaceResponse"];
-export type DevAccountSessionRole = SetCurrentUserDevWorkspaceRequest["workspace"];
-export type DevAccountSessionMintResponse = components["schemas"]["SuccessResponse"] & {
-  token?: string;
-  role?: DevAccountSessionRole;
-  user?: components["schemas"]["User"];
-};
-export type DevAccountSessionExchangeResponse = components["schemas"]["AuthResponse"];
 
 export type DevUserDataResetRequest = components["schemas"]["DevUserDataResetRequest"];
 export type DevUserDataResetResponse = components["schemas"]["DevUserDataResetResponse"];
 export type DevUserDataResetScope = DevUserDataResetRequest["scopes"][number];
-export type ValidationStatsApiResponse = components["schemas"]["ValidationStatsApiResponse"];
 
 export type DevUserDataResetResult = Required<
   Pick<DevUserDataResetResponse, "target_user_id" | "cleared">
+>;
+
+export type ValidationStatsResult = Required<
+  Pick<components["schemas"]["ValidationStatsApiResponse"], "data">
 >;
 
 type GetLoggerConfigResponse = components["schemas"]["GetLoggerConfigResponse"];
@@ -104,6 +108,15 @@ export const adminApi = {
     return { user_id: response.user_id, gate_roles: response.gate_roles };
   },
 
+  /** Super_admin only — list users with `admin` or `super_admin` gate roles. */
+  listGateRoleUsers: async (): Promise<ListAdminGateUsersResult> => {
+    const response = await apiGet<ListAdminGateUsersResponse>("/api/v1/admin/users/gate-roles");
+    if (!response.success || !Array.isArray(response.admins)) {
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to list gate role users"));
+    }
+    return { admins: response.admins };
+  },
+
   /**
    * Admin only — sets exclusive dev workspace persona on the signed-in user (testing / dev preview).
    * Returns the updated user row from the server.
@@ -123,35 +136,8 @@ export const adminApi = {
     return response.user;
   },
 
-  /** Admin/dev only — mint a one-time login token for a per-role dev test account. */
-  mintDevAccountSession: async (body: {
-    workspace: DevAccountSessionRole;
-  }): Promise<Required<Pick<DevAccountSessionMintResponse, "token" | "role" | "user">>> => {
-    const response = await apiPost<
-      DevAccountSessionMintResponse,
-      { workspace: DevAccountSessionRole }
-    >("/api/v1/admin/dev-accounts/session", body);
-    if (!response.success || !response.token || !response.role || !response.user) {
-      throw new Error(resolveApiResultErrorMessage(response, "Failed to create dev session"));
-    }
-    return { token: response.token, role: response.role, user: response.user };
-  },
-
-  /** Dev session landing page — exchange a one-time token for this tab's bearer session. */
-  exchangeDevAccountSession: async (token: string): Promise<DevAccountSessionExchangeResponse> => {
-    const response = await apiPost<DevAccountSessionExchangeResponse, { token: string }>(
-      "/api/v1/admin/dev-accounts/session/exchange",
-      { token },
-      { includeAuth: false, includeCredentials: false }
-    );
-    if (!response.success || !response.user || !response.access_token) {
-      throw new Error(resolveApiResultErrorMessage(response, "Failed to open dev session"));
-    }
-    return response;
-  },
-
   /**
-   * Admin only — sets the signed-in user's `users.is_agent` (testing / dev persona).
+   * Admin only — toggles the signed-in user's agent role in user_roles (testing / dev persona).
    * Returns the updated user row from the server.
    */
   setCurrentUserAgentStatus: async (
@@ -198,14 +184,15 @@ export const adminApi = {
     return { target_user_id: response.target_user_id, cleared: response.cleared };
   },
 
-  getValidationStats: async (days: number): Promise<ValidationStatsApiResponse["data"]> => {
-    const params = new URLSearchParams({ days: String(days) });
-    const response = await apiGet<ValidationStatsApiResponse>(
-      `/api/v1/admin/validation-stats?${params.toString()}`
-    );
-    if (!response.success || !response.data) {
-      throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch validation stats"));
+  /** Admin only — OpenAPI validation stats snapshot for the rolling window. */
+  getValidationStats: async (days: number): Promise<ValidationStatsResult> => {
+    const url = buildApiUrl("/api/v1/admin/validation-stats", { days });
+    const response = await apiGet<components["schemas"]["ValidationStatsApiResponse"]>(url);
+    if (!response.success || !response.data || typeof response.data !== "object") {
+      throw new Error(
+        resolveApiResultErrorMessage(response, "Failed to fetch validation statistics")
+      );
     }
-    return response.data;
+    return { data: response.data };
   },
 };

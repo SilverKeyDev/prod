@@ -4,10 +4,8 @@ Handles generating property analysis (pros/cons, sections) from user preferences
 """
 
 import json
-import logging
+import traceback
 from typing import Any
-
-from flask import current_app
 
 from app.services.auth import SecurityException, get_current_user
 from app.services.research.perplexity import (
@@ -22,10 +20,9 @@ from app.services.search.scoring import (
     highlights_context_payload,
     resolve_highlights_counts_and_signature,
 )
+from logger import log
 
 from .property_analysis_payload import finalize_property_analysis_payload
-
-logger = logging.getLogger(__name__)
 
 # Fixed section order (matches client DEFAULT_REPORT_SECTIONS)
 DEFAULT_SECTION_ORDER = [
@@ -160,9 +157,9 @@ def generate_property_analysis(
                     property_analysis["highlights_context"] = hc
                 # Note: neighborhood_overview may be included in analysis_result, but we'll filter it out later if needed
             else:
-                current_app.logger.warning("⚠️ [PROPERTY] Pros/cons analysis returned no results")
+                log.warn("PROPERTY_DETAILS", "Pros/cons analysis returned no results")
         else:
-            current_app.logger.info("[PROPERTY] ⏭️ Skipping pros/cons generation")
+            log.info("PROPERTY_DETAILS", "Skipping pros/cons generation")
 
         # Step 2: Generate additional report sections (fixed default order)
         section_names = DEFAULT_SECTION_ORDER
@@ -170,12 +167,16 @@ def generate_property_analysis(
             # Filter out neighborhood_overview from section_names if skipping pros/cons
             if skip_pros_cons:
                 section_names = [s for s in section_names if s != "neighborhood"]
-                current_app.logger.info(
-                    f"[PROPERTY] Generating {len(section_names)} priority sections (excluding neighborhood): {section_names}"
+                log.info(
+                    "PROPERTY_DETAILS",
+                    "Generating priority sections (excluding neighborhood)",
+                    {"count": len(section_names), "sections": section_names},
                 )
             else:
-                current_app.logger.info(
-                    f"[PROPERTY] Generating {len(section_names)} additional report sections: {section_names}"
+                log.info(
+                    "PROPERTY_DETAILS",
+                    "Generating additional report sections",
+                    {"count": len(section_names), "sections": section_names},
                 )
 
             if section_names:  # Only generate if there are sections to generate
@@ -196,12 +197,16 @@ def generate_property_analysis(
                             days_back=14,
                         )
                         if recent_sections:
-                            current_app.logger.info(
-                                f"[PROPERTY] Found {len(recent_sections)} recent sections in database (last 2 weeks)"
+                            log.info(
+                                "PROPERTY_DETAILS",
+                                "Found recent sections in database",
+                                {"count": len(recent_sections), "days_back": 14},
                             )
                 except Exception as recent_check_err:
-                    current_app.logger.debug(
-                        f"[PROPERTY] Error checking recent sections: {recent_check_err}"
+                    log.debug(
+                        "PROPERTY_DETAILS",
+                        "Error checking recent sections",
+                        {"error": str(recent_check_err)},
                     )
 
                 additional_sections = generate_report_sections_for_property(
@@ -216,15 +221,15 @@ def generate_property_analysis(
                 # Merge additional sections into property_analysis
                 if additional_sections:
                     property_analysis.update(additional_sections)
-                    current_app.logger.info(
-                        f"[PROPERTY] ✅ Successfully generated {len(additional_sections)} additional sections"
+                    log.info(
+                        "PROPERTY_DETAILS",
+                        "Successfully generated additional sections",
+                        {"count": len(additional_sections)},
                     )
                 else:
-                    current_app.logger.warning("⚠️ [PROPERTY] No additional sections generated")
+                    log.warn("PROPERTY_DETAILS", "No additional sections generated")
         else:
-            current_app.logger.info(
-                "[PROPERTY] No section names, skipping additional section generation"
-            )
+            log.info("PROPERTY_DETAILS", "No section names, skipping additional section generation")
 
         property_analysis = finalize_property_analysis_payload(
             property_analysis,
@@ -233,8 +238,9 @@ def generate_property_analysis(
         )
 
         if not skip_pros_cons and "neighborhood_overview" not in property_analysis:
-            current_app.logger.warning(
-                "⚠️ [PROPERTY] neighborhood_overview missing from response to frontend"
+            log.warn(
+                "PROPERTY_DETAILS",
+                "neighborhood_overview missing from response to frontend",
             )
 
         if (
@@ -250,10 +256,11 @@ def generate_property_analysis(
         return property_analysis
 
     except Exception as e:
-        current_app.logger.error(f"🔍 [PROPERTY] Error during property analysis: {e}")
-        import traceback
-
-        current_app.logger.error(traceback.format_exc())
+        log.error(
+            "ERRORS",
+            "Error during property analysis",
+            {"error": str(e), "traceback": traceback.format_exc()},
+        )
         return {"error": "Failed to analyze property"}
 
 
@@ -279,16 +286,15 @@ def get_property_analysis_for_property(
     # Use cached data if available (and signature matches when options provided)
     if cached_property_analysis:
         if skip_pros_cons:
-            current_app.logger.info(
-                "[PROPERTY] ⏭️ Using cached property_analysis (compare mode strip)"
-            )
+            log.info("PROPERTY_DETAILS", "Using cached property_analysis (compare mode strip)")
             filtered_analysis = {
                 k: v
                 for k, v in cached_property_analysis.items()
                 if k not in ["pros", "cons", "neighborhood_overview", "neighborhood"]
             }
-            current_app.logger.info(
-                "[PROPERTY] Removed pros/cons and neighborhood section from cached data"
+            log.info(
+                "PROPERTY_DETAILS",
+                "Removed pros/cons and neighborhood section from cached data",
             )
             return filtered_analysis
         if analysis_options is None:
@@ -297,14 +303,16 @@ def get_property_analysis_for_property(
             _, _, expected_sig, _ = resolve_highlights_counts_and_signature(analysis_options, data)
             use_cache = analysis_cache_signature_matches(cached_property_analysis, expected_sig)
         if use_cache:
-            current_app.logger.info(
-                "[PROPERTY] ⏭️ Skipping property_analysis generation, using cached data"
+            log.info(
+                "PROPERTY_DETAILS",
+                "Skipping property_analysis generation, using cached data",
             )
             return finalize_property_analysis_payload(
                 cached_property_analysis, property_address, for_compare_stream=False
             )
-        current_app.logger.info(
-            "[PROPERTY] Cached analysis present but signature mismatch; regenerating"
+        log.info(
+            "PROPERTY_DETAILS",
+            "Cached analysis present but signature mismatch; regenerating",
         )
 
     # Generate new analysis
@@ -340,8 +348,9 @@ def get_property_analysis_for_property(
         )
 
     except Exception as e:
-        current_app.logger.error(f"🔍 [PROPERTY] Error during property analysis: {e}")
-        import traceback
-
-        current_app.logger.error(traceback.format_exc())
+        log.error(
+            "ERRORS",
+            "Error during property analysis",
+            {"error": str(e), "traceback": traceback.format_exc()},
+        )
         return {"error": "Failed to analyze property"}
