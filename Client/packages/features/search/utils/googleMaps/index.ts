@@ -14,7 +14,6 @@ export {
   adjustMapZoomByDelta,
   applyListingFocusCamera,
   applyStoredMapCamera,
-  DEFAULT_ZOOM,
   PROPERTY_DETAILS_MAP_REGION_DELTA,
   PROPERTY_DETAILS_NEIGHBORHOOD_ZOOM,
   resetMapToListingFocusZoom,

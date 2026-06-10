@@ -14,9 +14,6 @@ export const PROPERTY_DETAILS_NEIGHBORHOOD_ZOOM = 19;
 
 export { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/product/maps/native/propertyDetailsMapRegion";
 
-/** @deprecated Prefer SEARCH_MAP_LISTING_FOCUS_ZOOM */
-export const DEFAULT_ZOOM = SEARCH_MAP_LISTING_FOCUS_ZOOM;
-
 export function applyListingFocusCamera(
   map: google.maps.Map,
   center: google.maps.LatLngLiteral

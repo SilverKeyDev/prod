@@ -422,7 +422,7 @@
   {
     "id": "search-location-bar-suggestion-effects",
     "description": "Web-only Slipstream and Google Places suggestion fetching for the search location bar.",
-    "webPath": "packages/features/search/components/header/location-bar/useSearchLocationBarSuggestionEffects.web.ts",
+    "webPath": "packages/features/search/hooks/ui/useSearchLocationBarSuggestionEffects.web.ts",
     "nativePath": null,
     "reason": "Uses Google Places AutocompleteSessionToken and browser globals; native search location UI does not use this hook."
   },
@@ -845,6 +845,13 @@
     "webPath": "packages/utils/core/platform/dimensions.web.ts",
     "nativePath": "packages/utils/core/platform/dimensions.native.ts",
     "reason": "Web reads viewport via platform adapter; native uses react-native Dimensions.get('window')."
+  },
+  {
+    "id": "find-agents-screen",
+    "description": "Agent discovery: web dashboard page vs native root-stack screen.",
+    "webPath": "apps/web/pages/misc/FindAgentsPage.tsx",
+    "nativePath": "packages/features/agent/components/agentDiscovery/FindAgentsScreen.native.tsx",
+    "reason": "Web embeds discovery in the dashboard layout with lazy-loaded page. Native registers a full-screen stack screen with react-navigation and SafeAreaView."
   },
   {
     "id": "agent-profile-in-app-screen",

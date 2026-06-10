@@ -3399,6 +3399,13 @@ class SetCurrentUserDevWorkspaceRequest(BaseModel):
     )
 
 
+class ExchangeDevAccountSessionRequest(BaseModel):
+    token: constr(min_length=1) = Field(
+        ...,
+        description="One-time dev session token minted by an admin for a target dev test account.",
+    )
+
+
 class UpdateChecklistDispatchAutomationRequest(BaseModel):
     enabled: bool
     channel: ChecklistDispatchChannel

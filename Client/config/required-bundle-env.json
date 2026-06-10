@@ -5,33 +5,29 @@
       "key": "EXPO_PUBLIC_GOOGLE_MAPS_ID",
       "required": true,
       "dockerBuildArg": true,
-      "fallbackEnvVar": "EXPO_PUBLIC_GOOGLE_MAPS_ID",
       "minLength": 8,
       "forbidPrefix": "AIza",
-      "description": "Google Cloud Map ID (not the Maps JavaScript API key). Primary: AWS gmaps secret; GitHub fallbackEnvVar planned for removal."
+      "description": "Google Cloud Map ID (not the Maps JavaScript API key). Source: AWS gmaps secret."
     },
     {
       "key": "EXPO_PUBLIC_PLAID_CLIENT_ID",
       "required": false,
       "dockerBuildArg": true,
-      "fallbackEnvVar": "EXPO_PUBLIC_PLAID_CLIENT_ID",
-      "description": "Plaid Link client id. Primary: AWS plaid secret; GitHub fallbackEnvVar planned for removal."
+      "description": "Plaid Link client id. Source: AWS plaid secret."
     },
     {
       "key": "EXPO_PUBLIC_GOOGLE_CLIENT_ID",
       "required": false,
       "dockerBuildArg": true,
-      "fallbackEnvVar": "EXPO_PUBLIC_GOOGLE_CLIENT_ID",
-      "description": "Google OAuth client id. Primary: AWS google_calendar secret; GitHub fallbackEnvVar planned for removal."
+      "description": "Google OAuth client id. Source: AWS google_calendar secret."
     },
     {
       "key": "EXPO_PUBLIC_POSTHOG_KEY",
       "required": true,
       "dockerBuildArg": true,
-      "fallbackEnvVar": "EXPO_PUBLIC_POSTHOG_KEY",
       "pattern": "^phc_",
       "minLength": 10,
-      "description": "PostHog project API key (phc_…). Primary: AWS posthog secret; GitHub fallbackEnvVar planned for removal."
+      "description": "PostHog project API key (phc_…). Source: AWS posthog secret."
     }
   ]
 }

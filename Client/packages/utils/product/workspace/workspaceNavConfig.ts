@@ -2,13 +2,7 @@ import type { Workspace } from "./deriveAllowedWorkspaces";
 import { isPlaceholderWorkspace } from "./isPlaceholderWorkspace";
 
 /** Matches `SidebarTabKey` in apps/web sidebar — kept in packages to avoid app imports. */
-export type WorkspaceNavTabKey =
-  | "dashboard"
-  | "analytics"
-  | "search"
-  | "decide"
-  | "agent"
-  | "profile";
+export type WorkspaceNavTabKey = "dashboard" | "search" | "decide" | "agent" | "profile";
 
 export type WorkspaceNavTabConfig = {
   key: WorkspaceNavTabKey;
@@ -17,14 +11,7 @@ export type WorkspaceNavTabConfig = {
   visible: boolean;
 };
 
-const TAB_ORDER: WorkspaceNavTabKey[] = [
-  "dashboard",
-  "analytics",
-  "search",
-  "decide",
-  "agent",
-  "profile",
-];
+const TAB_ORDER: WorkspaceNavTabKey[] = ["dashboard", "search", "decide", "agent", "profile"];
 
 function labelKeyForTab(workspace: Workspace, key: WorkspaceNavTabKey): string {
   switch (key) {
@@ -33,8 +20,6 @@ function labelKeyForTab(workspace: Workspace, key: WorkspaceNavTabKey): string {
         return "workspace.nav.dashboard.placeholder";
       }
       return `workspace.nav.dashboard.${workspace}`;
-    case "analytics":
-      return "workspace.nav.analytics.brokerage";
     case "search":
       return "workspace.nav.search";
     case "decide":
@@ -52,9 +37,6 @@ function labelKeyForTab(workspace: Workspace, key: WorkspaceNavTabKey): string {
 }
 
 function isTabVisible(workspace: Workspace, key: WorkspaceNavTabKey, _isMobile: boolean): boolean {
-  if (key === "analytics") {
-    return workspace === "brokerage";
-  }
   if (isPlaceholderWorkspace(workspace)) {
     return key === "dashboard" || key === "agent";
   }

@@ -35,13 +35,6 @@ const BrokerageDashboardPage = lazy(
     () => import("@/pages/workspace/BrokerageDashboardPage")
   )
 );
-const BrokerageAnalyticsPage = lazy(
-  traceLazyImport(
-    "DASHBOARD",
-    "lazy:BrokerageAnalyticsPage",
-    () => import("@/pages/workspace/BrokerageAnalyticsPage")
-  )
-);
 const IntegrationPartnerDashboardPage = lazy(
   traceLazyImport(
     "DASHBOARD",
@@ -113,7 +106,9 @@ function ReportingSuspenseFallback({ variant }: { variant: DashboardRouteFallbac
   useEffect(() => {
     const tVisible = performance.now();
     const cat = logCategoryForSuspenseVariant(variant);
-    log.info(cat, "[PERF] Suspense fallback visible (lazy chunk loading)", { variant });
+    log.info(cat, "[PERF] Suspense fallback visible (lazy chunk loading)", {
+      variant,
+    });
     return () => {
       log.info(cat, "[PERF] Suspense fallback hidden (chunk resolved or navigated away)", {
         variant,
@@ -140,15 +135,13 @@ export function DashboardContent({
     activeKey !== "dashboard" &&
     activeKey !== "messaging" &&
     activeKey !== null;
-  const contentTopMargin =
-    route.isDashboard || route.isProfile || route.isFindAgents || route.isAnalytics;
+  const contentTopMargin = route.isDashboard || route.isProfile || route.isFindAgents;
   const contentBottomMargin =
     route.isDashboard ||
     route.isProfile ||
     route.isLibrary ||
     route.isFindAgents ||
-    route.isAgreementSigningComplete ||
-    route.isAnalytics;
+    route.isAgreementSigningComplete;
 
   const searchHeightClass =
     isSearch && isMobile
@@ -219,14 +212,6 @@ export function DashboardContent({
           <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
         </Suspense>
       </PageErrorBoundary>
-    )
-  ) : activeKey === "analytics" ? (
-    activeWorkspace === "brokerage" ? (
-      <Suspense fallback={loadingFallback}>
-        <BrokerageAnalyticsPage />
-      </Suspense>
-    ) : (
-      <WorkspacePlaceholderPage workspace={activeWorkspace} />
     )
   ) : activeKey === "dashboard" ? (
     <Suspense fallback={loadingFallback}>

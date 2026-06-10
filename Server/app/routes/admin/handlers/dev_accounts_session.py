@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from flask import request
-
 from app.dtos.user import UserDTO
-from app.schemas import SetCurrentUserDevWorkspaceRequest
+from app.schemas import ExchangeDevAccountSessionRequest, SetCurrentUserDevWorkspaceRequest
 from app.services.auth.dev_accounts_session import (
     exchange_dev_session_token,
     mint_dev_session_token,
 )
+from app.services.auth.user_role_helpers import user_is_agent
 from app.utils.common_patterns import (
     handle_exceptions_with_logging,
     require_authenticated_user,
@@ -18,7 +17,7 @@ from app.utils.common_patterns import (
 )
 from app.utils.security.admin_roles import user_has_admin_role
 from app.utils.validation import validate_request
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 
 @handle_exceptions_with_logging
@@ -28,7 +27,7 @@ def mint_dev_account_session(user, data: SetCurrentUserDevWorkspaceRequest | Non
     """Mint a short-lived one-time token for the caller's target role dev account."""
     if not user_has_admin_role(user):
         log.security(
-            LOG_CATEGORIES["SECURITY"],
+            "SECURITY",
             "Unauthorized dev-account session mint attempt",
             {"user_id": getattr(user, "id", None)},
         )
@@ -56,17 +55,11 @@ def mint_dev_account_session(user, data: SetCurrentUserDevWorkspaceRequest | Non
 
 
 @handle_exceptions_with_logging
-def exchange_dev_account_session():
+@validate_request(ExchangeDevAccountSessionRequest)
+def exchange_dev_account_session(data: ExchangeDevAccountSessionRequest):
     """Exchange and consume a one-time dev session token for a tab-scoped bearer session."""
-    data = request.get_json(silent=True) or {}
-    token = data.get("token")
-    if not isinstance(token, str) or not token.strip():
-        return standardize_error_response(
-            "token is required", status_code=400, error_code="validation_error"
-        )
-
     try:
-        target, access_token, id_token = exchange_dev_session_token(token.strip())
+        target, access_token, id_token = exchange_dev_session_token(data.token.strip())
     except PermissionError as exc:
         return standardize_error_response(str(exc), status_code=403, error_code=str(exc))
 
@@ -80,7 +73,7 @@ def exchange_dev_account_session():
                 "name": target.name,
                 "id": str(target.id),
                 "phone": target.phone,
-                "is_agent": bool(target.is_agent),
+                "is_agent": user_is_agent(target),
                 "auth_method": "dev_session",
                 "roles": user_payload.get("roles"),
                 "brokerage_org_ids": user_payload.get("brokerage_org_ids"),

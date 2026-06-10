@@ -686,6 +686,8 @@ components:
       $ref: "./components/schemas/admin/SetCurrentUserDevWorkspaceRequest.yaml"
     SetCurrentUserDevWorkspaceResponse:
       $ref: "./components/schemas/admin/SetCurrentUserDevWorkspaceResponse.yaml"
+    ExchangeDevAccountSessionRequest:
+      $ref: "./components/schemas/admin/ExchangeDevAccountSessionRequest.yaml"
     UpdateChecklistDispatchAutomationRequest:
       $ref: "./components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml"
     UpdateChecklistRequest:
@@ -5794,6 +5796,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/dev-accounts/session:
+    post:
+      tags: [ Admin ]
+      summary: Mint one-time dev account session token (admin)
+      operationId: adminMintDevAccountSession
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetCurrentUserDevWorkspaceRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/dev-accounts/session/exchange:
+    post:
+      tags: [ Admin ]
+      summary: Exchange one-time dev account session token
+      operationId: adminExchangeDevAccountSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExchangeDevAccountSessionRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/users/gate-roles:
     get:
       tags: [ Admin ]
@@ -6990,59 +7055,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Report not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/agent/chats/messages:
-    post:
-      tags:
-        - Agent
-      summary: Send message
-      description: Send a message in a conversation
-      operationId: sendMessage
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SendMessageRequest"
-      responses:
-        "200":
-          description: Message sent
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SendMessageResponse"
-        "400":
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Access denied
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Conversation not found
           content:
             application/json:
               schema:

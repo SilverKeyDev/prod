@@ -7,7 +7,6 @@ from various sources (database, API) for use in the home matching system.
 Includes typed model classes for embeddings.
 """
 
-# Import existing functions for backward compatibility
 from .home_input_data import (
     format_home_data_for_matching,
     format_home_data_from_api,
@@ -17,18 +16,7 @@ from .home_input_data import (
     get_homes_data,
     get_homes_data_from_db,
 )
-
-# Import model classes
-from .models import (
-    # Base
-    BaseInputModel,
-    EmbeddingHomeInput,
-    # Embedding models
-    EmbeddingUserInput,
-    HomeDataRetriever,
-    # Data retrieval
-    UserDataRetriever,
-)
+from .models import BaseInputModel, EmbeddingHomeInput, EmbeddingUserInput
 from .user_input_data import (
     format_user_data_for_matching,
     get_user_data,
@@ -37,7 +25,6 @@ from .user_input_data import (
 )
 
 __all__ = [
-    # Home data functions (backward compatible)
     "get_home_data_from_db",
     "get_homes_data_from_db",
     "format_home_data_for_matching",
@@ -45,16 +32,11 @@ __all__ = [
     "format_homes_data_from_api",
     "get_home_data",
     "get_homes_data",
-    # User data functions (backward compatible)
     "get_user_data_from_db",
     "format_user_data_for_matching",
     "get_user_data_from_dict",
     "get_user_data",
-    # Model classes
     "BaseInputModel",
     "EmbeddingUserInput",
     "EmbeddingHomeInput",
-    # Data retrieval
-    "UserDataRetriever",
-    "HomeDataRetriever",
 ]

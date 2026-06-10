@@ -18,13 +18,14 @@
 
 ## Prod web (EC2)
 
+- Scheduled deploys: Sunday and Wednesday 03:00 `America/New_York` via `ci_web.yml`; manual rollback via `workflow_dispatch` with a prior 12-char SHA tag.
 - Immutable image tags from git SHA.
 - Pre-deploy rollback image captured on EC2 — see [infrastructure-reliability-gap-audit.md](./infrastructure-reliability-gap-audit.md).
 
 ## Environment promotion
 
 - Server runtime secrets: AWS Secrets Manager / `Server/.env` (local via `make secrets`).
-- Client build-time env (`EXPO_PUBLIC_*`): AWS Secrets Manager primary in `ci_web.yml` (`fetch-client-bundle-env.sh`); GitHub repository secrets as **fallback** only (`apply-bundle-env-github-fallback.sh` — planned for removal). Local: `make secrets` → `Client/.env`.
+- Client build-time env (`EXPO_PUBLIC_*`): AWS Secrets Manager only in `ci_web.yml` (`fetch-client-bundle-env.sh` → `assert-bundle-secrets.mjs`). Local: `make secrets` → `Client/.env`.
 
 ## PostHog API route inventory
 

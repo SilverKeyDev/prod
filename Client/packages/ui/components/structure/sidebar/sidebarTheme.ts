@@ -96,18 +96,6 @@ export function getChromeNavButtonStyles(isActive: boolean): string {
   return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
 }
 
-/**
- * Nested items on dark chrome (dashboard sidebar sub-links).
- */
-export function getChromeNavSubItemStyles(isActive: boolean): string {
-  const { inactive, highlighted } = tailwindNavChromeNavText;
-  const baseStyles = "flex items-center transition-all duration-200 touch-friendly rounded-lg";
-  const hoverActiveStyles = "bg-sidebar-accent hover:bg-sidebar-accent";
-  const activeStyles = `${hoverActiveStyles} text-sidebar-foreground ${highlighted}`;
-  const inactiveStyles = `${inactive} text-sidebar-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground hover:-translate-y-0.5 active:bg-sidebar-accent active:text-sidebar-foreground`;
-  return `${baseStyles} ${isActive ? activeStyles : inactiveStyles}`;
-}
-
 export type SidebarInsetNavOptions = {
   active: boolean;
   disabled?: boolean;

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Fetch EXPO_PUBLIC_* / VITE_* bundle keys from AWS Secrets Manager for ci_web Docker build.
 # Same secret ids as Server/scripts/secrets.sh / Server/.env.example (# From secret: lines).
-# Non-fatal when SM returns no client keys — apply-bundle-env-github-fallback.sh fills gaps.
+# AWS SM is the sole CI source — assert-bundle-secrets.mjs fails the build if required keys are missing.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -41,7 +41,7 @@ while IFS= read -r line || [ -n "$line" ]; do
 done <"$bundle_env_file"
 
 if [ "$key_count" -eq 0 ]; then
-  echo "fetch-client-bundle-env: no EXPO_PUBLIC_* / VITE_* keys in merged secrets (GitHub fallback may apply)"
+  echo "fetch-client-bundle-env: no EXPO_PUBLIC_* / VITE_* keys in merged secrets — assert-bundle-secrets will fail unless SM has bundle keys"
 else
   echo "fetch-client-bundle-env: found ${key_count} client bundle key(s) in AWS SM"
 fi

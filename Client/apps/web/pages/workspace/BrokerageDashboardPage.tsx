@@ -1,5 +1,5 @@
-import { WorkspacePlaceholderPage } from "packages/features/workspace";
+import { BrokerageDashboardShell } from "packages/features/brokerage";
 
 export default function BrokerageDashboardPage() {
-  return <WorkspacePlaceholderPage workspace="brokerage" />;
+  return <BrokerageDashboardShell />;
 }

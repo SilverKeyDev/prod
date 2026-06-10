@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
 import { adminApi, type DevAccountSessionRole } from "packages/features/admin/api/admin";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 export function buildDevSessionUrl(token: string): string {
   return `/dev/session?t=${encodeURIComponent(token)}`;

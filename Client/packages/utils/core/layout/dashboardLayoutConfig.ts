@@ -10,7 +10,6 @@
 export const PATH_PREFIXES = {
   search: "/search",
   dashboard: "/dashboard",
-  analytics: "/analytics",
   profile: "/profile",
   library: "/library",
   messaging: "/messaging",
@@ -23,7 +22,6 @@ const DASHBOARD_ROUTE_ORDER: PathPrefix[] = [
   "search",
   "messaging",
   "dashboard",
-  "analytics",
   "library",
   "profile",
 ];
@@ -64,7 +62,6 @@ export function getActiveDashboardKey(pathname: string): PathPrefix | null {
 export const PATH_WIDTH_PERCENT: Record<PathPrefix, number> = {
   search: 100,
   dashboard: 90,
-  analytics: 90,
   profile: 90,
   /** Match dashboard/profile content width; inset comes from SavedPageLayout (see DashboardScreen `px-4`). */
   library: 90,

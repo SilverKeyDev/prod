@@ -4,7 +4,6 @@ import { useLocation } from "react-router-dom";
 
 import { useLocalization } from "packages/contexts";
 import { useActiveWorkspace } from "packages/hooks/store";
-import { useViewStore, type ViewState } from "packages/store";
 import { useNotificationStore } from "packages/store";
 import { Box } from "packages/ui/components/structure/primitives";
 import { SIDEBAR_CHROME_SHELL } from "packages/ui/components/structure/sidebar/sidebarTheme";
@@ -13,7 +12,7 @@ import { useDashboardShellRoutePrefetch } from "@/app/navigation/useDashboardShe
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
 import type { UserProfile } from "@/features/homeauth/types";
 
-import { getNavigation, type SidebarNavItem } from "./sidebarNav.web";
+import { getNavigation } from "./sidebarNav.web";
 import { SidebarFooter, SidebarHeader, SidebarNav } from "./SidebarNavSections.web";
 
 export type SidebarProps = {
@@ -23,6 +22,7 @@ export type SidebarProps = {
   isMobile?: boolean;
   onLinkClick?: () => void;
 };
+
 export default function Sidebar({
   onLogout,
   expanded,
@@ -33,8 +33,6 @@ export default function Sidebar({
   const isLoading = authStatus === "checking" || !authReady;
   const { t } = useLocalization();
   const activeWorkspace = useActiveWorkspace();
-  const openCategories = useViewStore((s: ViewState) => s.openCategories);
-  const toggleCategoryInStore = useViewStore((s: ViewState) => s.toggleCategory);
   const location = useLocation();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
   const isLoaded = useNotificationStore((s) => s.isLoaded);
@@ -44,8 +42,6 @@ export default function Sidebar({
     if (hrefPathname === undefined) return false;
     return location.pathname === hrefPathname || location.pathname.endsWith(hrefPathname);
   };
-  const toggleCategory = (category: string) => toggleCategoryInStore(category);
-  const isCategoryActive = (items: SidebarNavItem[]) => items.some((item) => isActive(item.href));
   const navigation = getNavigation(activeWorkspace, isMobile, (labelKey, fallback) =>
     t(labelKey, fallback)
   );
@@ -66,9 +62,6 @@ export default function Sidebar({
             navigation={navigation}
             expanded={expanded}
             isActive={isActive}
-            isCategoryActive={isCategoryActive}
-            toggleCategory={toggleCategory}
-            openCategories={openCategories}
             onLinkClick={onLinkClick}
             unreadCount={unreadCount}
             isLoaded={isLoaded}

@@ -275,7 +275,6 @@ Scripts run exclusively inside GitHub Actions. Do not invoke locally unless debu
 | `ec2-deploy.sh` | Full EC2 deploy: ECR pull, Secrets Manager env merge, Docker stack (app/worker/beat/redis), static frontend sync | `.github/workflows/ci_web.yml` via SSH |
 | `_secrets-env.sh` | AWS Secrets Manager merge + `.env.example` validation helpers | Sourced by `ec2-deploy.sh`, `fetch-client-bundle-env.sh` |
 | `fetch-client-bundle-env.sh` | Fetch `EXPO_PUBLIC_*` from SM into `GITHUB_ENV` for ci_web Docker build | `.github/workflows/ci_web.yml` |
-| `apply-bundle-env-github-fallback.sh` | GitHub secrets fallback when SM omits bundle keys (planned for removal) | `.github/workflows/ci_web.yml` |
 | `gh-db-upgrade.sh` | Build `Dockerfile.web --target migrate`, run `flask db upgrade` against prod DB secret | `.github/workflows/db-migrate-main.yml` |
 | `summarize-openapi-sync-diff.sh` | Human-readable drift summary for generated OpenAPI artifacts | `.github/workflows/openapi-sync.yml` on failure |
 
@@ -289,7 +288,7 @@ Scripts run exclusively inside GitHub Actions. Do not invoke locally unless debu
 | `test-callable.yml` | `pytest`; `pnpm test:coverage`; `Server/scripts/misc/check_coverage_thresholds.py`; `Server/scripts/endpoints/extract_routes.py` |
 | `openapi-sync.yml` | `Server/scripts/generate-pydantic-models.sh`; `Client/scripts/generate-api-types.sh`; `.github/scripts/summarize-openapi-sync-diff.sh` |
 | `doc-check.yml` | `scripts/ci/check-doc-placement.sh`; `scripts/ci/check-doc-links.sh` |
-| `ci_web.yml` | `fetch-client-bundle-env.sh`; `apply-bundle-env-github-fallback.sh`; `assert-bundle-secrets.mjs`; `export-bundle-docker-build-args.mjs`; `.github/scripts/ec2-deploy.sh` |
+| `ci_web.yml` | `fetch-client-bundle-env.sh`; `assert-bundle-secrets.mjs`; `export-bundle-docker-build-args.mjs`; `.github/scripts/ec2-deploy.sh` |
 | `db-migrate-main.yml` | `.github/scripts/gh-db-upgrade.sh` |
 | `endpoints-check-dead.yml` | `Server/scripts/endpoints/check_dead_endpoints.py` |
 | `endpoints-sync-posthog.yml` | `Server/scripts/endpoints/sync_inventory_posthog.py` |
