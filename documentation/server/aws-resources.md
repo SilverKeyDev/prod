@@ -17,6 +17,7 @@ SilverKey uses AWS services for authentication, storage, and infrastructure. All
 - Password policy: Min 8 chars, requires uppercase, lowercase, number
 - MFA: Optional (SMS or TOTP)
 - Email verification: Required
+- **Email delivery (SIL-46):** Send with **Amazon SES** (not Cognito default); FROM `noreply@usesilverkey.com` — see [ops/ses-cognito-onboarding.md](./ops/ses-cognito-onboarding.md)
 
 **Environment Variables:**
 ```bash
@@ -32,6 +33,20 @@ from app.services.auth import cognito_service
 
 user_info = cognito_service.validate_token(token)
 ```
+
+### SES (Simple Email Service)
+
+**Purpose:** Auth emails (via Cognito) and server-side transactional sends (newsletter, future notification pipeline)
+
+**Region:** `us-east-2` (same as Cognito and app)
+
+**Verified identity:** `usesilverkey.com` (domain + Easy DKIM)
+
+**Default sender:** `noreply@usesilverkey.com` — `Server/app/services/email/ses_config.py`
+
+**Setup runbook:** [ops/ses-cognito-onboarding.md](./ops/ses-cognito-onboarding.md) ([SIL-46](https://linear.app/silverkey/issue/SIL-46))
+
+**Related Linear:** [SIL-187](https://linear.app/silverkey/issue/SIL-187) (server email pipeline), [SIL-188](https://linear.app/silverkey/issue/SIL-188) (configuration set + bounce handling)
 
 ### S3
 
