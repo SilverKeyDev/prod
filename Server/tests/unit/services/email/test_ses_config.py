@@ -1,6 +1,5 @@
 """Unit tests for shared SES configuration (SIL-46)."""
 
-import os
 
 from app.services.email import ses_config
 
