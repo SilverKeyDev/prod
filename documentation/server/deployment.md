@@ -13,6 +13,7 @@
 | API route inventory drift | `make routes-extract-verify` in `.github/workflows/test-callable.yml` (backend job) |
 | PostHog endpoint inventory sync | `.github/workflows/endpoints-sync-posthog.yml` — after **Test & Coverage** succeeds on `main`, or `workflow_dispatch`; no DB (reads `Server/endpoints.json` only) |
 | PostHog dead endpoints (weekly) | `.github/workflows/endpoints-check-dead.yml` — `make endpoints-check-dead` |
+| Monitoring and alerts | [ops/monitoring-alerts.md](./ops/monitoring-alerts.md) — PostHog error tracking, `/healthz` Slack alerts, 5xx spike alerts |
 | OpenAPI drift | `.github/workflows/openapi-sync.yml` |
 | Doc placement | `.github/workflows/doc-check.yml` |
 | Deploy scripts | `scripts/deploy/` — EC2 reference scripts, [local prod-parity compose](../../scripts/deploy/prod-parity/docker-compose.yml); see [scripts/deploy/README.md](../../scripts/deploy/README.md) |
@@ -49,11 +50,13 @@
 | ------ | ------- |
 | `POSTHOG_PROJECT_TOKEN` | `endpoints-sync-posthog` on merge to `main` (project ingest key `phc_…`; same value as `EXPO_PUBLIC_POSTHOG_KEY` repo secret) |
 | `EXPO_PUBLIC_POSTHOG_KEY` | `ci_web.yml` prod web Docker build (project ingest key `phc_…`; same value as `POSTHOG_PROJECT_TOKEN`) |
-| `POSTHOG_QUERY_API_KEY` | Weekly dead-endpoint HogQL check (`make endpoints-check-dead`; personal key with `query:read`) |
+| `POSTHOG_QUERY_API_KEY` | Weekly dead-endpoint HogQL check (`make endpoints-check-dead`) and 5xx spike alerts (`make monitor-5xx-alert`); personal key with `query:read` |
+| `SLACK_ALERTS_WEBHOOK_URL` | External health and 5xx spike monitors posting to Slack `#alerts` |
 
 ## Related
 
 - [aws-resources.md](./aws-resources.md)
 - [ops/scaling-playbook.md](./ops/scaling-playbook.md)
+- [ops/monitoring-alerts.md](./ops/monitoring-alerts.md)
 - [ops/posthog-capacity-queries.md](./ops/posthog-capacity-queries.md)
 - [setup.md](../../setup.md)

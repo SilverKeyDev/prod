@@ -18,6 +18,7 @@ PYTEST_ARGS ?=
 	typecheck check-client openapi openapi-verify openapi-verify-pre-push generate-api \
 	format-client format-check mobile \
 	routes-extract endpoints-check-dead routes-extract-verify endpoints-sync-posthog \
+	monitor-health-alert monitor-5xx-alert \
 	log-contracts log-contracts-verify \
 	prod-parity prod-parity-build
 
@@ -53,6 +54,8 @@ help:
 	@echo "  make routes-extract   Write Server/endpoints.json from Flask url_map"
 	@echo "  make routes-extract-verify  Regenerate endpoints.json; fail if git drift (CI)"
 	@echo "  make endpoints-check-dead  Diff inventory vs PostHog api_request (7d; needs POSTHOG_QUERY_API_KEY)"
+	@echo "  make monitor-health-alert Check SILVERKEY_HEALTH_URL and alert Slack on failure"
+	@echo "  make monitor-5xx-alert   Query PostHog api_request 5xx spikes and alert Slack"
 	@echo "  make endpoints-sync-posthog  POST endpoint_inventory_sync to PostHog (needs POSTHOG_PROJECT_TOKEN)"
 	@echo "  make log-contracts        Regenerate Client/Server log category contracts"
 	@echo "  make log-contracts-verify Regenerate log contracts; fail if git drift"
@@ -160,6 +163,12 @@ endpoints-check-dead:
 
 endpoints-sync-posthog:
 	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/endpoints/sync_inventory_posthog.py
+
+monitor-health-alert:
+	python3 "$(ROOT)/scripts/ops/check_health_alert.py" $(ARGS)
+
+monitor-5xx-alert:
+	cd "$(ROOT)/Server" && . .venv/bin/activate && python3 scripts/monitoring/alert_5xx_spike.py $(ARGS)
 
 log-contracts:
 	python3 "$(ROOT)/scripts/log_contracts/generate.py"

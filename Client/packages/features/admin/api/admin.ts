@@ -39,6 +39,7 @@ export type DevAccountSessionExchangeResponse = components["schemas"]["AuthRespo
 export type DevUserDataResetRequest = components["schemas"]["DevUserDataResetRequest"];
 export type DevUserDataResetResponse = components["schemas"]["DevUserDataResetResponse"];
 export type DevUserDataResetScope = DevUserDataResetRequest["scopes"][number];
+export type ValidationStatsApiResponse = components["schemas"]["ValidationStatsApiResponse"];
 
 export type DevUserDataResetResult = Required<
   Pick<DevUserDataResetResponse, "target_user_id" | "cleared">
@@ -195,5 +196,16 @@ export const adminApi = {
       throw new Error(resolveApiResultErrorMessage(response, "Failed to reset dev user data"));
     }
     return { target_user_id: response.target_user_id, cleared: response.cleared };
+  },
+
+  getValidationStats: async (days: number): Promise<ValidationStatsApiResponse["data"]> => {
+    const params = new URLSearchParams({ days: String(days) });
+    const response = await apiGet<ValidationStatsApiResponse>(
+      `/api/v1/admin/validation-stats?${params.toString()}`
+    );
+    if (!response.success || !response.data) {
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch validation stats"));
+    }
+    return response.data;
   },
 };

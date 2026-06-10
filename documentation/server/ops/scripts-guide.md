@@ -124,12 +124,13 @@ See `scripts/load/README.md` for usage.
 
 ### `ops/` — manual ops and audit helpers
 
-Not wired to any Makefile target or CI workflow. Run directly when investigating production issues.
+Most scripts here are manual ops helpers. Monitoring scripts may be wired to cron/systemd on an external monitor host.
 
 | Script | Purpose |
 |--------|---------|
 | `ops/correlate-auth-incident.sh <ID>` | Correlate client + server logs for an unexpected logout via X-Request-ID |
 | `ops/list-auth-http-entrypoints.sh` | List `apiRequest` vs `httpClient`/`fetchJson` call sites for auth surface audit |
+| `ops/check_health_alert.py` | External `/healthz` probe; posts Slack alert on process-down/unhealthy app |
 | `ops/celery_healthcheck.py` | Kombu broker connectivity check |
 
 ---
@@ -175,6 +176,7 @@ Python linters:
 | `endpoints/check_dead_endpoints.py` | Diff route inventory vs PostHog `api_request` events | `make endpoints-check-dead`; `endpoints-check-dead.yml` |
 | `endpoints/sync_inventory_posthog.py` | POST route inventory to PostHog | `make endpoints-sync-posthog`; `endpoints-sync-posthog.yml` |
 | `endpoints/posthog_constants_loader.py` | Load PostHog constants without Flask app context | Imported by check/sync scripts |
+| `monitoring/alert_5xx_spike.py` | Query PostHog `api_request` 5xx count and post Slack on threshold | `make monitor-5xx-alert`; external cron/systemd |
 
 ### Operator / manual tools
 

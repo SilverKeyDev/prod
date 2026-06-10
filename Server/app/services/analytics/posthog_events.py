@@ -77,6 +77,46 @@ def set_person_properties(distinct_id: str, properties: dict[str, Any]) -> None:
         )
 
 
+def capture_backend_error(error: BaseException, *, status_code: int) -> None:
+    """Capture a sanitized server error event for PostHog error tracking."""
+    if status_code < 500:
+        return
+
+    route_pattern = None
+    endpoint = None
+    method = None
+    path = None
+    request_id = None
+    if has_request_context():
+        method = request.method
+        path = request.path
+        endpoint = request.endpoint
+        request_id = getattr(g, "request_id", None)
+        if request.url_rule is not None:
+            route_pattern = normalize_flask_route_rule(request.url_rule.rule)
+
+    properties: dict[str, Any] = {
+        "status_code": status_code,
+        "status_class": _status_class(status_code),
+        "error_type": type(error).__name__,
+        "request_id": request_id,
+        "method": method,
+        "path": path,
+        "route_pattern": route_pattern,
+        "endpoint_name": endpoint,
+        "host": socket.gethostname(),
+    }
+    deploy_tag = (os.getenv("DEPLOY_IMAGE_TAG") or "").strip()
+    if deploy_tag:
+        properties["deploy_image_tag"] = deploy_tag
+
+    capture_product_event(
+        distinct_id=request_id or f"server:{socket.gethostname()}",
+        event="backend_error",
+        properties=properties,
+    )
+
+
 def _status_class(status_code: int) -> str:
     return f"{status_code // 100}xx"
 
