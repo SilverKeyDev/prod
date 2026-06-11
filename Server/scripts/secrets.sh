@@ -111,7 +111,7 @@ env_file_value() {
 
 is_database_secret_name() {
   case "$1" in
-    db_url|database_url|DATABASE_URL|*/db_url|*/database|*/database/*|*silverkey*database*)
+    db_url|database_url|DATABASE_URL|*/db_url|*/db|*/database|*/database/*|*silverkey*database*)
       return 0
       ;;
     *)
