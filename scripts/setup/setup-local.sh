@@ -60,7 +60,8 @@ else
   echo "==> Step 2/6: Server (Python venv)"
 fi
 [[ "$BOOTSTRAP_CI" == true ]] && bootstrap_args+=(--ci)
-bash Server/scripts/bootstrap-venv.sh "${bootstrap_args[@]}"
+# Nounset-safe empty-array expansion (macOS Bash 3.2 errors on "${arr[@]}" when empty).
+bash Server/scripts/bootstrap-venv.sh ${bootstrap_args[@]+"${bootstrap_args[@]}"}
 
 # --- Step 3–4: AWS SSO + local DB init ---
 if [[ "$SKIP_SECRETS" != true ]]; then
