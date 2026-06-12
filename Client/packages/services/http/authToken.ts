@@ -1,4 +1,4 @@
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 /** SessionStorage key used for tab-scoped dev account sessions. */
 export const DEV_SESSION_ACCESS_TOKEN_KEY = "dev_session_access_token";

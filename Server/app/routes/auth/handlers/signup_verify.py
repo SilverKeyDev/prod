@@ -41,6 +41,11 @@ def signup(data: SignupData):
         request_data["brokerage"] = str(data.brokerage).strip()
     response_data, status_code = handle_signup(request_data)
     if status_code >= 400:
+        if response_data.get("error") == "UsernameExistsException":
+            return http_errors.conflict(
+                "An account with this email already exists. Please sign in instead.",
+                error_code="ACCOUNT_ALREADY_EXISTS",
+            )
         return http_errors.validation("Failed to register user")
     return jsonify(response_data), status_code
 

@@ -131,7 +131,9 @@ def handle_login(data: dict[str, Any], request_id: str) -> tuple[Response, int]:
             ),
             500,
         )
-    user = find_or_create_user_by_cognito(user_sub, data["email"])
+    user = find_or_create_user_by_cognito(
+        user_sub, data["email"], decoded_id_token.get("name") or data["email"]
+    )
     user_id = str(user.id) if user else user_sub
     user_name = user.name if user else "Unknown User"
     minimal_access_token, minimal_id_token = create_minimal_tokens(

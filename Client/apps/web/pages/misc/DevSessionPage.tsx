@@ -7,11 +7,11 @@ import {
   mapAuthResponseToUserProfile,
   toUserStoreProfile,
 } from "packages/features/homeauth/hooks/data/utils/userMapping";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { ROUTES } from "packages/navigation/types/routes";
 import { storeDevSessionAccessToken } from "packages/services/http/authToken";
 import { useAuthStore, useUserStore } from "packages/store";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 export default function DevSessionPage() {
   const [params] = useSearchParams();
@@ -48,7 +48,7 @@ export default function DevSessionPage() {
         setUserProfile(toUserStoreProfile(user));
 
         if (cancelled) return;
-        log.security(LOG_CATEGORIES.AUTH, "Dev session opened in tab", {
+        log.security("AUTH", "Dev session opened in tab", {
           userId: user.id,
           role: user.roles?.join(","),
         });

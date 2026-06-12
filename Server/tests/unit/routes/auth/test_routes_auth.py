@@ -72,6 +72,29 @@ class TestAuthRoutes:
         assert len(phone_attrs) == 1
         assert phone_attrs[0]["Value"] == "+1234567890"
 
+    def test_signup_existing_cognito_account_returns_conflict(self, client, mock_cognito_service):
+        """Existing Cognito users should get an actionable sign-in response."""
+        mock_cognito_service.sign_up.return_value = {
+            "success": False,
+            "error": "UsernameExistsException",
+            "message": "User already exists",
+        }
+
+        response = client.post(
+            "/api/v1/auth/signup",
+            json={
+                "email": "existing@example.com",
+                "password": "Password123!",
+                "name": "Existing User",
+            },
+        )
+
+        assert response.status_code == 409
+        data = response.get_json()
+        assert data["success"] is False
+        assert data["error"] == "ACCOUNT_ALREADY_EXISTS"
+        assert "sign in" in data["message"].lower()
+
     def test_refresh_token_endpoint(
         self, client, mock_cognito_service, mock_jwt_decode, db_session
     ):
