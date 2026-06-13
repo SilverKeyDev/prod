@@ -42,6 +42,18 @@ aws_sso_err_is_expired() {
   grep -qiE 'token has expired|refresh failed' "$_file" 2>/dev/null
 }
 
+aws_sso_print_login_hints() {
+  _profile="$1"
+  printf '%s\n' "  aws sso login --profile ${_profile}" >&2
+  if ! aws_sso_is_interactive; then
+    printf '%s\n' "  Headless/CI: aws sso login --profile ${_profile} --use-device-code" >&2
+  fi
+  if [ "${AWS_SSO_NO_AUTO_LOGIN:-}" = "1" ]; then
+    printf '%s\n' "  (AWS_SSO_NO_AUTO_LOGIN=1 — auto-login was skipped)" >&2
+  fi
+  printf '%s\n' "  Or export AWS_ACCESS_KEY_ID + AWS_SESSION_TOKEN (or role creds) to bypass SSO login." >&2
+}
+
 # Ensure a valid AWS SSO session for profile/region.
 # On expired token + interactive terminal: runs `aws sso login` (unless AWS_SSO_NO_AUTO_LOGIN=1).
 # Profile name is whatever the caller passed (from .aws-sso, env, or CLI arg) — never hardcoded here.
@@ -76,11 +88,13 @@ aws_sso_ensure_session() {
     if aws_sso_is_interactive; then
       printf 'Error: SSO login failed for profile=%s\n' "$_profile" >&2
     else
-      printf 'Error: SSO session expired (profile=%s). Run: aws sso login --profile %s\n' "$_profile" "$_profile" >&2
+      printf 'Error: SSO session expired (profile=%s).\n' "$_profile" >&2
     fi
+    aws_sso_print_login_hints "$_profile"
   else
     cat "$_err" >&2
     printf 'Error: AWS credentials invalid for profile=%s\n' "$_profile" >&2
+    aws_sso_print_login_hints "$_profile"
   fi
   rm -f "$_err"
   return 1

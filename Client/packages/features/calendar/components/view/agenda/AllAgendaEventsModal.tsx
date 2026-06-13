@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 import type { UpdateTodoRequest } from "packages/features/agent/api/agent";
-import { Dropdown, type DropdownOption, MultiSelectDropdown } from "packages/ui";
+import { Dropdown, type DropdownOption } from "packages/ui";
 import { Box, Text } from "packages/ui/components/structure/primitives";
 import Title from "packages/ui/components/structure/text/Title";
 import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
@@ -14,12 +14,6 @@ import {
   type AgendaAllDisplayMode,
   applyAgendaAllDisplayMode,
 } from "@/features/calendar/utils/agenda/agendaAllDisplay";
-import {
-  AGENDA_DISPLAY_CATEGORY_OPTIONS,
-  type AgendaDisplayCategory,
-  ALL_AGENDA_DISPLAY_CATEGORIES,
-  filterAgendaByDisplayCategories,
-} from "@/features/calendar/utils/agenda/agendaDisplayCategory";
 
 import { EventCard } from "./EventCard";
 import { TodoAgendaRow } from "./TodoAgendaRow";
@@ -73,33 +67,19 @@ export function AllAgendaEventsModal({
   completedEventKeys,
 }: AllAgendaEventsModalProps) {
   const [displayMode, setDisplayMode] = useState<AgendaAllDisplayMode>("future_only");
-  const [selectedCategories, setSelectedCategories] = useState<AgendaDisplayCategory[]>(
-    ALL_AGENDA_DISPLAY_CATEGORIES
-  );
 
   useEffect(() => {
     if (!isOpen) {
       setDisplayMode("future_only");
-      setSelectedCategories(ALL_AGENDA_DISPLAY_CATEGORIES);
     }
   }, [isOpen]);
 
-  const selectedCategorySet = useMemo(() => new Set(selectedCategories), [selectedCategories]);
-
   const displayedItems = useMemo(() => {
-    const sorted = applyAgendaAllDisplayMode(items, displayMode, { completedEventKeys });
-    return filterAgendaByDisplayCategories(sorted, selectedCategorySet);
-  }, [items, displayMode, completedEventKeys, selectedCategorySet]);
+    return applyAgendaAllDisplayMode(items, displayMode, { completedEventKeys });
+  }, [items, displayMode, completedEventKeys]);
 
   const sortOptions = useMemo((): DropdownOption<AgendaAllDisplayMode>[] => {
     return AGENDA_ALL_DISPLAY_OPTIONS.map((o) => ({
-      value: o.value,
-      label: o.label,
-    }));
-  }, []);
-
-  const typeFilterOptions = useMemo((): DropdownOption<AgendaDisplayCategory>[] => {
-    return AGENDA_DISPLAY_CATEGORY_OPTIONS.map((o) => ({
       value: o.value,
       label: o.label,
     }));
@@ -115,39 +95,22 @@ export function AllAgendaEventsModal({
         >
           All agenda items
         </Title>
-        <Box className="flex w-full min-w-0 shrink-0 flex-col gap-2 sm:max-w-[min(100%,560px)] sm:flex-row sm:gap-2">
-          <Dropdown<AgendaAllDisplayMode>
-            options={sortOptions}
-            value={displayMode}
-            onChange={setDisplayMode}
-            label="Sort"
-            hideLabel
-            variant="compact"
-            size="sm"
-            menuInPortal
-            menuPortalStack="modal"
-            maxVisibleOptions={5}
-            className="w-full min-w-0 flex-1"
-          />
-          <MultiSelectDropdown<AgendaDisplayCategory>
-            options={typeFilterOptions}
-            value={selectedCategories}
-            onChange={setSelectedCategories}
-            label="Types"
-            hideLabel
-            allSelectedLabel="All types"
-            placeholder="Types"
-            variant="compact"
-            size="sm"
-            menuInPortal
-            menuPortalStack="modal"
-            maxVisibleOptions={5}
-            className="w-full min-w-0 flex-1"
-          />
-        </Box>
+        <Dropdown<AgendaAllDisplayMode>
+          options={sortOptions}
+          value={displayMode}
+          onChange={setDisplayMode}
+          label="Sort"
+          hideLabel
+          variant="compact"
+          size="sm"
+          menuInPortal
+          menuPortalStack="modal"
+          maxVisibleOptions={5}
+          className="w-full min-w-0 shrink-0 sm:max-w-[280px]"
+        />
       </Box>
     ),
-    [displayMode, selectedCategories, sortOptions, typeFilterOptions]
+    [displayMode, sortOptions]
   );
 
   return (
@@ -173,7 +136,7 @@ export function AllAgendaEventsModal({
           {displayedItems.length === 0 ? (
             <Box className="py-2">
               <Text className="text-text-secondary text-sm">
-                No items match these types. Adjust the type filter or sort.
+                No items match this sort. Try a different sort option.
               </Text>
             </Box>
           ) : (

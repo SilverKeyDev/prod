@@ -66,7 +66,7 @@ bash Server/scripts/bootstrap-venv.sh "${bootstrap_args[@]}"
 
 if [[ "$RUN_SECRETS" == true ]]; then
   echo "==> Server: secrets"
-  bash Server/scripts/secrets.sh "${AWS_REGION:-us-east-2}" "${AWS_PROFILE:-}"
+  sh Server/scripts/secrets.sh "${AWS_REGION:-us-east-2}" "${AWS_PROFILE:-}"
 fi
 
 if [[ "$RESET_DB" == true ]]; then

@@ -30,8 +30,6 @@ export const ROUTES = {
   AGREEMENT_SIGNING_COMPLETE: "/agreements/:agreementId/complete",
   MESSAGING: "/messaging",
   ANALYTICS: "/analytics",
-  /** Client: discover / connect with agents (recommendations + search). */
-  FIND_AGENTS: "/find-agents",
   SEARCH: "/search",
   PROPERTY_DETAILS: "/property-details",
   PROPERTY: "/property/:zpid/:slug?",

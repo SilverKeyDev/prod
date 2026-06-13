@@ -42,31 +42,13 @@ fi
 
 cd "$SERVER_DIR"
 
-# Pinned Server deps (e.g. scikit-learn, torch) expect prebuilt wheels; Python 3.14+ often fails to resolve — use 3.10–3.13.
-python_supported() {
-  "$1" -c 'import sys; sys.exit(0 if (3, 10) <= sys.version_info < (3, 14) else 1)'
-}
+ROOT="$(cd "$SERVER_DIR/.." && pwd)"
+# shellcheck source=../../scripts/lib/deps.sh
+source "${ROOT}/scripts/lib/deps.sh"
 
 PYTHON_CMD="${PYTHON:-}"
 if [[ -z "$PYTHON_CMD" ]]; then
-  python_candidates=(
-    python3.13 python3.12 python3.11 python3.10 python3
-  )
-  for prefix in /opt/homebrew/bin /usr/local/bin; do
-    python_candidates+=(
-      "${prefix}/python3.13"
-      "${prefix}/python3.12"
-      "${prefix}/python3.11"
-      "${prefix}/python3.10"
-    )
-  done
-  for c in "${python_candidates[@]}"; do
-    command -v "$c" >/dev/null 2>&1 || continue
-    if python_supported "$c"; then
-      PYTHON_CMD="$c"
-      break
-    fi
-  done
+  PYTHON_CMD="$(deps_find_python)" || true
 fi
 
 if [[ -z "$PYTHON_CMD" ]] || ! command -v "$PYTHON_CMD" >/dev/null 2>&1; then
@@ -82,7 +64,7 @@ if [[ -z "$PYTHON_CMD" ]] || ! command -v "$PYTHON_CMD" >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! python_supported "$PYTHON_CMD"; then
+if ! deps_python_ok "$PYTHON_CMD"; then
   echo "bootstrap-venv: interpreter $(command -v "$PYTHON_CMD") is $( "$PYTHON_CMD" -c 'import sys; print("%s.%s" % sys.version_info[:2])' ) — need Python >=3.10 and <3.14 for current requirements/runtime.txt wheels." >&2
   echo "bootstrap-venv: export PYTHON=python3.12 (or brew install python@3.12), then: make setup ARGS='--force-venv'" >&2
   exit 1
@@ -118,6 +100,43 @@ ensure_pip() {
   python -m ensurepip --upgrade
 }
 
+install_torch_optional() {
+  TORCH_OPTIONAL_SKIP=0
+  [[ "$(uname -s)" == Linux ]] || return 0
+
+  local arch
+  arch="$(uname -m)"
+  if [[ "$arch" == "x86_64" ]]; then
+    echo "Installing CPU-only torch (linux x86_64) from download.pytorch.org/whl/cpu"
+    if pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu; then
+      return 0
+    fi
+  elif [[ "$arch" == "aarch64" || "$arch" == "arm64" ]]; then
+    echo "Installing torch (linux ${arch}) from PyPI"
+    if pip install torch==2.10.0; then
+      return 0
+    fi
+  else
+    echo "bootstrap-venv: WARN unsupported linux arch for torch pre-install (${arch}) — trying PyPI"
+    if pip install torch==2.10.0; then
+      return 0
+    fi
+  fi
+
+  TORCH_OPTIONAL_SKIP=1
+  echo "bootstrap-venv: WARN torch install failed — continuing; install manually if you need ML features" >&2
+}
+
+pip_install_requirements_file() {
+  local file="$1"
+  if [[ "${TORCH_OPTIONAL_SKIP:-0}" == "1" ]]; then
+    echo "Installing from ${file} (excluding torch pin — install torch manually for ML features)"
+    grep -v '^torch==' "$file" | pip install -r /dev/stdin
+    return 0
+  fi
+  pip install -r "$file"
+}
+
 install_requirements() {
   ensure_pip
   ensure_macos_pillow_deps
@@ -133,12 +152,9 @@ install_requirements() {
     # On linux the bare `torch` pin in runtime.txt resolves to the multi-GB CUDA wheel,
     # but there is no GPU in dev/Cloud either. Pre-install the CPU wheel so it satisfies
     # the pin without pulling CUDA. macOS PyPI torch is already CPU-only, so skip it there.
-    if [[ "$(uname -s)" == Linux ]]; then
-      echo "Installing CPU-only torch (linux) from download.pytorch.org/whl/cpu"
-      pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
-    fi
+    install_torch_optional
     echo "Installing from requirements/runtime.txt"
-    pip install -r requirements/runtime.txt
+    pip_install_requirements_file requirements/runtime.txt
     echo "Installing from requirements/dev.txt"
     pip install -r requirements/dev.txt
   fi
