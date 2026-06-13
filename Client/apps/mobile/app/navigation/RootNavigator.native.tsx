@@ -4,7 +4,7 @@ import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StyleSheet } from "react-native";
 
-import { AgentProfileScreenNative, FindAgentsScreenNative } from "packages/features/agent";
+import { AgentProfileScreenNative } from "packages/features/agent";
 import { OnboardingScreenNative } from "packages/features/homeauth";
 import { PropertyDetailsScreenNative } from "packages/features/propertyDetails";
 import type {
@@ -23,7 +23,6 @@ type AuthenticatedStackParamList = {
   Onboarding: undefined;
   Main: undefined;
   PropertyDetails: PropertyDetailsScreenParams;
-  FindAgents: undefined;
   AgentProfile: AgentProfileScreenParams;
 };
 
@@ -79,11 +78,6 @@ function RootContent() {
       <AuthenticatedStack.Screen
         name="PropertyDetails"
         component={PropertyDetailsScreenNative}
-        options={{ headerShown: false }}
-      />
-      <AuthenticatedStack.Screen
-        name="FindAgents"
-        component={FindAgentsScreenNative}
         options={{ headerShown: false }}
       />
       <AuthenticatedStack.Screen

@@ -10,15 +10,15 @@
 
 | Tool | Version / notes |
 | ---- | ---------------- |
-| **Node.js** | 20+ locally; CI lint uses **22** (`.github/workflows/lint.yml`) |
+| **Node.js** | **20–22** locally (prefer `nvm use` → **22** per [`.nvmrc`](.nvmrc); CI lint uses **22**) |
 | **pnpm** | **9.x** — [`Client/package.json`](Client/package.json) (`packageManager`) |
-| **Python** | **3.10–3.13** — [`Server/README.md`](Server/README.md) |
-| **Redis** | Celery/cache; `make setup` verifies `redis-cli ping` |
+| **Python** | **3.10–3.13** (prefer **3.12**) — [`Server/README.md`](Server/README.md) |
+| **Redis** | Celery/cache; `make setup` warns if unreachable; `make setup-dev` requires it |
 | **libmagic** | Secure uploads; macOS: `brew install libmagic` |
-| **Docker** | Local Postgres via `make db-up`; `make setup` resets/initializes dev DB |
-| **AWS CLI** | Optional secrets → `Server/.env`; `make setup ARGS='--skip-secrets'` without AWS |
+| **Docker** | Local Postgres via `make db-up`; initialized by `make setup-dev` |
+| **AWS CLI** | Secrets → `Server/.env`; use `make setup-dev` when you have AWS access |
 
-**First machine:** `make setup` ([setup.md](setup.md)). **After pull:** `make refresh`.
+**First machine:** `make setup` then `make setup-dev` for full stack ([setup.md](setup.md)). **After pull:** `make refresh`.
 
 ---
 
@@ -28,7 +28,7 @@ Run `make help`. Common targets:
 
 | Target | Purpose |
 | ------ | ------- |
-| `make setup` / `make refresh` | First-time setup / post-pull refresh |
+| `make setup` / `make setup-dev` / `make refresh` | Core env / backend env / post-pull refresh |
 | `make dev-db-init` | Reset local Postgres, refresh non-DB secrets, run migrations |
 | `make dev` / `make dev-web` / `make mobile` | Full stack / web only / Expo |
 | `make dev-backend` | Backend only |

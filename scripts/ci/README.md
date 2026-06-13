@@ -21,6 +21,10 @@ Onboarding and machine setup scripts belong in `scripts/setup/`.
 |--------|---------|
 | `run-all-linters.sh` | Unified lint entry (`make lint`) |
 | `check-script-references.sh` | Stale flat `scripts/*.sh` path gate (`make check-docs`) |
+| `test-secrets-database-url.sh` | DATABASE_URL helper unit tests (no AWS) |
+| `test-setup-verify-database.sh` | Setup-verify DATABASE_URL acceptance tests |
+| `test-setup-verify-redis.sh` | Setup-verify Redis soft vs strict (`SETUP_REQUIRE_REDIS`) tests |
+| `test-secrets-retrieval.sh` | Mock-AWS `secrets.sh` integration tests |
 | `check-doc-placement.sh` | Doc placement gate (`make check-docs`) |
 | `check-doc-links.sh` | Internal markdown link gate (`make check-docs`) |
 | `check-macos-duplicate-files.sh` | iCloud duplicate filename check (first step of lint) |

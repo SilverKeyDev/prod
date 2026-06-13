@@ -42,7 +42,7 @@ aws-setup: Connect AWS SSO from your terminal:
   3. Log in:
        aws sso login --profile "$AWS_PROFILE"
 
-  Then re-run: make setup
+  Then re-run: make setup-dev
 
 Docs: setup.md (One-time AWS config)
 EOF
