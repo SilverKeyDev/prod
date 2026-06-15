@@ -4,34 +4,28 @@ import { useLocalization } from "packages/contexts";
 import {
   BuyerRoadmapChecklistList,
   CHECKLIST_SUBTITLES,
+  CHECKLIST_TAB_TO_TYPE,
   CHECKLIST_TITLES,
   ChecklistStepForms,
   type ChecklistTab,
   type ChecklistType,
   sortTaskChecklistItems,
   useAutoCompleteChecklistIntegrations,
-  useChecklistData,
   useChecklistProgress,
 } from "packages/features/checklists";
 import { useActiveWorkspace } from "packages/features/homeauth";
 import { useTransactionShellConfig } from "packages/hooks/store";
 import { showErrorToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import type { TransactionShellConfig } from "packages/utils/workspace";
+import { log } from "packages/logger";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import type { TransactionShellConfig } from "packages/utils/product/workspace";
 
-const TAB_TO_CHECKLIST_TYPE: Record<ChecklistTab, ChecklistType> = {
-  search: "search",
-  offer: "offer",
-  escrow: "escrow",
-  inspections: "insurance",
-  financing: "financing",
-  closing: "closing",
-};
+const TAB_TO_CHECKLIST_TYPE = CHECKLIST_TAB_TO_TYPE;
 
 type ClientChecklistsProps = {
   userId: string;
+  transactionId: string;
   activeTab: ChecklistTab;
   /** When true (e.g. agent viewing a client), checklist integration UIs are not rendered. */
   hideIntegrationComponents?: boolean;
@@ -42,6 +36,7 @@ type ClientChecklistsProps = {
 
 export default function ClientChecklists({
   userId,
+  transactionId,
   activeTab,
   hideIntegrationComponents = false,
   onTabChange,
@@ -67,13 +62,15 @@ export default function ClientChecklists({
   );
 
   const checklistSubjectOptions = useMemo(
-    () => ({ checklistSubjectUserId: userId, isAgentViewer: isAgentWorkspace }),
-    [userId, isAgentWorkspace]
+    () => ({ transactionId, isAgentViewer: isAgentWorkspace }),
+    [transactionId, isAgentWorkspace]
   );
 
-  const { currentSection, isSectionUnlocked, getItemToggleEligibility, sectionProgress } =
-    useChecklistProgress(checklistSubjectOptions);
   const {
+    currentSection,
+    isSectionUnlocked,
+    getItemToggleEligibility,
+    sectionProgress,
     items,
     checkedIds,
     activeItemId,
@@ -83,7 +80,7 @@ export default function ClientChecklists({
     toggleItem,
     refreshChecklist,
     isChecklistUpdatePending,
-  } = useChecklistData(checklistType, checklistSubjectOptions);
+  } = useChecklistProgress({ ...checklistSubjectOptions, activeSection: currentTab });
 
   const sortedItems = useMemo(() => sortTaskChecklistItems(items), [items]);
 
@@ -111,7 +108,7 @@ export default function ClientChecklists({
       try {
         await toggleItem(id);
       } catch (error: unknown) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to update checklist item", error);
+        log.error("ERRORS", "Failed to update checklist item", error);
         showErrorToast(
           t("checklists.update_error", {
             defaultValue: "Could not update this step. Please try again.",
@@ -184,6 +181,7 @@ export default function ClientChecklists({
         onRoadmapTabNavigate={setTab}
         hideIntegrationComponents={hideIntegrationComponents}
         isChecklistUpdatePending={isChecklistUpdatePending}
+        transactionId={transactionId}
         hubClientUserId={isAgentWorkspace ? userId : null}
         checklistCategory={isAgentWorkspace ? checklistType : null}
         isAgent={isAgentWorkspace}
@@ -194,15 +192,20 @@ export default function ClientChecklists({
         }
         renderItemAgentFooter={
           isAgentWorkspace
-            ? (item) =>
-                activeItemIds.includes(item.id) ? (
+            ? (item) => {
+                const hasSuggestedForms = (item.suggestedFormIds?.length ?? 0) > 0;
+                if (!activeItemIds.includes(item.id) || !hasSuggestedForms) {
+                  return null;
+                }
+                return (
                   <ChecklistStepForms
-                    transactionId={userId}
+                    transactionId={transactionId}
                     section={checklistType}
                     itemId={item.id}
                     isAgent={isAgentWorkspace}
                   />
-                ) : null
+                );
+              }
             : undefined
         }
       />

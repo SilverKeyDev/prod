@@ -3,7 +3,7 @@ S3 Service for document storage and retrieval (façade).
 Handles all S3 operations with proper error handling and configuration management.
 """
 
-from app.utils.security.app_logging import get_logger
+from logger import log
 
 from .s3.client_init import S3ClientManager
 from .s3.presign import generate_presigned_url as _generate_presigned_url
@@ -25,8 +25,6 @@ from .s3.upload_download import (
 )
 from .s3_helpers import delete_s3_objects_under_prefix, get_bucket_name
 
-logger = get_logger()
-
 
 class S3Service(S3ClientManager):
     """Service for managing S3 operations for document storage."""
@@ -46,12 +44,12 @@ class S3Service(S3ClientManager):
             The S3 key (path) of the uploaded file, or None if upload failed
         """
         if not self._ensure_s3_client():
-            logger.error("S3 client not initialized - cannot upload PDF")
+            log.error("DOCUMENTS", "S3 client not initialized - cannot upload PDF")
             return None
 
         bucket_name = self.bucket_name or get_bucket_name()
         if not bucket_name:
-            logger.error("S3 bucket name not available")
+            log.error("DOCUMENTS", "S3 bucket name not available")
             return None
 
         return _upload_pdf(self.s3_client, bucket_name, file_data, filename, content_type)
@@ -71,12 +69,12 @@ class S3Service(S3ClientManager):
             The S3 key if successful, None otherwise
         """
         if not self._ensure_s3_client():
-            logger.error("S3 client not initialized - cannot upload file")
+            log.error("DOCUMENTS", "S3 client not initialized - cannot upload file")
             return None
 
         bucket_name = self.bucket_name or get_bucket_name()
         if not bucket_name:
-            logger.error("S3 bucket name not available")
+            log.error("DOCUMENTS", "S3 bucket name not available")
             return None
 
         return _upload_file(self.s3_client, bucket_name, file_path, s3_key, content_type)
@@ -86,7 +84,7 @@ class S3Service(S3ClientManager):
     ) -> str | None:
         """Generate a presigned URL for downloading a file from S3."""
         if not self._ensure_s3_client():
-            logger.error("S3 client not initialized - cannot generate presigned URL")
+            log.error("DOCUMENTS", "S3 client not initialized - cannot generate presigned URL")
             return None
         bucket_name = self.bucket_name or get_bucket_name()
         if not bucket_name:
@@ -103,7 +101,7 @@ class S3Service(S3ClientManager):
     ) -> str | None:
         """Generate a presigned URL for viewing a file inline (e.g. PDF or profile image)."""
         if not self._ensure_s3_client():
-            logger.error("S3 client not initialized - cannot generate view URL")
+            log.error("DOCUMENTS", "S3 client not initialized - cannot generate view URL")
             return None
         bucket_name = self.bucket_name or get_bucket_name()
         if not bucket_name:
@@ -113,12 +111,12 @@ class S3Service(S3ClientManager):
     def delete_objects_under_prefix(self, prefix: str) -> int:
         """Delete all objects under an S3 key prefix. Returns count deleted."""
         if not self._ensure_s3_client():
-            logger.error("S3 client not initialized - cannot delete by prefix")
+            log.error("DOCUMENTS", "S3 client not initialized - cannot delete by prefix")
             return 0
 
         bucket_name = self.bucket_name or get_bucket_name()
         if not bucket_name:
-            logger.error("S3 bucket name not available for prefix deletion")
+            log.error("DOCUMENTS", "S3 bucket name not available for prefix deletion")
             return 0
 
         return delete_s3_objects_under_prefix(self.s3_client, bucket_name, prefix)
@@ -134,12 +132,12 @@ class S3Service(S3ClientManager):
             True if deletion was successful, False otherwise
         """
         if not self._ensure_s3_client():
-            logger.error("S3 client not initialized - cannot delete file")
+            log.error("DOCUMENTS", "S3 client not initialized - cannot delete file")
             return False
 
         bucket_name = self.bucket_name or get_bucket_name()
         if not bucket_name:
-            logger.error("S3 bucket name not available for deletion")
+            log.error("DOCUMENTS", "S3 bucket name not available for deletion")
             return False
 
         return _delete_file(self.s3_client, bucket_name, s3_key)
@@ -155,12 +153,12 @@ class S3Service(S3ClientManager):
             True if file exists, False otherwise
         """
         if not self._ensure_s3_client():
-            logger.error("S3 client not initialized - cannot check file existence")
+            log.error("DOCUMENTS", "S3 client not initialized - cannot check file existence")
             return False
 
         bucket_name = self.bucket_name or get_bucket_name()
         if not bucket_name:
-            logger.error("S3 bucket name not available for existence check")
+            log.error("DOCUMENTS", "S3 bucket name not available for existence check")
             return False
 
         return _file_exists(self.s3_client, bucket_name, s3_key)
@@ -176,12 +174,12 @@ class S3Service(S3ClientManager):
             The file contents as bytes, or None if download fails
         """
         if not self._ensure_s3_client():
-            logger.error("S3 client not initialized - cannot download file")
+            log.error("DOCUMENTS", "S3 client not initialized - cannot download file")
             return None
 
         bucket_name = self.bucket_name or get_bucket_name()
         if not bucket_name:
-            logger.error("S3 bucket name not available for download")
+            log.error("DOCUMENTS", "S3 bucket name not available for download")
             return None
 
         return _download_file(self.s3_client, bucket_name, s3_key)

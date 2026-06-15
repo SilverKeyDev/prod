@@ -7,7 +7,7 @@ required:
   - email
   - user_sub
   - name
-  - is_agent
+  - roles
   - auth_method
 properties:
   auth_user_kind:
@@ -30,8 +30,11 @@ properties:
   phone:
     type: string
     nullable: true
-  is_agent:
-    type: boolean
+  roles:
+    type: array
+    items:
+      type: string
+    description: Role names from user_roles; empty when user row is not linked yet.
   auth_method:
     type: string
     enum: [unknown, cognito, google, both]

@@ -1,14 +1,15 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { dateNow } from "packages/utils/date";
-import { getDocument, getFetch } from "packages/utils/platform";
+import { log } from "packages/logger";
+import { dateNow } from "packages/utils/core/date";
+import { getDocument, getFetch } from "packages/utils/core/platform";
 
-import { handleAuthenticationError, isAuthEndpoint, recoverSessionAfter401 } from "./auth";
+import { notifyAuthenticationError } from "./auth/authErrorNotify";
+import { isAuthEndpoint, recoverSessionAfter401 } from "./auth/authRecovery";
 import { AuthenticationError, HttpError } from "./errors";
-import { normalizeUrl, sleep } from "./httpRequestHeaders";
-import { logApiRequest, logApiResponse } from "./logging";
-import type { HttpClientConfig as RequestHelpersConfig } from "./requestHelpers";
-import { buildRequestOptions } from "./requestHelpers";
-import { handleHttpResponse } from "./responseHandler";
+import { normalizeUrl, sleep } from "./request/httpRequestHeaders";
+import { logApiRequest, logApiResponse } from "./request/logging";
+import type { HttpClientConfig as RequestHelpersConfig } from "./request/requestHelpers";
+import { buildRequestOptions } from "./request/requestHelpers";
+import { handleHttpResponse } from "./request/responseHandler";
 
 function getCookieNames(doc: Document | null): string[] {
   if (!doc) return [];
@@ -70,7 +71,7 @@ function logNetworkError(method: string, url: string, error: unknown, duration: 
       error.message.includes("CORS") ||
       error.message.includes("load failed"));
 
-  log.error(LOG_CATEGORIES.HTTP, `${method} ${sanitizedUrl} - Network Error`, {
+  log.error("HTTP", `${method} ${sanitizedUrl} - Network Error`, {
     method,
     url: sanitizedUrl,
     originalUrl: url,
@@ -208,7 +209,7 @@ export class HttpClient {
           (errCode === "NO_LOCATIONS" || errCode === "NO_VALID_LOCATIONS");
         if (!expectedMissingCommute) {
           log.warn(
-            LOG_CATEGORIES.ERRORS,
+            "ERRORS",
             "GET /api/v1/search/isochrone failed (unexpected status or error code)",
             diag
           );
@@ -216,7 +217,7 @@ export class HttpClient {
       }
 
       if (url.includes("/auth/") || response.status === 401) {
-        log.debug(LOG_CATEGORIES.HTTP, "🔐 AUTH_RESPONSE_DETECTED", {
+        log.debug("HTTP", "🔐 AUTH_RESPONSE_DETECTED", {
           url,
           status: response.status,
           cookiesBefore: allCookies,
@@ -248,7 +249,7 @@ export class HttpClient {
         logApiResponse(method, url, error.status, duration);
       } else if (error instanceof AuthenticationError) {
         logApiResponse(method, url, error.status, duration);
-        handleAuthenticationError(error);
+        notifyAuthenticationError(error);
       } else {
         logNetworkError(method, url, error, duration);
       }

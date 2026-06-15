@@ -9,8 +9,8 @@ import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from "rea
 
 import { color } from "packages/design-tokens";
 import { Link, useNavigation } from "packages/navigation";
-import { ScrollView } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { ScrollView } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 type AuthPageLayoutNativeProps = {
   title: string;

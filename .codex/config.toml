@@ -1,0 +1,7 @@
+# Project-scoped Codex config (loaded when this repository is trusted)
+file_opener = "cursor"
+project_doc_max_bytes = 65536
+
+[agents]
+max_threads = 6
+max_depth = 1

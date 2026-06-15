@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 import { ROUTES } from "packages/navigation/types/routes";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 /**
  * After navigating to `/#section` (e.g. from legal pages), scroll to `id="section"` on the home landing.
@@ -24,13 +25,17 @@ export function useLandingHashScroll(enabled: boolean): void {
     }
 
     const scroll = () => {
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      getDocument()?.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
 
-    const raf = window.requestAnimationFrame(() => {
+    const win = getWindow();
+    if (!win) {
+      return;
+    }
+    const raf = win.requestAnimationFrame(() => {
       // Defer past lazy/Suspense paint when opening `/` from another route.
-      window.setTimeout(scroll, 50);
+      win.setTimeout(scroll, 50);
     });
-    return () => window.cancelAnimationFrame(raf);
+    return () => win.cancelAnimationFrame(raf);
   }, [enabled, hash, pathname]);
 }

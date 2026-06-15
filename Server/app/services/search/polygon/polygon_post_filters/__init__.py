@@ -2,18 +2,19 @@
 
 from collections.abc import Callable
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 from .beds_baths import apply_beds_baths_filter
 from .home_age import apply_home_age_filter
 from .listing_status import property_kept_for_listing_status_pref
 from .listing_type import apply_listing_type_filter
 from .must_haves import apply_must_have_filter
+from .price_type import apply_price_filter, apply_property_type_filter
 from .sqft_dom_lot import apply_dom_filter, apply_lot_size_filter, apply_sqft_filter
 
-_POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
+_POLY = "POLYGON_SEARCH"
 
-# When strict preference filtering is off, skip post-filters for small result sets
+# Retained as a compatibility constant for callers/tests that imported the old threshold.
 PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT = 100
 
 
@@ -35,32 +36,23 @@ def apply_polygon_search_post_filters(
     strict_preference_filter: bool = False,
 ) -> list:
     """Apply all polygon search post-filters based on user preferences."""
-    initial_count = len(all_properties)
-    if (
-        not strict_preference_filter
-        and initial_count > 0
-        and initial_count <= PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT
-    ):
-        log.info(
-            _POLY,
-            "polygon_search post_filter skipped_lenient_small_pool",
-            {
-                "request_id": request_id,
-                "count": initial_count,
-                "threshold": PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT,
-                "strict_preference_filter": False,
-            },
-        )
-        agent_debug_log(
-            "post_filters_skipped_lenient",
-            {
-                "request_id": request_id,
-                "count": initial_count,
-                "threshold": PREFERENCE_POST_FILTER_LENIENT_MAX_COUNT,
-            },
-            "A",
-        )
-        return all_properties
+    # Apply price filter
+    all_properties = apply_price_filter(
+        all_properties,
+        user_preferences.get("home_budget_min"),
+        user_preferences.get("home_budget_max"),
+        request_id,
+        _log_polygon_post_filter,
+    )
+
+    # Apply property type filter
+    all_properties = apply_property_type_filter(
+        all_properties,
+        user_preferences.get("preferred_housing_type"),
+        user_preferences.get("housing_type"),
+        request_id,
+        _log_polygon_post_filter,
+    )
 
     # Apply beds/baths filter
     all_properties = apply_beds_baths_filter(

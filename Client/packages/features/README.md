@@ -1,23 +1,34 @@
 # Features Package
 
-Feature-level React modules live here. **`apps/web`** and **`apps/mobile`** stay thin: they compose exports from `packages/features/<name>/` inside pages and screens. See [thin-app-architecture.md](../../../documentation/client/thin-app-architecture.md).
+Feature-level React modules live here. **`apps/web`** and **`apps/mobile`** stay thin: they compose exports from `packages/features/<name>/` inside pages and screens. See [thin-app-architecture.md](../../../documentation/client/architecture/thin-app-architecture.md).
 
-## Feature list (examples)
+## Feature modules (current)
 
 ```
 packages/features/
-├── saved/          # Saved homes, documents, tabs
-├── dashboard/      # Shared dashboard shell; agent client hub lives in agent
-├── homeauth/       # Login, signup, onboarding, landing
-├── search/         # Map, list, filters, reels on search
-├── agent/          # Agent workspace, messaging, settings
-├── profile/        # Profile, preferences, settings
-├── documents/      # Documents, agreements, uploads
-├── negotiate/      # Negotiation UI
-├── calendar/       # Calendar shell, events, viewings
-├── feed/           # Feed and reels
-└── ...
+├── admin/              # Super-admin and dev persona sections
+├── agent/              # Agent workspace, clients, messaging chrome
+├── brokerage/          # Brokerage workspace shell
+├── calendar/           # Calendar and events
+├── checklists/         # Transaction checklists and roadmap
+├── compare/            # Property comparison (uses search research APIs)
+├── dashboard/          # Shared dashboard shell composition
+├── documents/          # Documents, agreements, DocuSign
+├── feed/               # Feed and reels
+├── homeauth/           # Login, signup, onboarding, landing
+├── integrationPartner/ # Integration-partner workspace shell
+├── messaging/          # Threads, sidebar shell, client conversations
+├── negotiate/          # Negotiation UI
+├── partners/           # Partner marketplace / placement (RESPA-scoped)
+├── profile/            # Profile, preferences, onboarding registry
+├── propertyDetails/    # Property detail modal and sections
+├── saved/              # Saved homes and tabs
+├── search/             # Map, list, filters, search UX
+├── seller/             # Seller workspace shell
+└── workspace/          # Workspace switcher and placeholder shells
 ```
+
+Orchestrator hubs (compose other features): `dashboard`, `saved`, `agent`, `checklists`, `search`, `messaging`. See [cross-feature-composition.md](../../../documentation/client/architecture/cross-feature-composition.md).
 
 ## Structure inside each feature
 
@@ -46,37 +57,35 @@ packages/features/saved/
 └── index.ts     # public API barrel
 ```
 
-## Import Rules
+## Import rules
 
 Feature code in `packages/features/<name>/`:
 
-- ✅ **Can import from** (within the same feature): the feature’s own `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`
-- ✅ **Can import from** (shared packages): `packages/ui`, `packages/hooks`, `packages/store`, `packages/utils`, `packages/schemas`, `packages/navigation`, `packages/logger`, and other paths allowed by ESLint for feature modules
-- ❌ **Cannot import from**: `apps/web/*` or `apps/mobile/*` (features are framework-agnostic)
-- ❌ **Cannot import from**: Other feature packages by default (to prevent circular dependencies)
+- ✅ **Same feature:** `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`
+- ✅ **Shared packages:** `packages/ui`, `packages/hooks`, `packages/store`, `packages/utils`, `packages/schemas`, `packages/navigation`, `packages/logger`, and other ESLint-allowed paths
+- ✅ **Other features (Tier 1–2):** provider **barrel** (`packages/features/<provider>`) or a **documented subpath**—see [cross-feature-composition.md](../../../documentation/client/architecture/cross-feature-composition.md)
+- ❌ **Apps:** `apps/web/*` or `apps/mobile/*` (features stay framework-agnostic)
+- ⚠️ **Other feature `utils/`:** value imports warn under `silverkey/no-cross-feature-utils-imports`—lift to `packages/utils` or use the provider barrel
 
-### Cross-feature exceptions
+**Canonical policy:** [cross-feature-composition.md](../../../documentation/client/architecture/cross-feature-composition.md) (tiers, orchestrator hubs, audit edge matrix, decision tree).
 
-Prefer **composition** over shared modules that import both features.
+**Audit (visibility, not CI):** `pnpm audit:cross-feature-imports:json` from `Client/`.
+
+### Example: messaging ↔ agent (Pattern A / B)
+
+Prefer **composition** over duplicating modules. Full policy is in the doc above; messaging↔agent is one documented case:
 
 | Pattern | When to use | Example |
 | ------- | ----------- | ------- |
-| **A — Shell + children** | Generic layout lives in one feature; domain-specific panels are composed by the parent screen | `MessagingSidebarShell` (messaging) + `AgentMessagingClientList` (agent) wired in `AgentMessaging` |
-| **B — Narrow chrome barrel** | Messaging needs a single agent-only sidebar panel | Import only from `agent/components/messaging/chrome` (e.g. `ConnectionRequestsInboxSidebar`), not `agent/components/index` or the full modals barrel |
+| **A — Shell + children** | Generic layout in one feature; domain panels composed by parent | `MessagingSidebarShell` (messaging) + `AgentMessagingClientList` (agent) in `AgentMessaging` |
+| **B — Narrow chrome barrel** | Single panel from another feature | `agent/components/messaging/chrome` (not the full modals barrel) |
 
 **Ownership (messaging vs agent):**
 
-- **messaging** — threads, messages, `MessagingSidebarShell`, client conversation list, unified input/list chrome
-- **agent** — agent client list sidebar, connection-request inbox, `messagingConfig`, attachment menu, search/calendar modals used from messaging
+- **messaging** — threads, messages, `MessagingSidebarShell`, client conversation list, unified chrome
+- **agent** — client list sidebar, connection-request inbox, `messagingConfig`, attachment menu, search/calendar modals from messaging
 
-**Documented messaging → agent edges** (not sidebar; narrow over time):
-
-- `agent/components/messaging/screen/messagingConfig` — mode copy and styling
-- `agent/components/messaging/menus/AttachmentMenu` — composer attachments
-- `agent/components/modals` — search/home/document/calendar modals shell
-- `agent/hooks/data` — `useAgentClients`, `useConnectionRequests`, `useEventRequests`
-
-Audit cross-feature imports: `pnpm audit:cross-feature-imports:json` (from `Client/`).
+**Messaging → agent subpaths** (narrow over time): `messagingConfig`, `AttachmentMenu`, `components/modals`, `hooks/data` (`useAgentClients`, `useConnectionRequests`, `useEventRequests`).
 
 Apps (`apps/web/` and `apps/mobile/`) will import feature components from here:
 
@@ -90,7 +99,9 @@ import { SomeComponent } from "../../../apps/web/pages/...";
 
 ## Related Documentation
 
-- [Thin App Architecture](../../../documentation/client/thin-app-architecture.md) - Overview of the thin app pattern
+- [Cross-feature composition](../../../documentation/client/architecture/cross-feature-composition.md) - Import tiers, orchestrators, audit edges
+- [Thin App Architecture](../../../documentation/client/architecture/thin-app-architecture.md) - Overview of the thin app pattern
+- [Layered architecture imports](../../../documentation/client/architecture/layered-architecture-imports.md) - config vs hooks vs services vs features
 - [Frontend Architecture](../../../.cursor/rules/frontend/frontend-architecture.mdc) - Layer rules and import boundaries
 
 ## Status

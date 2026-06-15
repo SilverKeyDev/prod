@@ -3,12 +3,11 @@ JSON cleanup, placeholder PDF, and validation utilities for research report gene
 """
 
 import json
-import logging
 import re
 import traceback
 from io import BytesIO
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 try:
     from reportlab.lib.pagesizes import letter
@@ -34,10 +33,10 @@ def create_placeholder_pdf() -> bytes:
 
 def validate_address(address: str) -> bool:
     if not address or not isinstance(address, str):
-        logger.error("❌ Address is empty or not a string")
+        log.error("PROPERTY_DETAILS", "Address is empty or not a string")
         return False
     if len(address.strip()) == 0:
-        logger.error("❌ Address is empty after stripping whitespace")
+        log.error("PROPERTY_DETAILS", "Address is empty after stripping whitespace")
         return False
     return True
 
@@ -126,12 +125,18 @@ def _safe_parse_json(text: str, report_customization: dict | None = None) -> dic
         try:
             parsed = json.loads(cleaned)
         except json.JSONDecodeError as e:
-            logger.error(f"🛑 Failed to parse structured JSON: {e}")
-            logger.error(f"🔍 Problematic JSON around character {e.pos}:")
             start = max(0, e.pos - 100)
             end = min(len(cleaned), e.pos + 100)
-            logger.error(f"📝 Context: ...{cleaned[start:end]}...")
-            logger.error("🧵 Traceback:\n%s", traceback.format_exc())
+            log.error(
+                "ERRORS",
+                "Failed to parse structured JSON",
+                {
+                    "error": str(e),
+                    "position": e.pos,
+                    "context": cleaned[start:end],
+                    "traceback": traceback.format_exc(),
+                },
+            )
             try:
                 truncated = cleaned[: e.pos]
                 open_braces = truncated.count("{") - truncated.count("}")
@@ -151,6 +156,9 @@ def _safe_parse_json(text: str, report_customization: dict | None = None) -> dic
         return parsed if isinstance(parsed, dict) else {}
 
     except Exception as e:
-        logger.error(f"🛑 Failed to parse structured JSON: {e}")
-        logger.error("🧵 Traceback:\n%s", traceback.format_exc())
+        log.error(
+            "ERRORS",
+            "Failed to parse structured JSON",
+            {"error": str(e), "traceback": traceback.format_exc()},
+        )
         raise ValueError("Failed to parse structured JSON from model output") from e

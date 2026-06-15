@@ -1,5 +1,5 @@
 /** Saved feature translation strings (saved, why_not, modals.not_interested, modals.share_home). */
-import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+import { ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 export const SAVED_TRANSLATIONS: Record<string, string> = {
   // Saved tab labels and loading states

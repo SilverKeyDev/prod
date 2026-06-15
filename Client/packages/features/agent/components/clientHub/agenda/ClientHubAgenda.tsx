@@ -2,10 +2,10 @@ import { useCallback, useMemo } from "react";
 
 import { UpcomingEvents } from "packages/features/calendar";
 import { useDocumentActions, useDocumentsDataIntegration } from "packages/features/documents";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { ClientHubDocumentSigningModals } from "@/features/agent/components/clientHub/ClientHubDocumentSigningModals";
 import { useClientHubAgendaTodos } from "@/features/agent/hooks/data/clientHub/useClientHubAgendaTodos";
@@ -37,7 +37,8 @@ export function ClientHubAgenda({ clientId }: ClientHubAgendaProps) {
     dismissViewSignedAgreement,
   } = useDocumentsDataIntegration(clientId, documentHandlers);
 
-  const { agendaTodos, onToggleAgendaTodo } = useClientHubAgendaTodos(clientId);
+  const { agendaTodos, onToggleAgendaTodo, updateAgendaTodo, deleteAgendaTodo } =
+    useClientHubAgendaTodos(clientId);
 
   const onSigningAgendaPress = useCallback(
     async (agreementId: string) => {
@@ -52,7 +53,7 @@ export function ClientHubAgenda({ clientId }: ClientHubAgendaProps) {
       try {
         await signAgreementNow(doc);
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Agenda DocuSign signing failed", error);
+        log.error("ERRORS", "Agenda DocuSign signing failed", error);
         enqueueToast({
           type: "error",
           message: error instanceof Error ? error.message : "Signing could not start.",
@@ -69,6 +70,8 @@ export function ClientHubAgenda({ clientId }: ClientHubAgendaProps) {
         agendaTodos={agendaTodos}
         onToggleAgendaTodo={onToggleAgendaTodo}
         canEditAgendaTodos={true}
+        updateAgendaTodo={updateAgendaTodo}
+        deleteAgendaTodo={deleteAgendaTodo}
         onSigningAgendaPress={onSigningAgendaPress}
         clientUserId={clientId}
       />

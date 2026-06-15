@@ -3,23 +3,23 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { DashboardAgentTodaySection, mapTodosToAgendaDTO } from "packages/features/agent";
-import { type AgendaTodoDTO, Calendar, UpcomingEvents } from "packages/features/calendar";
-import DashboardChecklists from "packages/features/dashboard/components/DashboardChecklists/DashboardChecklists";
-import { MobileAgendaAddButton } from "packages/features/dashboard/components/widgets/MobileAgendaAddButton";
-import { useActiveWorkspace } from "packages/features/homeauth";
 import {
   submitAgendaItemAsGoogleCalendarEvent,
   submitAgentAgendaTodo,
-} from "packages/hooks/data/agenda/agentAgendaTodoSubmit";
+} from "packages/features/agent/hooks/data/agenda/agentAgendaTodoSubmit";
+import { type AgendaTodoDTO, Calendar, UpcomingEvents } from "packages/features/calendar";
+import DashboardChecklists from "packages/features/dashboard/components/DashboardChecklists/DashboardChecklists";
+import { MobileAgendaAddButton } from "packages/features/dashboard/components/widgets/MobileAgendaAddButton";
 import {
   useCompletedSigningTodos,
   useSigningTodos,
-} from "packages/hooks/data/agenda/useSigningTodos";
-import { log, LOG_CATEGORIES } from "packages/logger";
+} from "packages/features/documents/hooks/data/agenda/useSigningTodos";
+import { useActiveWorkspace } from "packages/features/homeauth";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import { Box, ScrollView, Text } from "packages/ui/components/primitives";
+import { Box, ScrollView, Text } from "packages/ui/components/structure/primitives";
 
 import { useAgentTodos } from "@/features/agent/hooks/data/clientHub/useAgentTodos";
 import { useCalendarOAuthCallback } from "@/features/calendar/hooks/data";
@@ -39,7 +39,7 @@ export function DashboardScreen() {
   const canCreateEvent = Boolean(isConnected && defaultCalendarId);
   const useCalendarEventForTodo = Boolean(canCreateEvent && defaultCalendarId);
 
-  const { todos, createTodo, updateTodo } = useAgentTodos(false);
+  const { todos, createTodo, updateTodo, deleteTodo } = useAgentTodos(true);
   const signingTodos = useSigningTodos(isAgentWorkspace);
   const completedSigningTodos = useCompletedSigningTodos();
 
@@ -67,9 +67,33 @@ export function DashboardScreen() {
     try {
       await updateTodo(id, { completed: !todo.completed });
     } catch (error) {
-      log.error(LOG_CATEGORIES.DASHBOARD, "Failed to update todo", error);
+      log.error("DASHBOARD", "Failed to update todo", error);
     }
   };
+
+  const handleUpdateAgendaTodo = useCallback(
+    async (id: string, data: Parameters<typeof updateTodo>[1]) => {
+      try {
+        await updateTodo(id, data);
+      } catch (error) {
+        log.error("DASHBOARD", "Failed to update agenda to-do", error);
+        throw error;
+      }
+    },
+    [updateTodo]
+  );
+
+  const handleDeleteAgendaTodo = useCallback(
+    async (id: string) => {
+      try {
+        await deleteTodo(id);
+      } catch (error) {
+        log.error("DASHBOARD", "Failed to delete agenda to-do", error);
+        throw error;
+      }
+    },
+    [deleteTodo]
+  );
 
   const googleCalendarAgendaMeetEligible =
     (isAgentWorkspace && useCalendarEventForTodo) ||
@@ -80,6 +104,7 @@ export function DashboardScreen() {
     description: string | null;
     deadlineDate: string | null;
     deadlineTime: string | null;
+    isAllDay: boolean;
     addGoogleMeet?: boolean;
   }) => {
     if (isAgentWorkspace) {
@@ -91,7 +116,7 @@ export function DashboardScreen() {
           queryClient,
         });
       } catch (error) {
-        log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create agenda item", error);
+        log.error("DASHBOARD", "Failed to create agenda item", error);
         throw error;
       }
       return;
@@ -106,7 +131,7 @@ export function DashboardScreen() {
           queryClient,
         });
       } catch (error) {
-        log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create agenda to-do", error);
+        log.error("DASHBOARD", "Failed to create agenda to-do", error);
         throw error;
       }
       return;
@@ -130,7 +155,7 @@ export function DashboardScreen() {
         }
       );
     } catch (error) {
-      log.error(LOG_CATEGORIES.DASHBOARD, "Failed to create calendar event", error);
+      log.error("DASHBOARD", "Failed to create calendar event", error);
       throw error;
     }
   };
@@ -161,6 +186,8 @@ export function DashboardScreen() {
           agendaTodos={agendaTodos}
           onToggleAgendaTodo={handleToggleAgendaTodo}
           canEditAgendaTodos={true}
+          updateAgendaTodo={handleUpdateAgendaTodo}
+          deleteAgendaTodo={handleDeleteAgendaTodo}
           onSigningAgendaPress={handleSigningAgendaPress}
           headerActions={headerActions}
         />

@@ -1,14 +1,19 @@
 import { color } from "packages/design-tokens";
 import { Dropdown, OliveCheckbox, OliveCheckboxRowLabel, Textarea } from "packages/ui/components";
-import { Icon } from "packages/ui/components/icons";
-import { Box } from "packages/ui/components/primitives";
+import { Icon } from "packages/ui/components/media/icons";
+import { Box } from "packages/ui/components/structure/primitives";
+import {
+  isEventMeetLinkPending,
+  resolveEventMeetLink,
+} from "packages/utils/comms/calendar/parsing/eventMeetLink";
 
 import { BodyText, Input } from "@/components/ui";
 import Label from "@/components/ui/text/Label.web";
 import { CalendarStyleDateRangePicker } from "@/features/calendar/components/eventForm/CalendarStyleDateRangePicker";
 import { EventFormTimeRange } from "@/features/calendar/components/eventForm/EventFormTimeRange";
+import { EventVirtualMeetLink } from "@/features/calendar/components/eventForm/EventVirtualMeetLink";
 import type { CreateEventModalFormFieldsProps } from "@/features/calendar/components/view/eventModal/createEventModalFormFields.types";
-import { CreateEventModalFormViewingOrLocation } from "@/features/calendar/components/view/eventModal/CreateEventModalFormViewingOrLocation";
+import { CreateEventModalFormLocation } from "@/features/calendar/components/view/eventModal/CreateEventModalFormViewingOrLocation";
 import {
   CALENDAR_EVENT_KINDS,
   type CalendarEventKindId,
@@ -24,8 +29,7 @@ export function CreateEventModalFormFields({
   hideCalendarPicker = false,
   eventKindId,
   onEventKindIdChange,
-  kindOptionSlice,
-  checklistProgressLoading = false,
+  allowedKindIds,
   eventTitle,
   onEventTitleChange,
   isAllDay,
@@ -37,16 +41,6 @@ export function CreateEventModalFormFields({
   endTime,
   onStartTimeChange,
   onEndTimeChange,
-  isPropertyViewing = false,
-  viewingStops = [],
-  onViewingStopsChange,
-  viewingStartSelection = { kind: "omit" },
-  onViewingStartSelectionChange,
-  viewingEndMode = "last_property",
-  onViewingEndModeChange,
-  viewingEndFixed = null,
-  onViewingEndFixedChange,
-  viewingTourAnchors = [],
   eventLocation,
   onEventLocationChange,
   locationScriptsReady,
@@ -56,6 +50,7 @@ export function CreateEventModalFormFields({
   addGoogleMeet,
   onAddGoogleMeetChange,
   showGoogleMeetOption,
+  existingEvent,
   mutualSchedule,
   onCalendarTimedSlotPick,
   registerOutsideClickSafeTarget,
@@ -63,12 +58,10 @@ export function CreateEventModalFormFields({
   const hasAnyScheduleDate = Boolean(
     (startDate?.trim() ?? "").length > 0 || (endDate?.trim() ?? "").length > 0
   );
-  const scheduleDetailsVisible = mode === "edit" || hasAnyScheduleDate;
-  const showTimeRangeInCreateFlow = mode === "create" && !isAllDay && hasAnyScheduleDate;
-  const showTimedRangeRow = mode === "edit" || showTimeRangeInCreateFlow;
+  const showScheduleTimeControls = mode === "edit" || hasAnyScheduleDate || mode === "create";
   const showCustomTitle = eventKindId === "other";
 
-  const kindDropdownOptions = kindOptionSlice.allowedKindIds.map((id) => ({
+  const kindDropdownOptions = allowedKindIds.map((id) => ({
     value: id,
     label: CALENDAR_EVENT_KINDS[id].label,
     icon: (
@@ -92,7 +85,6 @@ export function CreateEventModalFormFields({
         options={kindDropdownOptions}
         value={eventKindId}
         onChange={onEventKindIdChange}
-        disabled={checklistProgressLoading}
         menuInPortal
         menuPortalStack="modal"
         menuPlacement="below"
@@ -191,15 +183,15 @@ export function CreateEventModalFormFields({
         />
       </Box>
 
-      {scheduleDetailsVisible ? (
+      {showScheduleTimeControls ? (
         isAllDay ? (
           <Box className="flex items-center gap-2">
-            <OliveCheckboxRowLabel onPress={() => onIsAllDayChange(!isAllDay)}>
+            <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(false)} />
+            <OliveCheckboxRowLabel onPress={() => onIsAllDayChange(false)}>
               All day
             </OliveCheckboxRowLabel>
-            <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(!isAllDay)} />
           </Box>
-        ) : showTimedRangeRow ? (
+        ) : (
           <EventFormTimeRange
             startDate={startDate}
             endDate={endDate}
@@ -223,50 +215,49 @@ export function CreateEventModalFormFields({
             }
             trailingSlot={
               <Box className="flex shrink-0 items-center gap-2">
-                <OliveCheckboxRowLabel onPress={() => onIsAllDayChange(!isAllDay)}>
+                <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(true)} />
+                <OliveCheckboxRowLabel onPress={() => onIsAllDayChange(true)}>
                   All day
                 </OliveCheckboxRowLabel>
-                <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(!isAllDay)} />
               </Box>
             }
           />
-        ) : (
-          <Box className="flex items-center gap-2">
-            <OliveCheckboxRowLabel onPress={() => onIsAllDayChange(true)}>
-              All day
-            </OliveCheckboxRowLabel>
-            <OliveCheckbox checked={isAllDay} onToggle={() => onIsAllDayChange(true)} />
-          </Box>
         )
       ) : null}
 
-      {mode === "create" && showGoogleMeetOption ? (
-        <Box className="flex items-center gap-2">
-          <Icon name="video" className="text-text-secondary h-4 w-4 shrink-0" aria-hidden />
-          <OliveCheckbox
-            checked={addGoogleMeet}
-            onToggle={() => onAddGoogleMeetChange(!addGoogleMeet)}
-          />
-          <OliveCheckboxRowLabel
-            className="min-w-0 flex-1 font-normal"
-            onPress={() => onAddGoogleMeetChange(!addGoogleMeet)}
-          >
-            Add Google Meet video conferencing
-          </OliveCheckboxRowLabel>
+      {showGoogleMeetOption ? (
+        <Box className="space-y-2">
+          <Box className="flex items-center gap-2">
+            <Icon name="video" className="text-text-secondary h-4 w-4 shrink-0" aria-hidden />
+            <OliveCheckbox
+              checked={addGoogleMeet}
+              onToggle={() => onAddGoogleMeetChange(!addGoogleMeet)}
+            />
+            <OliveCheckboxRowLabel
+              className="min-w-0 flex-1 font-normal"
+              onPress={() => onAddGoogleMeetChange(!addGoogleMeet)}
+            >
+              Add Google Meet video conferencing
+            </OliveCheckboxRowLabel>
+          </Box>
+          {addGoogleMeet ? (
+            <EventVirtualMeetLink
+              meetLink={
+                mode === "edit" && existingEvent ? resolveEventMeetLink(existingEvent) : null
+              }
+              pending={
+                mode === "edit" && existingEvent ? isEventMeetLinkPending(existingEvent) : false
+              }
+              placeholderWhenEmpty={
+                mode === "create" ? "Meet link will be added when you save" : undefined
+              }
+              className="pl-6"
+            />
+          ) : null}
         </Box>
       ) : null}
 
-      <CreateEventModalFormViewingOrLocation
-        isPropertyViewing={isPropertyViewing}
-        viewingStops={viewingStops}
-        onViewingStopsChange={onViewingStopsChange}
-        viewingStartSelection={viewingStartSelection}
-        onViewingStartSelectionChange={onViewingStartSelectionChange}
-        viewingEndMode={viewingEndMode}
-        onViewingEndModeChange={onViewingEndModeChange}
-        viewingEndFixed={viewingEndFixed}
-        onViewingEndFixedChange={onViewingEndFixedChange}
-        viewingTourAnchors={viewingTourAnchors}
+      <CreateEventModalFormLocation
         eventLocation={eventLocation}
         onEventLocationChange={onEventLocationChange}
         locationScriptsReady={locationScriptsReady}

@@ -46,8 +46,11 @@ properties:
             format: double
         description: Map center at the time of the last search.
       map_zoom:
-        type: integer
+        type: number
+        format: double
         nullable: true
+        minimum: 1
+        maximum: 22
         description: Map zoom level at the time of the last search.
       searched_at:
         type: string

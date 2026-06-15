@@ -4,7 +4,7 @@ import type { UserProfile } from "packages/features/homeauth/types/index";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
@@ -18,11 +18,6 @@ export type AuthState = {
   error: string | null;
   authReady: boolean;
   authStatus: AuthStatus; // 3-state: checking/authenticated/unauthenticated
-  /**
-   * One-time redirect target used by platform routers (e.g. RN) after auth transitions.
-   * Not persisted.
-   */
-  postAuthRedirectPath: string | null;
 
   // Actions
   setUser: (user: UserProfile | null) => void;
@@ -31,7 +26,6 @@ export type AuthState = {
   setError: (error: string | null) => void;
   setAuthReady: (ready: boolean) => void;
   setAuthStatus: (status: AuthStatus) => void;
-  setPostAuthRedirectPath: (path: string | null) => void;
 
   // Auth actions (will be implemented by hooks)
   login: (email: string, password: string) => Promise<LoginResult>;
@@ -55,7 +49,6 @@ const initialState = (): Omit<
   | "setError"
   | "setAuthReady"
   | "setAuthStatus"
-  | "setPostAuthRedirectPath"
   | "login"
   | "logout"
   | "refreshToken"
@@ -71,7 +64,6 @@ const initialState = (): Omit<
   error: null,
   authReady: false,
   authStatus: "checking", // Start in checking state
-  postAuthRedirectPath: null,
 });
 
 const baseCreator: import("zustand").StateCreator<AuthState> = (set) => ({
@@ -83,7 +75,6 @@ const baseCreator: import("zustand").StateCreator<AuthState> = (set) => ({
   setError: (error) => set({ error }),
   setAuthReady: (authReady) => set({ authReady }),
   setAuthStatus: (authStatus) => set({ authStatus }),
-  setPostAuthRedirectPath: (postAuthRedirectPath) => set({ postAuthRedirectPath }),
 
   // Auth actions will be implemented by hooks that use this store
   login: () => {
@@ -117,7 +108,6 @@ const withReset = withResettable<AuthState>(baseCreator, (set) => ({
   setError: (error) => set({ error }),
   setAuthReady: (authReady) => set({ authReady }),
   setAuthStatus: (authStatus) => set({ authStatus }),
-  setPostAuthRedirectPath: (postAuthRedirectPath) => set({ postAuthRedirectPath }),
   login: async () => ({ success: false }),
   logout: () => {},
   refreshToken: async () => false,
@@ -141,11 +131,8 @@ const withPersist = persistSafe<AuthState>(withReset, {
           name: state.user.name,
           created_at: state.user.created_at,
           is_active: state.user.is_active,
-          has_subscription: state.user.has_subscription,
-          subscription: state.user.subscription,
           has_preferences: state.user.has_preferences,
-          is_agent: state.user.is_agent,
-          client_ids: state.user.client_ids,
+          roles: state.user.roles,
         }
       : null,
     isAuthenticated: state.isAuthenticated,

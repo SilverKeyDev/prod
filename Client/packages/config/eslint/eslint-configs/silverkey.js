@@ -65,6 +65,10 @@ export default function getSilverkeyConfig({ silverkey }) {
             },
           },
         ],
+        "silverkey/no-secure-logger": "error",
+        "silverkey/prefer-log-path": "error",
+        "silverkey/valid-log-path": "error",
+        "silverkey/no-unsafe-innerhtml": "error",
         "silverkey/no-raw-translation-key-literal": [
           "warn",
           {
@@ -73,11 +77,13 @@ export default function getSilverkeyConfig({ silverkey }) {
             ignoredFirstSegments: ["brand", "neutral"],
           },
         ],
+        "silverkey/no-direct-api-error-field": "warn",
         "silverkey/no-process-env-outside-config": [
           "error",
           {
             allowlist: [
               "packages/config/env.ts",
+              "packages/logger/config/loggerEnv.ts",
               "vite.config",
               "vitest.config",
               "postcss.config",
@@ -85,6 +91,9 @@ export default function getSilverkeyConfig({ silverkey }) {
               ".config.js",
               ".config.mjs",
             ],
+            exceptions: {
+              testFiles: true,
+            },
           },
         ],
         "silverkey/no-explicit-any-disable-reason": "error",
@@ -114,15 +123,7 @@ export default function getSilverkeyConfig({ silverkey }) {
           },
         ],
         // Utility consolidation: warn on value imports from another feature's utils/
-        "silverkey/no-cross-feature-utils-imports": [
-          "warn",
-          {
-            allowImportPrefixes: [
-              "packages/features/calendar/utils",
-              "packages/features/homeauth/utils",
-            ],
-          },
-        ],
+        "silverkey/no-cross-feature-utils-imports": ["warn"],
       },
     },
 
@@ -171,23 +172,7 @@ export default function getSilverkeyConfig({ silverkey }) {
       },
     },
 
-    // packages/utils: 16 direct children; no grouping needed
-    {
-      files: ["packages/utils/**/*.ts"],
-      plugins: { silverkey },
-      rules: {
-        "silverkey/folder-max-items": ["off"],
-      },
-    },
-
-    // packages/ui/components: 21 direct children; structure intentional
-    {
-      files: ["packages/ui/components/**/*.{ts,tsx}"],
-      plugins: { silverkey },
-      rules: {
-        "silverkey/folder-max-items": ["off"],
-      },
-    },
+    // packages/ui/components: 8 meta-folder direct children (inputs, actions, surfaces, structure, media, system)
 
     // packages/email-templates: relative paths required for runtime resolution
     {

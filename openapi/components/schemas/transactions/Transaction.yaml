@@ -1,0 +1,45 @@
+type: object
+description: >
+  Revenue spine row for a buyer deal. Path param `transaction_id` on checklist, documents,
+  rev-share, and calendar APIs MUST be `transactions.id` (UUID) — never the buyer's `users.id`.
+required:
+  - id
+  - buyer_id
+  - brokerage_org_id
+properties:
+  id:
+    type: string
+    description: Primary key (`transactions.id`); sole deal scope id for downstream APIs.
+  buyer_id:
+    type: string
+    description: Buyer user id for this deal.
+  primary_agent_id:
+    type: string
+    nullable: true
+    description: Primary agent user id when linked via agent_conversations.
+  brokerage_org_id:
+    type: string
+    description: Attribution org for brokerage revenue (not tenant isolation).
+  status:
+    type: string
+    nullable: true
+    description: Deal lifecycle status (e.g. active, closed). Optional until engine assigns values.
+  display_label:
+    type: string
+    nullable: true
+    description: Short human label (often address line) for multi-deal lists and switchers.
+  created_at:
+    type: string
+    format: date-time
+    nullable: true
+    description: ISO 8601 timestamp when the deal row was created.
+  updated_at:
+    type: string
+    format: date-time
+    nullable: true
+    description: ISO 8601 timestamp when the deal row was last updated.
+example:
+  id: "f1e2d3c4-b5a6-7890-abcd-ef1234567890"
+  buyer_id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  primary_agent_id: "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+  brokerage_org_id: "a0000000-0000-4000-8000-000000000001"

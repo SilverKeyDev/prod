@@ -1,7 +1,9 @@
-import { dateNow, dateParseISO } from "packages/utils/date";
+import { getEventStartDate } from "packages/utils/comms/calendar/parsing/eventParsing";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
 
 import type { UpcomingAgendaItem } from "@/features/calendar/types/upcomingAgenda";
-import { getEventStartDate } from "@/features/calendar/utils/parsing/eventParsing";
+import { compareAgendaItemsByTypeThenDate } from "@/features/calendar/utils/agenda/agendaDisplayCategory";
+import { agendaEventCompletionKey } from "@/features/calendar/utils/agenda/agendaEventCompletionKey";
 
 export type AgendaAllDisplayMode = "chronological" | "most_recent" | "future_only";
 
@@ -14,7 +16,7 @@ export const AGENDA_ALL_DISPLAY_OPTIONS: {
   /** Farthest dates first — browse backward from the latest scheduled items. */
   { value: "most_recent", label: "Date (latest first)" },
   /** Hide past events and completed to-dos; keep open work and future-dated items. */
-  { value: "future_only", label: "Incomplete and upcoming" },
+  { value: "future_only", label: "Upcoming" },
 ];
 
 /**
@@ -50,8 +52,19 @@ export function agendaItemSortMsForAllView(item: UpcomingAgendaItem): number {
   return Number.MAX_SAFE_INTEGER;
 }
 
-function isAgendaItemFutureOnly(item: UpcomingAgendaItem, todayStartMs: number): boolean {
+export type AgendaAllDisplayOptions = {
+  completedEventKeys?: Record<string, true>;
+};
+
+function isAgendaItemFutureOnly(
+  item: UpcomingAgendaItem,
+  todayStartMs: number,
+  completedEventKeys?: Record<string, true>
+): boolean {
   if (item.kind === "event") {
+    if (completedEventKeys?.[agendaEventCompletionKey(item.event)]) {
+      return false;
+    }
     const t = getEventStartDate(item.event)?.getTime() ?? 0;
     return t >= todayStartMs;
   }
@@ -72,19 +85,24 @@ function tieBreakKey(item: UpcomingAgendaItem): string {
 
 export function applyAgendaAllDisplayMode(
   items: UpcomingAgendaItem[],
-  mode: AgendaAllDisplayMode
+  mode: AgendaAllDisplayMode,
+  options?: AgendaAllDisplayOptions
 ): UpcomingAgendaItem[] {
   const todayStartMs = dateNow().startOf("day").valueOf();
+  const completedEventKeys = options?.completedEventKeys;
   const base =
-    mode === "future_only" ? items.filter((i) => isAgendaItemFutureOnly(i, todayStartMs)) : items;
+    mode === "future_only"
+      ? items.filter((i) => isAgendaItemFutureOnly(i, todayStartMs, completedEventKeys))
+      : items;
 
   const descending = mode === "most_recent";
 
   return [...base].sort((a, b) => {
-    const da = agendaItemSortMsForAllView(a);
-    const db = agendaItemSortMsForAllView(b);
-    if (da !== db) {
-      return descending ? db - da : da - db;
+    const typeCompare = compareAgendaItemsByTypeThenDate(a, b, agendaItemSortMsForAllView, {
+      descending,
+    });
+    if (typeCompare !== 0) {
+      return typeCompare;
     }
     return tieBreakKey(a).localeCompare(tieBreakKey(b));
   });

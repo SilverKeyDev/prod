@@ -1,19 +1,50 @@
 # Server documentation
 
-Docs for the SilverKey backend (Python/Flask). Add server-specific long-form docs here (APIs, services, deployment) as they are written. In-repo READMEs (e.g. under `Server/app/`) remain the lightweight local references.
+Backend (Python/Flask) canonical docs. Lightweight module READMEs stay under `Server/app/`.
 
 ## Contents
 
-- **[PostgreSQL (schema + ops)](../../docs/postgres/README.md)** - Generated schema reference, ER diagram, hot queries, migrations/runbook, known issues
-- **[Redis (ops + architecture)](../../docs/redis/README.md)** - Broker/results/scoring usage, key table, runbook, known issues, refactor backlog
-- **[Flask Architecture](flask-architecture.md)** - App factory, blueprints, auth pipeline, error handling
-- **[SQLAlchemy Patterns](sqlalchemy-patterns.md)** - Models, relationships, queries, session management
-- **[API Conventions](api-conventions.md)** - Route patterns, request/response format, validation, pagination
-- **[User Preferences](user-preferences.md)** - Preferences schema, write/read pipeline, usage in search
-- **[AWS Resources](aws-resources.md)** - AWS services, IAM, monitoring, deployment, cost optimization
-- **[Infrastructure reliability gap audit](infrastructure-reliability-gap-audit.md)** - Checklist of backups, monitoring, staging, CDN, load testing, and what is verifiable from this repo
+### Ops
 
-## Related in repo
+| Doc | Description |
+|-----|-------------|
+| [ops/postgres.md](./ops/postgres.md) | PostgreSQL local setup and schema pointers |
+| [ops/redis-celery.md](./ops/redis-celery.md) | Redis broker, Celery workers, troubleshooting |
+| [ops/prod-web-rollback.md](./ops/prod-web-rollback.md) | One-command prod web rollback to a prior immutable SHA tag |
+| [ops/monitoring-alerts.md](./ops/monitoring-alerts.md) | PostHog error tracking plus Slack health and 5xx alerting |
+| [ops/scaling-playbook.md](./ops/scaling-playbook.md) | Capacity tuning, env vars, multi-instance checklist |
+| [ops/posthog-capacity-queries.md](./ops/posthog-capacity-queries.md) | HogQL templates for `api_request` latency and volume |
+| [ops/posthog-api-error-semantics.md](./ops/posthog-api-error-semantics.md) | `error_kind`, `expected_client_error`, and SLO vs 4xx noise |
+| [ops/posthog-dead-routes-table.md](./ops/posthog-dead-routes-table.md) | PostHog insight/table for CI `endpoint_dead_route` events |
+| [ops/scripts-guide.md](./ops/scripts-guide.md) | Master script inventory, caller map, naming conventions, add/deprecate guide |
+
+### Architecture and API
+
+| Doc | Description |
+|-----|-------------|
+| [flask-architecture.md](./flask-architecture.md) | App factory, blueprints, auth pipeline |
+| [sqlalchemy-patterns.md](./sqlalchemy-patterns.md) | Models, relationships, sessions |
+| [sqlalchemy-mapped-migration.md](./sqlalchemy-mapped-migration.md) | Historical SQLAlchemy 2.0 `Mapped[]` migration reference |
+| [api-conventions.md](./api-conventions.md) | Routes, validation, pagination |
+| [input-validation.md](./input-validation.md) | Request/query validation rollout |
+| [openapi-workflow.md](./openapi-workflow.md) | Edit `openapi/` → regenerate types |
+| [openapi-validation-rollout.md](./openapi-validation-rollout.md) | Strict vs gradual validation modes |
+| [user-preferences.md](./user-preferences.md) | Preferences schema and pipeline |
+| [aws-resources.md](./aws-resources.md) | AWS services and deployment |
+| [infrastructure-reliability-gap-audit.md](./infrastructure-reliability-gap-audit.md) | Reliability checklist |
+| [celery-tasks.md](./celery-tasks.md) | Celery task overview |
+| [deployment.md](./deployment.md) | CI/CD and deploy pointers |
+| [messaging-sse.md](./messaging-sse.md) | Messaging SSE architecture |
+| [messaging-workspace-conversations.md](./messaging-workspace-conversations.md) | Operator workspace conversations (brokerage, integrator, admin) |
+| [messaging-group-chat.md](./messaging-group-chat.md) | Group chat infrastructure scaffold (design-only) |
+
+### Standards
+
+| Doc | Description |
+|-----|-------------|
+| [standards/http-error-codes.md](./standards/http-error-codes.md) | HTTP status matrix, ErrorResponse envelope, route helpers |
+
+## Related
 
 - Backend rules: `.cursor/rules/backend/`
-- Server app structure: `Server/app/` and per-module READMEs.
+- Server overview: `Server/README.md`, `Server/ARCHITECTURE.md`

@@ -1,6 +1,6 @@
 import { describe, it } from "vitest";
 
-import { assertTranslationMapWithAllowedPrefixes } from "packages/utils/test/translationAssertions";
+import { assertTranslationMapWithAllowedPrefixes } from "packages/utils/core/test/translationAssertions";
 
 import { SHARED_TRANSLATIONS } from "./shared";
 

@@ -14,10 +14,6 @@ properties:
     type: string
   version_number:
     type: integer
-  revision_number:
-    type: integer
-    nullable: true
-    description: "Legacy field"
   filename:
     type: string
   file_name:

@@ -1,7 +1,7 @@
 import { Icon } from "@ui/icons";
 
 import { Button, Textarea } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Label, Title } from "@/components/ui";
 import type { AgentSearchResult } from "@/features/agent/api/agent";
@@ -104,7 +104,7 @@ export function AgentDirectoryRow({
             size="md"
             iconName="x"
             iconPosition="left"
-            className="border-border bg-border text-text-secondary hover:bg-primary-muted px-6"
+            className="border-border bg-border text-text-secondary px-6 hover:bg-neutral-100"
           >
             {cancelButtonLabel}
           </Button>

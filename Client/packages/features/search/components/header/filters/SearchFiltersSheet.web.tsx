@@ -2,13 +2,11 @@ import React from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile";
-import { SearchDisplayPanelWeb } from "packages/features/search/components/header/display/SearchDisplayPanel.web";
-import { Transition } from "packages/ui/components/adapters/headless";
-import { Box } from "packages/ui/components/primitives";
-import { TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
+import type { OnboardingData } from "packages/features/profile";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Transition } from "packages/ui/components/system/adapters/headless";
 
 import { AccessibleDialog, CloseButton, Title } from "@/components/ui";
-import type { OnboardingData } from "@/features/profile/utils";
 import SearchPreferencesContent from "@/features/search/components/filters/SearchPreferencesContent.web";
 
 export type SearchFiltersSheetProps = {
@@ -21,6 +19,10 @@ export type SearchFiltersSheetProps = {
   onClientChange?: (clientId: string | null) => void;
   patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
   onAgentSyncPreferencesFetched?: (onboarding: Partial<OnboardingData>) => void;
+  replaceFormData?: (next: Partial<OnboardingData>) => void;
+  cancelPendingSave?: () => void;
+  onAfterClear?: () => void | Promise<void>;
+  saveStatus?: "idle" | "saving" | "saved";
 };
 
 export default function SearchFiltersSheet({
@@ -32,6 +34,11 @@ export default function SearchFiltersSheet({
   selectedClientId,
   patchBuyerPreferenceExtensions,
   onAgentSyncPreferencesFetched,
+  onClientChange,
+  replaceFormData,
+  cancelPendingSave,
+  onAfterClear,
+  saveStatus = "idle",
 }: SearchFiltersSheetProps): React.ReactElement {
   const { t } = useLocalization();
 
@@ -82,16 +89,13 @@ export default function SearchFiltersSheet({
                   scriptsReady={scriptsReady}
                   viewingClientId={selectedClientId ?? null}
                   onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
+                  onClientChange={onClientChange}
+                  replaceFormData={replaceFormData}
+                  cancelPendingSave={cancelPendingSave}
+                  onAfterClear={onAfterClear}
+                  menuPortalStack="modal"
+                  saveStatus={saveStatus}
                 />
-                <Box
-                  id={TOUR_TARGETS_MOBILE.displayControl}
-                  className="border-border mt-6 border-t pt-6"
-                >
-                  <Title size="sm" as="h3" className="mb-4">
-                    {t("search.display")}
-                  </Title>
-                  <SearchDisplayPanelWeb menuPortalStack="modal" />
-                </Box>
               </Box>
             </AccessibleDialog.Panel>
           </Transition.Child>

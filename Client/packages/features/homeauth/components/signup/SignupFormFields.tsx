@@ -4,16 +4,15 @@ import { Icon } from "@ui/icons";
 
 import { spacing } from "packages/design-tokens";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
+import { AuthTermsDisclaimer } from "packages/features/homeauth/components/core/AuthTermsDisclaimer";
 import AuthDivider from "packages/features/homeauth/components/core/Divider";
 import AuthLink from "packages/features/homeauth/components/core/Link";
 import type { FieldKey, SignupFormData } from "packages/hooks/data/auth/useSignupAutofill";
-import { ROUTES } from "packages/navigation";
-import { OliveCheckbox } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import { getSharedInputTextStyles } from "packages/utils/ui/inputStyles";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 import { PasswordValidation } from "@/components/feedback";
-import { BodyText, Button, FieldShell, Input, PhoneInput } from "@/components/ui";
+import { Button, FieldShell, Input, PhoneInput } from "@/components/ui";
 const BarePhoneTextInput = React.forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement>
@@ -60,8 +59,6 @@ export type SignupFormFieldsProps = {
   isSignupLoading: boolean;
   /** When true (e.g. on onboarding page), the name input is hidden. */
   onboarding?: boolean;
-  acceptedTerms: boolean;
-  onAcceptedTermsChange: (value: boolean) => void;
 };
 export default function SignupFormFields({
   formData,
@@ -73,8 +70,6 @@ export default function SignupFormFields({
   onSubmit: _onSubmit,
   isSignupLoading,
   onboarding = false,
-  acceptedTerms,
-  onAcceptedTermsChange,
 }: SignupFormFieldsProps) {
   return (
     <>
@@ -192,42 +187,22 @@ export default function SignupFormFields({
         />
       </Box>
 
-      <Box className="flex items-start gap-2.5 text-left">
-        <Box className="pt-0.5">
-          <OliveCheckbox
-            checked={acceptedTerms}
-            onToggle={() => {
-              onAcceptedTermsChange(!acceptedTerms);
-            }}
-          />
-        </Box>
-        <BodyText as="div" size="sm" className="text-text-secondary">
-          I agree to the{" "}
-          <AuthLink to={ROUTES.TERMS} variant="inline" className="text-text-primary">
-            Terms of Service
-          </AuthLink>{" "}
-          and{" "}
-          <AuthLink to={ROUTES.PRIVACY} variant="inline" className="text-text-primary">
-            Privacy Policy
-          </AuthLink>
-          . Continued use of the Services constitutes acceptance for Google sign-in as well.
-        </BodyText>
-      </Box>
-
       <Button
         type="submit"
         variant="primary"
         size="md"
         fullWidth
         loading={isSignupLoading}
-        disabled={isSignupLoading || !acceptedTerms}
+        disabled={isSignupLoading}
       >
         Create account
       </Button>
 
       <AuthDivider />
 
-      <GoogleSignInButton text="Sign up with Google" disabled={!acceptedTerms} />
+      <GoogleSignInButton text="Sign up with Google" />
+
+      <AuthTermsDisclaimer flow="signup" />
 
       <Box className="text-signup-mid text-center">
         Already have an account?{" "}

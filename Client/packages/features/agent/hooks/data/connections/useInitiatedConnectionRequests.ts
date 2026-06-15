@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { useAuthStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import type { AgentConnectionRequest } from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";
@@ -24,7 +25,9 @@ export function useInitiatedConnectionRequests(enabled: boolean = true): {
     queryFn: async () => {
       const response = await agentApi.getConnectionRequests("initiated");
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch connection requests");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to fetch connection requests")
+        );
       }
       return response.requests ?? [];
     },

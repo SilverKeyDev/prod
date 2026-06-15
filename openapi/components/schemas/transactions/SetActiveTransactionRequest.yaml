@@ -1,0 +1,7 @@
+type: object
+required:
+  - transaction_id
+properties:
+  transaction_id:
+    type: string
+    description: Revenue spine id (`transactions.id`) to set as the buyer's active deal.

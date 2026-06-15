@@ -3,7 +3,7 @@ import React from "react";
 import { useLocalization } from "packages/contexts";
 import CompCard, { type CompData } from "packages/features/negotiate/components/layout/CompCard";
 import SectionTitle from "packages/features/negotiate/components/layout/SectionTitle";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { CardCarousel } from "@/components/cards/base";
 type ComparablesSectionProps = {

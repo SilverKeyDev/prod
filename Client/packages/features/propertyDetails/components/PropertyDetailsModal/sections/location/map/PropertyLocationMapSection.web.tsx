@@ -4,16 +4,16 @@ import { useLocalization } from "packages/contexts";
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
-import { usePropertyDetailsLocationMap } from "packages/hooks/data/property/usePropertyDetailsLocationMap.web";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { usePropertyDetailsLocationMap } from "packages/features/search/hooks/data/map/commute/usePropertyDetailsLocationMap.web";
+import { log } from "packages/logger";
 import { Button } from "packages/ui";
-import { Box, Loading } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import { getWindow } from "packages/utils/platform";
+import { Box, Loading } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import { getWindow } from "packages/utils/core/platform";
 import {
   getListingCoords,
   getListingCoordsUnavailableDiagnostics,
-} from "packages/utils/propertyDetails/location/listingCoords";
+} from "packages/utils/transaction/propertyDetails/location/listingCoords";
 
 import { PropertyDetailsMapOverlayControls } from "./PropertyDetailsMapOverlayControls.web";
 
@@ -61,7 +61,7 @@ export function PropertyLocationMapSection({
     }:${diagnostics.fields.lng}:${diagnostics.fields.longitude}`;
     if (loggedLocationUnavailableKeyRef.current === dedupeKey) return;
     loggedLocationUnavailableKeyRef.current = dedupeKey;
-    log.info(LOG_CATEGORIES.PROPERTY_DETAILS, "Property location map unavailable", {
+    log.info("PROPERTY_DETAILS", "Property location map unavailable", {
       listingId,
       ...diagnostics,
     });
@@ -75,7 +75,7 @@ export function PropertyLocationMapSection({
       mapHost && typeof mapHost.getBoundingClientRect === "function"
         ? mapHost.getBoundingClientRect()
         : null;
-    log.debug(LOG_CATEGORIES.PROPERTY_DETAILS, "PropertyDetailsMapSection web hosts", {
+    log.debug("PROPERTY_DETAILS", "PropertyDetailsMapSection web hosts", {
       listingId,
       hasMapHost: mapHost != null,
       hasStreetViewHost: streetViewHost != null,
@@ -143,7 +143,7 @@ export function PropertyLocationMapSection({
           </BodyText>
         ) : (
           <Box className="gap-3">
-            <Box className="border-border-card-subtle bg-background-surface aspect-square overflow-hidden rounded-lg border">
+            <Box className="border-border-card-subtle bg-background-surface relative aspect-[4/3] max-h-[50vh] w-full overflow-hidden rounded-lg border">
               <Box className="relative h-full w-full">
                 <Box ref={setMapHost} className="absolute inset-0" />
                 <Box

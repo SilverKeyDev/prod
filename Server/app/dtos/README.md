@@ -7,7 +7,7 @@ DTOs convert SQLAlchemy models into Pydantic models generated from `openapi/open
 - **Returning JSON from route handlers** that have (or should have) an OpenAPI response schema.
 - **Any replacement for `model.to_dict()`** on critical entities (`User`, saved homes, agreements, documents, todos).
 
-Prefer DTO entry points (`UserDTO.to_response`, `SavedHomeDTO.from_orm`, etc.) so payloads are validated against `app.schemas.generated` before they reach `jsonify`.
+Prefer DTO entry points (`UserDTO.to_response`, `SavedHomeDTO.from_orm`, `NotInterestedHomeDTO.to_response`, etc.) so payloads are validated against `app.schemas.generated` before they reach `jsonify`.
 
 ## Pattern
 
@@ -22,21 +22,41 @@ def get_me(user):
     return jsonify({"success": True, "data": user_data})
 ```
 
-For list-style user payloads without roles or presigned URLs, use `UserDTO.to_list_response(user)`. For favorites rows, use `SavedHomeDTO.from_orm(home).model_dump(mode="json")` or the compatibility wrapper `PropertyDTO.to_saved_home(home)`.
+For list-style user payloads without roles or presigned URLs, use `UserDTO.to_list_response(user)`.
+
+### Saved homes (favorites / listings)
+
+- `SavedHomeDTO.from_orm(link)` — loads `PropertyCache` from `UserPropertyLink` and validates as `SavedHome`.
+- `SavedHomeDTO.to_response(link)` — same, returns `model_dump(mode="json")` for `jsonify`.
+- Compatibility: `PropertyDTO.to_saved_home(link)` delegates to `SavedHomeDTO`.
+
+### Not-interested homes
+
+- **HTTP:** `NotInterestedHomeDTO.to_response(row)` — only documented `NotInterestedHomeItem` fields (`id`, `address`, `latitude`, `longitude`, `zpid`, `mls_home_id`).
+- **GDPR export:** `NotInterestedHomeDTO.to_export_row(row)` — full portability fields (`why`, `not_interested_history`, timestamps, etc.); not constrained to `NotInterestedHomeItem`.
 
 ## `to_dict()` on models
 
-Legacy `to_dict()` methods remain for incremental migration but emit `DeprecationWarning`. New code should go through DTOs.
+ORM models no longer define `to_dict()`. Use the DTO modules below.
 
 ## Modules
 
 | Module               | ORM model         | OpenAPI schema                    |
 |----------------------|-------------------|-----------------------------------|
 | `dtos/user.py`       | `User`            | `User` / `UserProfile`            |
-| `dtos/saved_home.py` | `HomeUniversal`   | `SavedHome`                       |
+| `dtos/saved_home.py` | `PropertyCache` + `UserPropertyLink`; `HomeNotInterested` | `SavedHome`; `NotInterestedHomeItem` |
 | `dtos/property.py`   | (alias)           | Same as `SavedHomeDTO` (compat)   |
 | `dtos/agreement.py`  | `Agreement` (+ nested) | `Agreement`                |
+| `dtos/checklist_form.py` | `ChecklistForm`   | `ChecklistForm` / `ChecklistFormWithDownload` |
+| `dtos/docusign_template.py` | `DocusignTemplate` | `DocusignTemplateListItem` |
 | `dtos/document.py`   | `Document`        | `WorkflowDocumentRecord`          |
 | `dtos/todo.py`       | `Todo`            | `TodoItem`                        |
+| `dtos/agent_conversation.py` | `AgentConnections` | (conversation metadata dict) |
+| `dtos/agent_connection_request.py` | `AgentConnectionRequest` | `AgentConnectionRequest` |
+| `dtos/partner.py`    | `Partner`, `BuyerStepView`, `RevShareLinkClick` | `Partner`, `BuyerStepView`, `RevShareRecentClick` |
+| `dtos/google_oauth_token.py` | `GoogleOAuthToken` | (internal credentials only; not in OpenAPI) |
+| `dtos/calendar_event.py` | `CalendarEvent` | `GoogleEvent` |
 
 `WorkflowDocumentDTO.from_document` maps pipeline `Document` rows to `WorkflowDocumentRecord` using defaults for fields not stored on the table; pass `overrides=` for offer id, expiry, etc., when assembling dashboard payloads.
+
+`GoogleOAuthTokenDTO.to_credentials` is for calendar token storage only — never return through HTTP.

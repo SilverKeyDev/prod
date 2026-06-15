@@ -3,19 +3,36 @@ import {
   clearSessionStorageForLogout,
   getOptionalSessionStorageForLogout,
 } from "packages/features/homeauth/hooks/data/utils/logoutCleanup";
+import { mergeSessionRefreshUserIntoAuthProfile } from "packages/features/homeauth/hooks/data/utils/mergeAuthUserProfile";
 import {
   mapAuthResponseToUserProfile,
   toUserStoreProfile,
 } from "packages/features/homeauth/hooks/data/utils/userMapping";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { ROUTES } from "packages/navigation/types/routes";
+import { log } from "packages/logger";
+import { applyLocalUnauthenticatedState } from "packages/services/http/client/auth";
+import {
+  isTransientRefreshFailure,
+  postRefreshTokenWithRetry,
+} from "packages/services/http/client/auth/refreshTokenRetry";
 import { reportSecurityEvent } from "packages/services/security/errorReporting";
 import { resetWorkspaceStore, useDevAppPersonaStore } from "packages/store";
 import { asError, getWindow } from "packages/utils";
+import { resolveUserFacingMessage } from "packages/utils/core/errorHandling";
 
 import type { UserProfile } from "@/features/homeauth/types";
 
 const REFRESH_AFTER_VERIFY_COOLDOWN_MS = 90_000;
+
+function clearAuthStateAfterRefreshFailure(setters: RefreshSetters): void {
+  setters.setAccessToken(null);
+  setters.setUser(null);
+  setters.setStoreUser(null);
+  setters.setStoreIsAuthenticated(false);
+  setters.setStoreAuthStatus("unauthenticated");
+  applyLocalUnauthenticatedState();
+  resetWorkspaceStore();
+  useDevAppPersonaStore.setState({ serverIdentityTouched: false });
+}
 
 type LoginSetters = {
   setUser: (u: UserProfile | null) => void;
@@ -27,7 +44,6 @@ type LoginSetters = {
   setStoreIsAuthenticated: (v: boolean) => void;
   setStoreAuthStatus: (s: string) => void;
   setStoreAuthReady: (v: boolean) => void;
-  setStorePostAuthRedirectPath: (path: string | null) => void;
   setUserProfile: (p: unknown) => void;
   setLoginRef: (v: boolean) => void;
 };
@@ -43,12 +59,11 @@ function applyLoginSuccess(
     setStoreIsAuthenticated,
     setStoreAuthStatus,
     setStoreAuthReady,
-    setStorePostAuthRedirectPath,
     setUserProfile,
     setLoginRef,
   } = setters;
   setAccessToken("authenticated");
-  log.info(LOG_CATEGORIES.AUTH, "Authentication successful via HTTP-only cookies", {
+  log.info("AUTH", "Authentication successful via HTTP-only cookies", {
     storageMethod: "http_only_cookies",
     authMethod: "cookie_based",
     note: "All tokens in secure HTTP-only cookies",
@@ -57,7 +72,7 @@ function applyLoginSuccess(
     const mappedUser = mapAuthResponseToUserProfile(response.user, response.user_sub);
     const userStoreProfile = toUserStoreProfile(mappedUser);
     if (getEnv().isDevelopment) {
-      log.debug(LOG_CATEGORIES.AUTH, "User mapping", {
+      log.debug("AUTH", "User mapping", {
         responseUserId: response.user.id,
         responseUserSub: "user_sub" in response.user ? response.user.user_sub : undefined,
         responseUserSubTop: response.user_sub,
@@ -71,10 +86,9 @@ function applyLoginSuccess(
     setStoreIsAuthenticated(true);
     setStoreAuthStatus("authenticated");
     setStoreAuthReady(true);
-    setStorePostAuthRedirectPath(ROUTES.SEARCH);
     setUserProfile(userStoreProfile);
     if (getEnv().isDevelopment) {
-      log.debug(LOG_CATEGORIES.AUTH, "User state after login", {
+      log.debug("AUTH", "User state after login", {
         localUser: mappedUser,
         localUserId: mappedUser.id,
         localUserEmail: mappedUser.email,
@@ -84,16 +98,15 @@ function applyLoginSuccess(
     setStoreIsAuthenticated(true);
     setStoreAuthStatus("authenticated");
     setStoreAuthReady(true);
-    setStorePostAuthRedirectPath(ROUTES.SEARCH);
   }
   setLoginRef(false);
   if (getEnv().isDevelopment) {
-    log.security(LOG_CATEGORIES.AUTH, "Auth state updated synchronously", {
+    log.security("AUTH", "Auth state updated synchronously", {
       authenticated: true,
       hasUser: !!response.user,
       authMethod: "http-only-cookies",
     });
-    log.security(LOG_CATEGORIES.AUTH, "Login successful", {
+    log.security("AUTH", "Login successful", {
       userId:
         response.user?.id ??
         (response.user && "user_sub" in response.user ? response.user.user_sub : undefined),
@@ -128,17 +141,21 @@ export async function performLogin(
       return { success: false, needsVerification: true };
     }
     setNeedsVerification(false);
-    setError(response.error ?? "Login failed");
+    setError(
+      resolveUserFacingMessage(response, {
+        fallbackMessage: response.message ?? "Login failed",
+      })
+    );
     setLoginRef(false);
     return { success: false };
   } catch (err: unknown) {
-    const errObj = asError(err);
-    setError(errObj.message);
+    const userMessage = resolveUserFacingMessage(err, { fallbackMessage: "Login failed" });
+    setError(userMessage);
     reportSecurityEvent({
       type: "authentication_failure",
       severity: "high",
       description: "Secure login attempt failed",
-      metadata: { email, error: errObj.message },
+      metadata: { email, error: userMessage },
     });
     setLoginRef(false);
     return { success: false };
@@ -154,17 +171,16 @@ type LogoutSetters = {
   setStoreIsAuthenticated: (v: boolean) => void;
   setStoreAuthStatus: (s: string) => void;
   setStoreAuthReady: (v: boolean) => void;
-  setStorePostAuthRedirectPath: (path: string | null) => void;
   setUserProfile: (p: null) => void;
 };
 
 export async function performLogout(setters: LogoutSetters): Promise<void> {
-  log.info(LOG_CATEGORIES.AUTH, "Logout initiated");
+  log.info("AUTH", "Logout initiated");
   try {
     await authApi.logout();
-    log.info(LOG_CATEGORIES.AUTH, "Server logout successful");
+    log.info("AUTH", "Server logout successful");
   } catch (error) {
-    log.warn(LOG_CATEGORIES.AUTH, "Server logout failed, continuing with client cleanup", {
+    log.warn("AUTH", "Server logout failed, continuing with client cleanup", {
       error: asError(error).message,
     });
   }
@@ -175,7 +191,6 @@ export async function performLogout(setters: LogoutSetters): Promise<void> {
     setStoreIsAuthenticated,
     setStoreAuthStatus,
     setStoreAuthReady,
-    setStorePostAuthRedirectPath,
     setUserProfile,
   } = setters;
   setAccessToken(null);
@@ -184,13 +199,12 @@ export async function performLogout(setters: LogoutSetters): Promise<void> {
   setStoreIsAuthenticated(false);
   setStoreAuthStatus("unauthenticated");
   setStoreAuthReady(false);
-  setStorePostAuthRedirectPath(null);
   setUserProfile(null);
   resetWorkspaceStore();
-  useDevAppPersonaStore.setState({ persona: null });
+  useDevAppPersonaStore.setState({ serverIdentityTouched: false });
   clearSessionStorageForLogout();
-  log.security(LOG_CATEGORIES.AUTH, "User logged out - HTTP-only cookies cleared by server");
-  log.info(LOG_CATEGORIES.AUTH, "Logout complete, navigating to /login");
+  log.security("AUTH", "User logged out - HTTP-only cookies cleared by server");
+  log.info("AUTH", "Logout complete, navigating to /login");
   const win = getWindow();
   if (win) win.location.href = "/login";
 }
@@ -201,6 +215,7 @@ type RefreshSetters = {
   setStoreUser: (u: UserProfile | null) => void;
   setStoreIsAuthenticated: (v: boolean) => void;
   setStoreAuthStatus: (s: string) => void;
+  currentUser: UserProfile | null;
 };
 
 export async function performRefreshToken(setters: RefreshSetters): Promise<boolean> {
@@ -209,56 +224,56 @@ export async function performRefreshToken(setters: RefreshSetters): Promise<bool
   if (lastVerifyAt) {
     const elapsed = Date.now() - parseInt(lastVerifyAt, 10);
     if (elapsed < REFRESH_AFTER_VERIFY_COOLDOWN_MS) {
-      log.debug(
-        LOG_CATEGORIES.AUTH,
-        "Skipping token refresh (within cooldown after session verify)",
-        {
-          elapsedMs: elapsed,
-          cooldownMs: REFRESH_AFTER_VERIFY_COOLDOWN_MS,
-        }
-      );
+      log.debug("AUTH", "Skipping token refresh (within cooldown after session verify)", {
+        elapsedMs: elapsed,
+        cooldownMs: REFRESH_AFTER_VERIFY_COOLDOWN_MS,
+      });
       return true;
     }
   }
-  log.info(LOG_CATEGORIES.AUTH, "Attempting token refresh");
+  log.info("AUTH", "Attempting token refresh");
   try {
-    const { authApi: api } = await import("packages/config/http/api");
-    const response = await api.refreshToken();
-    if (response.success) {
-      setters.setAccessToken("authenticated");
-      if (response.user) {
-        setters.setUser(response.user);
-        setters.setStoreUser(response.user);
+    const attempt = await postRefreshTokenWithRetry();
+    if (attempt.success && attempt.body) {
+      const response = attempt.body as {
+        success?: boolean;
+        user?: Record<string, unknown>;
+        user_sub?: string;
+      };
+      if (response.success) {
+        setters.setAccessToken("authenticated");
+        if (response.user) {
+          const prev = setters.currentUser;
+          const nextUser = prev
+            ? mergeSessionRefreshUserIntoAuthProfile(prev, response.user)
+            : mapAuthResponseToUserProfile(response.user, response.user_sub);
+          setters.setUser(nextUser);
+          setters.setStoreUser(nextUser);
+        }
+        log.info("AUTH", "Token refresh successful");
+        return true;
       }
-      log.info(LOG_CATEGORIES.AUTH, "Token refresh successful");
-      return true;
     }
-    if (
-      response.error === "REFRESH_TOKEN_EXPIRED" ||
-      response.error === "REFRESH_TOKEN_INVALID" ||
-      response.error === "REFRESH_TOKEN_MISSING"
-    ) {
-      log.warn(LOG_CATEGORIES.AUTH, "Refresh token expired or invalid - user must log in again", {
-        error: response.error,
+
+    if (isTransientRefreshFailure(attempt)) {
+      log.warn("AUTH", "Token refresh transient failure (will retry on next cycle)", {
+        status: attempt.status,
       });
-      setters.setAccessToken(null);
-      setters.setUser(null);
-      setters.setStoreUser(null);
-      setters.setStoreIsAuthenticated(false);
-      setters.setStoreAuthStatus("unauthenticated");
-      resetWorkspaceStore();
-      useDevAppPersonaStore.setState({ persona: null });
-    } else {
-      log.warn(LOG_CATEGORIES.AUTH, "Token refresh failed", {
-        error: response.error,
-        message: response.message,
-      });
+      return false;
     }
+
+    const errorCode =
+      typeof attempt.body?.error === "string" ? attempt.body.error : "REFRESH_FAILED";
+    log.warn("AUTH", "Token refresh failed - clearing auth state", {
+      error: errorCode,
+    });
+    clearAuthStateAfterRefreshFailure(setters);
     return false;
   } catch (error) {
-    log.error(LOG_CATEGORIES.AUTH, "Token refresh exception", {
+    log.error("AUTH", "Token refresh exception", {
       error: asError(error).message,
     });
+    clearAuthStateAfterRefreshFailure(setters);
     return false;
   }
 }

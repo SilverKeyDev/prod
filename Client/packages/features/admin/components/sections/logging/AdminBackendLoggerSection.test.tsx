@@ -1,9 +1,19 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { ServerLoggerConfig } from "packages/api/admin";
+import {
+  SERVER_CORE_LOGGER_BOOLEAN_KEYS,
+  SERVER_EXTRA_LOGGER_BOOLEAN_KEYS,
+} from "packages/logger/config/adminLoggerKeys.generated";
+import {
+  ADMIN_LOGGER_UI_GROUPS,
+  LOGGER_CONFIG_KEY_TO_LOG_PATH,
+} from "packages/logger/config/adminLoggerUiMeta.generated";
+import type { components } from "packages/types/api.generated";
 
 import { AdminBackendLoggerSection } from "./AdminBackendLoggerSection";
+
+type ServerLoggerConfig = components["schemas"]["ServerLoggerConfig"];
 
 beforeAll(() => {
   globalThis.ResizeObserver = class {
@@ -19,194 +29,76 @@ vi.mock("packages/contexts", () => ({
   }),
 }));
 
-/** Mirrors CORE_BOOL_KEYS in AdminBackendLoggerSection — keep in sync. */
-const CORE_BOOL_KEYS = [
-  "polling",
-  "pages",
-  "hooks",
-  "auth",
-  "http",
-  "api",
-  "errors",
-  "security",
-] as const satisfies readonly (keyof ServerLoggerConfig)[];
-
-/** Server-only keys in logger_config.py ALLOWED_LOGGER_CONFIG_KEYS (not in CORE_BOOL_KEYS). */
-const SERVER_EXTRA_BOOL_KEYS = [
-  "polygonSearch",
-  "docusign",
-  "documents",
-  "profilePreferences",
-] as const satisfies readonly (keyof ServerLoggerConfig)[];
-
-const SERVER_LOG_LEVELS = ["DEBUG", "INFO", "WARN", "ERROR"] as const;
-
-function defaultServerLoggerConfig(): ServerLoggerConfig {
+function defaultServerConfig(): ServerLoggerConfig {
+  const core = Object.fromEntries(
+    SERVER_CORE_LOGGER_BOOLEAN_KEYS.map((key) => [key, true])
+  ) as Pick<ServerLoggerConfig, (typeof SERVER_CORE_LOGGER_BOOLEAN_KEYS)[number]>;
+  const extras = Object.fromEntries(
+    SERVER_EXTRA_LOGGER_BOOLEAN_KEYS.map((key) => [key, false])
+  ) as Pick<ServerLoggerConfig, (typeof SERVER_EXTRA_LOGGER_BOOLEAN_KEYS)[number]>;
   return {
     logLevel: "INFO",
-    polling: true,
-    pages: true,
-    hooks: true,
-    auth: true,
-    http: true,
-    api: true,
-    errors: true,
-    security: true,
+    ...core,
+    ...extras,
   };
 }
 
-const be = vi.hoisted(() => {
-  const state = {
-    config: defaultServerLoggerConfig(),
-    isLoading: false,
-    error: null as Error | null,
+function createMutationMock() {
+  return {
     mutate: vi.fn(),
     isPending: false,
     isError: false,
-    mutationError: null as Error | null,
+    error: null,
   };
-
-  return {
-    state,
-    reset() {
-      state.config = defaultServerLoggerConfig();
-      state.isLoading = false;
-      state.error = null;
-      state.isPending = false;
-      state.isError = false;
-      state.mutationError = null;
-      state.mutate.mockClear();
-    },
-  };
-});
-
-vi.mock("packages/hooks/data/admin/useAdminLoggerConfig", () => ({
-  useAdminLoggerConfig: () => ({
-    config: be.state.isLoading ? undefined : be.state.config,
-    isLoading: be.state.isLoading,
-    error: be.state.error,
-    refetch: vi.fn(),
-  }),
-  useUpdateAdminLoggerConfig: () => ({
-    mutate: be.state.mutate,
-    isPending: be.state.isPending,
-    isError: be.state.isError,
-    error: be.state.mutationError,
-  }),
-}));
-
-function openLogLevelDropdown(currentLevel: string): void {
-  fireEvent.click(screen.getByRole("button", { name: new RegExp(`Log level, ${currentLevel}`) }));
-}
-
-function selectLogLevelOption(label: string): void {
-  fireEvent.click(screen.getByRole("option", { name: label }));
 }
 
 describe("AdminBackendLoggerSection", () => {
   beforeEach(() => {
-    be.reset();
+    vi.clearAllMocks();
   });
 
-  it("shows loading copy while config is loading", () => {
-    be.state.isLoading = true;
-    render(<AdminBackendLoggerSection />);
-    expect(screen.getByText("Loading server logger config…")).toBeTruthy();
-  });
-
-  it("shows error message when query error is an Error", () => {
-    be.state.error = new Error("network down");
-    render(<AdminBackendLoggerSection />);
-    expect(screen.getByText("network down")).toBeTruthy();
-  });
-
-  it("shows generic failure when config is missing without an Error", () => {
-    be.state.config = null as unknown as ServerLoggerConfig;
-    render(<AdminBackendLoggerSection />);
-    expect(screen.getByText("Failed to load server logger config")).toBeTruthy();
-  });
-
-  it("renders heading and forwards each core category toggle to mutate", () => {
-    render(<AdminBackendLoggerSection />);
-    expect(screen.getByRole("heading", { name: /Server logger/i })).toBeTruthy();
-
-    for (const key of CORE_BOOL_KEYS) {
-      be.state.mutate.mockClear();
-      fireEvent.click(
-        screen.getByRole("checkbox", { name: new RegExp(`Toggle server ${String(key)}`, "i") })
-      );
-      expect(be.state.mutate).toHaveBeenCalledTimes(1);
-      expect(be.state.mutate).toHaveBeenCalledWith({
-        [key]: false,
-      } satisfies Partial<ServerLoggerConfig>);
-    }
-  });
-
-  it.each(SERVER_LOG_LEVELS)("selecting log level %s calls mutate with logLevel", (level) => {
-    render(<AdminBackendLoggerSection />);
-    be.state.mutate.mockClear();
-    openLogLevelDropdown("INFO");
-    selectLogLevelOption(level);
-    expect(be.state.mutate).toHaveBeenCalledWith({ logLevel: level });
-  });
-
-  it("renders server-only extra boolean keys from config", () => {
-    be.state.config = {
-      ...defaultServerLoggerConfig(),
-      polygonSearch: false,
-      docusign: true,
-      documents: false,
-      profilePreferences: true,
-    };
-    render(<AdminBackendLoggerSection />);
-
-    for (const key of SERVER_EXTRA_BOOL_KEYS) {
-      expect(
-        screen.getByRole("checkbox", { name: new RegExp(`Toggle server ${String(key)}`, "i") })
-      ).toBeTruthy();
-    }
-  });
-
-  it.each(SERVER_EXTRA_BOOL_KEYS)("toggling server extra key %s calls mutate", (key) => {
-    be.state.config = {
-      ...defaultServerLoggerConfig(),
-      polygonSearch: true,
-      docusign: true,
-      documents: true,
-      profilePreferences: true,
-      [key]: true,
-    };
-    render(<AdminBackendLoggerSection />);
-
-    be.state.mutate.mockClear();
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: new RegExp(`Toggle server ${String(key)}`, "i") })
+  it("forwards server category toggle to mutation", () => {
+    const mutation = createMutationMock();
+    render(
+      <AdminBackendLoggerSection
+        serverConfig={defaultServerConfig()}
+        mutation={mutation as never}
+      />
     );
-    expect(be.state.mutate).toHaveBeenCalledWith({
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Toggle POLLING" }));
+    expect(mutation.mutate).toHaveBeenCalledWith({ server: { polling: false } });
+  });
+
+  it.each(
+    ADMIN_LOGGER_UI_GROUPS.alwaysEnabled.keys.map(
+      (key) => [key, LOGGER_CONFIG_KEY_TO_LOG_PATH[key] ?? key] as const
+    )
+  )("always-on %s stays checked and does not mutate when clicked", (key, label) => {
+    const mutation = createMutationMock();
+    const config = {
+      ...defaultServerConfig(),
       [key]: false,
-    } satisfies Partial<ServerLoggerConfig>);
+    };
+    render(<AdminBackendLoggerSection serverConfig={config} mutation={mutation as never} />);
+
+    const checkbox = screen.getByRole("checkbox", { name: `Toggle ${label}` });
+    expect(checkbox).toBeChecked();
+    fireEvent.click(checkbox);
+    expect(mutation.mutate).not.toHaveBeenCalled();
   });
 
-  it("disables category checkboxes and log level dropdown while mutation is pending", () => {
-    be.state.isPending = true;
-    render(<AdminBackendLoggerSection />);
-    const polling = screen.getByRole("checkbox", { name: /Toggle server polling/i });
-    expect((polling as HTMLInputElement).disabled).toBe(true);
-    const levelTrigger = screen.getByRole("button", { name: /Log level, INFO/ });
-    expect((levelTrigger as HTMLButtonElement).disabled).toBe(true);
-  });
+  it("forwards log level change to mutation", () => {
+    const mutation = createMutationMock();
+    render(
+      <AdminBackendLoggerSection
+        serverConfig={defaultServerConfig()}
+        mutation={mutation as never}
+      />
+    );
 
-  it("shows mutation error line when isError is true", () => {
-    be.state.isError = true;
-    be.state.mutationError = new Error("persist failed");
-    render(<AdminBackendLoggerSection />);
-    expect(screen.getByText("persist failed")).toBeTruthy();
-  });
-
-  it("shows generic update failed when isError without Error instance", () => {
-    be.state.isError = true;
-    be.state.mutationError = null;
-    render(<AdminBackendLoggerSection />);
-    expect(screen.getByText("Update failed")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Log level, INFO/ }));
+    fireEvent.click(screen.getByRole("option", { name: "WARN" }));
+    expect(mutation.mutate).toHaveBeenCalledWith({ server: { logLevel: "WARN" } });
   });
 });

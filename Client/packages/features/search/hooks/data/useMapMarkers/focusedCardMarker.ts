@@ -1,10 +1,10 @@
 import { addressForMarkerTitle } from "packages/features/search/types/search/formatters/address";
 import { getMapFocusedSlotAssignmentsExcludingDismissed } from "packages/features/search/types/search/map/mapCardFocus";
 import { searchMapHomeCardZIndex } from "packages/features/search/types/search/map/mapOverlayLayerOrder";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { SearchResult } from "packages/types";
-import { escapeHtml } from "packages/utils/dom/escapeHtml";
-import { getDocument } from "packages/utils/platform";
+import { escapeHtml } from "packages/utils/core/dom/escapeHtml";
+import { getDocument } from "packages/utils/core/platform";
 
 import { geocodeAddress } from "./geocode";
 import type { GoogleAdvancedMarkerElement, MapPropertyCardRenderProps } from "./types";
@@ -93,11 +93,7 @@ function placeFocusedCardAtCoords(
             try {
               await onUnlockClick(focused);
             } catch (error) {
-              log.error(
-                LOG_CATEGORIES.MAP_RENDERING,
-                "🗺️ [USE MAP MARKERS] Error in onUnlockClick:",
-                error
-              );
+              log.error("MAP_RENDERING", "🗺️ [USE MAP MARKERS] Error in onUnlockClick:", error);
               throw error;
             }
           }
@@ -115,7 +111,7 @@ function placeFocusedCardAtCoords(
     });
   } catch (error) {
     log.error(
-      LOG_CATEGORIES.MAP_RENDERING,
+      "MAP_RENDERING",
       `Error rendering MapPropertyCard for focused property ${focused.id}:`,
       error
     );
@@ -142,7 +138,7 @@ function placeFocusedCardAtCoords(
     });
     markersRef.current.push(marker);
   } catch (error) {
-    log.error(LOG_CATEGORIES.MAP_RENDERING, "Error creating focused card marker:", error);
+    log.error("MAP_RENDERING", "Error creating focused card marker:", error);
     setTimeout(() => cleanupMapPropertyCard(markerElement), 0);
   }
 }
@@ -174,15 +170,6 @@ function placeOneFocusedCard(
     placeFocusedCardAtCoords(focused, lat, lng, score, options, stackIndex);
   }
   onDone();
-}
-
-/** @deprecated Use addFocusedCardMarkers with count 1 */
-export function addFocusedCardMarker(
-  results: SearchResult[],
-  currentPage: number,
-  options: FocusedCardMarkerOptions
-): void {
-  addFocusedCardMarkers(results, currentPage, 1, options);
 }
 
 export function addFocusedCardMarkers(

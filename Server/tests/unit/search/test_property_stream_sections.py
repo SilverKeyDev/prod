@@ -107,6 +107,7 @@ def _stream_patch_targets(
     }
     if compare_mode:
         targets[f"{internal}.generate_report_sections_for_property_streaming"] = iter([])
+        targets[f"{internal}.build_research_analysis_options"] = (analysis_options, None)
     else:
         targets[f"{internal}.build_research_analysis_options"] = (analysis_options, None)
         targets[f"{internal}.get_user_commute"] = None
@@ -115,7 +116,11 @@ def _stream_patch_targets(
         targets[f"{internal}.analyze_property_with_sonar_pro"] = sonar_result
         targets[f"{internal}.resolve_highlights_counts_and_signature"] = (3, 3, "sig-test", 85.0)
         targets[f"{internal}.save_user_highlights"] = None
-        targets[f"{internal}.generate_report_sections_for_property"] = {}
+        targets[f"{internal}.generate_report_sections_for_property_streaming"] = iter([])
+        targets[f"{internal}.enrich_neighborhood_overview_with_census"] = lambda nb, _addr: {
+            **nb,
+            "age_distribution": {"18-24": "10%"},
+        }
         targets[f"{internal}.attach_analysis_cache_meta"] = lambda pa, _sig: pa
         targets[f"{tail}.extract_and_clean_features"] = {"clean": ["hardwood"]}
         targets[f"{tail}.update_property_images"] = None
@@ -135,6 +140,7 @@ class TestGeneratePropertyStreamSections:
             "investment": {"outlook": "stable"},
             "convenience_walkability": {"walk_score": 72},
         }
+
         class _SonarResult:
             pros = ["Great layout"]
             cons = ["Busy street"]
@@ -172,9 +178,24 @@ class TestGeneratePropertyStreamSections:
                 assert "basic" in types
                 assert "commute_data" in types
                 assert "property_analysis_partial" in types
+                assert "property_analysis_section" in types
                 assert "property_analysis" in types
                 assert "images" in types
                 assert "complete" in types
+
+                section_events = [e for e in events if e["type"] == "property_analysis_section"]
+                section_keys = {list(e["data"].keys())[0] for e in section_events}
+                assert "climate_environmental_safety" in section_keys
+                assert "family_friendly" in section_keys
+                assert "neighborhood_overview" in section_keys
+
+                neighborhood_event = next(
+                    e for e in section_events if "neighborhood_overview" in e["data"]
+                )
+                assert neighborhood_event["data"]["neighborhood_overview"]["summary"] == "Walkable"
+                assert neighborhood_event["data"]["neighborhood_overview"]["age_distribution"] == {
+                    "18-24": "10%"
+                }
 
                 basic = next(e for e in events if e["type"] == "basic")
                 assert basic["data"]["data"]["streetAddress"] == "100 Main St"
@@ -194,7 +215,9 @@ class TestGeneratePropertyStreamSections:
                 assert "pros" in partial["data"]
                 assert "cons" in partial["data"]
 
-    def test_compare_stream_skips_highlights_and_yields_section_events(self, app) -> None:
+    def test_compare_stream_skips_highlights_and_yields_section_events(
+        self, app, analysis_options
+    ) -> None:
         from app.services.search.property.property_stream import generate_property_stream_compare
 
         cached_sections = {
@@ -202,7 +225,11 @@ class TestGeneratePropertyStreamSections:
         }
 
         with app.app_context():
-            targets = _stream_patch_targets(cached_sections=cached_sections, compare_mode=True)
+            targets = _stream_patch_targets(
+                analysis_options=analysis_options,
+                cached_sections=cached_sections,
+                compare_mode=True,
+            )
             with ExitStack() as stack:
                 mock_db = stack.enter_context(
                     patch("app.services.search.property.property_stream_internal.db")

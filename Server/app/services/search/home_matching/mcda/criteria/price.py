@@ -1,10 +1,16 @@
 """
 Price soft fit: best near configurable fraction of max budget (default ~65%).
+
+In-budget listings map to [IN_BUDGET_SIGNAL_FLOOR, 1.0] so affordable homes inside the
+user's band are not crushed at the budget edges (legacy triangular model hit 0.0 at min/max).
 """
 
 from __future__ import annotations
 
 from typing import Any
+
+# Any listing within [min, max] gets at least a neutral-positive price signal.
+_IN_BUDGET_SIGNAL_FLOOR = 0.60
 
 
 def _parse_money(value: Any) -> float | None:
@@ -60,6 +66,13 @@ def listing_price(property_dict: dict[str, Any]) -> float | None:
     )
 
 
+def _in_budget_price_signal(t: float) -> float:
+    """Map triangular position t in [0, 1] to [floor, 1.0]."""
+    clamped = max(0.0, min(1.0, t))
+    span = 1.0 - _IN_BUDGET_SIGNAL_FLOOR
+    return _IN_BUDGET_SIGNAL_FLOOR + span * clamped
+
+
 def soft_price_normalized(
     preferences: dict[str, Any],
     property_dict: dict[str, Any],
@@ -67,7 +80,7 @@ def soft_price_normalized(
     price_peak_ratio: float,
 ) -> float:
     """
-    Triangular soft score in [0, 1], peak at ideal price inside [min, max].
+    Soft score in [IN_BUDGET_SIGNAL_FLOOR, 1] inside [min, max], peak at ideal price.
     Above max returns low soft (hard layer also penalizes).
     """
     lo, hi = effective_budget_bounds(preferences, status_type)
@@ -101,9 +114,9 @@ def soft_price_normalized(
         span = ideal - lo
         if span < 1e-6:
             return 1.0
-        return max(0.0, min(1.0, (p - lo) / span))
+        return _in_budget_price_signal((p - lo) / span)
 
     span = hi - ideal
     if span < 1e-6:
         return 1.0
-    return max(0.0, min(1.0, (hi - p) / span))
+    return _in_budget_price_signal((hi - p) / span)

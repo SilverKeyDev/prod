@@ -1,0 +1,85 @@
+type: object
+required:
+  - id
+  - name
+  - slug
+  - destination_url_template
+  - step_id
+  - step_ids
+  - target_roles
+  - payout_type
+  - payout_per_conversion
+  - is_active
+properties:
+  id:
+    type: string
+  name:
+    type: string
+  slug:
+    type: string
+  destination_url_template:
+    type: string
+  logo_url:
+    type: string
+    nullable: true
+  description:
+    type: string
+    nullable: true
+  step_id:
+    type: string
+    description: Deprecated primary step mirror (step_ids[0]) for analytics compatibility
+  step_ids:
+    type: array
+    items:
+      type: string
+    description: Checklist step references (section:item_id), e.g. closing:13
+  target_roles:
+    type: array
+    items:
+      type: string
+      enum:
+        - buyer
+        - seller
+        - renter
+        - agent
+        - brokerage
+        - integration_partner
+    description: Workspaces that may see this placement
+  payout_type:
+    type: string
+    enum:
+      - on_click
+      - on_close
+    description: Whether payout is attributed per click or per closed transaction
+  payout_per_conversion:
+    type: number
+  integration_display_mode:
+    type: string
+    enum:
+      - iframe_and_link
+      - link_only
+    default: iframe_and_link
+    description: Checklist integration UI — embedded iframe plus new-tab link, or link only
+  embed_url_template:
+    type: string
+    nullable: true
+    description: Optional URL loaded in the iframe when integration_display_mode is iframe_and_link; defaults to destination_url_template
+  is_active:
+    type: boolean
+  created_at:
+    type: string
+    format: date-time
+    nullable: true
+  updated_at:
+    type: string
+    format: date-time
+    nullable: true
+  total_clicks:
+    type: integer
+    nullable: true
+  click_through_rate:
+    type: number
+    nullable: true
+  unique_buyer_step_views:
+    type: integer
+    nullable: true

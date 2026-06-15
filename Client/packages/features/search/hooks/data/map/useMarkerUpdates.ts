@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 
 import type { SearchResult } from "packages/features/search/types";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 export function useMarkerUpdates(params: {
   googleMapRef: React.MutableRefObject<google.maps.Map | null>;
@@ -26,7 +26,7 @@ export function useMarkerUpdates(params: {
   const refreshMarkers = useCallback(
     (_current?: SearchResult) => {
       if (!googleMapRef.current) {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map not available for marker refresh");
+        log.warn("MAP_RENDERING", "Map not available for marker refresh");
         return;
       }
     },

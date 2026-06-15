@@ -1,33 +1,76 @@
 #!/usr/bin/env bash
-# Resilient wrapper: run pre-commit when available; otherwise warn and allow the commit.
+# Advisory commit hooks: format/lint autofix + OpenAPI regen when relevant paths change.
+# Never blocks the commit; re-stages auto-fixes. CI / make lint are merge gates.
+#
 # Enable for this clone: git config core.hooksPath scripts/githooks
-set -u
+# Disable for one commit: SKIP=1 git commit ...
+set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 cd "$REPO_ROOT" || exit 0
 
+STAGED_FILES="$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true)"
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit --hook-dir "$HERE" -- "$@")
 
+run_hooks() {
+  local cmd=("$@")
+  "${cmd[@]}" "${ARGS[@]}"
+}
+
+PC_CMD=()
 for pc in "$REPO_ROOT/Server/.venv/bin/pre-commit" "$REPO_ROOT/Server/venv/bin/pre-commit"; do
   if [ -x "$pc" ]; then
-    exec "$pc" "${ARGS[@]}"
+    PC_CMD=("$pc")
+    break
   fi
 done
 
-for py in "$REPO_ROOT/Server/.venv/bin/python3" "$REPO_ROOT/Server/.venv/bin/python"; do
-  if [ -x "$py" ] && "$py" -m pre_commit version >/dev/null 2>&1; then
-    exec "$py" -m pre_commit "${ARGS[@]}"
+if [ "${#PC_CMD[@]}" -eq 0 ]; then
+  for py in "$REPO_ROOT/Server/.venv/bin/python3" "$REPO_ROOT/Server/.venv/bin/python"; do
+    if [ -x "$py" ] && "$py" -m pre_commit version >/dev/null 2>&1; then
+      PC_CMD=("$py" -m pre_commit)
+      break
+    fi
+  done
+fi
+
+if [ "${#PC_CMD[@]}" -eq 0 ]; then
+  if command -v pre-commit >/dev/null 2>&1; then
+    PC_CMD=(pre-commit)
+  elif python3 -m pre_commit version >/dev/null 2>&1; then
+    PC_CMD=(python3 -m pre_commit)
   fi
-done
-
-if command -v pre-commit >/dev/null 2>&1; then
-  exec pre-commit "${ARGS[@]}"
 fi
 
-if python3 -m pre_commit version >/dev/null 2>&1; then
-  exec python3 -m pre_commit "${ARGS[@]}"
+if [ "${#PC_CMD[@]}" -eq 0 ]; then
+  echo "pre-commit: skipped (pre-commit not installed). Run: make setup" >&2
+  exit 0
 fi
 
-echo "warning: pre-commit not found; skipping commit hooks. To enable: install pre-commit in Server/.venv or on PATH, then ensure git config core.hooksPath scripts/githooks" >&2
+STATUS=0
+run_hooks "${PC_CMD[@]}" || STATUS=$?
+
+# Re-stage paths that were in the index before hooks ran (captures auto-fixes).
+if [ -n "$STAGED_FILES" ]; then
+  while IFS= read -r f; do
+    if [ -n "$f" ]; then
+      git add -- "$f" 2>/dev/null || true
+    fi
+  done <<< "$STAGED_FILES"
+fi
+
+# OpenAPI hook may refresh generated types outside the original staged set.
+git add -- \
+  Client/packages/types/api.generated.ts \
+  Server/app/schemas/generated.py \
+  2>/dev/null || true
+
+if [ "$STATUS" -ne 0 ]; then
+  echo "" >&2
+  echo "pre-commit: auto-fixes or checks reported issues (commit not blocked)." >&2
+  echo "pre-commit: review above; before merge run: make lint | make openapi-verify" >&2
+fi
+
 exit 0

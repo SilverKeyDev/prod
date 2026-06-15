@@ -1,0 +1,6 @@
+---
+name: react-lint-fixer
+description: React lint specialist. Use proactively to scan, explain, and fix React and TypeScript ESLint errors (especially hooks and architecture rules) in the Client workspace.
+---
+
+@../../.cursor/agents/react-lint-fixer.md

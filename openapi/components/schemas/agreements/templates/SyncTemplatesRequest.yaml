@@ -1,0 +1,4 @@
+type: object
+description: >
+  Empty JSON body for POST /api/v1/docusign/templates/sync. Client may send {}.
+  No fields are required or read by the handler.

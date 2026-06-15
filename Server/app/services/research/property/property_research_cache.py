@@ -6,10 +6,9 @@ Fast-path cache checks use shared PropertyCache (cross-user).
 import time
 from typing import Any
 
-from flask import current_app
-
 from app.services.property_cache import get_property_by_zpid_or_address
 from app.services.search.data import get_property_detail
+from logger import log
 
 from .property_cache import (
     find_cached_property,
@@ -49,27 +48,29 @@ def check_cache_fast_path(
                         }
 
                 elapsed = time.time() - start_time
-                current_app.logger.info(
-                    "%s Returning cached data in %.2fms (zpid=%s)",
-                    log_prefix,
-                    elapsed,
-                    cached_property.zpid,
+                log.info(
+                    "PROPERTY_DETAILS",
+                    "Returning cached data",
+                    {
+                        "log_prefix": log_prefix,
+                        "elapsed_ms": round(elapsed * 1000, 2),
+                        "zpid": cached_property.zpid,
+                    },
                 )
                 return (cached_response, 200)
     except Exception as cache_err:
-        current_app.logger.warning(
-            "%s Cache fast-path failed, proceeding to fetch: %s",
-            log_prefix,
-            cache_err,
-            exc_info=True,
+        log.warn(
+            "PROPERTY_DETAILS",
+            "Cache fast-path failed, proceeding to fetch",
+            {"log_prefix": log_prefix, "error": str(cache_err)},
         )
     return None
 
 
-def fetch_property_from_rapidapi(
-    params: dict[str, Any], rapidapi_key: str | None = None
+def fetch_property_detail_for_research(
+    params: dict[str, Any],
 ) -> tuple[dict[str, Any] | None, tuple[dict[str, Any], int] | None]:
-    """Fetch property data from Slipstream (name kept for backward compat)."""
+    """Fetch property data from Slipstream for research flows."""
     listing_id = params.get("zpid") or params.get("id")
     address = params.get("address")
 
@@ -116,10 +117,10 @@ def get_cached_details_with_pros_cons_removal(
                     if k not in ["pros", "cons", "neighborhood_overview", "neighborhood"]
                 }
     except Exception as cache_check_err:
-        current_app.logger.debug(
-            "%s Error checking cache for commute/analysis: %s",
-            log_prefix,
-            cache_check_err,
+        log.debug(
+            "PROPERTY_DETAILS",
+            "Error checking cache for commute/analysis",
+            {"log_prefix": log_prefix, "error": str(cache_check_err)},
         )
 
     return cached_commute_data, cached_property_analysis, cached_features
@@ -153,5 +154,9 @@ def get_recent_property_analysis_sections(
         return {}
 
     except Exception as e:
-        current_app.logger.warning("[PROPERTY] Error checking recent analysis sections: %s", e)
+        log.warn(
+            "PROPERTY_DETAILS",
+            "Error checking recent analysis sections",
+            {"error": str(e)},
+        )
         return {}

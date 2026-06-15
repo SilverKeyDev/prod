@@ -1,6 +1,6 @@
 import { useLocalization } from "packages/contexts";
-import { Icon } from "packages/ui/components/primitives";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Icon } from "packages/ui/components/structure/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 type ClientCalendarAccessPromptProps = {
   clientHasConnection: boolean;

@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import logging
 from datetime import datetime, timezone
 from typing import Any
 
+from sqlalchemy import select
+
 from app import db
 from app.models import UserPropertyCommute, UserPropertyHighlights
-
-logger = logging.getLogger(__name__)
-
+from logger import log
 
 # ---------------------------------------------------------------------------
 # Highlights
@@ -18,7 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 def get_user_highlights(user_id: str, property_id: str) -> UserPropertyHighlights | None:
-    return UserPropertyHighlights.query.filter_by(user_id=user_id, property_id=property_id).first()
+    return db.session.scalar(
+        select(UserPropertyHighlights).where(
+            UserPropertyHighlights.user_id == user_id,
+            UserPropertyHighlights.property_id == property_id,
+        )
+    )
 
 
 def save_user_highlights(
@@ -39,10 +43,10 @@ def save_user_highlights(
         existing.highlights_context = highlights_context
         existing.analysis_cache_signature = analysis_cache_signature
         existing.generated_at = now
-        logger.info(
-            "[USER_DATA] Updated highlights user=%s property=%s",
-            user_id,
-            property_id,
+        log.info(
+            "PROPERTY_DETAILS",
+            "Updated user highlights",
+            {"user_id": user_id, "property_id": property_id},
         )
         return existing
 
@@ -56,10 +60,10 @@ def save_user_highlights(
         generated_at=now,
     )
     db.session.add(record)
-    logger.info(
-        "[USER_DATA] Created highlights user=%s property=%s",
-        user_id,
-        property_id,
+    log.info(
+        "PROPERTY_DETAILS",
+        "Created user highlights",
+        {"user_id": user_id, "property_id": property_id},
     )
     return record
 
@@ -70,7 +74,11 @@ def save_user_highlights(
 
 
 def get_user_commute(user_id: str, property_id: str) -> UserPropertyCommute | None:
-    return UserPropertyCommute.query.filter_by(user_id=user_id, property_id=property_id).first()
+    return db.session.scalar(
+        select(UserPropertyCommute).where(
+            UserPropertyCommute.user_id == user_id, UserPropertyCommute.property_id == property_id
+        )
+    )
 
 
 def save_user_commute(
@@ -85,10 +93,10 @@ def save_user_commute(
     if existing:
         existing.commute_data = commute_data
         existing.generated_at = now
-        logger.info(
-            "[USER_DATA] Updated commute user=%s property=%s",
-            user_id,
-            property_id,
+        log.info(
+            "PROPERTY_DETAILS",
+            "Updated user commute",
+            {"user_id": user_id, "property_id": property_id},
         )
         return existing
 
@@ -99,9 +107,9 @@ def save_user_commute(
         generated_at=now,
     )
     db.session.add(record)
-    logger.info(
-        "[USER_DATA] Created commute user=%s property=%s",
-        user_id,
-        property_id,
+    log.info(
+        "PROPERTY_DETAILS",
+        "Created user commute",
+        {"user_id": user_id, "property_id": property_id},
     )
     return record

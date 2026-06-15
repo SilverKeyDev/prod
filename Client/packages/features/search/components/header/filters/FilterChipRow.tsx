@@ -1,9 +1,9 @@
 import React from "react";
 
-import { ScrollView } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
+import { ScrollView } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
 
 type Option = { value: string; label: string };
 

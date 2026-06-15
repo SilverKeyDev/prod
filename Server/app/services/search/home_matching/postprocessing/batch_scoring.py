@@ -2,11 +2,10 @@
 Batch scoring helpers for ensemble scoring.
 """
 
-import logging
 import time
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 def get_embedding_scores_batch(
@@ -17,7 +16,7 @@ def get_embedding_scores_batch(
         scored_homes = embedding_scorer.score_user_against_homes(user_data, homes_data)
         return [score for _, score in scored_homes]
     except Exception as e:
-        logger.error(f"Batch embedding scoring failed: {e}")
+        log.error("ERRORS", f"Batch embedding scoring failed: {e}")
         return [0.0] * len(homes_data)
 
 
@@ -87,12 +86,12 @@ def score_home_batch(
                             session_id=session_id,
                         )
                     except Exception as e:
-                        logger.warning(f"Failed to track batch scoring event to DB: {e}")
+                        log.warn("SEARCH", f"Failed to track batch scoring event to DB: {e}")
 
                 batch_results.append(result)
 
             except Exception as e:
-                logger.error(f"Error scoring home {batch_start_idx + i}: {e}")
+                log.error("ERRORS", f"Error scoring home {batch_start_idx + i}: {e}")
                 # Get home_id with proper None handling
                 home_id = home_data.get("home_id") or f"home_{batch_start_idx + i}"
                 batch_results.append(
@@ -107,7 +106,7 @@ def score_home_batch(
         return batch_results
 
     except Exception as e:
-        logger.error(f"Error processing batch starting at index {batch_start_idx}: {e}")
+        log.error("ERRORS", f"Error processing batch starting at index {batch_start_idx}: {e}")
         # Return error results for all homes in the batch
         error_results = []
         for i, home_data in enumerate(batch_homes):
@@ -136,7 +135,7 @@ def _track_batch_scoring_event(
     """Track a batch scoring event to the database."""
     # Skip tracking if home_id is None or empty (required by database)
     if not home_id:
-        logger.debug("Skipping batch scoring event tracking: home_id is None or empty")
+        log.debug("SEARCH", "Skipping batch scoring event tracking: home_id is None or empty")
         return
 
     try:
@@ -185,7 +184,7 @@ def _track_batch_scoring_event(
             )
 
     except Exception as e:
-        logger.error(f"Error tracking batch scoring event: {e}", exc_info=True)
+        log.error("ERRORS", f"Error tracking batch scoring event: {e}")
         # Rollback on error
         try:
             from flask import has_app_context
@@ -218,8 +217,9 @@ def _track_batch_scoring_event_internal(
 
     # Validate required fields - home_id cannot be None or empty (database constraint)
     if not home_id:
-        logger.warning(
-            f"Skipping batch scoring event tracking: home_id is None or empty (request_id={request_id}, user_id={user_id})"
+        log.warn(
+            "SEARCH",
+            f"Skipping batch scoring event tracking: home_id is None or empty (request_id={request_id}, user_id={user_id})",
         )
         return
 

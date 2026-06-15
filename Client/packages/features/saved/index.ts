@@ -6,8 +6,8 @@ export { SavedHomesService, savedHomesService } from "./api/savedHomes";
 export { SavedFeature } from "./components/SavedFeature";
 export { default as SavedHomesContent } from "./components/SavedHomesContent";
 export { default as SavedPageModals } from "./components/SavedPageModals";
-export type { PropertyData, RawHomeData } from "./types/savedHomeMappers";
-export { mapHomeUniversalToSavedHome } from "./types/savedHomeMappers";
+export type { RawHomeData, SavedHomeWire } from "./types/savedHomeMappers";
+export { mapSavedHomeWireToSavedHome } from "./types/savedHomeMappers";
 export {
   convertSavedHomeToProperty,
   convertToFavoriteHome,

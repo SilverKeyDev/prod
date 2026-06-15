@@ -5,9 +5,9 @@
 import type { IsochroneData } from "packages/features/search/types/isochrone";
 import { addressForMarkerTitle } from "packages/features/search/types/search/formatters/address";
 import { importantWaypointsFromIsochrone } from "packages/features/search/utils/map/importantWaypointsFromIsochrone";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { escapeHtml } from "packages/utils/dom/escapeHtml";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { log } from "packages/logger";
+import { escapeHtml } from "packages/utils/core/dom/escapeHtml";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import { searchMapOverlayBaseZIndex } from "./mapOverlayLayerOrder";
 
@@ -65,13 +65,13 @@ export const renderImportantLocationMarkers = (
 
   if (!map || !isochroneData?.center) {
     log.warn(
-      LOG_CATEGORIES.MAP_RENDERING,
+      "MAP_RENDERING",
       "Cannot render important location markers: map or data not available"
     );
-    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Map ref available", {
+    log.warn("MAP_RENDERING", "Map ref available", {
       mapAvailable: !!map,
     });
-    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Isochrone center data", {
+    log.warn("MAP_RENDERING", "Isochrone center data", {
       center: isochroneData?.center,
     });
     return;
@@ -79,11 +79,8 @@ export const renderImportantLocationMarkers = (
 
   const win = getWindow() as Window & { google?: typeof google };
   if (!win?.google?.maps?.marker?.AdvancedMarkerElement) {
-    log.warn(
-      LOG_CATEGORIES.MAP_RENDERING,
-      "AdvancedMarkerElement not available for important location markers"
-    );
-    log.warn(LOG_CATEGORIES.MAP_RENDERING, "Google Maps API status", {
+    log.warn("MAP_RENDERING", "AdvancedMarkerElement not available for important location markers");
+    log.warn("MAP_RENDERING", "Google Maps API status", {
       google: !!win?.google,
       maps: !!win?.google?.maps,
       marker: !!win?.google?.maps?.marker,

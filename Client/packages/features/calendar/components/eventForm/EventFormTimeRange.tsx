@@ -6,13 +6,13 @@ import utc from "dayjs/plugin/utc";
 import type { ReactNode } from "react";
 
 import { Dropdown } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import Label from "packages/ui/components/text/Label.web";
+import { Box } from "packages/ui/components/structure/primitives";
+import Label from "packages/ui/components/structure/text/Label.web";
 import {
   CREATE_EVENT_TIME_STEP_MINUTES,
   parseHourMinute24,
-} from "packages/utils/calendar/eventFormGooglePayload";
-import { buildTimeOptions } from "packages/utils/scheduling/eventRequestScheduleOptions";
+} from "packages/utils/comms/calendar/createEvent/eventFormGooglePayload";
+import { buildTimeOptions } from "packages/utils/comms/scheduling/eventRequestScheduleOptions";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

@@ -13,7 +13,7 @@ import type {
   RiskFlag,
 } from "packages/schemas/agent";
 import type { UrgentAlert } from "packages/types/domain/ui";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
 
 /**
  * Generate mock todos for a client or all clients

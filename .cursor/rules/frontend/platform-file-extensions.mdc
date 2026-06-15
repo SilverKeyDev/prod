@@ -52,7 +52,7 @@ Cursor and tooling must use consistent file extensions by app so that:
 
 **Examples:**
 - `Client/apps/web/app/layouts/sidebar/Sidebar.web.tsx` ✅ (web-only layout)
-- `Client/apps/web/features/search/header/SearchHeader.web.tsx` ✅ (web-only)
+- `Client/packages/features/search/components/header/SearchHeader.web.tsx` ✅ (web-only)
 - `Client/packages/ui/components/button/Button.tsx` ✅ (shared or default web)
 - `Client/packages/ui/components/primitives/button/Button.web.tsx` without a `.native` counterpart where DOM-only ✅ (web-only primitive)
 
@@ -75,4 +75,4 @@ Import without the extension: `import './Sidebar'` → bundler resolves `Sidebar
 
 ## Enforcement
 
-- Platform conventions are enforced via ESLint and code review. See `documentation/client/LINTING.md` for full details.
+- Platform conventions are enforced via ESLint and code review. See `documentation/client/standards/LINTING.md` for full details.

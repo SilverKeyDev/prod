@@ -13,12 +13,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { color } from "packages/design-tokens";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
-import AppImage from "packages/ui/components/asset/AppImage.native";
-import { LOGO_SOURCE } from "packages/ui/components/asset/logoSource.native";
-import { RippleBackground } from "packages/ui/components/backgrounds";
-import { ScrollView } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import AppImage from "packages/ui/components/media/asset/AppImage.native";
+import { LOGO_SOURCE } from "packages/ui/components/media/asset/logoSource.native";
+import { ScrollView } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import { RippleBackground } from "packages/ui/components/surfaces/backgrounds";
 
 /** Minimal auth stack screen names we navigate to from Home. Matches AuthStackParamList in apps/mobile. */
 type AuthHomeNavigation = NativeStackNavigationProp<

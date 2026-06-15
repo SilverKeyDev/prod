@@ -10,9 +10,6 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.searching_properties": "Searching properties...",
   "search.filters": "Filters",
   "search.list": "List",
-  "search.add_location_to_search": "Add at least one location to search",
-  "search.need_locations_or_place":
-    "Add important locations in Filters, or type a city, neighborhood, or ZIP in the search bar and search.",
   "search.reels": "Reels",
   "search.reels_empty_title": "Search to get results",
   "search.reels_empty_subtitle": "Run a search to browse homes here in reels.",
@@ -31,11 +28,14 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.sale_type_pending": "Pending",
   "search.sale_type_sold": "Sold",
   "search.more": "Preferences",
+  "search.clear_preferences": "Clear preferences",
+  "search.clear_preferences_success": "Your preferences were cleared.",
+  "search.clear_preferences_error": "Couldn’t clear preferences. Try again.",
   "search.agent_sync_preferences_label": "Match my preferences to a client",
   "search.agent_sync_preferences_hint":
     "You can’t edit your client’s saved preferences. This copies their saved preferences to your account so your search profile matches theirs.",
   "search.agent_filter_edits_save_to_your_profile":
-    "You’re viewing this client’s preferences. Edits here save to your profile only—we never change your client’s saved preferences.",
+    "You’re viewing this client’s preferences to search with their criteria. Any edits you make here save to your profile only—we never change your client’s saved preferences.",
   "search.agent_sync_preferences_success": "Your preferences now match {{name}}’s.",
   "search.agent_sync_preferences_error": "Couldn’t copy preferences. Try again.",
   "search.agent_sync_preferences_client_fallback": "your client",
@@ -66,10 +66,15 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.tap_search_to_find": "Tap Search to find homes that match your preferences",
   "search.no_results_try_adjusting":
     "No homes match your search yet. Try adjusting your preferences.",
+  "search.filters_too_tight": "Your filters are too tight. Try relaxing them to see more homes.",
   "search.empty_results_strict_preferences":
     'No homes matched with strict preferences on. Try turning off "Match all preferences strictly," or relax your filters and search again.',
   "search.invalid_search_area":
     "We couldn’t build a search area from your locations. Add or fix important locations in Filters, then try again.",
+  "search.geolocation_denied_blocks_search":
+    "Allow location access to search, or enter a city, neighborhood, or ZIP.",
+  "search.geolocation_unavailable_default_market":
+    "We couldn’t use your location. Showing homes near Atlanta until you pick an area on the map.",
   "search.viewport_search_area_invalid":
     "This map area couldn’t be searched. Zoom or move the map and try again.",
   "search.map_not_ready": "The map is still loading. Wait a moment, then search again.",
@@ -112,20 +117,12 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.agent_share_home_selected": "1 home selected to share",
   "search.agent_share_homes_selected": "{{count}} homes selected to share",
 
-  /** Product tour (driver.js): keyed copy for future locale bundles — see `packages/utils/tour/productTourSteps`. */
+  /** Product tour (driver.js): keyed copy for future locale bundles — see `packages/utils/transaction/tour/productTourSteps`. */
   "search.product_tour.desktop.preferences_title": "Preferences",
   "search.product_tour.desktop.preferences_description":
-    "Open Preferences for budgets, beds and baths, commute and important locations, and the other fields that shape your matches. Changes save to your profile.",
-
-  "search.product_tour.desktop.display_title": "Display",
-  "search.product_tour.desktop.display_description":
-    "Open Display to change how results are ordered and sorted, toggle show commute area on the map, and turn match all preferences strictly on or off.",
+    "Open Preferences for budgets, beds and baths, commute and important locations, how results are ordered and shown on the map, and the other fields that shape your matches. Changes save to your profile.",
 
   "search.product_tour.mobile.preferences_title": "Filters",
   "search.product_tour.mobile.preferences_description":
-    "Open Filters for the same preference controls as on desktop—budget, home details, commute and locations, and more. They stay in sync with your profile.",
-
-  "search.product_tour.mobile.display_title": "Display",
-  "search.product_tour.mobile.display_description":
-    "Open Display for order by, sort direction, show commute area, and match all preferences strictly—the same options as on larger screens.",
+    "Open Filters for the same preference controls as on desktop—budget, home details, commute and locations, result ordering, and more. They stay in sync with your profile.",
 };

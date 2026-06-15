@@ -4,9 +4,10 @@ import { useMutation } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { googleCalendarApi } from "packages/features/calendar/api";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore, useGoogleCalendarStore } from "packages/store";
-import { dateNow } from "packages/utils/date";
+import { dateNow } from "packages/utils/core/date";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 
@@ -23,14 +24,20 @@ export function useGoogleCalendarStoreIntegration() {
   const authReady = useAuthStore((s) => s.authReady);
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
-  const { queryClient, isConnected, calendars, calendarsLoading, calendarsError } =
-    useGoogleCalendarConnectionState(shouldLoadData);
+  const {
+    queryClient,
+    isConnected,
+    connectionStatusLoading,
+    calendars,
+    calendarsLoading,
+    calendarsError,
+  } = useGoogleCalendarConnectionState(shouldLoadData);
 
   const revokeMutation = useMutation({
     mutationFn: async () => {
       const response = await googleCalendarApi.revokeAccess();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to revoke access");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to revoke access"));
       }
       googleCalendarApi.clearConnectionStatus();
     },
@@ -43,7 +50,7 @@ export function useGoogleCalendarStoreIntegration() {
 
   const refreshCalendars = useCallback(async () => {
     log.debug(
-      LOG_CATEGORIES.HOOKS,
+      "HOOKS",
       "refreshCalendars called but fetching is disabled - calendars only fetched via initial prefetch"
     );
   }, []);
@@ -119,6 +126,7 @@ export function useGoogleCalendarStoreIntegration() {
 
   return {
     isConnected,
+    connectionStatusLoading,
     calendars,
     calendarsLoading,
     calendarsError,

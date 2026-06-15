@@ -1,0 +1,10 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    properties:
+      preferences:
+        $ref: './PreferencesResponse.yaml'
+        nullable: true
+      has_preferences:
+        type: boolean
+        description: True when the user has persisted preference rows.

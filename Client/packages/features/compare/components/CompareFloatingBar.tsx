@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { SavedHome } from "packages/types";
-import { SelectionBottomDock } from "packages/ui/components/layout";
+import { SelectionBottomDock } from "packages/ui/components/structure/layout";
 
 import { Button } from "@/components/ui";
 /** SavedHome from API/saved list may include home_id; type only guarantees address. */

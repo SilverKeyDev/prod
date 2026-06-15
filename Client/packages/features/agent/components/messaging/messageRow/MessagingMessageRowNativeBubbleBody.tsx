@@ -1,21 +1,20 @@
 import React from "react";
 
+import type { AgreementEventPayload, EventRequestPayload } from "packages/features/messaging";
 import {
   mergeSharedHomeForDisplay,
   type SharedAttachmentSnapshotV1,
   type SharedChecklistFormSnapshot,
 } from "packages/features/messaging";
-import AgreementEventCard from "packages/features/messaging/components/cards/AgreementEventCard";
+import { AgreementEventCard } from "packages/features/messaging";
 import type {
   ChatMessage,
   EventRequestStatus,
 } from "packages/features/messaging/hooks/data/messaging/types";
-import type { AgreementEventPayload } from "packages/features/messaging/utils/agreementEventPayload";
-import type { EventRequestPayload } from "packages/features/messaging/utils/eventRequestPayload";
 import type { SavedHome } from "packages/types/domain/savedHome";
-import type { DocumentData } from "packages/ui/components/cards/document/types";
-import type { HomeDescription } from "packages/ui/components/cards/HomeCard";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import type { DocumentData } from "packages/ui/components/surfaces/cards/document/types";
+import type { HomeDescription } from "packages/ui/components/surfaces/cards/HomeCard";
 
 import {
   type ChecklistFormAvailabilityOptions,

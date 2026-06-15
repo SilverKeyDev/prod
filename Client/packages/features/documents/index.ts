@@ -9,14 +9,22 @@ export type { DocumentData } from "./hooks/data/useDocumentsData";
 export { useDocumentsData } from "./hooks/data/useDocumentsData";
 export { useSavedPageDocumentHandlers } from "./hooks/data/useSavedPageDocumentHandlers";
 
+// Document store
+export {
+  type DocumentsState,
+  type ReportsState,
+  useDocumentsStore,
+  useReportsStore,
+} from "./store";
+
 // Document store integration hooks
-export type { SendForSignatureParams } from "./hooks/store/documentsDataIntegrationTypes";
-export { useDocumentsDataIntegration } from "./hooks/store/useDocumentsDataIntegration";
-export { useDocumentsStoreIntegration } from "./hooks/store/useDocumentsStoreIntegration";
-export { useHomeComparison } from "./hooks/store/useHomeComparison";
-export { useReportsStoreIntegration } from "./hooks/store/useReportsStoreIntegration";
-export type { SavedHomesSurfaceViewType, SavedPageViewType } from "./hooks/store/useSavedPageView";
-export { useSavedPageView } from "./hooks/store/useSavedPageView";
+export type { SendForSignatureParams } from "./hooks/store";
+export type { SavedHomesSurfaceViewType, SavedPageViewType } from "./hooks/store";
+export { useDocumentsDataIntegration } from "./hooks/store";
+export { useDocumentsStoreIntegration } from "./hooks/store";
+export { useHomeComparison } from "./hooks/store";
+export { useReportsStoreIntegration } from "./hooks/store";
+export { useSavedPageView } from "./hooks/store";
 
 // Document types
 export type { DocumentLibraryKind, DocumentLibraryListItem } from "./types/documentLibrary";
@@ -109,6 +117,7 @@ export type {
 } from "./types/docusign";
 
 // DocuSign utilities
+export { AGREEMENT_SIGNING_COMPLETE_POSTMESSAGE_SOURCE } from "./utils/agreementSigningPostMessage";
 export {
   calculateSigningProgress,
   canUserCreateRevision,
@@ -127,3 +136,4 @@ export {
   getUrgencyColor,
   getUrgencyLevel,
 } from "./utils/docusignHelpers";
+export { extractReportTitleFromPath } from "./utils/nameScrub";

@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
-# Format/lint hooks run on commit only (scripts/githooks/pre-commit → .pre-commit-config.yaml).
-# Pre-push intentionally does not re-run pre-commit: push would fail after mutating files
-# (e.g. end-of-file-fixer) that were already fixed at commit time.
+# Advisory push hooks: scoped typecheck / contract tests when relevant paths change.
+# Never blocks push; CI on PR is the merge gate.
 #
-# Enable commit hooks for this clone: git config core.hooksPath scripts/githooks
+# Enable hooks for this clone: git config core.hooksPath scripts/githooks
+# Strict manual check: make pre-push-check  (PRE_PUSH_BLOCKING=1)
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+cd "$REPO_ROOT" || exit 0
+
+export PRE_PUSH_ADVISORY=1
+bash "$REPO_ROOT/scripts/ci/pre-push-check.sh" || true
 exit 0

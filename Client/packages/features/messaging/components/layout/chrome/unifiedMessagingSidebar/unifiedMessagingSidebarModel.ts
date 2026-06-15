@@ -1,5 +1,5 @@
 import type { AgentConversation } from "packages/api";
-import { dateParseISO } from "packages/utils/date";
+import { dateParseISO } from "packages/utils/core/date";
 
 export function compareConversationsByRecency(a: AgentConversation, b: AgentConversation): number {
   const taRaw = a.last_message_at ?? a.updated_at;

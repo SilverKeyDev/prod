@@ -1,5 +1,3 @@
-import json
-import logging
 import time
 import uuid
 from typing import Any
@@ -9,6 +7,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from app.config.llm_models import perplexity_model_negotiation
+from logger import log
 
 from ..research.perplexity.perplexity_config import (
     PERPLEXITY_API_KEY,
@@ -17,13 +16,6 @@ from ..research.perplexity.perplexity_config import (
 )
 from .json_utils import _safe_parse_json, validate_address
 from .payload_builder import build_payload
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-if not PERPLEXITY_API_KEY:
-    logger.critical("PERPLEXITY_API_KEY environment variable is not set.")
-    raise ValueError("PERPLEXITY_API_KEY environment variable is not set")
 
 
 def _requests_session() -> requests.Session:
@@ -58,6 +50,10 @@ def generate_report(
     task_id = str(uuid.uuid4())
     section_name = section_type
 
+    if not PERPLEXITY_API_KEY:
+        log.error("ERRORS", "PERPLEXITY_API_KEY environment variable is not set")
+        raise ValueError("PERPLEXITY_API_KEY environment variable is not set")
+
     if not validate_address(address):
         raise ValueError("Invalid address")
 
@@ -81,7 +77,11 @@ def generate_report(
         except Exception as e:
             duration = time.perf_counter() - start_time
             last_error = f"Request error: {e}"
-            logger.error(f"❌ {section_name}: {last_error} ({duration:.2f}s)")
+            log.error(
+                "API",
+                "Negotiation Perplexity request failed",
+                {"section": section_name, "error": last_error, "duration_s": round(duration, 2)},
+            )
             if attempt < max_retries:
                 continue
             raise
@@ -98,9 +98,13 @@ def generate_report(
                     err += f" (Request ID: {rid})"
                 if msg:
                     err += f" - {msg}"
-                logger.error("🔍 API error details: %s", json.dumps(ed, indent=2))
+                log.error("API", "Perplexity API error details", {"details": ed})
             except Exception:
-                logger.error("🔍 Non-JSON error response: %s", resp.text[:1000])
+                log.error(
+                    "API",
+                    "Perplexity non-JSON error response",
+                    {"body_preview": resp.text[:1000]},
+                )
             last_error = err
             if attempt < max_retries:
                 continue
@@ -110,14 +114,22 @@ def generate_report(
             content = resp.json()
         except Exception as e:
             last_error = f"JSON decode error: {e}"
-            logger.error(f"❌ {section_name}: {last_error}")
+            log.error(
+                "ERRORS",
+                "Negotiation Perplexity response decode failed",
+                {"section": section_name, "error": last_error},
+            )
             if attempt < max_retries:
                 continue
             raise
 
         if "choices" not in content or not content["choices"]:
             last_error = "Malformed API response: missing 'choices'"
-            logger.error(f"❌ {section_name}: {last_error}")
+            log.error(
+                "ERRORS",
+                "Negotiation Perplexity malformed response",
+                {"section": section_name, "error": last_error},
+            )
             if attempt < max_retries:
                 continue
             raise RuntimeError(last_error)
@@ -128,7 +140,11 @@ def generate_report(
             parsed = _safe_parse_json(raw, report_customization)
         except Exception as pe:
             last_error = f"Parse error: {pe}"
-            logger.error(f"❌ {section_name}: {last_error}")
+            log.error(
+                "ERRORS",
+                "Negotiation strategy parse failed",
+                {"section": section_name, "error": last_error},
+            )
             if attempt < max_retries:
                 continue
             raise

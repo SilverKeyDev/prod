@@ -11,16 +11,15 @@ from datetime import datetime, timedelta, timezone
 
 from docusign_esign import ApiClient
 from docusign_esign.client.api_exception import ApiException
+from sqlalchemy import select
 
 from app import db
 from app.config import Config
 from app.models import DocusignOAuthToken
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..errors import DocusignAuthError
 from .types import parse_oauth_token_response, parse_user_info
-
-logger = get_logger()
 
 
 def _validate_oauth_config():
@@ -38,7 +37,7 @@ def _validate_oauth_config():
         error_msg = (
             f"DocuSign OAuth service missing required configuration: {', '.join(missing_vars)}"
         )
-        logger.error(LOG_CATEGORIES["ERRORS"], error_msg)
+        log.error("ERRORS", error_msg)
         raise DocusignAuthError(error_msg)
 
 
@@ -74,13 +73,13 @@ def _decode_state(state: str) -> str:
         user_id, _ = payload.split(":", 1)
         return user_id
     except (ValueError, IndexError) as e:
-        logger.error(LOG_CATEGORIES["ERRORS"], "Failed to decode state", {"error": str(e)})
+        log.error("ERRORS", "Failed to decode state", {"error": str(e)})
         raise DocusignAuthError("Invalid state token") from e
 
 
 def build_auth_url(user_id: str) -> tuple[str, str]:
     """Build OAuth authorization URL for user. Returns (auth_url, state)."""
-    logger.debug(LOG_CATEGORIES["DOCUSIGN"], "Building DocuSign OAuth URL", {"user_id": user_id})
+    log.debug("DOCUSIGN", "Building DocuSign OAuth URL", {"user_id": user_id})
     _validate_oauth_config()
     token = secrets.token_urlsafe(32)
     state_data = _encode_state(user_id, token)
@@ -98,8 +97,8 @@ def build_auth_url(user_id: str) -> tuple[str, str]:
         f"&redirect_uri={Config.DOCUSIGN_OAUTH_REDIRECT_URI}"
         f"&state={state_data}"
     )
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "DocuSign OAuth URL built successfully",
         {"user_id": user_id, "oauth_host": oauth_host, "state_prefix": state_data[:8] + "..."},
     )
@@ -115,8 +114,8 @@ def exchange_code_for_tokens(user_id: str, code: str) -> DocusignOAuthToken:
     """Exchange authorization code for access and refresh tokens."""
     _validate_oauth_config()
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Exchanging OAuth code for tokens",
             {"user_id": user_id, "code_length": len(code) if code else 0},
         )
@@ -133,23 +132,23 @@ def exchange_code_for_tokens(user_id: str, code: str) -> DocusignOAuthToken:
             code=code,
         )
         oauth_response = parse_oauth_token_response(raw_oauth_response)
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "OAuth tokens received, fetching user info",
             {"user_id": user_id, "expires_in": oauth_response.expires_in},
         )
         raw_user_info = api_client.get_user_info(oauth_response.access_token)
         user_info = parse_user_info(raw_user_info)
         if not user_info.accounts:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "No DocuSign accounts found for user",
                 {"user_id": user_id},
             )
             raise DocusignAuthError("No DocuSign accounts found")
         account = user_info.accounts[0]
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Saving OAuth tokens",
             {
                 "user_id": user_id,
@@ -157,7 +156,9 @@ def exchange_code_for_tokens(user_id: str, code: str) -> DocusignOAuthToken:
                 "accounts_count": len(user_info.accounts),
             },
         )
-        token = DocusignOAuthToken.query.filter_by(user_id=user_id).first()
+        token = db.session.scalar(
+            select(DocusignOAuthToken).where(DocusignOAuthToken.user_id == user_id)
+        )
         is_new_token = not token
         if not token:
             token = DocusignOAuthToken(user_id=user_id)
@@ -171,8 +172,8 @@ def exchange_code_for_tokens(user_id: str, code: str) -> DocusignOAuthToken:
         token.scopes = json.dumps(oauth_response.scope.split())
         db.session.add(token)
         db.session.commit()
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "OAuth tokens saved successfully",
             {
                 "user_id": user_id,
@@ -183,15 +184,15 @@ def exchange_code_for_tokens(user_id: str, code: str) -> DocusignOAuthToken:
         )
         return token
     except ApiException as e:
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             "OAuth token exchange failed",
             {"error": str(e), "user_id": user_id, "status": getattr(e, "status", None)},
         )
         raise DocusignAuthError(f"OAuth token exchange failed: {str(e)}") from e
     except Exception as e:
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             "Unexpected OAuth error",
             {"error": str(e), "user_id": user_id},
         )

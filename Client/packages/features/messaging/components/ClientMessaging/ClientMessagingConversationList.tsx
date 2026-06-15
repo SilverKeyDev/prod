@@ -7,15 +7,15 @@ import { useLocalization } from "packages/contexts";
 import { MessagingSidebarAvatar } from "packages/features/messaging/components/layout/chrome/unifiedMessagingSidebar/MessagingSidebarAvatar";
 import { compareConversationsByRecency } from "packages/features/messaging/components/layout/chrome/unifiedMessagingSidebar/unifiedMessagingSidebarModel";
 import { getMessagePreview } from "packages/features/messaging/utils/messagePreview";
-import { Box } from "packages/ui/components/primitives";
-import { SidebarInsetListSelectionStripe } from "packages/ui/components/sidebar/SidebarInsetListSelectionStripe";
+import { Box } from "packages/ui/components/structure/primitives";
+import { SidebarInsetListSelectionStripe } from "packages/ui/components/structure/sidebar/SidebarInsetListSelectionStripe";
 import {
   SIDEBAR_INSET_BODY_MUTED,
   SIDEBAR_INSET_EMPTY_ICON,
   SIDEBAR_INSET_EMPTY_ICON_WRAP,
   sidebarInsetListRowClass,
   sidebarInsetListRowSelectedProps,
-} from "packages/ui/components/sidebar/sidebarTheme";
+} from "packages/ui/components/structure/sidebar/sidebarTheme";
 
 import { BodyText, KeyTurnLoader, Title } from "@/components/ui";
 

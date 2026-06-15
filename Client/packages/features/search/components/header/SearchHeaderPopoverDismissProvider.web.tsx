@@ -3,7 +3,7 @@ import { type ReactNode, useCallback, useMemo, useRef } from "react";
 import {
   type CloseFn,
   SearchHeaderPopoverDismissContext,
-} from "packages/features/search/hooks/ui/searchHeaderPopoverDismiss.context";
+} from "packages/features/search/hooks/ui/popovers/searchHeaderPopoverDismiss.context";
 
 export function SearchHeaderPopoverDismissProvider({ children }: { children: ReactNode }) {
   const closersRef = useRef(new Set<CloseFn>());

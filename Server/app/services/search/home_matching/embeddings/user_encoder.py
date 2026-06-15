@@ -2,15 +2,14 @@
 User encoder that combines structured and text data into user embeddings.
 """
 
-import logging
 from typing import Any
 
 import numpy as np
 
+from logger import log
+
 from ..preprocessing.models.embedding_input import EmbeddingUserInput
 from .model_loader import model_loader
-
-logger = logging.getLogger(__name__)
 
 
 class UserEncoder:
@@ -54,7 +53,7 @@ class UserEncoder:
             return combined_embedding
 
         except Exception as e:
-            logger.error(f"Error encoding user data: {e}")
+            log.error("ERRORS", f"Error encoding user data: {e}")
             raise
 
     def encode_users_batch(self, users_data: list[dict[str, Any]]) -> list[np.ndarray]:
@@ -105,7 +104,7 @@ class UserEncoder:
             return embeddings
 
         except Exception as e:
-            logger.error(f"Error encoding users batch: {e}")
+            log.error("ERRORS", f"Error encoding users batch: {e}")
             raise
 
     def get_embedding_dimension(self) -> int:
@@ -116,5 +115,5 @@ class UserEncoder:
             dimensions = FeatureConfig.get_embedding_dimension(self.embedding_provider, self.model)
             return dimensions["user_total_dimension"]
         except Exception as e:
-            logger.error(f"Error getting embedding dimension: {e}")
+            log.error("ERRORS", f"Error getting embedding dimension: {e}")
             return 394  # Fallback dimension (384 + 10)

@@ -1,7 +1,7 @@
 import { LANDING_NAV_SCROLL_MARGIN_CLASS } from "packages/features/homeauth/utils/landingChrome";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
-import RippleBackground from "packages/ui/components/backgrounds/RippleBackground";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import RippleBackground from "packages/ui/components/surfaces/backgrounds/RippleBackground";
 
 import { BodyText, Title } from "@/components/ui";
 

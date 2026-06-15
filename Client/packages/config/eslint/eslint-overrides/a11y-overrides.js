@@ -8,6 +8,7 @@ export function a11yOverrides(jsxA11y) {
     {
       files: [
         "apps/web/**/*.{js,jsx,ts,tsx}",
+        "apps/mobile/**/*.{js,jsx,ts,tsx}",
         "packages/contexts/**/*.{js,jsx,ts,tsx}",
         "packages/features/**/*.{js,jsx,ts,tsx}",
         "packages/hooks/**/*.{js,jsx,ts,tsx}",

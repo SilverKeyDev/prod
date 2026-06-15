@@ -5,25 +5,19 @@ OAuth flow endpoints for Google Calendar
 from flask import jsonify, make_response, redirect, request, session
 
 from app.config import Config
-from app.schemas import RevokeResponse
+from app.schemas import EmptyRequest, RevokeResponse
 from app.services.calendar.core import (
     get_authenticated_user_id,
     google_calendar_service,
 )
-from app.services.calendar.permissions import PERMISSIONS, get_permission_scope_map
+from app.services.calendar.permissions import get_permission_scope_map
 from app.services.calendar.permissions.constants import (
     permissions as calendar_permissions_constants,
 )
-from app.utils.security.app_logging import get_logger
-from app.utils.security.secure_errors import SecureErrorHandler
-from app.utils.security.security import (
-    log_oauth_event,
-    rate_limit,
-    sanitize_error_message,
-)
-from app.utils.validation import validate_response
-
-logger = get_logger()
+from app.utils.route import http_errors
+from app.utils.security.security import log_oauth_event, rate_limit
+from app.utils.validation import validate_request, validate_response
+from logger import log
 
 _PERMISSION_NAMES_EXCLUDED_FROM_OAUTH = frozenset(
     name
@@ -34,15 +28,7 @@ _PERMISSION_NAMES_EXCLUDED_FROM_OAUTH = frozenset(
 
 @rate_limit(max_requests=10, window_seconds=60)
 def oauth_start():
-    """Start Google OAuth flow with incremental authorization
-
-    Requests scopes where include_in_oauth_request is true (full Calendar is virtual-only
-    and never requested). include_granted_scopes preserves existing grants.
-
-    Query params (deprecated; same authorize URL regardless of values):
-        full_scope: Deprecated
-        scheduling: Deprecated
-    """
+    """Start Google OAuth flow with incremental authorization."""
     user_id, error_response = get_authenticated_user_id()
     if error_response:
         log_oauth_event("start_failed", None, reason="auth_error", error="authentication_failed")
@@ -50,15 +36,8 @@ def oauth_start():
     if user_id is None:
         return make_response(("Unauthorized", 401))
 
-    # Check if full scope is requested (for agent sharing)
-    request_full_scope = request.args.get("full_scope", "false").lower() == "true"
-    # Check if scheduling scopes are requested (for scheduling MVP)
-    use_scheduling_scopes = request.args.get("scheduling", "false").lower() == "true"
-
     # Generate auth URL and state
-    auth_url, state = google_calendar_service.build_auth_url(
-        user_id, request_full_scope=request_full_scope, use_scheduling_scopes=use_scheduling_scopes
-    )
+    auth_url, state = google_calendar_service.build_auth_url(user_id)
     # Use separate session key for calendar flow to avoid conflicts with auth OAuth
     session["google_calendar_oauth_state"] = state
 
@@ -83,30 +62,20 @@ def oauth_enhance():
     # Get requested permissions from query parameter
     permissions_param = request.args.get("permissions", "")
     if not permissions_param:
-        return jsonify(
-            {
-                "success": False,
-                "error": "missing_parameter",
-                "message": "permissions parameter is required (comma-separated list)",
-            }
-        ), 400
+        return http_errors.validation(
+            "permissions parameter is required (comma-separated list)",
+            field_errors={"permissions": "Required"},
+        )
 
     # Parse permission names
     permission_names = [p.strip() for p in permissions_param.split(",") if p.strip()]
 
     not_requestable = [p for p in permission_names if p in _PERMISSION_NAMES_EXCLUDED_FROM_OAUTH]
     if not_requestable:
-        return jsonify(
-            {
-                "success": False,
-                "error": "permission_not_requestable",
-                "message": (
-                    "These permissions cannot be requested via OAuth (use a normal calendar "
-                    f"reconnect): {', '.join(not_requestable)}"
-                ),
-                "not_requestable_permissions": not_requestable,
-            }
-        ), 400
+        return http_errors.validation(
+            "These permissions cannot be requested via OAuth (use a normal calendar reconnect)",
+            field_errors={"permissions": ", ".join(not_requestable)},
+        )
 
     # Map permission names to scope URLs
     scope_map = get_permission_scope_map()
@@ -124,30 +93,18 @@ def oauth_enhance():
                 requested_scopes.append(scope_url)
 
     if invalid_permissions:
-        return jsonify(
-            {
-                "success": False,
-                "error": "invalid_permissions",
-                "message": f"Invalid permission names: {', '.join(invalid_permissions)}",
-                "valid_permissions": list(PERMISSIONS.keys()),
-            }
-        ), 400
+        return http_errors.validation(
+            f"Invalid permission names: {', '.join(invalid_permissions)}",
+            field_errors={"permissions": "Unknown permission name"},
+        )
 
     if not requested_scopes:
-        return jsonify(
-            {
-                "success": False,
-                "error": "no_valid_permissions",
-                "message": "No valid permissions to request",
-            }
-        ), 400
+        return http_errors.validation("No valid permissions to request")
 
     # Generate auth URL with only the additional scopes
     # include_granted_scopes will preserve existing permissions
     auth_url, state = google_calendar_service.build_auth_url(
         user_id,
-        request_full_scope=False,
-        use_scheduling_scopes=False,
         request_additional_scopes=requested_scopes,
     )
 
@@ -160,32 +117,23 @@ def oauth_enhance():
 @rate_limit(max_requests=20, window_seconds=60)
 def oauth_callback():
     """Handle Google OAuth callback"""
-    user_id, error_response = get_authenticated_user_id()
-    if error_response:
-        log_oauth_event("callback_failed", None, reason="auth_error", error="authentication_failed")
-        return error_response
-    if user_id is None:
-        return make_response(("Unauthorized", 401))
-
     state = request.args.get("state")
     code = request.args.get("code")
     error = request.args.get("error")
 
     if state is None:
-        return make_response(("Missing state", 400))
+        return http_errors.validation("Missing state", field_errors={"state": "Required"})
     if code is None:
-        return make_response(("Missing code", 400))
+        return http_errors.validation("Missing code", field_errors={"code": "Required"})
 
     # Handle OAuth errors
     if error:
-        return make_response((f"OAuth error: {error}", 400))
+        return http_errors.validation("OAuth authorization was denied or failed")
 
-    # Validate state - use separate session key for calendar flow
-    if not google_calendar_service.validate_state(
-        state, session.get("google_calendar_oauth_state")
-    ):
-        log_oauth_event("callback_failed", user_id, reason="invalid_state")
-        return make_response(("Invalid state", 400))
+    user_id = google_calendar_service.validate_state_and_get_user_id(state)
+    if user_id is None:
+        log_oauth_event("callback_failed", None, reason="invalid_state")
+        return http_errors.validation("Invalid OAuth state")
 
     # Exchange code for tokens using service
     try:
@@ -207,7 +155,11 @@ def oauth_callback():
                 google_calendar_service.get_or_create_silverkey_calendar(user_id, None)
             except Exception as e:
                 # Log but don't fail OAuth if calendar creation fails
-                logger.warning(f"Failed to create SilverKey calendar during OAuth: {str(e)}")
+                log.warn(
+                    "CALENDAR",
+                    "oauth_silverkey_calendar_create_failed",
+                    {"user_id": str(user_id), "error": str(e)},
+                )
 
         # Log successful OAuth completion
         log_oauth_event("callback_success", user_id)
@@ -225,15 +177,17 @@ def oauth_callback():
         return resp
 
     except Exception as e:
-        error_msg = sanitize_error_message(e)
-        log_oauth_event("callback_failed", user_id, reason="exception", error=error_msg)
-        logger.error(f"OAuth callback error: {error_msg}", exc_info=True)
-        return SecureErrorHandler.handle_error(e, "OAuth callback failed")
+        log_oauth_event("callback_failed", user_id, reason="exception")
+        log.error("CALENDAR", "oauth_callback_error", e)
+        return http_errors.external_unavailable(
+            e, api_name="Google OAuth", context={"operation": "oauth_callback"}
+        )
 
 
 @rate_limit(max_requests=10, window_seconds=60)
+@validate_request(EmptyRequest)
 @validate_response(RevokeResponse)
-def revoke():
+def revoke(data: EmptyRequest | None = None):
     """Revoke Google OAuth access"""
     user_id, error_response = get_authenticated_user_id()
     if error_response:
@@ -246,7 +200,8 @@ def revoke():
         return jsonify({"success": True, "revoked": bool(success)})
 
     except Exception as e:
-        error_msg = sanitize_error_message(e)
-        log_oauth_event("revoke_failed", user_id, reason="exception", error=error_msg)
-        logger.error(f"Error revoking access: {error_msg}", exc_info=True)
-        return SecureErrorHandler.handle_error(e, "Failed to revoke access")
+        log_oauth_event("revoke_failed", user_id, reason="exception")
+        log.error("CALENDAR", "oauth_revoke_error", e)
+        return http_errors.external_unavailable(
+            e, api_name="Google OAuth", context={"operation": "oauth_revoke"}
+        )

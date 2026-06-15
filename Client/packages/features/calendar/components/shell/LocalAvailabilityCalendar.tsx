@@ -3,11 +3,11 @@ import { EventList } from "packages/features/calendar/components/view/agenda/Eve
 import { CreateEventModal } from "packages/features/calendar/components/view/eventModal/CreateEventModal";
 import { CalendarToolbar } from "packages/features/calendar/components/view/toolbar/CalendarToolbar";
 import { QuickEventPopover } from "packages/features/calendar/components/view/toolbar/QuickEventPopover";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
-import { useLocalAvailabilityCalendarScreen } from "packages/hooks/data/calendar/useLocalAvailabilityCalendarScreen";
+import { useLocalAvailabilityCalendarScreen } from "packages/features/calendar/hooks/data/availability/useLocalAvailabilityCalendarScreen";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { Button } from "packages/ui";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 import { CalendarMonthBody } from "./CalendarMonthBody";
 import { buildCalendarMonthGridStyles } from "./calendarMonthGridStyles";

@@ -1,8 +1,10 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
-import warnings
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -41,37 +43,21 @@ class Todo(db.Model):
         default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
 
-    # Relationships
-    agent = db.relationship("User", foreign_keys=[agent_id], backref=db.backref("todos", lazy=True))
-    client = db.relationship(
-        "User", foreign_keys=[client_id], backref=db.backref("client_todos", lazy=True)
+    agent: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[agent_id],
+        back_populates="todos",
+    )
+    client: Mapped["User | None"] = relationship(
+        "User",
+        foreign_keys=[client_id],
+        back_populates="client_todos",
     )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        """Convert todo to dictionary"""
-        warnings.warn(
-            "Todo.to_dict() is deprecated; use app.dtos.todo.TodoDTO.from_orm",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return {
-            "id": self.id,
-            "agent_id": self.agent_id,
-            "client_id": self.client_id,
-            "title": self.title,
-            "description": self.description,
-            "type": self.type,
-            "due_date": self.due_date.isoformat() if self.due_date else None,
-            "completed": self.completed,
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
 
     def __repr__(self):
         return f"<Todo {self.title}>"

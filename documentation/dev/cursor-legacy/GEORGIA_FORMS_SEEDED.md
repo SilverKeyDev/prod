@@ -235,7 +235,7 @@ If additional forms are needed:
 
 ### 4. Implement Send Functionality
 - Forms can be sent via DocuSign or Messaging
-- See `FORMS_PHASE1_IMPLEMENTATION.md` for send implementation details
+- See [FORMS_PHASE1_IMPLEMENTATION.md](./FORMS_PHASE1_IMPLEMENTATION.md) for send implementation details
 
 ## Summary of Files Changed
 

@@ -1,0 +1,19 @@
+type: object
+description: Create a new deal row (`transactions.id`). Buyer is implicit for self; agents may set `buyer_id` for a managed client.
+properties:
+  buyer_id:
+    type: string
+    nullable: true
+    description: Buyer user id. Required when the caller is an agent creating a deal for a client; omit for buyer self-serve.
+  primary_agent_id:
+    type: string
+    nullable: true
+    description: Optional primary agent override when creating on behalf of a buyer.
+  brokerage_org_id:
+    type: string
+    nullable: true
+    description: Attribution org; defaults from agent membership or platform default.
+  set_active:
+    type: boolean
+    default: true
+    description: When true, sets the buyer's `active_transaction_id` to the new deal.

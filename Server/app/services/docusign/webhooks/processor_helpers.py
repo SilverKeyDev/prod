@@ -2,9 +2,7 @@
 
 from typing import Any
 
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def map_event_type(docusign_event: str) -> str:
@@ -74,8 +72,8 @@ def build_event_description(
 def enqueue_fetch_documents(agreement_id: str):
     """Enqueue task to fetch completed documents."""
     try:
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Enqueueing fetch documents task",
             {"agreement_id": agreement_id},
         )
@@ -84,15 +82,15 @@ def enqueue_fetch_documents(agreement_id: str):
 
         task = fetch_completed_documents_task.delay(agreement_id)  # type: ignore[union-attr]
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Fetch documents task enqueued successfully",
             {"agreement_id": agreement_id, "task_id": task.id},
         )
 
     except Exception as e:
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             "Failed to enqueue fetch documents task",
             {"agreement_id": agreement_id, "error": str(e)},
         )

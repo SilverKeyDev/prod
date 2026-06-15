@@ -68,11 +68,41 @@ _MUST_HAVE_SYNONYMS: dict[str, tuple[str, ...]] = {
         "water view",
         "waterview",
     ),
+    "fenced_in_backyard": (
+        "fenced backyard",
+        "fenced back yard",
+        "fenced-in backyard",
+        "fenced in backyard",
+        "fenced yard",
+        "fully fenced",
+        "privacy fence",
+        "private fenced",
+        "backyard fence",
+        "back yard fence",
+    ),
+    "fenced_backyard": (
+        "fenced backyard",
+        "fenced back yard",
+        "fenced-in backyard",
+        "fenced in backyard",
+        "fenced yard",
+        "fully fenced",
+        "privacy fence",
+        "private fenced",
+    ),
+    "fenced_yard": (
+        "fenced yard",
+        "fenced backyard",
+        "fenced back yard",
+        "fully fenced",
+        "privacy fence",
+        "private fenced",
+    ),
 }
 
 
 def _normalize_need_key(need: str) -> str:
-    return str(need).strip().lower().replace("-", "_")
+    return re.sub(r"\s+", "_", str(need).strip().lower().replace("-", "_"))
 
 
 def _flatten_values(obj: Any) -> list[str]:
@@ -89,6 +119,51 @@ def _flatten_values(obj: Any) -> list[str]:
             out.extend(_flatten_values(x))
         return out
     return [str(obj)]
+
+
+def _flatten_dict_keys_and_values(block: dict[str, Any]) -> list[str]:
+    """Include dict keys and values so features like {\"garage\": \"2-car\"} match garage."""
+    parts: list[str] = []
+    for k, v in block.items():
+        if k is not None and str(k).strip():
+            parts.append(str(k))
+        parts.extend(_flatten_values(v))
+    return parts
+
+
+def _feature_dict_value_truthy(value: Any) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int | float):
+        return value > 0
+    if isinstance(value, str):
+        s = value.strip().lower()
+        if not s:
+            return False
+        return s not in ("no", "none", "false", "0", "n/a", "na")
+    if isinstance(value, list | dict):
+        return len(value) > 0
+    return True
+
+
+def _features_dict_key_match(prop: dict[str, Any], key: str) -> bool | None:
+    """
+    True when prop[\"features\"] (or homeFacts) has a truthy entry for a known need key.
+    None when no feature dict is present.
+    """
+    for container_key in ("features", "homeFacts"):
+        block = prop.get(container_key)
+        if not isinstance(block, dict):
+            continue
+        for raw_k, raw_v in block.items():
+            if _normalize_need_key(str(raw_k)) != key:
+                continue
+            if _feature_dict_value_truthy(raw_v):
+                return True
+            return False
+    return None
 
 
 def _reso_facts(prop: dict[str, Any]) -> dict[str, Any]:
@@ -121,7 +196,7 @@ def _collect_property_feature_text(prop: dict[str, Any]) -> tuple[str, str]:
     for container_key in ("homeFacts", "resoFacts", "features"):
         block = prop.get(container_key)
         if isinstance(block, dict):
-            parts.extend(x.lower() for x in _flatten_values(block) if x)
+            parts.extend(x.lower() for x in _flatten_dict_keys_and_values(block) if x)
         elif isinstance(block, list):
             parts.extend(str(x).lower() for x in block if x)
         elif block is not None:
@@ -165,11 +240,17 @@ def _structured_signal(key: str, rf: dict[str, Any], prop: dict[str, Any]) -> bo
             return True
         if isinstance(pf, str) and "garage" in pf.lower():
             return True
+        feat = _features_dict_key_match(prop, key)
+        if feat is not None:
+            return feat
         return None
 
     if key == "basement":
         b = rf.get("basement")
         if not b:
+            feat = _features_dict_key_match(prop, key)
+            if feat is not None:
+                return feat
             return None
         bs = str(b).lower()
         if re.search(r"\bnone\b|\bno basement\b", bs):
@@ -184,6 +265,9 @@ def _structured_signal(key: str, rf: dict[str, Any], prop: dict[str, Any]) -> bo
             return True
         if isinstance(pf, str) and pf.strip():
             return True
+        feat = _features_dict_key_match(prop, key)
+        if feat is not None:
+            return feat
         return None
 
     if key == "waterfront":
@@ -196,6 +280,9 @@ def _structured_signal(key: str, rf: dict[str, Any], prop: dict[str, Any]) -> bo
             return True
         if isinstance(wf, str) and wf.strip():
             return True
+        feat = _features_dict_key_match(prop, key)
+        if feat is not None:
+            return feat
         return None
 
     if key == "ac":
@@ -206,6 +293,9 @@ def _structured_signal(key: str, rf: dict[str, Any], prop: dict[str, Any]) -> bo
             return True
         if isinstance(cl, str) and cl.strip():
             return True
+        feat = _features_dict_key_match(prop, key)
+        if feat is not None:
+            return feat
         return None
 
     if key == "heating":
@@ -216,6 +306,9 @@ def _structured_signal(key: str, rf: dict[str, Any], prop: dict[str, Any]) -> bo
             return True
         if isinstance(ht, str) and ht.strip():
             return True
+        feat = _features_dict_key_match(prop, key)
+        if feat is not None:
+            return feat
         return None
 
     if key == "single_story":
@@ -239,6 +332,9 @@ def _structured_signal(key: str, rf: dict[str, Any], prop: dict[str, Any]) -> bo
                 return True
         return None
 
+    feat = _features_dict_key_match(prop, key)
+    if feat is not None:
+        return feat
     return None
 
 

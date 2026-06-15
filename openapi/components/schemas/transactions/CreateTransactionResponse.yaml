@@ -1,0 +1,9 @@
+type: object
+required:
+  - success
+  - data
+properties:
+  success:
+    type: boolean
+  data:
+    $ref: "./Transaction.yaml"

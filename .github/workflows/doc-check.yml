@@ -1,0 +1,35 @@
+# Documentation checks — placement and internal link integrity.
+name: Doc checks
+
+on:
+  pull_request:
+    paths:
+      - "documentation/**"
+      - "AGENTS.md"
+      - "README.md"
+      - "ARCHITECTURE.md"
+      - "setup.md"
+      - "Client/README.md"
+      - "Client/ARCHITECTURE.md"
+      - "Server/README.md"
+      - "Server/ARCHITECTURE.md"
+      - "scripts/ci/check-doc-*.sh"
+      - ".cursor/rules/shared/documentation.mdc"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  doc-checks:
+    name: Documentation placement and links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Run doc placement check
+        run: bash scripts/ci/check-doc-placement.sh
+
+      - name: Run doc link check
+        run: bash scripts/ci/check-doc-links.sh

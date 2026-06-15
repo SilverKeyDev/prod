@@ -7,9 +7,9 @@ import { useLocalization } from "packages/contexts";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useAuthStore, useUIStore } from "packages/store";
 import { Button } from "packages/ui";
-import { Loading } from "packages/ui/components/asset/loading/Loading";
-import { Box, Text } from "packages/ui/components/primitives";
-import { openAgentPublicProfileExternal } from "packages/utils/agent";
+import { Loading } from "packages/ui/components/media/asset/loading/Loading";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { openAgentPublicProfileExternal } from "packages/utils/growth/agent";
 
 import type { AgentSearchResult, RecommendedAgentResult } from "@/features/agent/api/agent";
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
@@ -29,6 +29,7 @@ export function AgentDiscoveryView({
   profileTarget = "navigate",
   onOpenAgentProfile: onOpenAgentProfileProp,
   onConnectionSuccess,
+  suppressRecommendationsLoading = false,
 }: AgentDiscoveryViewProps) {
   const navigation = useNavigation();
   const { t } = useLocalization();
@@ -141,9 +142,11 @@ export function AgentDiscoveryView({
             </Button>
           </Box>
         ) : isLoading ? (
-          <Box className="flex justify-start py-6">
-            <Loading />
-          </Box>
+          suppressRecommendationsLoading ? null : (
+            <Box className="flex justify-start py-6">
+              <Loading />
+            </Box>
+          )
         ) : recommendedAgentsToShow.length === 0 ? (
           <Text className="text-text-secondary text-sm">
             {t("agent.discovery_no_recommendations")}

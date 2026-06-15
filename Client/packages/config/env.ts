@@ -4,8 +4,8 @@
    Client-visible keys use EXPO_PUBLIC_* (Metro + Vite web shim); application code does not use Vite-prefixed env keys.
    ========================= */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { resolveGoogleMapsCloudMapId } from "packages/utils/maps/resolveGoogleMapsCloudMapId";
+import { log } from "packages/logger";
+import { resolveGoogleMapsCloudMapId } from "packages/utils/product/maps/cloudMapId/resolveGoogleMapsCloudMapId";
 
 function trimEnv(value: string | undefined): string {
   return (value ?? "").trim();
@@ -21,6 +21,7 @@ type EnvShape = {
   readonly EXPO_PUBLIC_PLAID_CLIENT_ID: string;
   readonly EXPO_PUBLIC_API_URL: string;
   readonly EXPO_PUBLIC_API_BASE_URL: string;
+  readonly EXPO_PUBLIC_POSTHOG_KEY: string;
   readonly EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: string;
   readonly EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: string;
   readonly DEV: boolean;
@@ -37,6 +38,7 @@ function readProcessEnv(): EnvShape {
     EXPO_PUBLIC_PLAID_CLIENT_ID: trimEnv(p.EXPO_PUBLIC_PLAID_CLIENT_ID),
     EXPO_PUBLIC_API_URL: trimEnv(p.EXPO_PUBLIC_API_URL),
     EXPO_PUBLIC_API_BASE_URL: trimEnv(p.EXPO_PUBLIC_API_BASE_URL),
+    EXPO_PUBLIC_POSTHOG_KEY: trimEnv(p.EXPO_PUBLIC_POSTHOG_KEY),
     EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS: trimEnv(p.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS),
     EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR: trimEnv(p.EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR),
     DEV: !isProd,
@@ -89,7 +91,7 @@ class EnvConfig {
     const missing = required.filter((key) => !this.env[key]);
 
     if (missing.length > 0) {
-      log.warn(LOG_CATEGORIES.API, "Missing required environment variables", {
+      log.warn("API", "Missing required environment variables", {
         missing,
       });
     }
@@ -102,7 +104,7 @@ class EnvConfig {
       resolveGoogleMapsCloudMapId(this.env.EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS);
     if (!mapId) {
       log.warn(
-        LOG_CATEGORIES.API,
+        "API",
         "Google Maps Cloud map ID not configured (EXPO_PUBLIC_GOOGLE_MAPS_ID or EXPO_PUBLIC_GOOGLE_MAPS_ID_IOS) - using default map styling"
       );
     }
@@ -113,7 +115,7 @@ class EnvConfig {
     const clientId = EnvConfig.STATIC.GOOGLE_CLIENT_ID || this.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) {
       log.warn(
-        LOG_CATEGORIES.API,
+        "API",
         "EXPO_PUBLIC_GOOGLE_CLIENT_ID not configured - Google services integration may be limited"
       );
       return null;
@@ -125,7 +127,7 @@ class EnvConfig {
     const clientId = EnvConfig.STATIC.PLAID_CLIENT_ID || this.env.EXPO_PUBLIC_PLAID_CLIENT_ID;
     if (!clientId) {
       log.warn(
-        LOG_CATEGORIES.API,
+        "API",
         "EXPO_PUBLIC_PLAID_CLIENT_ID not configured - Plaid integration may be limited"
       );
       return null;
@@ -156,6 +158,11 @@ class EnvConfig {
 
   get apiRetries(): number {
     return 2;
+  }
+
+  get posthogKey(): string | null {
+    const key = trimEnv(this.env.EXPO_PUBLIC_POSTHOG_KEY);
+    return key || null;
   }
 
   get isDevelopment(): boolean {

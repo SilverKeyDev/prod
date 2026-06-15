@@ -1,35 +1,42 @@
 # SilverKey local setup
 
-Run **`make setup`** once on a new machine. The script walks through five steps automatically:
+Run **`make setup`** once on a new machine (prerequisites → Client + Server env → verify). For full-stack backend work, run **`make setup-dev`** next (AWS SSO → secrets with prod `DATABASE_URL` → verify). After every `git pull`: **`make refresh`**.
 
-1. **Prerequisites** — Node 20+, pnpm 9.x, Python 3.10–3.13, Redis, libmagic (for secure file uploads), AWS CLI v2 (installs via Homebrew on macOS when possible, otherwise prints exact commands)
-2. **Build** — `pnpm install` + `Server/.venv`
-3. **AWS SSO** — uses your `~/.aws/config` profile and runs `aws sso login` in the terminal (no repo aws-sso files created)
-4. **Secrets** — fetches `Server/.env` from AWS Secrets Manager
-5. **Verify** — smoke checks Client deps, Python imports, Redis, `.env` keys, and AWS session
+**First:** use a supported terminal — macOS Terminal, Linux shell, or **Windows via WSL2 (Ubuntu)**. Native Windows shells (PowerShell/CMD/Git Bash) are not supported; `make setup` stops and points you to [Windows (WSL2)](#windows-wsl2--required).
 
-Skip AWS/secrets (manual `.env`):
+Deep MCP and Cursor tuning: [`.cursor/README.md`](.cursor/README.md), [cursor-configuration-optimization.md](documentation/client/tooling/cursor-configuration-optimization.md), [cursor-agent-memory.md](documentation/client/tooling/cursor-agent-memory.md).
+
+---
+
+## TL;DR
+
+1. **Set up your terminal** — macOS/Linux shell, or [Windows WSL2 (Ubuntu)](#windows-wsl2--required) (not PowerShell/CMD/Git Bash).
+2. Install the [prerequisites](#prerequisites) for your platform, clone the repo, then from the repo root:
 
 ```bash
-make setup ARGS='--skip-secrets'
+make setup       # prereqs → Client + Server venv
+make setup-dev   # AWS SSO → secrets (prod DATABASE_URL)
+make dev         # web (http://localhost:5173) + API (http://localhost:5000)
 ```
 
-After every `git pull`: **`make refresh`**.
+3. After every `git pull`: `make refresh`.
+
+On Windows, complete step 1 (WSL2 + Ubuntu terminal) before installing prerequisites or running `make setup`.
+
+**No AWS access yet?** `make setup` alone is enough for lint, typecheck, and `make dev-web`. **Re-check tools anytime:** `make check-deps`.
 
 ---
 
 ## One-time AWS config
 
-Before the first `make setup` (with secrets), configure SSO in your terminal (writes to `~/.aws/config`, not the repo):
-
 ```bash
-aws configure sso          # once — follow prompts
+aws configure sso
 export AWS_PROFILE=your-dev-profile-name
 export AWS_REGION=us-east-2
 aws sso login --profile "$AWS_PROFILE"
 ```
 
-If `~/.aws/config` has exactly one SSO profile, setup picks it automatically. With several profiles, export `AWS_PROFILE` before `make setup`. During setup, step 3 runs `aws sso login` again if the session expired.
+**Per-repo profile (recommended):** `cp Server/config/aws-sso.example Server/config/.aws-sso` — used by `make setup-dev`, `make secrets`, `make refresh --secrets`. Shell `export AWS_PROFILE` overrides `.aws-sso`.
 
 ---
 
@@ -37,52 +44,78 @@ If `~/.aws/config` has exactly one SSO profile, setup picks it automatically. Wi
 
 | Tool | Version |
 | ---- | ------- |
-| Node.js | 20+ |
+| Node.js | 20–22 (CI uses **22**; run `nvm use` — see [`.nvmrc`](.nvmrc)) |
 | pnpm | 9.x (`corepack prepare pnpm@9.0.0 --activate`) |
-| Python | 3.10–3.13 |
-| Redis | 6+ (`redis-server`, `redis-cli`; setup starts it on port 6379 if installed but stopped) |
-| libmagic | System library for `python-magic` (MIME validation on uploads; macOS: Homebrew `libmagic`) |
-| AWS CLI | v2 (for default setup) |
+| Python | 3.10–3.13 (prefer **3.12** for ML wheels; see troubleshooting) |
+| Redis | 6+ (prerequisite scan; verify warns on `make setup`, required on `make setup-dev`) |
+| libmagic | MIME validation on uploads |
+| AWS CLI | v2 (for `make setup-dev` / `make secrets`) |
+| Docker | Optional — for local Docker Postgres (`make db-up`, `make dev-db-init`) |
 
-**For `make dev` (not installed by setup):** PostgreSQL — connection string in `DATABASE_URL` (`Server/.env`).
+### macOS (quick)
 
-### macOS
+**Apple Silicon (M-series) is fully supported** — same Homebrew/corepack flow; `/opt/homebrew` is the normal prefix.
 
 ```bash
 brew install node python@3.12 redis libmagic awscli
 corepack enable && corepack prepare pnpm@9.0.0 --activate
-brew services start redis   # optional; setup can start redis-server if needed
+nvm use   # optional; lands on Node 22 per .nvmrc (matches CI)
+brew services start redis   # optional
 ```
 
-**Before `make dev` (macOS only):** The API binds to port **5000**, which macOS **AirPlay Receiver** also uses by default. If AirPlay keeps the port, `make dev` can pass the TCP check but fail waiting for `http://127.0.0.1:5000/healthz` (you may see `WARN: Some processes on port 5000 may still be running`).
+**Port 5000:** Disable **AirPlay Receiver** (System Settings → General → AirDrop & Handoff) if `make dev` cannot reach `/healthz`.
 
-Turn off AirPlay Receiver once:
+**iCloud-synced clones:** Prefer `~/Developer/…` — avoids duplicate `module 2.py` files; CI runs `scripts/ci/check-macos-duplicate-files.sh`.
 
-1. Open **System Settings → General → AirDrop & Handoff** (on some macOS versions: **Sharing**).
-2. Disable **AirPlay Receiver**.
+### Linux
 
-Confirm port 5000 is free: `lsof -i :5000` should not list `ControlCenter`. Then `curl -fsS http://127.0.0.1:5000/healthz` should succeed after the backend is running.
+Debian/Ubuntu: `python3`, `python3-venv`, `redis-server`, `libmagic1`, `awscli`. Fedora: `python3`, `redis`, `file-libs`, `awscli`.
 
-### Debian / Ubuntu
+### Alpine / busybox / minimal CI images
+
+`make secrets` runs `Server/scripts/secrets.sh` via **`sh`** (bash is not required). You need **AWS CLI v2**, **`sh`**, and **`python3` or `jq`** for JSON parsing. Dotenv-format secrets use POSIX awk only.
+
+### Headless SSO (Codespaces, SSH, CI)
+
+Before `make secrets`, authenticate with:
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y python3 python3-venv python3-pip redis-server libmagic1 awscli
-sudo systemctl start redis-server   # or: redis-server --daemonize yes
-# Node 20+ from https://nodejs.org/ or NodeSource — then corepack as above
+aws sso login --profile "$AWS_PROFILE" --use-device-code
 ```
 
-### Fedora
+Or export valid **`AWS_ACCESS_KEY_ID`** + **`AWS_SESSION_TOKEN`** (or role creds) in the environment. Set **`AWS_SSO_NO_AUTO_LOGIN=1`** in CI/non-TTY environments to suppress browser auto-login attempts.
+
+### Windows (WSL2) — required
+
+**You cannot run setup in PowerShell, CMD, or Git Bash.** The toolchain is Unix-based (bash setup scripts, GNU `make`, a Python venv, Redis, the `libmagic` system library). Those don't run reliably on native Windows — that's the confusing errors people hit. **WSL2 gives you a real Ubuntu Linux on Windows**, so the exact same commands your macOS/Linux teammates use just work. `make setup` will hard-stop with these steps if it detects a native Windows shell.
+
+**1. One-time — in an _admin_ PowerShell, then reboot:**
+
+```powershell
+wsl --install   # installs WSL2 + Ubuntu by default
+```
+
+Reboot, open **Ubuntu** from the Start menu, and create your Linux username/password.
+
+**2. Inside the Ubuntu (WSL) terminal — install prerequisites:**
 
 ```bash
-sudo dnf install -y python3 python3-pip redis file-libs awscli
-sudo systemctl start redis
-# Node 20+ from nodejs.org — then corepack
+sudo apt update
+sudo apt install -y build-essential git python3 python3-venv \
+  redis-server libmagic1 awscli
+# Node 20+ via nvm; corepack provides pnpm 9:
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+exec bash && nvm install 20 && corepack enable
 ```
 
-### Windows
+**3. Clone _inside_ the Linux home dir (not `C:\` / `/mnt/c/...`) and run setup:**
 
-Use **WSL2** with Linux steps above.
+```bash
+cd ~ && git clone <repo-url> && cd <repo>
+make setup
+```
+
+> **Gotcha:** Clone into `~` (the WSL filesystem), **not** a Windows path under `/mnt/c`. Windows-mounted paths are slow and cause line-ending and file-permission issues. Open the repo in Cursor/VS Code via the **WSL** extension ("Connect to WSL").
 
 ---
 
@@ -90,50 +123,120 @@ Use **WSL2** with Linux steps above.
 
 | Command | Purpose |
 | ------- | ------- |
-| `make setup` | Full first-time flow (steps 1–5) |
-| `make refresh` | Refresh deps after `git pull` |
-| `make secrets` | Re-fetch `Server/.env` only |
+| `make setup` | Prereqs + Client + Server venv |
+| `make setup-dev` | AWS SSO + secrets (prod `DATABASE_URL`) + backend verify |
+| `make setup-mcp` | Cursor MCP install/verify only |
+| `make refresh` | Post-pull cache clear + deps (`ARGS='--secrets'`, `--reset-db`, `--no-clean`, `--aggressive-clean`) |
+| `make check-deps` | Prerequisite scan |
+| `make secrets` | Re-fetch `Server/.env` |
+| `make db-up` | Start isolated local Postgres |
+| `make db-health` | Check local Postgres readiness |
+| `make db-down` | Stop local Postgres and clear the local dev DB volume |
+| `make db-reset` | Delete and recreate the local Postgres dev volume |
+| `make dev-db-init` | Local Docker only: reset volume + local `DATABASE_URL` + migrations |
 | `make dev` | Web + API |
-| `./scripts/check-deps.sh` | Check node/pnpm/python/redis (+ aws unless `--skip-secrets`) |
+| `./scripts/setup/check-deps.sh` | Same as `make check-deps` |
 
 ### Setup flags
 
 | Flag | Effect |
 | ---- | ------ |
-| `--skip-secrets` | Skip SSO login and Secrets Manager |
-| `--force-venv` | Ignored (setup always recreates `Server/.venv` if it already exists) |
-| `--no-install` | Do not run `brew install` / corepack fixes |
-| `--ci` | Slimmer Python deps (`requirements/ci.txt`) |
+| `--force-venv` | Recreate `Server/.venv` from scratch |
+| `--no-install` | No Homebrew/corepack installs |
+| `--ci` | Slimmer Python (`requirements/ci.txt`) |
 
-Step 1 logs each prerequisite as it runs. Long installs honor `DEPS_CMD_TIMEOUT` (default 600s); override with `DEPS_CMD_TIMEOUT=1200 make setup` if needed.
+`SETUP_REQUIRE_REDIS=1` — enforce Redis during verify (set automatically by `make setup-dev`). Default `make setup` warns and continues if Redis is unreachable.
+
+`DEPS_CMD_TIMEOUT` (default 600s) — increase for slow first `pnpm`/`corepack` runs.
 
 ---
 
-## Troubleshooting
+## First run & verify
+
+After `make setup` (and `make setup-dev` for full-stack), confirm the stack runs:
+
+```bash
+make dev
+```
+
+- **Web:** open <http://localhost:5173>
+- **API health:** `curl http://localhost:5000/healthz` → expect a `200` / OK response
+
+`make secrets` fetches all AWS secrets into `Server/.env`, including `DATABASE_URL` from Secrets Manager (e.g. `db_url`). For isolated local Docker Postgres instead, use `USE_LOCAL_DATABASE=1 make secrets` or `make dev-db-init`.
+
+`make setup-dev` runs `make secrets` only (no Docker reset, no migrations). For local Docker reset + migrations:
+
+```bash
+make dev-db-init
+make dev-backend
+```
+
+For post-pull dependency refreshes, local DB reset is opt-in:
+
+```bash
+make refresh ARGS='--secrets --reset-db'
+```
+
+Other entry points: `make dev-web` (web only), `make mobile` (Expo). If `/healthz` is unreachable on macOS, see the [port 5000 / AirPlay](#macos-quick) note.
+
+---
+
+## Cursor MCP (optional)
+
+- Seeds **`.cursor/mcp.json`** from [`.cursor/mcp.example.json`](.cursor/mcp.example.json) when missing; never commit real tokens.
+- **`make setup-mcp`** — install `npx`/`uvx`, validate JSON, AWS/gcloud checks, print one summary (warnings do not fail `make setup`).
+- **Daily baseline:** `github`, `linear`, `slack` — enable Mercury/AWS/analytics only when needed.
+
+```bash
+make setup-mcp
+MCP_NO_INSTALL=true make setup-mcp   # verify only
+cp .cursor/mcp.example.json .cursor/mcp.json && make setup-mcp   # reset file
+```
+
+Finish in **Cursor → Settings → Tools & MCP** (GitHub PAT, Linear/Slack OAuth). AWS MCP shares SSO with `make secrets`.
+
+---
+
+## Troubleshooting (common)
 
 | Problem | Fix |
 | ------- | --- |
-| Step 1 looks stuck (no output after header) | Setup now logs each tool (`[node]`, `[pnpm]`, …). First `pnpm`/`corepack` run may download for 1–2 min — wait for `still running…` heartbeats. Wrong pnpm (e.g. brew 11.x): `brew unlink pnpm` then re-run `make setup`, or `corepack enable && corepack prepare pnpm@9.0.0 --activate` |
-| `AWS_PROFILE` not set | `export AWS_PROFILE=<profile>` then `aws sso login --profile "$AWS_PROFILE"` |
-| SSO login failed | `aws sso login --profile <profile>` then `make setup` |
-| No SSO profile yet | Run `aws configure sso`, then `export AWS_PROFILE=...` and re-run `make setup` |
-| Wrong Python / broken venv | `export PYTHON=python3.12` then `make setup` (recreates `Server/.venv`) |
-| After `git pull` only | `make refresh` (keeps existing venv, refreshes pip/pnpm) |
-| `your-sso-profile-name` / secrets profile error | Remove legacy `Server/config/.aws-sso` if present; use terminal SSO only (`export AWS_PROFILE=...`, `aws sso login`) |
-| Verification: empty `DATABASE_URL` | Re-run `make secrets` or fix AWS access |
-| Redis not running after setup | `brew services start redis` or `redis-server --daemonize yes` then `redis-cli ping` |
-| Step 1: redis missing | `brew install redis` (macOS) or `sudo apt install redis-server` (Debian/Ubuntu) |
-| `failed to find libmagic` on `make dev` | `brew install libmagic` (macOS) or `sudo apt install libmagic1` (Debian/Ubuntu); re-run `make setup` or `make dev` |
-| `make dev`: timeout on `/healthz`, port 5000 “still running” (macOS) | **AirPlay Receiver** is using port 5000 — disable it under **System Settings → General → AirDrop & Handoff → AirPlay Receiver** (see macOS section above), then re-run `make dev` |
+| On Windows / "native Windows shell detected" | Use **WSL2 (Ubuntu)** — see [Windows (WSL2)](#windows-wsl2--required). Run `make setup` inside the Ubuntu terminal, not PowerShell/Git Bash. |
+| Wrong/missing pnpm | `corepack prepare pnpm@9.0.0 --activate` or `brew unlink pnpm` |
+| AWS profile / SSO | `export AWS_PROFILE=…`; `aws sso login`; headless: `aws sso login --use-device-code`; or `Server/config/.aws-sso`; CI: `AWS_SSO_NO_AUTO_LOGIN=1` |
+| Broken venv | `export PYTHON=python3.12`; `make setup ARGS='--force-venv'` |
+| torch / ML on ARM Linux | Setup may warn and skip torch; install manually if you need sentence-transformers |
+| Redis down (core setup) | Verify warns; install/start Redis before `make setup-dev` or `make dev` |
+| Redis down (backend) | `brew services start redis` or `redis-server --daemonize yes` |
+| Local Postgres down | `make db-up`; then `make db-health` |
+| Need a clean local DB | `make dev-db-init` (deletes only the local Docker Postgres volume) |
+| `libmagic` missing | `brew install libmagic` / `apt install libmagic1` |
+| macOS port 5000 | Disable AirPlay Receiver (see above) |
+| MCP red in Cursor | `make setup-mcp`; fix summary; reload window |
+| Empty `DATABASE_URL` | `make secrets` (requires `db_url` in Secrets Manager); local Docker: `USE_LOCAL_DATABASE=1 make secrets` |
+
+More: [scripts-guide.md](documentation/server/ops/scripts-guide.md), [README.md](README.md), [AGENTS.md](AGENTS.md).
 
 ---
 
 ## Quality gates
 
+`make setup` sets `git config core.hooksPath scripts/githooks`.
+
+| When | What |
+| ---- | ---- |
+| Commit | Prettier, ESLint, Ruff; OpenAPI drift |
+| Push | Client typecheck + contract tests |
+| PR (CI) | `pnpm check`, pytest, full lint |
+
 ```bash
-cd Client && pnpm typecheck && pnpm lint && pnpm check
+make precommit
+make openapi-verify
+SKIP=1 git commit ...    # once, emergency
+```
+
+```bash
+cd Client && pnpm check
 make lint
 cd Server && . .venv/bin/activate && pytest
 ```
-
-See also [README.md](README.md), [AGENTS.md](AGENTS.md), [Makefile](Makefile) (`make help`).

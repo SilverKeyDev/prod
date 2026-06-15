@@ -1,6 +1,6 @@
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
-import { dateNow } from "packages/utils/date";
+import { Box } from "packages/ui/components/structure/primitives";
+import { dateNow } from "packages/utils/core/date";
 
 import { BodyText } from "@/components/ui";
 

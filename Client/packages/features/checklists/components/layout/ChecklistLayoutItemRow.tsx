@@ -1,15 +1,14 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { type ReactNode, useCallback, useState } from "react";
 
-import { useLocalization } from "packages/contexts";
 import type { TaskChecklistItem } from "packages/features/checklists/api/checklists";
-import ChecklistIntegrationSlot from "packages/features/checklists/components/slots/ChecklistIntegrationSlot";
+import { ChecklistStepAttachments } from "packages/features/checklists/components/shared/ChecklistStepAttachments";
 import {
   ChecklistStepHeaderSubmitButton,
   ChecklistStepSubmitProvider,
 } from "packages/features/checklists/components/steps/ChecklistStepSubmitContext";
+import { useChecklistIntegrationCompleteHandler } from "packages/features/checklists/hooks/useChecklistIntegrationCompleteHandler";
 import type { ChecklistCloseLayoutCheckboxItem } from "packages/features/checklists/types/checklistCloseLayout";
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
-import { runChecklistIntegrationComplete } from "packages/features/checklists/utils/integration/checklistIntegrationComplete";
 import {
   checklistCheckboxRowClassNames,
   checklistRowShellClassNames,
@@ -17,11 +16,10 @@ import {
 } from "packages/features/checklists/utils/presentation/checklistCheckboxPresentation";
 import { CHECKLIST_ROW_INTERACTIVE_SELECTOR } from "packages/features/checklists/utils/presentation/checklistRowInteractiveSelector";
 import type { ChecklistItemToggleEligibility } from "packages/features/checklists/utils/rules/checklistRules";
-import { showWarningToast } from "packages/hooks/ui/toast/useToast";
 import { ChecklistCheckbox } from "packages/ui";
-import { ConfirmationDialog } from "packages/ui/components/modals";
-import { Box, TouchableBox } from "packages/ui/components/primitives";
-import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/primitives/divider/dividerStyles";
+import { Box, TouchableBox } from "packages/ui/components/structure/primitives";
+import { DOTTED_BORDER_LIGHT_GRAY } from "packages/ui/components/structure/primitives/divider/dividerStyles";
+import { ConfirmationDialog } from "packages/ui/components/surfaces/modals";
 
 import { IconButton } from "@/components/ui";
 
@@ -51,6 +49,8 @@ export type ChecklistLayoutItemRowProps = {
   commitToggleItem: (id: number) => void | Promise<void>;
   toggleExpand: (id: number) => void;
   isExpanded: (id: number) => boolean;
+  transactionId?: string | null;
+  renderItemFooter?: (item: TaskChecklistItem) => ReactNode;
 };
 
 function ChecklistLayoutItemRowInner({
@@ -65,8 +65,9 @@ function ChecklistLayoutItemRowInner({
   commitToggleItem,
   toggleExpand,
   isExpanded,
+  transactionId,
+  renderItemFooter,
 }: ChecklistLayoutItemRowProps) {
-  const { t } = useLocalization();
   const rowChecked = !!checkedById[item.id];
   const { canCheck, canUncheck, canMarkChecked } = getItemToggleEligibility(roadmapTab, item.id);
   const checkboxDisabled = (!rowChecked && !canCheck) || (rowChecked && !canUncheck);
@@ -96,31 +97,11 @@ function ChecklistLayoutItemRowInner({
     : "The system indicates you haven't completed the required steps or materials for this item. You can still mark it complete.";
   const confirmText = rowChecked ? "Uncheck anyway" : "Mark complete";
 
-  const commitToggleItemRef = useRef(commitToggleItem);
-  commitToggleItemRef.current = commitToggleItem;
-  const canMarkCheckedRef = useRef(canMarkChecked);
-  canMarkCheckedRef.current = canMarkChecked;
-
-  const handleIntegrationComplete = useCallback(() => {
-    runChecklistIntegrationComplete({
-      canMarkChecked: () => canMarkCheckedRef.current,
-      commitToggleItem: (id) => commitToggleItemRef.current(id),
-      itemId: item.id,
-      notifyBlocked: () =>
-        showWarningToast(
-          t("checklists.step_merge_not_applied", {
-            defaultValue:
-              "This step could not be marked complete yet. Finish earlier steps or required details, then try again.",
-          })
-        ),
-      notifyError: () =>
-        showWarningToast(
-          t("checklists.update_error", {
-            defaultValue: "Could not update this step. Please try again.",
-          })
-        ),
-    });
-  }, [item.id, t]);
+  const handleIntegrationComplete = useChecklistIntegrationCompleteHandler({
+    itemId: item.id,
+    commitToggleItem,
+    canMarkChecked,
+  });
 
   const isActive = activeItemIds.includes(item.id);
   const shouldShowIntegration = (item as { component_key?: string }).component_key != null;
@@ -138,6 +119,12 @@ function ChecklistLayoutItemRowInner({
   }, [expanded, item.id, toggleExpand]);
 
   const expandRowAccessibilityLabel = `${item.label}. Expand step`;
+  const toggleRowAccessibilityLabel = `${item.label}. Toggle step`;
+
+  const ignoreNestedRowPress = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    return Boolean(target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR));
+  }, []);
 
   const itemLabelClass = getChecklistItemLabelClass({
     checked: rowChecked,
@@ -154,7 +141,7 @@ function ChecklistLayoutItemRowInner({
     optional: item.optional ?? undefined,
   };
 
-  const headerRow = (
+  const headerRowContent = (
     <Box className="flex flex-row items-start gap-2">
       <Box className="min-w-0 flex-1">
         <ChecklistCheckbox
@@ -162,6 +149,7 @@ function ChecklistLayoutItemRowInner({
           checked={rowChecked}
           onToggle={handleCheckboxToggle}
           disabled={checkboxDisabled}
+          deferInteractionToParent
           itemLabelClass={itemLabelClass}
           itemExplanationClass={itemExplanation}
           checkboxContainerClass={checkboxContainer}
@@ -183,24 +171,35 @@ function ChecklistLayoutItemRowInner({
     </Box>
   );
 
-  const collapsedHeaderRow = (
+  const headerRow = expanded ? (
+    <TouchableBox
+      label={toggleRowAccessibilityLabel}
+      onPress={handleCheckboxToggle}
+      className="w-full text-left"
+      onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+        if (ignoreNestedRowPress(e)) {
+          return;
+        }
+        e.stopPropagation();
+        handleCheckboxToggle();
+      }}
+    >
+      {headerRowContent}
+    </TouchableBox>
+  ) : (
     <TouchableBox
       label={expandRowAccessibilityLabel}
       onPress={handleExpandRowPress}
       className="w-full text-left"
       onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-        const target = e.target as HTMLElement;
-        if (target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR)) {
+        if (ignoreNestedRowPress(e)) {
           return;
-        }
-        if (target.closest("label")) {
-          e.preventDefault();
         }
         e.stopPropagation();
         handleExpandRowPress();
       }}
     >
-      {headerRow}
+      {headerRowContent}
     </TouchableBox>
   );
 
@@ -222,14 +221,16 @@ function ChecklistLayoutItemRowInner({
             : ""
         }`}
       >
-        {expanded ? headerRow : collapsedHeaderRow}
-        {showIntegrationBlock ? (
-          <ChecklistIntegrationSlot
-            componentKey={(item as { component_key?: string }).component_key}
-            isCurrent={true}
-            onComplete={handleIntegrationComplete}
-          />
-        ) : null}
+        {headerRow}
+        <ChecklistStepAttachments
+          item={item}
+          expanded={expanded}
+          roadmapTab={roadmapTab}
+          transactionId={transactionId}
+          onIntegrationComplete={handleIntegrationComplete}
+          renderItemFooter={renderItemFooter?.(item) ?? null}
+          integrationClassName="mt-2 px-1 pb-2"
+        />
       </Box>
     </>
   );

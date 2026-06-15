@@ -5,18 +5,16 @@ Handles fetching images from Slipstream property API.
 
 from typing import Any
 
-from flask import current_app
-
 from app.services.search.data import get_property_images as _slipstream_get_images
+from logger import log
 
 
-def fetch_zillow_images(zpid: str, rapidapi_key: str | None = None) -> list[str]:
+def fetch_zillow_images(zpid: str) -> list[str]:
     """
     Fetch property images from Slipstream API.
 
     Args:
         zpid: Property / MLS listing ID
-        rapidapi_key: Unused (kept for backward compat signature)
 
     Returns:
         List of image URLs
@@ -27,7 +25,11 @@ def fetch_zillow_images(zpid: str, rapidapi_key: str | None = None) -> list[str]
     try:
         return _slipstream_get_images(str(zpid))
     except Exception as e:
-        current_app.logger.warning(f"🖼️ [PROPERTY] Failed to fetch images from API: {e}")
+        log.warn(
+            "API",
+            "Failed to fetch property images from API",
+            {"zpid": zpid, "error": str(e)},
+        )
         return []
 
 

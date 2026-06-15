@@ -1,9 +1,9 @@
 """Tests for polygon search API routes."""
 
-import json
 from unittest.mock import patch
 
-from app.models import User
+from app.models import AgentConnections, User, UserRole
+from tests.support.user_roles import create_user_with_roles
 
 # Patch path for get_authenticated_user where it's used in the route
 MOCK_GET_CURRENT_USER = "app.routes.search.search.get_authenticated_user"
@@ -30,7 +30,6 @@ class TestPolygonSearchRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -95,7 +94,6 @@ class TestPolygonSearchRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -144,7 +142,6 @@ class TestPolygonSearchRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -192,7 +189,6 @@ class TestPolygonSearchRoutes:
             cognito_id="cognito-user-1",
             email="user@example.com",
             name="Test User",
-            is_agent=False,
         )
         db_session.session.add(user)
         db_session.session.commit()
@@ -246,9 +242,9 @@ class TestPolygonSearchRoutes:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
         request_data = {
@@ -285,16 +281,24 @@ class TestPolygonSearchRoutes:
                         assert response.status_code == 200
 
     def test_polygon_agent_preferences_user_id_forbidden_non_client(self, client, db_session):
-        """Agent cannot search with preferences_user_id outside client_ids."""
-        agent = User(
+        """Agent cannot search with preferences_user_id outside linked clients."""
+        agent = create_user_with_roles(
+            db_session.session,
             id="agent-1",
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Agent",
-            is_agent=True,
-            client_ids=json.dumps(["client-good"]),
+            roles=("agent",),
+            commit=False,
         )
-        db_session.session.add(agent)
+        good_client = User(
+            id="client-good",
+            cognito_id="cognito-client-good",
+            email="good@example.com",
+            name="Good Client",
+        )
+        db_session.session.add(good_client)
+        db_session.session.add(AgentConnections(agent_id="agent-1", client_id="client-good"))
         db_session.session.commit()
 
         request_data = {
@@ -325,7 +329,6 @@ class TestPolygonSearchRoutes:
             cognito_id="cognito-buyer-1",
             email="buyer@example.com",
             name="Buyer",
-            is_agent=False,
         )
         db_session.session.add(buyer)
         db_session.session.commit()

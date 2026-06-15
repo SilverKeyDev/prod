@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
 
 import { buildFiltersSliceActions, buildLiveIsHomeSaved } from "./filters.slice.actions";
 import { filtersSliceInitialState } from "./filters.slice.initialState";
@@ -30,7 +30,7 @@ const withReset = withResettable<FiltersState>(baseCreator, (set, get, _store) =
 
 const withPersist = persistSafe<FiltersState>(withReset, {
   name: "filters-store",
-  version: 6,
+  version: 7,
   storage: getLocalStorage() as import("zustand/middleware").StateStorage,
   partialize: (state: FiltersState) => ({
     activeTab: state.activeTab,

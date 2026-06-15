@@ -93,7 +93,7 @@ export function buildCalendarMonthGridStyles(spacingFn: SpacingFn) {
       alignSelf: "stretch" as const,
       display: "flex" as const,
       flexDirection: "column" as const,
-      alignItems: "flex-start" as const,
+      alignItems: "center" as const,
       justifyContent: "flex-start" as const,
     },
     dot: {
@@ -107,21 +107,14 @@ export function buildCalendarMonthGridStyles(spacingFn: SpacingFn) {
       maxWidth: "90%" as const,
       minWidth: 0,
       marginTop: 4,
-      marginLeft: spacing(2),
       paddingVertical: 4,
-      paddingHorizontal: spacing(2),
+      paddingLeft: spacing(3),
+      paddingRight: spacing(2),
       borderRadius: 6,
-      alignSelf: "flex-start" as const,
+      alignSelf: "center" as const,
       display: "flex" as const,
       flexDirection: "row" as const,
       alignItems: "center" as const,
-      gap: 6,
-    },
-    eventChipDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-      flexShrink: 0,
     },
     /** Multi-day / range event — first (or only) day shown in a cell */
     eventChipMultiDay: {
@@ -134,7 +127,6 @@ export function buildCalendarMonthGridStyles(spacingFn: SpacingFn) {
       borderWidth: 1,
       borderStyle: "dashed" as const,
       borderColor: color("neutral.400"),
-      backgroundColor: hexToRgba(color("neutral.500"), 0.08),
     },
     eventChipText: {
       fontSize: 10,

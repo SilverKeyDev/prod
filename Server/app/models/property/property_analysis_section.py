@@ -1,10 +1,13 @@
 """Shared property analysis section — one row per (property, section_name)."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -36,4 +39,10 @@ class PropertyAnalysisSection(db.Model):
 
     __table_args__ = (
         db.UniqueConstraint("property_id", "section_name", name="uq_property_section"),
+    )
+
+    property: Mapped["PropertyCache"] = relationship(
+        "PropertyCache",
+        back_populates="analysis_sections",
+        lazy="select",
     )

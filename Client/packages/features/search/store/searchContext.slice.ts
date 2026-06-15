@@ -13,10 +13,16 @@ export type SearchContextAnchor = {
 
 /** Non-persisted filter overrides sent with search request (e.g. range sliders before DB save) */
 export type SearchFilterOverrides = {
+  home_budget_min?: number;
+  home_budget_max?: number;
   preferred_bedrooms_min?: number;
   preferred_bedrooms_max?: number;
   preferred_bathrooms_min?: number;
   preferred_bathrooms_max?: number;
+  preferred_housing_type?: string;
+  listing_type?: string[];
+  preferred_sqft_min?: number;
+  preferred_sqft_max?: number;
   preferred_lot_size_min?: number;
   preferred_lot_size_max?: number;
   preferred_home_age_min?: number;
@@ -24,6 +30,10 @@ export type SearchFilterOverrides = {
   /** Merged into polygon search `user_preferences` for this request (session-only until saved). */
   must_have?: string[];
   preferred_home_features?: string[];
+  days_on_market_min?: number;
+  days_on_market_max?: number;
+  listing_status?: string;
+  other_requirements?: string[];
 };
 
 export type SearchContextState = {
@@ -40,13 +50,20 @@ export type SearchContextState = {
   locationPlaceLabel: string | null;
   /** Synthetic IsochroneData for map/native overlay (place bounds or last viewport search). */
   locationSearchOverlayData: IsochroneData | null;
-  /** Live text in the location search bar (web). Used to allow Search when important locations are empty. */
+  /** Live text in the location search bar (web). Used to route Search through bar submit when uncommitted. */
   locationBarDraft: string;
   /**
    * Registered by SearchLocationBarWeb: run the same submit path as Enter (suggestion pick + viewport search).
    * Cleared on bar unmount.
    */
   locationBarExternalSubmit: (() => Promise<void>) | null;
+  /**
+   * Registered by SearchFiltersDropdown: persist embedded preferences before polygon search.
+   * Cleared on dropdown unmount.
+   */
+  flushPreferencesSave: (() => Promise<void>) | null;
+  /** Monotonic signal; increment to request opening the Preferences dropdown/sheet. */
+  preferencesPanelOpenSignal: number;
 
   setAnchor: (anchor: Partial<SearchContextAnchor>) => void;
   setFiltersHash: (hash: string) => void;
@@ -56,6 +73,7 @@ export type SearchContextState = {
       | Partial<SearchFilterOverrides>
       | ((prev: SearchFilterOverrides) => Partial<SearchFilterOverrides>)
   ) => void;
+  resetSearchFilterOverrides: () => void;
   clearAnchor: () => void;
   setLocationPlaceViewportFromBar: (payload: {
     ring: ViewportPolygonPoint[];
@@ -66,6 +84,8 @@ export type SearchContextState = {
   clearLocationPlaceSearchArea: () => void;
   setLocationBarDraft: (draft: string) => void;
   setLocationBarExternalSubmit: (fn: (() => Promise<void>) | null) => void;
+  setFlushPreferencesSave: (fn: (() => Promise<void>) | null) => void;
+  requestOpenPreferencesPanel: () => void;
 };
 
 const initialAnchor: SearchContextAnchor = {};
@@ -80,6 +100,8 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
   locationSearchOverlayData: null,
   locationBarDraft: "",
   locationBarExternalSubmit: null,
+  flushPreferencesSave: null,
+  preferencesPanelOpenSignal: 0,
 
   setAnchor: (anchor) =>
     set((s) => ({
@@ -100,6 +122,8 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
             }
           : { ...s.searchFilterOverrides, ...overrides },
     })),
+
+  resetSearchFilterOverrides: () => set({ searchFilterOverrides: {} }),
 
   clearAnchor: () => set({ anchor: initialAnchor }),
 
@@ -122,8 +146,17 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
   setLocationBarDraft: (locationBarDraft) => set({ locationBarDraft }),
 
   setLocationBarExternalSubmit: (locationBarExternalSubmit) => set({ locationBarExternalSubmit }),
+
+  setFlushPreferencesSave: (flushPreferencesSave) => set({ flushPreferencesSave }),
+
+  requestOpenPreferencesPanel: () => set({ preferencesPanelOpenSignal: Date.now() }),
 });
 
 export const useSearchContextStore = create<SearchContextState>()(
   withDevtools<SearchContextState>("searchContext")(baseCreator)
 );
+
+/** Imperative open request for non-React callers (e.g. search outcome utils). */
+export function requestOpenSearchPreferencesPanel(): void {
+  useSearchContextStore.setState({ preferencesPanelOpenSignal: Date.now() });
+}

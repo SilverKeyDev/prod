@@ -1,90 +1,27 @@
-## Financing and Loan Approval
+> **Status:** Partial | **Last verified:** 2026-05-28
 
-### Problem / goal
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [rev-share-partners.md](../../client/features/rev-share-partners.md).
 
-Financing is a multi-step process that influences:
-- Whether the deal can close.
-- When contingencies expire.
-- What documents and approvals are required.
+## Financing and loan approval
 
-We need to:
-- Model key financing milestones.
-- Align financing tasks and checklists with those milestones.
-- Provide hooks for lender integrations in the future.
+Financing timeline is **checklist-guided** (choose lender, submit application, lock rate, review disclosures). Contingency dates and lender status are not computed or synced.
 
-### Data model & invariants
+### Shipped
 
-- Inputs:
-  - `loan_type` (conventional, FHA, VA, etc.).
-  - `loan_program` details (if known).
-  - `jurisdiction_ruleset_key`.
+- `financing/items.py` — application, documentation, rate lock, loan estimate / closing disclosure review.
+- Signature-based completion for some disclosure steps via DocuSign + checklist integration.
+- Better and other partners may surface via **brokerage marketplace placement** (checklist/admin config)—not per-buyer lender referral.
 
-- Milestones:
-  - `loan_application_submitted`
-  - `conditional_approval_received`
-  - `clear_to_close`
-  - `financing_contingency_end`
+### Gaps
 
-- Checklist items:
-  - Tasks like:
-    - “Choose a lender and submit loan application.”
-    - “Provide requested documentation to lender.”
-    - “Lock interest rate.”
-    - “Review loan estimate and closing disclosure.”
+- No `financing_contingency_end`, `conditional_approval`, or `clear_to_close` milestones.
+- No lender webhook/poll integration.
 
-Invariants:
-- For financed transactions:
-  - There is at least a `financing_contingency_end` milestone.
-  - Checklists communicate what’s required to reach “clear to close.”
+### Code pointers
 
-### Flows / UX
-
-1. **Loan application**
-   - Buyer chooses:
-     - A lender.
-     - Basic loan program parameters.
-   - Checklist guides:
-     - Application submission.
-     - Document upload tasks.
-
-2. **Conditional approval and conditions tracking**
-   - Once lender issues conditional approval:
-     - System records a milestone.
-     - Checklist surfaces:
-       - Conditions to clear (e.g. further documentation, repairs).
-
-3. **Financing contingency**
-   - Deadline engine:
-     - Computes `financing_contingency_end` based on contract/jurisdiction.
-   - Notifications:
-     - Warn buyer and agent as the deadline nears.
-
-4. **Clear to close**
-   - When lender reports clear to close:
-     - Milestone is marked complete.
-     - Checklist updates.
-     - Calendar and notifications reflect readiness for closing.
-
-### Existing infrastructure to reuse / extend
-
-- **Financing checklist templates**
-  - Content in `Server/app/services/transactions/financing/items.py`.
-
-- **UI components**
-  - Financing subheader and sections in:
-    - `Client/packages/features/checklists/components/subheaders/FinancingInsurance.tsx`.
-
-- **Deadline engine**
-  - Should:
-    - Use `JurisdictionRuleSet` to drive financing-related deadlines.
-
-### Gaps that require new work
-
-- **Milestone integration with lenders (future)**
-  - Abstract interfaces to:
-    - Poll or receive push updates about loan status.
-  - Mapping of lender statuses to internal milestone states.
-
-- **Condition tracking**
-  - Fine-grained modeling of:
-    - Loan conditions that must be cleared (optional v2).
+| Area | Path |
+| ---- | ---- |
+| Financing items | `Server/app/services/transactions/financing/items.py` |
+| UI | `Client/packages/features/checklists/components/subheaders/FinancingInsurance.tsx` |
+| Signature → checklist | `Server/app/services/transactions/checklist_signature_completion.py` |
+| Partner placement (RESPA) | `Client/packages/features/partners/components/PartnerTransactionIntegration.tsx` |

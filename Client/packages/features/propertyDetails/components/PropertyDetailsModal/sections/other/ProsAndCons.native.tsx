@@ -4,9 +4,9 @@ import { color, spacing } from "packages/design-tokens";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import { useProsAndConsData } from "packages/features/propertyDetails/hooks/useProsAndConsData";
-import { Box, Icon, Text } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import { ProsConsStarRow } from "packages/ui/components/ui/ProsConsStarRow";
+import { ProsConsStarRow } from "packages/ui/components/media/ui/ProsConsStarRow";
+import { Box, Icon, Text } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 function spacingToNumber(token: string): number {
   const remMatch = token.match(/^([\d.]+)rem$/);

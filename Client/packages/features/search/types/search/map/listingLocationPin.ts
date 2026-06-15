@@ -1,5 +1,5 @@
 import { color } from "packages/design-tokens";
-import { getDocument } from "packages/utils/platform";
+import { getDocument } from "packages/utils/core/platform";
 
 const LISTING_PIN_FILL = color("olive.DEFAULT");
 const LISTING_PIN_STROKE = color("olive.hover");

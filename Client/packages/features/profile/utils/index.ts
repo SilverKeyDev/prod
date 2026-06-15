@@ -2,16 +2,19 @@
 export * from "./agentPublicProfile";
 export * from "./financials/payingCashFinancials";
 export * from "./financials/propertyTax";
-export * from "./onboarding/fieldContract";
-export * from "./onboarding/housingOptions";
-export * from "./onboarding/onboardingRoleSelection";
-export * from "./onboarding/onboardingStepCompletion";
-export * from "./onboarding/preferencesUtils";
-export * from "./onboarding/profileFormSync";
-export * from "./onboarding/steps";
-export * from "./onboarding/submitHandler";
+export * from "./onboarding/role/agentFormSelection";
+export * from "./onboarding/role/onboardingRoleSelection";
+export * from "./onboarding/role/onboardingToWorkspace";
+export * from "./onboarding/steps/fieldContract";
+export * from "./onboarding/steps/housingOptions";
+export * from "./onboarding/steps/onboardingStepCompletion";
+export * from "./onboarding/steps/profileSectionCompletion";
+export * from "./onboarding/steps/steps";
+export * from "./onboarding/submit/submitHandler";
+export * from "./onboarding/sync/profileFormSync";
 export * from "./onboarding/utils";
-export * from "./onboarding/validation";
+export * from "./onboarding/validation/preferencesUtils";
+export * from "./onboarding/validation/validation";
 export * from "./public/agentPublicProfileViewModel";
 export * from "./public/constants";
 export * from "./public/formatPublicMlsAffiliations";
@@ -24,4 +27,4 @@ export type {
   ProfileStep,
   ProfileStepId,
   ValidationResult,
-} from "packages/features/profile/types/onboarding";
+} from "packages/features/profile/types/onboarding/onboarding";

@@ -8,7 +8,7 @@ import {
   assertTranslationMap,
   collectTranslationKeysUsedInDir,
   keysWithPrefix,
-} from "packages/utils/test/translationAssertions";
+} from "packages/utils/core/test/translationAssertions";
 
 import { FEED_TRANSLATIONS } from "./translations";
 

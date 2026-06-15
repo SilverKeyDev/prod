@@ -15,6 +15,7 @@ export { HomeHashLink } from "./link/HomeHashLink";
 export { Link } from "./link/Link";
 export { LinkPrimitiveContext } from "./link/linkPrimitiveContext";
 export { homeLandingSectionIdFromHref } from "./router/homeLandingHash";
+export { NavigationOutlet } from "./router/NavigationOutlet.web";
 export type { RouteSeoMeta } from "./router/pageTitles";
 export {
   DEFAULT_APP_TITLE,

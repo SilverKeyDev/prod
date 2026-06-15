@@ -196,10 +196,13 @@ ehthumbs.db
 *.sublime-project
 *.sublime-workspace
 
-# Cursor IDE
+# AI IDE / agent config
 .cursor/
 .cursorignore
 .cursorindexingignore
+.claude/
+.codex/
+.agents/
 
 # ============================================
 # Git

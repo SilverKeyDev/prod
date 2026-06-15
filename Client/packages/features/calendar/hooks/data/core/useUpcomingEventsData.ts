@@ -1,19 +1,23 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { dateNow, dayjs } from "packages/utils/date";
+import type { UpdateTodoRequest } from "packages/features/agent/api/agent";
+import { dateNow, dayjs } from "packages/utils/core/date";
 
 import { useGoogleCalendarPermissions } from "@/features/calendar/hooks/data/google/useGoogleCalendarPermissions";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/store/useGoogleCalendarStoreIntegration";
+import { useAgendaEventCompletion } from "@/features/calendar/hooks/ui/useAgendaEventCompletion";
 import { useUpcomingAgendaHeaderActions } from "@/features/calendar/hooks/ui/useUpcomingAgendaHeaderActions";
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
+import { filterAgendaEventsExcludingCompleted } from "@/features/calendar/utils/agenda/agendaEventCompletionKey";
 import {
+  AGENDA_TODAY_EMPTY_MESSAGE,
   filterTodosInRange,
   mergeUpcomingAgendaItems,
   sortCompletedAgendaTodosForDisplay,
 } from "@/features/calendar/utils/agenda/mergeUpcomingAgenda";
 import { isClientCalendarAccessError } from "@/features/calendar/utils/core/clientCalendarAccess";
-import { filterUpcomingEvents } from "@/features/calendar/utils/parsing/eventFiltering";
+import { filterTodayEvents } from "@/features/calendar/utils/parsing/eventFiltering";
 
 import { useAllAgendaEventsModalQuery } from "./useAllAgendaEventsModalQuery";
 import { useClientCalendarEventsQuery } from "./useClientCalendarEventsQuery";
@@ -26,6 +30,8 @@ export type UseUpcomingEventsDataParams = {
   agendaTodos?: AgendaTodoDTO[];
   onToggleAgendaTodo?: (id: string) => void;
   canEditAgendaTodos?: boolean;
+  updateAgendaTodo?: (id: string, data: UpdateTodoRequest) => Promise<void>;
+  deleteAgendaTodo?: (id: string) => Promise<void>;
   onSigningAgendaPress?: (agreementId: string) => void;
   headerActions?: ReactNode;
   /** When set (agent client hub), load this user's primary calendar instead of the agent's. */
@@ -38,13 +44,20 @@ export function useUpcomingEventsData({
   agendaTodos,
   onToggleAgendaTodo,
   canEditAgendaTodos = false,
+  updateAgendaTodo,
+  deleteAgendaTodo,
   onSigningAgendaPress,
   headerActions,
   clientUserId = null,
 }: UseUpcomingEventsDataParams = {}) {
   const isClientAgendaMode = Boolean(clientUserId);
-  const { isConnected, calendars, calendarsLoading, connectGoogleCalendar } =
-    useGoogleCalendarStoreIntegration();
+  const {
+    isConnected,
+    connectionStatusLoading,
+    calendars,
+    calendarsLoading,
+    connectGoogleCalendar,
+  } = useGoogleCalendarStoreIntegration();
 
   const scopedCalendars = useMemo(() => calendars ?? [], [calendars]);
 
@@ -54,6 +67,8 @@ export function useUpcomingEventsData({
     useGoogleCalendarPermissions();
 
   const [allAgendaEventsModalOpen, setAllAgendaEventsModalOpen] = useState(false);
+  const { isAgendaEventComplete, onToggleAgendaEventComplete, completedEventKeys } =
+    useAgendaEventCompletion();
 
   const [todayDateString, setTodayDateString] = useState(() => dateNow().format("ddd MMM DD YYYY"));
   const lastCheckedDateRef = useRef<string>(todayDateString);
@@ -77,10 +92,10 @@ export function useUpcomingEventsData({
     const parsed = todayDateString ? dayjs(todayDateString, "ddd MMM DD YYYY") : null;
     const todayStart =
       parsed?.isValid() && parsed ? parsed.startOf("day") : dateNow().startOf("day");
-    const nextWeek = todayStart.add(7, "day").endOf("day");
+    const todayEnd = todayStart.endOf("day");
     return {
       timeMin: todayStart.toISOString(),
-      timeMax: nextWeek.toISOString(),
+      timeMax: todayEnd.toISOString(),
     };
   }, [todayDateString]);
 
@@ -138,8 +153,13 @@ export function useUpcomingEventsData({
   });
 
   const upcomingEvents = useMemo(
-    () => filterUpcomingEvents(upcomingEventsRaw, effectiveSilverKeyCalendarId),
+    () => filterTodayEvents(upcomingEventsRaw, effectiveSilverKeyCalendarId),
     [upcomingEventsRaw, effectiveSilverKeyCalendarId]
+  );
+
+  const upcomingEventsForCompact = useMemo(
+    () => filterAgendaEventsExcludingCompleted(upcomingEvents, completedEventKeys),
+    [upcomingEvents, completedEventKeys]
   );
 
   const agendaTodosInRange = useMemo(() => {
@@ -162,8 +182,8 @@ export function useUpcomingEventsData({
   }, [agendaTodos]);
 
   const mergedAgendaItems = useMemo(
-    () => mergeUpcomingAgendaItems(upcomingEvents, agendaTodosIncompleteInRange),
-    [upcomingEvents, agendaTodosIncompleteInRange]
+    () => mergeUpcomingAgendaItems(upcomingEventsForCompact, agendaTodosIncompleteInRange),
+    [upcomingEventsForCompact, agendaTodosIncompleteInRange]
   );
 
   const handleConnect = useCallback(() => {
@@ -171,7 +191,7 @@ export function useUpcomingEventsData({
   }, [connectGoogleCalendar]);
 
   const shouldShowConnectionPrompt = useMemo(() => {
-    if (isClientAgendaMode) {
+    if (isClientAgendaMode || connectionStatusLoading) {
       return false;
     }
     if (!isConnected) {
@@ -183,7 +203,14 @@ export function useUpcomingEventsData({
       }
     }
     return false;
-  }, [isClientAgendaMode, isConnected, permissions, hasRequiredPermissions, isPartiallyEnabled]);
+  }, [
+    isClientAgendaMode,
+    connectionStatusLoading,
+    isConnected,
+    permissions,
+    hasRequiredPermissions,
+    isPartiallyEnabled,
+  ]);
 
   const permissionsReady = isClientAgendaMode || (!permissionsLoading && permissions !== undefined);
 
@@ -218,7 +245,7 @@ export function useUpcomingEventsData({
     embedInListHeader,
     border: "light" as const,
     title: AGENDA_TITLE,
-    emptyMessage: "No upcoming events or to-dos in the next week",
+    emptyMessage: AGENDA_TODAY_EMPTY_MESSAGE,
     headerActions: agendaHeaderActions,
     silverKeyCalendarId: effectiveSilverKeyCalendarId,
     refreshEvents,
@@ -227,7 +254,11 @@ export function useUpcomingEventsData({
     calendars: calendarsForAgenda,
     onToggleAgendaTodo,
     canEditAgendaTodos,
+    updateAgendaTodo,
+    deleteAgendaTodo,
     onSigningAgendaPress,
+    isAgendaEventComplete,
+    onToggleAgendaEventComplete,
   };
 
   const clientAgendaLoading = isClientAgendaMode && clientEventsQuery.isLoading;
@@ -256,6 +287,8 @@ export function useUpcomingEventsData({
     agendaTodos,
     onToggleAgendaTodo,
     canEditAgendaTodos,
+    updateAgendaTodo,
+    deleteAgendaTodo,
     onSigningAgendaPress,
     isConnected,
     calendarsLoading,
@@ -263,6 +296,7 @@ export function useUpcomingEventsData({
     scopedCalendars,
     silverKeyCalendarId: effectiveSilverKeyCalendarId,
     permissionsReady,
+    connectionStatusLoading,
     shouldShowConnectionPrompt,
     useAgendaList,
     showDisplayAll,
@@ -279,5 +313,8 @@ export function useUpcomingEventsData({
     agendaListProps,
     eventListHeaderActions,
     handleConnect,
+    isAgendaEventComplete,
+    onToggleAgendaEventComplete,
+    completedEventKeys,
   };
 }

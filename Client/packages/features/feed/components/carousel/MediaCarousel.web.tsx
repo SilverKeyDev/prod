@@ -4,8 +4,8 @@ import { spacing } from "packages/design-tokens";
 import { useHlsVideo } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui";
 import { useFeedStore } from "packages/store";
-import { useEmblaCarousel } from "packages/ui/components/adapters/carousel";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { useEmblaCarousel } from "packages/ui/components/system/adapters/carousel";
 
 import { Button, Image, Region, Video } from "@/components/ui";
 import {

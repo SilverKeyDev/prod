@@ -2,8 +2,8 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 export type PreferencesSaveStatus = "idle" | "saving" | "saved";
 

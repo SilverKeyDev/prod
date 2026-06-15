@@ -1,12 +1,15 @@
 // Shared constants for onboarding and personalization - barrel file
-// Re-exports from split domain modules in packages/utils/domain/profile/
+// Re-exports from split domain modules in packages/utils/product/domain/profile/
 
-import type { DropdownOption, OnboardingData } from "packages/features/profile/types/onboarding";
+import type {
+  DropdownOption,
+  OnboardingData,
+} from "packages/features/profile/types/onboarding/onboarding";
 
 // Re-export types for convenience
 export type { DropdownOption, OnboardingData };
 
-export { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
+export { DEFAULT_REPORT_SECTIONS } from "packages/utils/product/domain/defaultReportSections";
 
 // Re-export labels and section titles
 export {
@@ -17,7 +20,7 @@ export {
   FIELD_LABELS,
   LOCATION_SUBTITLE,
   SECTION_TITLES,
-} from "packages/utils/domain/profile/labels";
+} from "packages/utils/product/domain/profile/labels";
 
 // Re-export dropdown options
 export {
@@ -29,20 +32,26 @@ export {
   HOUSING_TYPE_OPTIONS,
   HVAC_PREFERENCE_OPTIONS,
   INFORMATION_DETAIL_OPTIONS,
-  IS_AGENT_OPTIONS,
+  isSelectableOnboardingRolePickerValue,
   LISTING_STATUS_PROFILE_OPTIONS,
   LISTING_TYPE_OPTIONS,
   LOT_SIZE_OPTIONS,
   MUST_HAVE_OPTIONS,
-  ONBOARDING_ROLE_OPTIONS,
+  ONBOARDING_ROLE_COMING_SOON_LABEL,
+  ONBOARDING_ROLE_PICKER_OPTIONS,
   PARKING_TYPE_OPTIONS,
   PETS_OPTIONS,
-  PROPERTY_USE_OPTIONS,
-  RENOVATION_PREFERENCE_OPTIONS,
   STORIES_PREFERENCE_OPTIONS,
   WALKABILITY_OPTIONS,
   WHY_JOINING_SILVERKEY_OPTIONS,
-} from "packages/utils/domain/profile/dropdownOptions";
+} from "packages/utils/product/domain/profile/dropdownOptions";
+export {
+  INTENDED_PROPERTY_USE_OPTIONS,
+  INTENDED_USE_OPTIONS,
+  PROPERTY_USE_OPTIONS,
+  RENOVATION_OPTIONS,
+  RENOVATION_PREFERENCE_OPTIONS,
+} from "packages/utils/product/domain/profile/housingFilterOptions";
 
 // Re-export slider scales
 export {
@@ -52,7 +61,7 @@ export {
   HOME_AGE_YEARS_TICK_VALUES,
   LOT_SIZE_ACRES_TICK_VALUES,
   SQFT_TICK_VALUES,
-} from "packages/utils/domain/profile/sliderScales";
+} from "packages/utils/product/domain/profile/sliderScales";
 
 // Re-export field helpers
 export {
@@ -60,12 +69,11 @@ export {
   parseHousingTypes,
   serializeAccessibilityNeeds,
   serializeHousingTypes,
-} from "packages/utils/domain/profile/fieldHelpers";
+} from "packages/utils/product/domain/profile/fieldHelpers";
 
 // Re-export required fields
 export {
-  REQUIRED_FIELDS,
   REQUIRED_FIELDS_ONBOARDING,
   REQUIRED_FIELDS_ONBOARDING_MOBILE,
   REQUIRED_FIELDS_SETTINGS,
-} from "packages/utils/domain/profile/requiredFields";
+} from "packages/utils/product/domain/profile/requiredFields";

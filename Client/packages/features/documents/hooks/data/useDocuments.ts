@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFiltersQueryParams } from "packages/config/query/adapters";
 import { queryKeys } from "packages/config/query/keys";
 import { documentService } from "packages/features/documents/api/documentService";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import type { WorkflowDocument } from "packages/types";
 
@@ -68,7 +68,7 @@ export const useDocuments = () => {
         return categoriesData;
       } catch {
         // If categories endpoint doesn't exist, return empty array
-        log.warn(LOG_CATEGORIES.API, "Categories endpoint not available, returning empty array");
+        log.warn("API", "Categories endpoint not available, returning empty array");
         return [];
       }
     },

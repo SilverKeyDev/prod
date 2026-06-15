@@ -1,5 +1,5 @@
 /** Agent feature translation strings (agent, client_selector). */
-import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+import { ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.added_to_calendar": "Added to calendar",
@@ -27,19 +27,16 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
   "agent.schedule_meeting": "Schedule meeting",
   "agent.search_agent_to_start_messaging": "Search for an agent to start messaging",
   "agent.search_for_agent": "Find agent",
-  "agent.discovery_page_title": "Find an agent",
-  "agent.discovery_page_subtitle":
-    "See agents matched to your saved preferences and search area, or search by name.",
   "agent.discovery_recommended_section": "Recommended for you",
   "agent.discovery_search_section": "Search by name",
   "agent.discovery_no_recommendations":
     "Add a ZIP or search location, or complete your home preferences, to see better matches.",
   "agent.discovery_connect": "Connect",
   "agent.discovery_view_profile": "View profile",
+  "agent.discovery_browse_full": "Browse all agents",
   "agent.connection_status.accepted": "Accepted",
   "agent.connection_status.waiting": "Waiting",
   "agent.connection_status.declined": "Declined",
-  "agent.discovery_browse_full": "Browse agents",
   "agent.discovery_loading_recommendations": "Loading recommendations...",
   "agent.discovery_search_min_chars": "Type at least 2 characters to search.",
   "agent.search_for_clients": "Search for clients",
@@ -84,6 +81,7 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
 
   "agent.client_kind.buyer": "Buyer",
   "agent.client_kind.seller": "Seller",
+  "agent.client_kind.renter": "Renter",
   "agent.client_kind.investor": "Investor",
   "agent.client_kind.unknown": "Client",
 

@@ -4,7 +4,7 @@
  */
 
 import { offerApi, searchApi } from "packages/config/http/api";
-import { log } from "packages/services/security/secureLogger";
+import { log } from "packages/logger";
 import { hasProperty, isObject } from "packages/utils";
 
 export type StrategyAndCompsResult = {
@@ -44,7 +44,7 @@ export async function fetchStrategyAndComps(
     throw new Error("No valid address found for selected home");
   }
 
-  log.info("NEGOTIATION_SERVICE", "Generating strategy and comps", { address });
+  log.info("NEGOTIATION", "Generating strategy and comps", { address });
 
   const options = signal ? { signal } : undefined;
   const [strategyResponseData, compsResponseData] = await Promise.all([
@@ -71,7 +71,7 @@ export async function fetchStrategyAndComps(
     "success" in compsResponseData &&
     !compsResponseData.success
   ) {
-    log.warn("NEGOTIATION_SERVICE", "Property comps API failed", {
+    log.warn("NEGOTIATION", "Property comps API failed", {
       error:
         "error" in compsResponseData && typeof compsResponseData.error === "string"
           ? compsResponseData.error
@@ -84,7 +84,7 @@ export async function fetchStrategyAndComps(
       ? (strategyResponse.strategy as Record<string, unknown>)
       : {};
 
-  log.info("NEGOTIATION_SERVICE", "Strategy generated successfully", {
+  log.info("NEGOTIATION", "Strategy generated successfully", {
     strategyId:
       "strategy_id" in strategyResponse && typeof strategyResponse.strategy_id === "string"
         ? strategyResponse.strategy_id

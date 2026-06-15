@@ -1,80 +1,25 @@
-## Appraisal and Valuation
+> **Status:** Partial | **Last verified:** 2026-05-28
 
-### Problem / goal
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
 
-For financed purchases, **appraisal and valuation** steps impact:
-- Financing contingencies.
-- Renegotiation opportunities.
-- Closing feasibility and timing.
+## Appraisal and valuation
 
-We need to:
-- Represent appraisal-related milestones.
-- Capture how they interact with financing and inspection phases.
+Appraisal steps appear as **financing checklist copy** (order appraisal, review report). No appraisal-specific milestones or lender status sync.
 
-### Data model & invariants
+### Shipped
 
-- Inputs:
-  - `loan_type` and `loan_program`.
-  - Whether an appraisal is required (some cash or special cases may skip).
+- Financing templates include appraisal-related tasks and explanations in `financing/items.py`.
+- `FinancingInsurance` subheader for buyer/agent checklist UX.
 
-- Milestones:
-  - `appraisal_ordered`
-  - `appraisal_completed`
-  - `appraisal_contingency_end` (if separate from general financing contingency).
+### Gaps
 
-- Checklist items:
-  - Tasks such as:
-    - “Order appraisal.”
-    - “Review appraisal report with agent/lender.”
-    - “Consider renegotiation or repair credits if appraisal is low.”
+- No `appraisal_ordered` / `appraisal_completed` / `appraisal_contingency_end` milestone types.
+- No lender or AMC integration for status updates.
 
-Invariants:
-- If financing requires an appraisal:
-  - There must be at least `appraisal_completed` milestone.
-  - Checklist items align with those dates and statuses.
+### Code pointers
 
-### Flows / UX
-
-1. **Appraisal ordering**
-   - Loan officer or agent triggers:
-     - “Order appraisal” step once contract and lender are chosen.
-   - System may:
-     - Record ordering time.
-     - Track status updates from lender or appraisal management company.
-
-2. **Results and implications**
-   - When appraisal completes:
-     - Result details may not be fully stored (to avoid sensitive data) but high-level flags (e.g. low vs at/above contract) may be.
-   - Checklist and timeline:
-     - Reflect whether further negotiation or re-inspection is recommended.
-
-3. **Jurisdiction and program differences**
-   - Some loan programs:
-     - Have program-specific expectations for appraisal timing and conditions.
-   - Rule sets can:
-     - Distinguish general financing deadlines from appraisal-specific windows when needed.
-
-### Existing infrastructure to reuse / extend
-
-- **Financing checklist templates**
-  - Items in `Server/app/services/transactions/financing/items.py`:
-    - Likely already include appraisal-related content.
-
-- **Financing UI**
-  - Financing tab and related components in:
-    - `Client/packages/features/checklists/components/subheaders/FinancingInsurance.tsx`.
-
-- **Deadline engine**
-  - Should compute/track:
-    - Appraisal-related milestones where relevant.
-
-### Gaps that require new work
-
-- **Appraisal-specific milestones**
-  - Explicit milestone types and rule entries for:
-    - Ordering, completion, and any contingency cutoffs.
-
-- **Integration with lender systems (future)**
-  - Hooks for:
-    - Receiving status updates.
-    - Reflecting those in checklists and notifications.
+| Area | Path |
+| ---- | ---- |
+| Financing items | `Server/app/services/transactions/financing/items.py` |
+| UI subheader | `Client/packages/features/checklists/components/subheaders/FinancingInsurance.tsx` |
+| Task category enum (inspection/closing/deadline) | `Client/packages/types/api.generated.ts` — `TransactionTask` category docs |

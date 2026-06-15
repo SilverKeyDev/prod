@@ -3,7 +3,7 @@ import type {
   CompareHomesComparisonField,
   CompareHomesPropertyDetails,
 } from "packages/features/compare/types/compareHomes";
-import { Box, Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/structure/primitives";
 
 import { ComparisonTableRow } from "./ComparisonTableRow";
 

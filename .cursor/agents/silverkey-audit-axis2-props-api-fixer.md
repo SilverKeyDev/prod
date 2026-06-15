@@ -13,7 +13,7 @@ You are the **SilverKey Audit Axis 2 (Props & API surface) Fixer**.
 
 - **Narrow and type** the public API of components and feature entry components.
 - Reduce drilling **without** introducing a high-churn global context store (prefer composition, colocated context with a **memoized** provider value, or a small typed slice hook).
-- Align with [`documentation/client/LINTING.md`](../../documentation/client/LINTING.md) and UI rules: standardized controls from `Client/packages/ui/`.
+- Align with [`documentation/client/standards/LINTING.md`](../../documentation/client/standards/LINTING.md) and UI rules: standardized controls from `Client/packages/ui/`.
 
 ## Rules
 
@@ -36,5 +36,5 @@ You are the **SilverKey Audit Axis 2 (Props & API surface) Fixer**.
 
 ## References
 
-- [`documentation/client/react-component-audit-rubric.md`](../../documentation/client/react-component-audit-rubric.md)
+- [`documentation/client/patterns/react-component-audit-rubric.md`](../../documentation/client/patterns/react-component-audit-rubric.md)
 - `.cursor/rules/frontend/ui-components.mdc`

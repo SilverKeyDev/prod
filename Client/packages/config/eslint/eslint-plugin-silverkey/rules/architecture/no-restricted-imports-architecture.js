@@ -77,7 +77,7 @@ module.exports = {
       filename.includes("packages/ui/") || filename.includes("packages/features/");
     const inAppLayer = filename.includes("apps/web/") || filename.includes("apps/mobile/");
     if (!inUiOrFeatures && !inAppLayer) return {};
-    if (filename.includes("packages/ui/components/ui/")) return {};
+    if (filename.includes("packages/ui/components/media/ui/")) return {};
 
     /** In packages/features, only api/ and services/ may import config/api or services. */
     const inFeaturesAllowedPath =

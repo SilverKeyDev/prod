@@ -3,20 +3,25 @@
  */
 export {
   type ChecklistType,
-  getTaskChecklist,
+  getMyTransaction,
   getTaskChecklistForSubject,
+  getTaskChecklistProgressSummaryForSubject,
   getTransactionAddress,
+  resolveMyTransactionId,
   saveTransactionAddress,
   type TaskChecklistApiResponse,
   type TaskChecklistItem,
+  type TaskChecklistProgressSummary,
+  type TaskChecklistProgressSummaryResponse,
   type TaskChecklistResponse,
+  type Transaction,
   type TransactionAddressData,
-  updateTaskChecklist,
+  tryResolveMyTransactionId,
   updateTaskChecklistForSubject,
 } from "./api/checklists";
 export { default as ChooseAreasSection } from "./components/integrations/areas/ChooseAreasSection";
 export { default as ReviewComparablesSection } from "./components/integrations/comparables/ReviewComparablesSection";
-export { default as HomeConcierge } from "./components/integrations/concierge/HomeConcierge";
+/** @deprecated Use `PartnerTransactionIntegration` from `packages/features/partners`. */
 export { default as FindingHome } from "./components/integrations/findingHome/FindingHome";
 export { default as ChecklistLayout } from "./components/layout/ChecklistLayout";
 export { default as CloseLayout } from "./components/layout/CloseLayout";
@@ -28,23 +33,24 @@ export {
 export { ChecklistUpdatePendingProvider } from "./components/roadmap/ChecklistUpdatePendingProvider";
 export { PhaseNode } from "./components/roadmap/PhaseNode";
 export { RoadmapTracker } from "./components/roadmap/RoadmapTracker";
+export { ChecklistSigningModals } from "./components/shared/ChecklistSigningModals";
+export { ChecklistStepAttachments } from "./components/shared/ChecklistStepAttachments";
+export { ChecklistStepSigningFooter } from "./components/shared/ChecklistStepSigningFooter";
 export { default as ChecklistIntegrationSlot } from "./components/slots/ChecklistIntegrationSlot";
 export { default as ChecklistStepForms } from "./components/steps/ChecklistStepForms";
-export { default as ClosingMovingIn } from "./components/subheaders/ClosingMovingIn";
-export { default as EscrowLegalLogistics } from "./components/subheaders/EscrowLegalLogistics";
-export { default as FinancingInsurance } from "./components/subheaders/FinancingInsurance";
-export { default as InspectionsDueDiligence } from "./components/subheaders/InspectionsDueDiligence";
-export { default as OfferSection } from "./components/subheaders/OfferSection";
-export { default as SearchSection } from "./components/subheaders/SearchSection";
 export {
   useChecklistData,
   type UseChecklistDataOptions,
   type UseChecklistDataReturn,
 } from "./hooks/data/useChecklistData";
+export { useChecklistProgressSummary } from "./hooks/data/useChecklistProgressSummary";
+export { useMyTransaction } from "./hooks/data/useMyTransaction";
+export { useResolvedTransactionId } from "./hooks/data/useResolvedTransactionId";
 export {
   useAutoCompleteChecklistIntegrations,
   type UseAutoCompleteChecklistIntegrationsArgs,
 } from "./hooks/useAutoCompleteChecklistIntegrations";
+export { useChecklistIntegrationCompleteHandler } from "./hooks/useChecklistIntegrationCompleteHandler";
 export {
   useChecklistProgress,
   type UseChecklistProgressReturn,
@@ -53,6 +59,7 @@ export {
   useChecklistStepExpansion,
   type UseChecklistStepExpansionOptions,
 } from "./hooks/useChecklistStepExpansion";
+export { useChecklistStepSigningFooter } from "./hooks/useChecklistStepSigningFooter";
 export { useOptionalChecklistUpdatePending } from "./hooks/useOptionalChecklistUpdatePending";
 export {
   CHECKLIST_SUBTITLES,
@@ -88,7 +95,7 @@ export {
   type RoadmapChecklistBlockerKind,
   type TaskChecklistMergeResult,
 } from "./utils/rules/checklistRules";
-export { CHECKLIST_TYPE_TO_TAB } from "./utils/rules/checklistTypeTab";
+export { CHECKLIST_TAB_TO_TYPE, CHECKLIST_TYPE_TO_TAB } from "./utils/rules/checklistTypeTab";
 export {
   getFirstIncompleteUnlockSection,
   SECTION_CONFIG,

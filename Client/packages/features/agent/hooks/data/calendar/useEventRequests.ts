@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import { agentApi } from "@/features/agent/api/agent";
 
@@ -31,7 +32,9 @@ export function useEventRequests(): UseEventRequestsReturn {
     }) => {
       const response = await agentApi.updateEventRequestStatus(messageId, status);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to update event request status");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to update event request status")
+        );
       }
       return response;
     },

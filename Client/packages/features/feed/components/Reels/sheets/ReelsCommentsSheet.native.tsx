@@ -13,7 +13,7 @@ import {
 } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { Text } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import type { FeedComment, FeedListing } from "@/features/feed/types/feed";
 

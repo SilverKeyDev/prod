@@ -1,7 +1,7 @@
-import { dateParseISO, dayjs } from "packages/utils/date";
+import { getEventLocalDayKeys } from "packages/utils/comms/calendar/parsing/eventParsing";
+import { dateParseISO, dayjs } from "packages/utils/core/date";
 
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
-import { getEventLocalDayKeys } from "@/features/calendar/utils/parsing/eventParsing";
 
 const MINUTES_PER_DAY = 24 * 60;
 

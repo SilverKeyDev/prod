@@ -1,0 +1,24 @@
+type: object
+required:
+  - user_id
+  - email
+  - name
+  - gate_roles
+properties:
+  user_id:
+    type: string
+    description: User primary key (UUID).
+  email:
+    type: string
+    description: User email address.
+  name:
+    type: string
+    description: Display name.
+  gate_roles:
+    type: array
+    description: SilverKey gate roles assigned to this user (`admin`, `super_admin`).
+    items:
+      type: string
+      enum:
+        - admin
+        - super_admin

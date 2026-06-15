@@ -5,24 +5,24 @@ import {
   type LotSizeHomeAgeSearchOverridesPatch,
 } from "packages/features/profile";
 import {
-  ARCHITECTURAL_STYLE_OPTIONS,
-  PROPERTY_USE_OPTIONS,
-  RENOVATION_OPTIONS,
-  WALKABILITY_OPTIONS,
-} from "packages/features/search/types/otherFilterOptions";
-import { Box } from "packages/ui/components/primitives";
-
-import { Dropdown } from "@/components/ui";
-import Label from "@/features/profile/components/settings/inputs/Label";
-import OptionTagInput from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
-import OnPerTagInput from "@/features/profile/components/settings/inputs/tags/TagInput.web";
-import {
   FIELD_LABELS,
   HOUSING_TYPE_OPTIONS,
   type OnboardingData,
   parseHousingTypes,
   serializeHousingTypes,
-} from "@/features/profile/utils";
+} from "packages/features/profile";
+import {
+  ARCHITECTURAL_STYLE_OPTIONS,
+  PROPERTY_USE_OPTIONS,
+  RENOVATION_OPTIONS,
+  WALKABILITY_OPTIONS,
+} from "packages/features/search/types/otherFilterOptions";
+import { FormFieldLabel as Label } from "packages/ui";
+import { OptionTagInput } from "packages/ui";
+import { TagInput as OnPerTagInput } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
+
+import { Dropdown } from "@/components/ui";
 
 export type OtherFilterContentProps = {
   formData: Partial<OnboardingData>;

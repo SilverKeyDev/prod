@@ -2,8 +2,8 @@ import { useCallback } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
-import { prefetchLibraryRouteDataIfNeeded } from "packages/hooks/data/polling/libraryRouteDataPrefetch";
-import { useAuthStore } from "packages/store";
+import { prefetchLibraryRouteDataIfNeeded } from "packages/features/documents/hooks/data/libraryRouteDataPrefetch";
+import { useAgentDashboardStore, useAuthStore } from "packages/store";
 
 import { prefetchDashboardShellRoute } from "./dashboardRoutePrefetch";
 
@@ -13,14 +13,15 @@ import { prefetchDashboardShellRoute } from "./dashboardRoutePrefetch";
 export function useDashboardShellRoutePrefetch(): (href: string) => void {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
+  const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
 
-  const isAgent = user?.is_agent;
+  const isAgent = (user?.roles ?? []).includes("agent");
 
   return useCallback(
     (href: string) => {
       prefetchDashboardShellRoute(href, { isAgent });
-      prefetchLibraryRouteDataIfNeeded(queryClient, user, href);
+      prefetchLibraryRouteDataIfNeeded(queryClient, user, href, selectedClientId ?? undefined);
     },
-    [queryClient, user, isAgent]
+    [queryClient, user, isAgent, selectedClientId]
   );
 }

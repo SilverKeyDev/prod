@@ -108,15 +108,15 @@ const ROUTE_SEO_DEFS: RouteSeoDef[] = [
     noindex: true,
   },
   {
-    pattern: "/messaging",
-    title: "Messaging",
-    description: "SilverKey messages.",
+    pattern: "/analytics",
+    title: "Analytics",
+    description: "Brokerage analytics on SilverKey.",
     noindex: true,
   },
   {
-    pattern: "/find-agents",
-    title: "Find agents",
-    description: "Find and connect with real estate agents on SilverKey.",
+    pattern: "/messaging",
+    title: "Messaging",
+    description: "SilverKey messages.",
     noindex: true,
   },
   {

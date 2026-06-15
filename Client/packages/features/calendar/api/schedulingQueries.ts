@@ -3,6 +3,7 @@
  */
 
 import { googleCalendarApi, type GoogleEvent } from "packages/api";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import { getClientAvailability } from "@/features/calendar/api/scheduling";
 import type { GoogleCalendar } from "@/features/calendar/api/types";
@@ -35,7 +36,7 @@ export async function queryAvailability(
   const response = await googleCalendarApi.queryFreebusy(request);
 
   if (!response.success || !response.data) {
-    throw new Error(response.error || "Failed to query availability");
+    throw new Error(resolveApiResultErrorMessage(response, "Failed to query availability"));
   }
 
   return getBusyBlocksFromResponse(response.data.calendars);
@@ -52,7 +53,7 @@ export async function queryClientAvailabilityAsBlocks(
 ): Promise<FreebusyTimeBlock[]> {
   const response = await getClientAvailability(clientId, timeMin, timeMax, calendarIds);
   if (!response.success || !response.data) {
-    throw new Error(response.error || "Failed to query client availability");
+    throw new Error(resolveApiResultErrorMessage(response, "Failed to query client availability"));
   }
   return getBusyBlocksFromResponse(response.data.calendars);
 }
@@ -86,13 +87,12 @@ export async function createScheduledEvent(
     end: { dateTime: eventData.end },
     attendees: eventData.attendees,
     location: eventData.location,
-    itinerary: eventData.itinerary,
   };
 
   const response = await googleCalendarApi.createEvent(event);
 
   if (!response.success || !response.data) {
-    throw new Error(response.error || "Failed to create scheduled event");
+    throw new Error(resolveApiResultErrorMessage(response, "Failed to create scheduled event"));
   }
 
   return response.data;
@@ -105,7 +105,9 @@ export async function getOrCreateSilverKeyCalendar(buyerName?: string): Promise<
   const response = await googleCalendarApi.getOrCreateSilverKeyCalendar(buyerName);
 
   if (!response.success || !response.data) {
-    throw new Error(response.error || "Failed to get or create SilverKey calendar");
+    throw new Error(
+      resolveApiResultErrorMessage(response, "Failed to get or create SilverKey calendar")
+    );
   }
 
   return response.data;

@@ -1,87 +1,59 @@
 ---
-description: Distinguish real-estate agents vs buyers (is_agent/isAgent) for UI, routing, and gating
+description: Distinguish real-estate agents vs buyers (agent role / useIsAgent) for UI, routing, and gating
 globs: Client/**/*.{ts,tsx}
 alwaysApply: false
 ---
 
-# Agent vs Buyer Experience (`is_agent` / `isAgent`)
+# Agent vs Buyer Experience (`useIsAgent` / agent role)
 
 This app supports **two distinct experiences**:
 
 - **Buyer / regular user**: Uses the app to buy/manage *their own* home search and workflow.
 - **Real-estate agent**: Uses the app to manage/support *other users* (clients) buying homes (agent dashboard, client selection, agent messaging flows, agent-only polling/routes).
 
-## Source of truth: where the flag is stored
+## Source of truth: agent identity
 
-- **Backend-provided user profile field**: `UserProfile.is_agent: boolean`
-  - Defined in `Client/packages/schemas/auth/user.ts` as `is_agent`.
-  - This is the canonical “is this user an agent?” flag.
+- **Server:** `user_roles` row with `role = "agent"`.
+- **API wire:** `User.roles: string[]` on profile and auth session payloads (no `is_agent` field).
+- **Client check:** `userHasAgentRole(user)` in `Client/packages/utils/auth/userHasAgentRole.ts`, or `useIsAgent()` in `Client/packages/hooks/store/useIsAgent.ts`.
 
 ## Client state: how it’s persisted and accessed
 
 - **Auth store (preferred for UI decisions)**: `useAuthStore` / `useAuthStoreIntegration().user`
-  - The persisted `auth-store` includes a safe subset of user fields, including `is_agent`.
-  - Preferred access pattern in UI code:
-    - `const isAgent = useAuthStore().user?.is_agent ?? false`
-  - **Best practice**: use the canonical helper hook:
-    - `const isAgent = useIsAgent()`
-    - Implemented in `Client/packages/hooks/store/auth/useIsAgent.ts`
+  - The persisted `auth-store` includes `roles` (not `is_agent`).
+  - **Best practice**: `const isAgent = useIsAgent()`
+  - Inline alternative: `userHasAgentRole(useAuthStore.getState().user)`
 
 - **Session store meta**: `useSessionStore().userMeta?.isAgent`
-  - `Client/packages/store/session.slice.ts` persists `userMeta.isAgent?: boolean` in session storage.
-  - **Do not use this for gating/rendering** (it is non-authoritative and can drift).
-  - Allowed usage: optional, non-critical UI chrome where correctness doesn’t matter (prefer avoiding entirely).
+  - **Do not use this for gating/rendering** (non-authoritative).
 
 ## Naming conventions (be explicit)
 
-- **API / schema field**: `is_agent` (snake_case) — do not rename in the schema.
-- **Local UI boolean**: `isAgent` (camelCase) derived from auth store (`user?.is_agent`) or via `useIsAgent()`.
-- **Route intent booleans**: MUST be named by intent, not identity:
+- **API / schema:** `roles` array; agent UX when `"agent"` is present.
+- **Local UI boolean:** `isAgent` (camelCase) from `useIsAgent()` or `userHasAgentRole`.
+- **Route intent booleans:** MUST be named by intent, not identity:
   - ✅ `isMessagingRoute`, `isCalendarRoute`, `isOnMessagingPage`
   - ❌ `isAgent = path.startsWith("/messaging")`
-- **Do not invent new flags** like `userType === "agent"` when `is_agent` exists, unless you are implementing broader RBAC (roles) intentionally.
+- **Onboarding draft:** `formData.primary_onboarding_role` (`"buyer"` | `"agent"` | …) from the first-screen role picker; sent to preferences write as `primary_onboarding_role` to grant the agent role. Do not use a legacy `is_agent` demographics field.
 
-## Roles vs `is_agent`
+## Roles vs agent UX
 
-This codebase has **RBAC roles** (`UserRole`, `roles?: UserRole[]`) and also the **agent flag** (`is_agent`).
+- Use **`roles`** (includes `"agent"`) for agent identity, agent-only UX, and `@require_agent_access` on the server.
+- Use **other roles** (`buyer`, `seller`, `brokerage_admin`, etc.) for workspace shells and RoleGuard authorization.
 
-- Use **`roles`** for *authorization* and page access (see `apps/web/app/guards/RoleGuard.tsx` and `useRoleCheck.ts`).
-- Use **`is_agent`** for *experience shaping* (agent dashboard vs buyer dashboard, agent-only components, agent-only polling/routes).
+## Preferred UI gating patterns
 
-If you need to restrict access, prefer RoleGuard + roles. If you need to alter UX flows, prefer `is_agent`.
-
-## Preferred UI gating patterns (render / not render)
-
-### Conditional rendering
-
-- **Show agent-only UI**:
-  - `isAgent && <AgentOnlyThing />`
-- **Show buyer-only UI**:
-  - `!isAgent && <BuyerOnlyThing />`
-- **Split experiences clearly**:
-  - `return isAgent ? <AgentDashboard /> : <BuyerDashboard />`
-
-### Guard patterns
-
-- **When auth may still be initializing**: gate on `authReady` before checking user flags to avoid flicker.
-- **Never assume user exists**: always use `user?.is_agent ?? false` (or `useIsAgent()` which safely defaults to `false`).
-  - Example pattern:
-    - `if (!authReady) return null;`
-    - `return isAgent ? <AgentExperience /> : <BuyerExperience />`
-
-### Routing / layouts
-
-- Prefer deriving agent-ness from authenticated user (`user.is_agent`), not from the URL/path.
-  - **Avoid** path-derived “isAgent” booleans (e.g. `path.startsWith("/messaging")`) because it conflates navigation with identity and leads to incorrect gating.
+- **Show agent-only UI:** `isAgent && <AgentOnlyThing />`
+- **Show buyer-only UI:** `!isAgent && <BuyerOnlyThing />`
+- **When auth may still be initializing:** gate on `authReady` before checking roles.
+- **Routing / layouts:** derive agent-ness from `useIsAgent()`, not from URL/path.
 
 ## Common do/don’t
 
 - **DO**: `const isAgent = useIsAgent()` (canonical)
-- **DO**: `const isAgent = useAuthStore().user?.is_agent ?? false` (acceptable inline alternative)
-- **DO**: Hide/show agent-only nav items, polling routes, and client-selection UI using `isAgent`.
-- **DO**: Use roles/RoleGuard for authorization boundaries.
+- **DO**: Hide/show agent-only nav, polling routes, and client-selection UI using `isAgent`.
+- **DO**: Use RoleGuard + roles for authorization boundaries beyond agent UX.
 
-- **DON’T**: Use `localStorage` for auth/session flags (project security rule: sessionStorage only).
-- **DON’T**: Create a second “agent-ness” flag with different meaning; if you need “has agent features enabled”, use `featureGates` (session store) and document the gate name.
-- **DON’T**: Use session meta (`userMeta.isAgent`) or URL/path to determine agent identity.
-- **DON’T**: Duplicate complex branching inline; extract to a small helper or dedicated component when logic grows.
+- **DON’T**: Read or write `user.is_agent` on API user objects (removed from contract).
+- **DON’T**: Use `localStorage` for auth/session flags (sessionStorage only).
+- **DON’T**: Use session meta or URL/path to determine agent identity.

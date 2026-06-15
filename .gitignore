@@ -75,6 +75,10 @@ yarn-debug.log*
 yarn-error.log*
 .cursor/debug-*.log
 .cursor/.agent-tools/
+# Local MCP profiles (copy from *mcp.example.json); never commit tokens
+**/mcp.json
+.mcp.json
+.claude-context/conversations.json
 
 # Editor directories and files
 .idea
@@ -85,6 +89,7 @@ yarn-error.log*
 *.sw?
 
 key.pem
+*.pem
 
 dump.rdb
 
@@ -101,9 +106,10 @@ dist/
 
 # Environment files
 .env
+.env.*
+!.env.example
 .env.local
 .env.*.local
-!.env.example
 .env.production
 
 # Database files
@@ -119,12 +125,15 @@ dist/
 # Local UI review prompt packs (optional; remove this line to commit)
 ui-review-prompts/
 
-# Local React component audit markdown (see documentation/client/react-component-audit-rubric.md)
+# Local React component audit markdown (see documentation/client/patterns/react-component-audit-rubric.md)
 audit/
 
 # OS generated files
 Thumbs.db
 ehthumbs.db
+# macOS/iCloud/Finder conflict copies (e.g. "module 2.py" beside "module.py")
+**/* [0-9]
+**/* [0-9].*
 
 # Redis dump
 dump.rdb

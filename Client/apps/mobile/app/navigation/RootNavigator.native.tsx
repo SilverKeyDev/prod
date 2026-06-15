@@ -1,18 +1,17 @@
-import { useEffect } from "react";
+import { useRef } from "react";
 
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StyleSheet } from "react-native";
 
-import { AgentProfileScreenNative, FindAgentsScreenNative } from "packages/features/agent/native";
-import { OnboardingScreenNative } from "packages/features/homeauth/native";
-import { PropertyDetailsScreenNative } from "packages/features/propertyDetails/native";
+import { AgentProfileScreenNative } from "packages/features/agent";
+import { OnboardingScreenNative } from "packages/features/homeauth";
+import { PropertyDetailsScreenNative } from "packages/features/propertyDetails";
 import type {
   AgentProfileScreenParams,
   PropertyDetailsScreenParams,
 } from "packages/navigation/types";
 import { useAuthStore } from "packages/store";
-import { getPostAuthRedirectTarget } from "packages/utils/navigation";
 
 import { AppStackIntegrations } from "../providers/AppStackIntegrations.native";
 import { AppStack } from "./AppStack.native";
@@ -24,7 +23,6 @@ type AuthenticatedStackParamList = {
   Onboarding: undefined;
   Main: undefined;
   PropertyDetails: PropertyDetailsScreenParams;
-  FindAgents: undefined;
   AgentProfile: AgentProfileScreenParams;
 };
 
@@ -38,9 +36,12 @@ function OnboardingScreenWrapper() {
       routes: { name: keyof AuthenticatedStackParamList }[];
     }) => void;
   }>();
+  const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const userRef = useRef(user);
+  userRef.current = user;
   const onSubmitSuccess = () => {
-    const current = useAuthStore.getState().user;
+    const current = userRef.current;
     if (current) setUser({ ...current, has_preferences: true });
     navigation.reset({ index: 0, routes: [{ name: "Main" }] });
   };
@@ -59,21 +60,6 @@ function RootContent() {
   useDeepLink();
   const authStatus = useAuthStore((s) => s.authStatus);
   const isAuthenticated = authStatus === "authenticated";
-  const postAuthRedirectPath = useAuthStore((s) => s.postAuthRedirectPath);
-  const setPostAuthRedirectPath = useAuthStore((s) => s.setPostAuthRedirectPath);
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    if (!postAuthRedirectPath) return;
-    if (!rootNavigationRef.isReady()) return;
-    const target = getPostAuthRedirectTarget(postAuthRedirectPath);
-    if (target?.type === "main") {
-      rootNavigationRef.navigate("Main", { screen: target.screen } as never);
-    } else if (target?.type === "onboarding") {
-      rootNavigationRef.navigate("Onboarding" as never);
-    }
-    setPostAuthRedirectPath(null);
-  }, [isAuthenticated, postAuthRedirectPath, setPostAuthRedirectPath]);
 
   if (!isAuthenticated) {
     return <AuthStack />;
@@ -92,11 +78,6 @@ function RootContent() {
       <AuthenticatedStack.Screen
         name="PropertyDetails"
         component={PropertyDetailsScreenNative}
-        options={{ headerShown: false }}
-      />
-      <AuthenticatedStack.Screen
-        name="FindAgents"
-        component={FindAgentsScreenNative}
         options={{ headerShown: false }}
       />
       <AuthenticatedStack.Screen

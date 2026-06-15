@@ -4,10 +4,10 @@
 
 import { getMapFocusedProperty } from "packages/features/search/types/search/map/mapCardFocus";
 import { calculatePropertyCardCenter } from "packages/features/search/types/search/map/propertyCardCenter";
-import { applyListingFocusCamera } from "packages/features/search/utils/googleMaps/mapCamera";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { applyListingFocusCamera } from "packages/features/search/utils/googleMaps";
+import { log } from "packages/logger";
 import type { SearchResult } from "packages/types";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 import type { GoogleAdvancedMarkerElement } from "./types";
 
@@ -71,7 +71,7 @@ export function getAdvancedMarkerElement():
   const win = getWindow() as (Window & { google: typeof google }) | null;
   if (!win?.google?.maps?.marker?.AdvancedMarkerElement) {
     log.error(
-      LOG_CATEGORIES.MAP_RENDERING,
+      "MAP_RENDERING",
       "❌ [MARKER POSITION UPDATE] AdvancedMarkerElement not available, skipping marker update"
     );
     return null;

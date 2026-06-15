@@ -5,7 +5,7 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { useNegotiationStore } from "packages/store";
 // Types for negotiation data
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { Cover, Title } from "@/components/ui";
 import { ErrorSection } from "@/features/negotiate/components/layout/ErrorSection";

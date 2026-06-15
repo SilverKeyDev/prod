@@ -2,8 +2,8 @@ import type { Dispatch, SetStateAction } from "react";
 
 import type { AgreementParticipant } from "packages/features/documents/types/docusign";
 import { AccessibleCheckboxInput, Button, FormField, Textarea } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import Input from "packages/ui/components/primitives/input/Input";
+import { Box } from "packages/ui/components/structure/primitives";
+import Input from "packages/ui/components/structure/primitives/input/Input";
 
 import { BodyText, Title } from "@/components/ui";
 

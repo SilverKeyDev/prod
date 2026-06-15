@@ -1,16 +1,14 @@
-# Pre-commit hooks for SilverKey
+# Pre-commit hooks for SilverKey (advisory local auto-fix)
 #
-# Commit hooks: auto-fix formatters/linters only (Prettier, ESLint, Ruff).
-# Generic file hooks (EOF, trailing whitespace) and Phase-2 read-only checks are
-# commented out — they mutate or block commits and stall local dev; CI still gates.
+# On commit (never blocks): Ruff/Prettier/ESLint --fix; OpenAPI regen when spec/generated paths change.
+# scripts/githooks/pre-commit re-stages fixes and always exits 0.
+# On push: scoped typecheck / contract tests — advisory only (scripts/githooks/pre-push).
+# CI on PR: tests + path-scoped OpenAPI; full lint via make lint / weekly workflow.
 #
-# Install:
-#   pip install pre-commit
-#   pre-commit install --hook-type pre-commit
-# Hooks run on commit only (not on push). See scripts/githooks/pre-push.
-#
-# Resilient hooks (skip if pre-commit missing): git config core.hooksPath scripts/githooks
-# Run manually: pre-commit run --all-files
+# Install: make setup  (sets git config core.hooksPath scripts/githooks)
+# Skip once: SKIP=1 git commit ...
+# Run all hooks manually: make precommit
+# Strict push check: PRE_PUSH_BLOCKING=1 make pre-push-check
 
 default_stages: [pre-commit]
 
@@ -36,13 +34,14 @@ repos:
     rev: v0.1.9
     hooks:
       - id: ruff-format
+        args: [--quiet]
         files: ^Server/
       - id: ruff
-        args: [--fix]
+        args: [--fix, --quiet]
         files: ^Server/
 
   # Mypy is not run in pre-commit: the Server gate is ruff + pyright (see
-  # scripts/run-all-linters.sh). Full-tree mypy reports hundreds of gradual-
+  # scripts/ci/run-all-linters.sh). Full-tree mypy reports hundreds of gradual-
   # typing issues; run manually: (cd Server && mypy app/).
 
   # Client: Prettier first, then ESLint --fix (avoids lint fixes fighting format)
@@ -51,7 +50,7 @@ repos:
       - id: prettier-client
         name: prettier (Client)
         language: system
-        entry: scripts/pre-commit-prettier-client.sh
+        entry: scripts/ci/pre-commit-prettier-client.sh
         files: ^Client/.*\.(ts|tsx|js|jsx|json|css|scss|md)$
         exclude: ^Client/(dist|coverage|node_modules|build)/.*
 
@@ -60,9 +59,18 @@ repos:
       - id: eslint-client
         name: eslint (Client)
         language: system
-        entry: scripts/pre-commit-eslint-client.sh
+        entry: scripts/ci/pre-commit-eslint-client.sh
         files: ^Client/.*\.(ts|tsx|js|jsx)$
         exclude: ^Client/(dist|coverage|node_modules|build)/.*
+
+  - repo: local
+    hooks:
+      - id: openapi-drift
+        name: OpenAPI generated types drift
+        language: system
+        entry: scripts/ci/pre-commit-openapi-drift.sh
+        pass_filenames: false
+        files: ^(openapi/|openapi\.yaml|Client/packages/types/api\.generated\.ts|Server/app/schemas/generated\.py)
 
   # --- Phase 2: checks only (no writes) — disabled locally; CI enforces these ---
 
@@ -78,7 +86,7 @@ repos:
   #       exclude: |
   #         (?x)^(
   #           .*\.pem\.example$|
-  #           documentation/client/docusign-integration\.md$|
+  #           documentation/client/features/docusign-integration\.md$|
   #           Server/app/services/docusign/docs/README\.md$|
   #           Server/app/services/docusign/docs/TESTING\.md$
   #         )

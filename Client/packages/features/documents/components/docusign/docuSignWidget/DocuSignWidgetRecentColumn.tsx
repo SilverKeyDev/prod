@@ -1,8 +1,8 @@
 import { useLocalization } from "packages/contexts";
 import { AgreementStatusBadge } from "packages/features/documents/components/agreement/AgreementStatusBadge";
 import type { Agreement } from "packages/features/documents/types/docusign";
-import { Icon } from "packages/ui/components/icons";
-import { Box } from "packages/ui/components/primitives";
+import { Icon } from "packages/ui/components/media/icons";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 import { formatAgreementDate } from "@/features/documents/utils/docusignHelpers";

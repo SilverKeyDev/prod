@@ -1,23 +1,13 @@
-import React, { createContext, type ReactNode, useContext, useMemo, useState } from "react";
+import React, { type ReactNode, useMemo, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
+import {
+  ChecklistStepSubmitContext,
+  type ChecklistStepSubmitRegistration,
+  useChecklistStepSubmitRegistry,
+} from "packages/features/checklists/hooks/useChecklistStepSubmitRegistry";
 import { Button } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-
-export type ChecklistStepSubmitRegistration = {
-  disabled: boolean;
-  busy: boolean;
-  onSubmit: () => void;
-};
-
-type ChecklistStepSubmitContextValue = {
-  registration: ChecklistStepSubmitRegistration | null;
-  setRegistration: (value: ChecklistStepSubmitRegistration | null) => void;
-  /** When false, integration submit is disabled (checklist progress rules). */
-  markCompleteEligible: boolean;
-};
-
-const ChecklistStepSubmitContext = createContext<ChecklistStepSubmitContextValue | null>(null);
+import { Box } from "packages/ui/components/structure/primitives";
 
 export function ChecklistStepSubmitProvider({
   children,
@@ -37,12 +27,6 @@ export function ChecklistStepSubmitProvider({
       {children}
     </ChecklistStepSubmitContext.Provider>
   );
-}
-
-/** Colocated with provider; used by footer registration and header button. */
-// eslint-disable-next-line react-refresh/only-export-components -- context hook paired with Provider
-export function useChecklistStepSubmitRegistry(): ChecklistStepSubmitContextValue | null {
-  return useContext(ChecklistStepSubmitContext);
 }
 
 /**

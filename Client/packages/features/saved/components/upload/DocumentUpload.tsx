@@ -12,7 +12,7 @@ import { useLocalization } from "packages/contexts";
 import { useDocuments } from "packages/features/documents";
 import { useUIStore } from "packages/store";
 import { DROP_ZONE_BORDER_BASE } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 type DocumentUploadProps = {
@@ -126,7 +126,7 @@ export default function DocumentUpload({ onUploadSuccess, useCard = true }: Docu
                 ? "border-border bg-background-base cursor-not-allowed"
                 : selectedFile
                   ? "bg-primary-muted border-neutral-500"
-                  : "border-border hover:bg-background-base active:bg-primary-muted hover:border-neutral-400 active:border-neutral-500 active:opacity-90"
+                  : "border-border hover:bg-background-base hover:border-neutral-400 active:border-neutral-500 active:bg-neutral-200 active:opacity-90"
             }`}
           >
             <Box className="gap-responsive-sm flex min-w-0 flex-1 flex-row items-center">

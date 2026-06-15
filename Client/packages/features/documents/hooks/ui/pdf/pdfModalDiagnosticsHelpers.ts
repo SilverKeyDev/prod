@@ -1,5 +1,5 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { dateNow } from "packages/utils/date";
+import { log } from "packages/logger";
+import { dateNow } from "packages/utils/core/date";
 
 import { reportApi } from "@/features/documents/api/report";
 
@@ -13,7 +13,7 @@ export async function runPdfUrlDiagnostics(
 ): Promise<void> {
   if (!currentPdf || !reportId) return;
 
-  log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Testing server endpoint accessibility", {
+  log.debug("HTTP", "[PdfModal] Testing server endpoint accessibility", {
     currentPdf,
     reportId,
     timestamp: dateNow().toISOString(),
@@ -21,11 +21,11 @@ export async function runPdfUrlDiagnostics(
 
   try {
     const url = `/api/v1/report/${reportId}/view`;
-    log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Fetching URL to test accessibility", { url });
+    log.debug("HTTP", "[PdfModal] Fetching URL to test accessibility", { url });
 
     const response = await reportApi.checkViewUrl(reportId);
 
-    log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Server response", {
+    log.debug("HTTP", "[PdfModal] Server response", {
       url,
       status: response.status,
       statusText: response.statusText,
@@ -51,44 +51,35 @@ export async function runPdfUrlDiagnostics(
       (/\bframe-ancestors\b/i.test(csp) && !/frame-ancestors[^;]*'self'/i.test(csp));
 
     if (xfo === "DENY") {
-      log.error(
-        LOG_CATEGORIES.ERRORS,
-        "[PdfModal] X-Frame-Options is DENY - iframe will be blocked"
-      );
-      log.warn(
-        LOG_CATEGORIES.HTTP,
-        "[PdfModal] iframe likely blocked; user can use Open in New Tab"
-      );
+      log.error("ERRORS", "[PdfModal] X-Frame-Options is DENY - iframe will be blocked");
+      log.warn("HTTP", "[PdfModal] iframe likely blocked; user can use Open in New Tab");
     } else if (cspBlocks) {
-      log.error(LOG_CATEGORIES.ERRORS, "[PdfModal] CSP frame-ancestors blocks iframe embedding");
-      log.warn(
-        LOG_CATEGORIES.HTTP,
-        "[PdfModal] iframe likely blocked; user can use Open in New Tab"
-      );
+      log.error("ERRORS", "[PdfModal] CSP frame-ancestors blocks iframe embedding");
+      log.warn("HTTP", "[PdfModal] iframe likely blocked; user can use Open in New Tab");
     } else if (xfo) {
-      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] X-Frame-Options present", {
+      log.debug("HTTP", "[PdfModal] X-Frame-Options present", {
         xfo,
       });
     } else {
-      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] X-Frame-Options not set; relying on CSP");
+      log.debug("HTTP", "[PdfModal] X-Frame-Options not set; relying on CSP");
     }
 
     if (!contentType.includes("application/pdf")) {
-      log.warn(LOG_CATEGORIES.HTTP, "[PdfModal] Unexpected Content-Type", {
+      log.warn("HTTP", "[PdfModal] Unexpected Content-Type", {
         contentType,
       });
     } else {
-      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Content-Type ok", {
+      log.debug("HTTP", "[PdfModal] Content-Type ok", {
         contentType,
       });
     }
 
     if (!contentDisposition.includes("inline")) {
-      log.warn(LOG_CATEGORIES.HTTP, "[PdfModal] Unexpected Content-Disposition", {
+      log.warn("HTTP", "[PdfModal] Unexpected Content-Disposition", {
         contentDisposition,
       });
     } else {
-      log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Content-Disposition ok", {
+      log.debug("HTTP", "[PdfModal] Content-Disposition ok", {
         contentDisposition,
       });
     }
@@ -97,29 +88,29 @@ export async function runPdfUrlDiagnostics(
     if (contentLength) {
       const sizeBytes = parseInt(contentLength, 10);
       if (sizeBytes === 0) {
-        log.error(LOG_CATEGORIES.ERRORS, "[PdfModal] PDF Content-Length is 0");
+        log.error("ERRORS", "[PdfModal] PDF Content-Length is 0");
       } else if (sizeBytes < 100) {
-        log.warn(LOG_CATEGORIES.HTTP, "[PdfModal] PDF Content-Length is very small", { sizeBytes });
+        log.warn("HTTP", "[PdfModal] PDF Content-Length is very small", { sizeBytes });
       } else {
-        log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] PDF Content-Length", {
+        log.debug("HTTP", "[PdfModal] PDF Content-Length", {
           sizeBytes,
           sizeKB: Number((sizeBytes / 1024).toFixed(2)),
         });
       }
     } else {
-      log.warn(LOG_CATEGORIES.HTTP, "[PdfModal] Content-Length header not present");
+      log.warn("HTTP", "[PdfModal] Content-Length header not present");
     }
 
     if (response.status < 200 || response.status >= 300) {
-      log.error(LOG_CATEGORIES.ERRORS, "[PdfModal] Server returned error status", {
+      log.error("ERRORS", "[PdfModal] Server returned error status", {
         status: response.status,
         statusText: response.statusText,
         url,
       });
     }
   } catch (error) {
-    log.error(LOG_CATEGORIES.ERRORS, "[PdfModal] Failed to fetch URL", error);
-    log.debug(LOG_CATEGORIES.HTTP, "[PdfModal] Fetch URL context", {
+    log.error("ERRORS", "[PdfModal] Failed to fetch URL", error);
+    log.debug("HTTP", "[PdfModal] Fetch URL context", {
       currentPdf,
       reportId,
       timestamp: dateNow().toISOString(),

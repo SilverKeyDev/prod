@@ -2,8 +2,8 @@
 import { Icon } from "@ui/icons";
 
 import { Button } from "packages/ui";
-import { Box, Text } from "packages/ui/components/primitives";
-import Input from "packages/ui/components/primitives/input/Input";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import Input from "packages/ui/components/structure/primitives/input/Input";
 
 import type { AgentSearchResult } from "@/features/agent/api/agent";
 import type { AgentConnectionDisplayStatus } from "@/features/agent/utils/connectionRequestStatus";

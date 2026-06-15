@@ -2,14 +2,13 @@
 Embedding-based similarity scorer for user-home matching.
 """
 
-import logging
 from typing import Any
+
+from logger import log
 
 from ..utils.similarity import SimilarityCalculator
 from .home_encoder import HomeEncoder
 from .user_encoder import UserEncoder
-
-logger = logging.getLogger(__name__)
 
 
 def _beds_baths_range_display(prefs: dict[str, Any]) -> tuple[str, str]:
@@ -50,11 +49,13 @@ class EmbeddingScorer:
             home_dim = dimensions["home_total_dimension"]
 
             if user_dim != home_dim:
-                logger.warning(f"Dimension mismatch detected! User: {user_dim}, Home: {home_dim}")
-                logger.warning("This will cause cosine similarity calculation errors.")
+                log.warn(
+                    "SEARCH", f"Dimension mismatch detected! User: {user_dim}, Home: {home_dim}"
+                )
+                log.warn("SEARCH", "This will cause cosine similarity calculation errors.")
 
         except Exception as e:
-            logger.error(f"Error validating dimensions: {e}")
+            log.error("ERRORS", f"Error validating dimensions: {e}")
 
     def get_user_home_similarity(
         self, user_data: dict[str, Any], home_data: dict[str, Any]
@@ -67,8 +68,9 @@ class EmbeddingScorer:
 
             # Validate dimensions before similarity calculation
             if user_embedding.shape != home_embedding.shape:
-                logger.error(
-                    f"Dimension mismatch: User embedding {user_embedding.shape} vs Home embedding {home_embedding.shape}"
+                log.error(
+                    "ERRORS",
+                    f"Dimension mismatch: User embedding {user_embedding.shape} vs Home embedding {home_embedding.shape}",
                 )
                 return 0.0
 
@@ -82,7 +84,7 @@ class EmbeddingScorer:
             return amplified_similarity
 
         except Exception as e:
-            logger.error(f"Error calculating user-home similarity: {e}")
+            log.error("ERRORS", f"Error calculating user-home similarity: {e}")
             return 0.0
 
     def _amplify_embedding_score(self, raw_score: float) -> float:
@@ -107,7 +109,7 @@ class EmbeddingScorer:
             return amplified_score
 
         except Exception as e:
-            logger.error(f"Error amplifying embedding score: {e}")
+            log.error("ERRORS", f"Error amplifying embedding score: {e}")
             return raw_score  # Return original score if amplification fails
 
     def score_user_against_homes(
@@ -143,7 +145,7 @@ class EmbeddingScorer:
             return scored_homes
 
         except Exception as e:
-            logger.error(f"Error scoring user against homes: {e}")
+            log.error("ERRORS", f"Error scoring user against homes: {e}")
             return [(home, 0.0) for home in homes_data]
 
     def score_multiple_users_against_homes(
@@ -175,7 +177,7 @@ class EmbeddingScorer:
             return results
 
         except Exception as e:
-            logger.error(f"Error scoring multiple users against homes: {e}")
+            log.error("ERRORS", f"Error scoring multiple users against homes: {e}")
             return {}
 
     def get_top_matches(
@@ -186,7 +188,7 @@ class EmbeddingScorer:
             scored_homes = self.score_user_against_homes(user_data, homes_data)
             return scored_homes[:top_k]
         except Exception as e:
-            logger.error(f"Error getting top matches: {e}")
+            log.error("ERRORS", f"Error getting top matches: {e}")
             return []
 
     def explain_similarity(
@@ -246,5 +248,5 @@ class EmbeddingScorer:
             return explanation
 
         except Exception as e:
-            logger.error(f"Error explaining similarity: {e}")
+            log.error("ERRORS", f"Error explaining similarity: {e}")
             return {"error": str(e)}

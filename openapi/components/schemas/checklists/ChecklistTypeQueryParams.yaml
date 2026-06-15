@@ -1,0 +1,5 @@
+type: object
+properties:
+  type:
+    $ref: "./ChecklistType.yaml"
+    default: escrow

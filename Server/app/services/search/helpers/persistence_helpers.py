@@ -4,14 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from flask import current_app
+from sqlalchemy import select
 
 from app import db
 from app.models import PropertyCache, UserPropertyLink
 from app.utils.db.orm_lookup import get_model
 from app.utils.format.address_format import normalize_address
+from logger import log
 
-from ..db.search_db import add_or_update_home_basic
+from ..db import add_or_update_home_basic
 
 
 def persist_and_prune_search_results(user_id: str, properties: list[dict[str, Any]]) -> None:
@@ -30,7 +31,12 @@ def persist_and_prune_search_results(user_id: str, properties: list[dict[str, An
             if zpid_val is not None:
                 result_zpids.add(str(zpid_val))
 
-        existing_links = UserPropertyLink.query.filter_by(user_id=str(user_id), current=True).all()
+        existing_links = db.session.scalars(
+            select(UserPropertyLink).where(
+                UserPropertyLink.user_id == str(user_id),
+                UserPropertyLink.current.is_(True),
+            )
+        ).all()
         existing_by_norm: dict[str, UserPropertyLink] = {}
         for link in existing_links:
             p = get_model(PropertyCache, link.property_id)
@@ -63,21 +69,32 @@ def persist_and_prune_search_results(user_id: str, properties: list[dict[str, An
                     user_id=str(user_id), home=prop_data, set_liked=False, ranking=ranking
                 )
                 link_record.current = True
+                prop_data["home_id"] = str(link_record.property_id)
                 if not pre_exists:
                     created_count += 1
             except Exception as e:
-                current_app.logger.warning("Skipped invalid property while persisting: %s", e)
+                log.warn(
+                    "SEARCH",
+                    "Skipped invalid property while persisting",
+                    {"error": str(e)},
+                )
 
         if created_count:
             db.session.commit()
-            current_app.logger.info(
-                "Inserted %d new search properties for user %s", created_count, user_id
+            log.info(
+                "SEARCH",
+                "Inserted new search properties",
+                {"created_count": created_count, "user_id": user_id},
             )
 
         # Mark unliked links not in current results as not current
         marked_count = 0
-        unliked_links = UserPropertyLink.query.filter_by(
-            user_id=str(user_id), is_liked=False, current=True
+        unliked_links = db.session.scalars(
+            select(UserPropertyLink).where(
+                UserPropertyLink.user_id == str(user_id),
+                UserPropertyLink.is_liked.is_(False),
+                UserPropertyLink.current.is_(True),
+            )
         ).all()
         for link in unliked_links:
             prop = get_model(PropertyCache, link.property_id)
@@ -97,9 +114,11 @@ def persist_and_prune_search_results(user_id: str, properties: list[dict[str, An
 
         if marked_count:
             db.session.commit()
-            current_app.logger.info(
-                "Marked %d unliked properties as not current for user %s", marked_count, user_id
+            log.info(
+                "SEARCH",
+                "Marked unliked properties as not current",
+                {"marked_count": marked_count, "user_id": user_id},
             )
 
     except Exception as persist_err:
-        current_app.logger.error("Persist/prune step failed: %s", persist_err, exc_info=True)
+        log.error("ERRORS", "Persist/prune step failed", persist_err)

@@ -1,7 +1,0 @@
-allOf:
-  - $ref: '../../shared/core/SuccessResponse.yaml'
-  - type: object
-    properties:
-      task_id:
-        type: string
-        nullable: true

@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 _SEARCH_RESPONSE_KEYS = frozenset(
     {
+        "home_id",
+        "ranking",
         "zpid",
         "mls_home_id",
         "address",
@@ -241,6 +243,17 @@ def flat_slim_row_to_openapi_property_search_result(slim: dict) -> dict:
     if score is not None:
         result["score"] = score
 
+    home_id = slim.get("home_id")
+    if home_id is not None and str(home_id).strip():
+        result["home_id"] = str(home_id)
+
+    ranking = slim.get("ranking")
+    if ranking is not None:
+        try:
+            result["ranking"] = int(ranking)
+        except (TypeError, ValueError):
+            pass
+
     return result
 
 
@@ -295,7 +308,7 @@ def slim_properties_for_search_response(properties: list[dict]) -> list[dict]:
 
     if missing_coords_ids:
         log.info(
-            LOG_CATEGORIES["POLYGON_SEARCH"],
+            "POLYGON_SEARCH",
             "search_response_listings_missing_map_coordinates",
             {
                 "missing_count": len(missing_coords_ids),

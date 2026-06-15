@@ -1,9 +1,9 @@
 import type { FormCategory } from "packages/features/documents/hooks/data/useFormsLibrary";
 import { Button } from "packages/ui";
-import BaseCard from "packages/ui/components/cards/BaseCard";
-import { AgendaListItemShell } from "packages/ui/components/patterns/AgendaListItemShell";
-import { Box, TouchableBox } from "packages/ui/components/primitives";
-import { formatFormsLibraryCategoryLabel } from "packages/utils/documents";
+import { Box, TouchableBox } from "packages/ui/components/structure/primitives";
+import BaseCard from "packages/ui/components/surfaces/cards/BaseCard";
+import { AgendaListItemShell } from "packages/ui/components/surfaces/patterns/AgendaListItemShell";
+import { formatFormsLibraryCategoryLabel } from "packages/utils/transaction/documents";
 
 import { BodyText, Subtitle } from "@/components/ui";
 

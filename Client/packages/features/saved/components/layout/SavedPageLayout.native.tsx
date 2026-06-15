@@ -12,8 +12,8 @@ import { SavedHeader } from "packages/features/saved/components/layout/SavedHead
 import type { SavedPageLayoutProps } from "packages/features/saved/components/layout/SavedPageLayout";
 import { SavedPageNativeModals } from "packages/features/saved/components/SavedPageNativeModals.native";
 import { sortDocumentsForLibrary } from "packages/features/saved/utils/librarySort";
-import { ScrollView } from "packages/ui/components/primitives";
-import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
+import { ScrollView } from "packages/ui/components/structure/primitives";
+import { filterDocumentLibraryExcludingAgreements } from "packages/utils/transaction/documents";
 
 type _EventTypeFilter = "listed" | "price_change" | "sold" | "withdrawn" | "";
 

@@ -11,7 +11,7 @@ import { PropertySchools } from "packages/features/propertyDetails/components/Pr
 import {
   getClimateEnvironmentalSection,
   hasEnvironmentalFactorsContent,
-} from "packages/utils/propertyDetails";
+} from "packages/utils/transaction/propertyDetails";
 
 export type SectionComponent = {
   key: string;

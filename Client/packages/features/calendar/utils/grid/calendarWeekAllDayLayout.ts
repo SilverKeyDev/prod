@@ -1,5 +1,6 @@
+import { getEventLocalDayKeys } from "packages/utils/comms/calendar/parsing/eventParsing";
+
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
-import { getEventLocalDayKeys } from "@/features/calendar/utils/parsing/eventParsing";
 
 import { isAllDayGoogleEvent } from "./calendarGridLayout";
 

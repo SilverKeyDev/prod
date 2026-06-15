@@ -5,11 +5,11 @@ import { Icon } from "@ui/icons";
 import { ConnectedCardHeartSave } from "packages/features/search/components/ConnectedCardHeartSave";
 import { formatPropertyType } from "packages/features/search/types/search/formatters/propertyFormatters";
 import { OVERLAY_MARKER_CIRCLE_CLASSES } from "packages/ui/components";
-import CardNotInterested from "packages/ui/components/button/propertyActions/NotInterested";
-import { getCardBubbleSizeClasses } from "packages/ui/components/cards/base/styles";
-import { Box } from "packages/ui/components/primitives";
-import { addressStreetLineForCard } from "packages/utils/format/property/addressFormatting";
-import { displayListingPriceForCard } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
+import CardNotInterested from "packages/ui/components/actions/button/propertyActions/NotInterested";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getCardBubbleSizeClasses } from "packages/ui/components/surfaces/cards/base/styles";
+import { addressStreetLineForCard } from "packages/utils/core/format/property/addressFormatting";
+import { displayListingPriceForCard } from "packages/utils/product/search/pricing/formatPropertySearchListingPrice";
 
 import {
   CardHeartSaveWithProps,

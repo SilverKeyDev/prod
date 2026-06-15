@@ -1,5 +1,5 @@
 /** Documents feature translation strings (documents, documents_upload, secure_upload, reports, pdf, forms). */
-import { ACTION_LABELS, DOCUMENT_ACTION_LABELS } from "packages/utils/domain/actionLabels";
+import { ACTION_LABELS, DOCUMENT_ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 export const DOCUMENTS_TRANSLATIONS: Record<string, string> = {
   "documents.header": "Documents",

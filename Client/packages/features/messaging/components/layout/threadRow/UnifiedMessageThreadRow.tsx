@@ -1,7 +1,7 @@
 import React from "react";
 
 import { parseAgreementEventPayload } from "packages/features/messaging/utils/agreementEventPayload";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { parseEventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 import { getDateDividerText } from "@/features/messaging/utils/messageDateUtils";
@@ -47,6 +47,7 @@ export function UnifiedMessageThreadRow({
   t,
   openSharedHomeDetails,
   onRetryMessage,
+  sharedDocumentActionHandlers,
 }: UnifiedMessageThreadRowProps) {
   const messageConfig =
     msg.role === "agent" ? config.messageStyles.agent : config.messageStyles.user;
@@ -123,6 +124,7 @@ export function UnifiedMessageThreadRow({
           onAcceptEventRequest={onAcceptEventRequest}
           onCancelEventRequest={onCancelEventRequest}
           acceptingEventRequestId={acceptingEventRequestId}
+          sharedDocumentActionHandlers={sharedDocumentActionHandlers}
         />
 
         <UnifiedMessageThreadRowStatusFooter

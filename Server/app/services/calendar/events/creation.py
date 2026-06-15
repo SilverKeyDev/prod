@@ -2,22 +2,21 @@
 Event creation orchestration: target resolution, primary + DB creation, agent calendar duplication.
 """
 
-import json
 from datetime import datetime, timezone
 
 from app import db
-from app.models import CalendarEvent, User
+from app.models import CalendarEvent
 from app.services.agent.client_service import (
+    get_connected_agent_ids_for_client,
     get_user_agent_id,
     validate_agent_client_relationship,
 )
 from app.services.auth.tokens import tokens_get
+from app.services.auth.user_role_helpers import user_is_agent
 from app.services.calendar.core import google_calendar_service
-from app.utils.security.app_logging import get_logger
+from logger import log
 
 from .google_event_datetime import extract_event_datetimes
-
-logger = get_logger()
 
 
 def meet_fields_from_google_response(
@@ -26,15 +25,15 @@ def meet_fields_from_google_response(
     """Derive persisted meet_url and conference_status from a Google Calendar event payload."""
     hangout = google_event.get("hangoutLink")
     if hangout:
-        return str(hangout), "success"
+        return (str(hangout), "success")
     if not meet_requested:
-        return None, None
+        return (None, None)
     cd = google_event.get("conferenceData") or {}
     cr = cd.get("createRequest") or {}
     status_code = (cr.get("status") or {}).get("statusCode")
     if status_code == "pending":
-        return None, "pending"
-    return None, "failure"
+        return (None, "pending")
+    return (None, "failure")
 
 
 def resolve_create_event_target(user_id, event_data, current_user):
@@ -45,14 +44,11 @@ def resolve_create_event_target(user_id, event_data, current_user):
     """
     if not current_user:
         return ("User not found", 404)
-
-    is_agent = current_user.is_agent
+    is_agent = user_is_agent(current_user)
     target_user_id = event_data.get("target_user_id")
     create_in_agent_calendar = event_data.get("create_in_agent_calendar", True)
-
     target_user_id_final = None
     should_create_in_agent_calendar = False
-
     if target_user_id:
         if is_agent:
             if not validate_agent_client_relationship(user_id, target_user_id):
@@ -63,17 +59,15 @@ def resolve_create_event_target(user_id, event_data, current_user):
             if not agent_id or agent_id != target_user_id:
                 return ("Target user is not your agent", 403)
             target_user_id_final = target_user_id
+    elif is_agent:
+        target_user_id_final = None
     else:
-        if is_agent:
+        agent_id = get_user_agent_id(user_id)
+        if agent_id:
             target_user_id_final = None
+            should_create_in_agent_calendar = create_in_agent_calendar
         else:
-            agent_id = get_user_agent_id(user_id)
-            if agent_id:
-                target_user_id_final = None
-                should_create_in_agent_calendar = create_in_agent_calendar
-            else:
-                target_user_id_final = None
-
+            target_user_id_final = None
     primary_target = target_user_id_final if target_user_id_final else user_id
     return (primary_target, should_create_in_agent_calendar)
 
@@ -84,7 +78,6 @@ def create_primary_event_and_db(
     calendar_id,
     event_type,
     primary_target,
-    itinerary=None,
     *,
     add_google_meet: bool = False,
 ):
@@ -96,11 +89,8 @@ def create_primary_event_and_db(
         target_user_id=primary_target if primary_target != user_id else None,
         add_google_meet=add_google_meet,
     )
-
     meet_url, conference_status = meet_fields_from_google_response(google_event, add_google_meet)
-
     start_datetime, end_datetime, timezone_str = extract_event_datetimes(google_event)
-
     actual_calendar_id = google_event.get("organizer", {}).get("email")
     if primary_target != user_id:
         try:
@@ -116,7 +106,6 @@ def create_primary_event_and_db(
             actual_calendar_id = user_calendar.get("id")
         except Exception:
             actual_calendar_id = calendar_id
-
     calendar_event = CalendarEvent(
         user_id=primary_target,
         calendar_id=actual_calendar_id,
@@ -136,7 +125,6 @@ def create_primary_event_and_db(
         is_synced=True,
         last_synced_at=datetime.now(timezone.utc),
         sync_source="google",
-        itinerary=itinerary,
         meet_url=meet_url,
         conference_status=conference_status,
     )
@@ -153,49 +141,33 @@ def create_in_agent_calendars(
     calendar_event,
     should_create,
     is_agent,
-    itinerary=None,
 ):
     """Create event in each agent's calendar and update calendar_event.shared_with_user_ids."""
     if not should_create or is_agent:
         return
-
-    client_user = User.query.filter_by(id=user_id).first()
-    agent_ids = []
-    if client_user and client_user.agent_id:
-        try:
-            if isinstance(client_user.agent_id, str):
-                try:
-                    agent_ids = json.loads(client_user.agent_id)
-                except json.JSONDecodeError:
-                    agent_ids = [
-                        aid.strip() for aid in client_user.agent_id.split(",") if aid.strip()
-                    ]
-            else:
-                agent_ids = client_user.agent_id if isinstance(client_user.agent_id, list) else []
-        except Exception as e:
-            logger.error("Error parsing agent_id for client %s: %s", user_id, e)
-
+    try:
+        agent_ids = list(get_connected_agent_ids_for_client(str(user_id)))
+    except Exception as e:
+        log.error("ERRORS", f"Error resolving linked agents for client {user_id}: {e}", e)
+        agent_ids = []
     for agent_id in agent_ids:
         try:
             if not tokens_get(agent_id):
-                logger.warning(
-                    "Agent %s does not have Google Calendar connected, skipping agent calendar creation",
-                    agent_id,
+                log.warn(
+                    "CALENDAR",
+                    f"Agent {agent_id} does not have Google Calendar connected, skipping agent calendar creation",
                 )
                 continue
-
             agent_event_data = event_data.copy()
             agent_google_event = google_calendar_service.create_event(
                 user_id, agent_event_data, calendar_id, target_user_id=agent_id
             )
             agent_start, agent_end, agent_tz = extract_event_datetimes(agent_google_event)
-
             try:
                 agent_calendar = google_calendar_service.get_or_create_silverkey_calendar(agent_id)
                 agent_calendar_id = agent_calendar.get("id")
             except Exception:
                 agent_calendar_id = calendar_id
-
             agent_calendar_event = CalendarEvent(
                 user_id=agent_id,
                 calendar_id=agent_calendar_id,
@@ -216,11 +188,9 @@ def create_in_agent_calendars(
                 is_synced=True,
                 last_synced_at=datetime.now(timezone.utc),
                 sync_source="google",
-                itinerary=itinerary,
             )
             agent_calendar_event.calculate_duration()
             db.session.add(agent_calendar_event)
-
             if calendar_event:
                 if calendar_event.shared_with_user_ids is None:
                     calendar_event.shared_with_user_ids = []
@@ -228,12 +198,9 @@ def create_in_agent_calendars(
                     calendar_event.shared_with_user_ids = [calendar_event.shared_with_user_ids]
                 if agent_id not in calendar_event.shared_with_user_ids:
                     calendar_event.shared_with_user_ids.append(agent_id)
-
-            logger.info("Event also created in agent %s's calendar", agent_id)
+            log.info("CALENDAR", f"Event also created in agent {agent_id}'s calendar")
         except Exception as e:
-            logger.error(
-                "Error creating event in agent %s's calendar: %s", agent_id, e, exc_info=True
-            )
+            log.error("ERRORS", f"Error creating event in agent {agent_id}'s calendar: {e}", e)
 
 
 def get_client_events_permission_error(client_id):
@@ -245,26 +212,14 @@ def get_client_events_permission_error(client_id):
     has_permission = check_permission(client_id, "calendar_app_created")
     if has_permission:
         return None
-
     perm_data = permissions.get("calendar_app_created", {})
     description = perm_data.get("description", "Access calendar events")
     client_token_data = tokens_get(client_id)
     client_has_connection = client_token_data is not None
-
     if client_has_connection:
-        error_message = (
-            f"This client has connected their Google Calendar, but hasn't granted "
-            f"the necessary permission ({description}). "
-            f"The client needs to reconnect their Google Calendar account and grant "
-            f"all requested permissions to enable event queries."
-        )
+        error_message = f"This client has connected their Google Calendar, but hasn't granted the necessary permission ({description}). The client needs to reconnect their Google Calendar account and grant all requested permissions to enable event queries."
     else:
-        error_message = (
-            f"This client hasn't connected their Google Calendar account yet. "
-            f"Please ask them to connect their Google Calendar and grant the "
-            f"necessary permissions ({description}) to enable event queries."
-        )
-
+        error_message = f"This client hasn't connected their Google Calendar account yet. Please ask them to connect their Google Calendar and grant the necessary permissions ({description}) to enable event queries."
     return {
         "success": False,
         "error": "client_permission_required",

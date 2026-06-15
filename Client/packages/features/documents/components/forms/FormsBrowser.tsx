@@ -3,6 +3,7 @@
  * Shows categories (folders) and forms within each category.
  */
 
+import { useFormsBrowserController } from "packages/features/documents/hooks/ui/useFormsBrowserController";
 import type { ChecklistForm } from "packages/features/documents/types/forms";
 
 import {
@@ -13,7 +14,6 @@ import {
   FormsBrowserLoading,
   FormsBrowserNoSearchResults,
 } from "./formsBrowser/index";
-import { useFormsBrowserController } from "./formsBrowser/useFormsBrowserController";
 
 type FormsBrowserProps = {
   /** When provided with `showActions={false}` (e.g. upload modal), tapping a form card selects it. */

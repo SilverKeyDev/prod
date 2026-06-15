@@ -1,6 +1,7 @@
 import React from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import Region from "packages/ui/components/system/accessibility/Region";
 
 const MOBILE_TOP_BAR_HEIGHT_PX = 80; // h-20 – default height (search and dense chrome)
 /** Matches `SIDEBAR_INSET_HEADER_SHELL` (`h-14`) so messaging header is not vertically centered in extra slack. */
@@ -41,7 +42,9 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({
     : "items-center overflow-hidden";
   return (
     <>
-      <header
+      <Region
+        as="header"
+        label="Page header"
         className={`${backgroundClass} fixed left-0 right-0 top-0 z-header flex md:hidden ${headerLayoutClass} ${
           fullWidth || noPadding ? "px-0" : "px-4"
         }`}
@@ -49,7 +52,6 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({
           minHeight: barHeightPx,
           paddingTop: "env(safe-area-inset-top, 0px)",
         }}
-        aria-label="Page header"
       >
         {fullWidth ? (
           <Box className="flex h-full w-full flex-1 items-center">{children}</Box>
@@ -62,7 +64,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({
             <Box className="flex h-full w-10 flex-shrink-0 items-center justify-end" />
           </>
         )}
-      </header>
+      </Region>
       <Box className="md:hidden" style={{ height: spacerHeight }} />
     </>
   );

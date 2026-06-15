@@ -5,14 +5,14 @@ import { AdminDevPersonaSection } from "./AdminDevPersonaSection";
 
 const mutateAsync = vi.fn();
 
-vi.mock("packages/hooks/data/admin/useSetCurrentUserAgentStatusMutation", () => ({
-  useSetCurrentUserAgentStatusMutation: () => ({
+vi.mock("packages/features/admin/hooks/data/useSetCurrentUserDevWorkspaceMutation", () => ({
+  useSetCurrentUserDevWorkspaceMutation: () => ({
     mutateAsync,
     isPending: false,
   }),
 }));
 
-vi.mock("packages/hooks/data/admin/useResetDevUserDataMutation", () => ({
+vi.mock("packages/features/admin/hooks/data/useResetDevUserDataMutation", () => ({
   useResetDevUserDataMutation: () => ({
     mutateAsync: vi.fn(),
     isPending: false,
@@ -29,51 +29,66 @@ const authState = {
     email: "a@b.c",
     name: "Test",
     is_active: true,
-    is_agent: false,
-    has_subscription: false,
-    subscription: null,
     has_preferences: false,
     roles: ["buyer"],
   },
 };
 
-const setActivePersona = vi.fn();
+const markServerIdentityTouched = vi.fn();
 
 vi.mock("packages/store", () => ({
   useAuthStore: (sel: (s: typeof authState) => unknown) => sel(authState),
-  useDevAppPersonaStore: (sel: (s: { setActivePersona: typeof setActivePersona }) => unknown) =>
-    sel({ setActivePersona }),
+  useDevAppPersonaStore: (
+    sel: (s: { markServerIdentityTouched: typeof markServerIdentityTouched }) => unknown
+  ) => sel({ markServerIdentityTouched }),
 }));
 
 describe("AdminDevPersonaSection", () => {
   beforeEach(() => {
     mutateAsync.mockReset();
-    setActivePersona.mockReset();
-    mutateAsync.mockResolvedValue({ id: "u1", is_agent: true });
+    mutateAsync.mockResolvedValue({ id: "u1", roles: ["agent"] });
+    authState.user.roles = ["buyer"];
   });
 
-  it("calls mutation and setActivePersona when a persona is chosen", async () => {
+  it("renders all workspace persona buttons", () => {
     render(<AdminDevPersonaSection />);
-    fireEvent.click(screen.getByRole("button", { name: "admin.dev_persona.persona_agent" }));
+    expect(screen.getByRole("button", { name: "workspace.switcher.buyer" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "workspace.switcher.seller" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "workspace.switcher.agent" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "workspace.switcher.brokerage" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "workspace.switcher.integration_partner" })
+    ).toBeTruthy();
+  });
+
+  it("sets agent persona when Agent is chosen", async () => {
+    render(<AdminDevPersonaSection />);
+    fireEvent.click(screen.getByRole("button", { name: "workspace.switcher.agent" }));
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({ is_agent: true });
-      expect(setActivePersona).toHaveBeenCalledWith("agent");
+      expect(mutateAsync).toHaveBeenCalledWith({ workspace: "agent" });
     });
   });
 
-  it("maps buyer and seller to is_agent false", async () => {
+  it("sets seller persona when Seller is chosen", async () => {
     render(<AdminDevPersonaSection />);
-    fireEvent.click(screen.getByRole("button", { name: "admin.dev_persona.persona_seller" }));
+    fireEvent.click(screen.getByRole("button", { name: "workspace.switcher.seller" }));
     await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith({ is_agent: false });
-      expect(setActivePersona).toHaveBeenCalledWith("seller");
+      expect(mutateAsync).toHaveBeenCalledWith({ workspace: "seller" });
+    });
+  });
+
+  it("skips mutation when persona already matches", async () => {
+    render(<AdminDevPersonaSection />);
+    fireEvent.click(screen.getByRole("button", { name: "workspace.switcher.buyer" }));
+    await waitFor(() => {
+      expect(mutateAsync).not.toHaveBeenCalled();
     });
   });
 
   it("shows error text when mutation rejects", async () => {
     mutateAsync.mockRejectedValueOnce(new Error("network down"));
     render(<AdminDevPersonaSection />);
-    fireEvent.click(screen.getByRole("button", { name: "admin.dev_persona.persona_broker" }));
+    fireEvent.click(screen.getByRole("button", { name: "workspace.switcher.agent" }));
     await waitFor(() => {
       expect(screen.getByText("network down")).toBeTruthy();
     });

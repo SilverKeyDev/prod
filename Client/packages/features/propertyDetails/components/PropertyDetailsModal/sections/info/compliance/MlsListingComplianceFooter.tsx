@@ -1,9 +1,9 @@
 import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
 
 type MlsListingComplianceFooterProps = {
   className?: string;

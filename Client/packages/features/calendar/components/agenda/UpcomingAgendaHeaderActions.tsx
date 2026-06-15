@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Button } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 export type UpcomingAgendaHeaderActionsProps = {
   showDisplayAll: boolean;

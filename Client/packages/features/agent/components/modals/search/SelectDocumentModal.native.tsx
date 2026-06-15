@@ -5,9 +5,9 @@ import { FlatList, Modal, Pressable, StyleSheet, View } from "react-native";
 import { color } from "packages/design-tokens";
 import { useSingleSelectionModal } from "packages/features/agent/hooks/ui/useSingleSelectionModal";
 import { type DocumentData, useDocumentsData } from "packages/features/documents";
-import { Loading } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-import { filterDocumentLibraryExcludingAgreements } from "packages/utils/documents";
+import { Loading } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import { filterDocumentLibraryExcludingAgreements } from "packages/utils/transaction/documents";
 
 type SelectDocumentModalNativeProps = {
   isOpen: boolean;

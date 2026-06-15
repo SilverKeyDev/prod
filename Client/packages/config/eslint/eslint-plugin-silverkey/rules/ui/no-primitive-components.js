@@ -31,7 +31,7 @@ module.exports = {
     ],
     messages: {
       useBox:
-        "Use <Box> from packages/ui/components/primitives instead of <div> for cross-platform compatibility. Import: import { Box } from 'packages/ui/components/primitives'",
+        "Use <Box> from packages/ui/components/structure/primitives instead of <div> for cross-platform compatibility. Import: import { Box } from 'packages/ui/components/structure/primitives'",
       useButton:
         "Use <Button> from components/ui instead of <button>. Import: import { Button } from '../ui'",
       useLink:
@@ -96,7 +96,10 @@ module.exports = {
     }
 
     // Allow in UI primitives themselves (definitions use <button>, <input>, etc.)
-    if (exceptions.uiComponents && filename.includes("packages/ui/components/primitives")) {
+    if (
+      exceptions.uiComponents &&
+      filename.includes("packages/ui/components/structure/primitives")
+    ) {
       return {};
     }
 

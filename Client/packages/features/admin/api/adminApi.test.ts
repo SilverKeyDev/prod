@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("packages/services/http/compatibility", () => ({
+vi.mock("packages/services/http", () => ({
   apiGet: vi.fn(),
   apiPost: vi.fn(),
 }));
 
-import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { apiGet, apiPost } from "packages/services/http";
 
 import { adminApi } from "./admin";
 
@@ -17,74 +17,49 @@ describe("adminApi", () => {
 
   describe("getLoggerConfig", () => {
     it("returns config on success", async () => {
+      const deployment = {
+        client: { logLevel: "ERROR", errors: true, security: true },
+        server: { logLevel: "INFO", errors: true, security: true },
+      };
       vi.mocked(apiGet).mockResolvedValueOnce({
         success: true,
-        config: { logLevel: "INFO" },
+        config: deployment,
       });
-      await expect(adminApi.getLoggerConfig()).resolves.toEqual({ logLevel: "INFO" });
+      await expect(adminApi.getLoggerConfig()).resolves.toEqual(deployment);
       expect(apiGet).toHaveBeenCalledWith("/api/v1/admin/logger-config");
     });
 
     it("throws when success is false", async () => {
+      vi.mocked(apiGet).mockResolvedValueOnce({
+        success: false,
+        error: "LOGGER_CONFIG_UNAVAILABLE",
+        message: "Logger config unavailable",
+      });
+      await expect(adminApi.getLoggerConfig()).rejects.toThrow("Logger config unavailable");
+    });
+
+    it("uses fallback when success is false and error is not user-facing", async () => {
       vi.mocked(apiGet).mockResolvedValueOnce({ success: false, error: "nope" });
-      await expect(adminApi.getLoggerConfig()).rejects.toThrow("nope");
+      await expect(adminApi.getLoggerConfig()).rejects.toThrow("Failed to fetch logger config");
     });
   });
 
   describe("updateLoggerConfig", () => {
     it("returns merged config on success", async () => {
+      const deployment = {
+        client: { logLevel: "ERROR", errors: true, security: true },
+        server: { logLevel: "DEBUG", errors: true, security: true },
+      };
       vi.mocked(apiPost).mockResolvedValueOnce({
         success: true,
-        config: { logLevel: "DEBUG" },
+        config: deployment,
       });
-      await expect(adminApi.updateLoggerConfig({ polling: true })).resolves.toEqual({
-        logLevel: "DEBUG",
-      });
-      expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/logger-config", {
-        updates: { polling: true },
-      });
-    });
-  });
-
-  describe("docusignOAuthStart", () => {
-    it("returns auth_url on success", async () => {
-      vi.mocked(apiGet).mockResolvedValueOnce({
-        success: true,
-        auth_url: "https://example.test/oauth",
-      });
-      await expect(adminApi.docusignOAuthStart()).resolves.toEqual({
-        auth_url: "https://example.test/oauth",
-      });
-    });
-
-    it("throws when auth_url missing", async () => {
-      vi.mocked(apiGet).mockResolvedValueOnce({ success: true });
-      await expect(adminApi.docusignOAuthStart()).rejects.toThrow();
-    });
-  });
-
-  describe("docusignListTemplates", () => {
-    it("returns templates array", async () => {
-      vi.mocked(apiGet).mockResolvedValueOnce({
-        success: true,
-        templates: [{ id: "t1" }],
-      });
-      await expect(adminApi.docusignListTemplates()).resolves.toEqual([{ id: "t1" }]);
-    });
-  });
-
-  describe("docusignSyncTemplates", () => {
-    it("returns task_id on success", async () => {
-      vi.mocked(apiPost).mockResolvedValueOnce({
-        success: true,
-        task_id: "celery-123",
-      });
-      await expect(adminApi.docusignSyncTemplates()).resolves.toEqual({ task_id: "celery-123" });
-      expect(apiPost).toHaveBeenCalledWith(
-        "/api/v1/docusign/templates/sync",
-        {},
-        { acceptStatuses: [202] }
+      await expect(adminApi.updateLoggerConfig({ server: { polling: true } })).resolves.toEqual(
+        deployment
       );
+      expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/logger-config", {
+        updates: { server: { polling: true } },
+      });
     });
   });
 
@@ -126,6 +101,30 @@ describe("adminApi", () => {
     });
   });
 
+  describe("listGateRoleUsers", () => {
+    it("returns admins on success", async () => {
+      const admins = [
+        {
+          user_id: "u1",
+          email: "a@b.c",
+          name: "Alice",
+          gate_roles: ["admin"],
+        },
+      ];
+      vi.mocked(apiGet).mockResolvedValueOnce({
+        success: true,
+        admins,
+      });
+      await expect(adminApi.listGateRoleUsers()).resolves.toEqual({ admins });
+      expect(apiGet).toHaveBeenCalledWith("/api/v1/admin/users/gate-roles");
+    });
+
+    it("throws when response invalid", async () => {
+      vi.mocked(apiGet).mockResolvedValueOnce({ success: false });
+      await expect(adminApi.listGateRoleUsers()).rejects.toThrow();
+    });
+  });
+
   describe("resetDevUserData", () => {
     it("posts confirm and scopes for self", async () => {
       vi.mocked(apiPost).mockResolvedValueOnce({
@@ -159,18 +158,35 @@ describe("adminApi", () => {
         user_id: "other",
       });
     });
+
+    it("accepts extended scope enum values", async () => {
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        success: true,
+        target_user_id: "u1",
+        cleared: { s3: true, connections: true },
+      });
+      await adminApi.resetDevUserData({
+        scopes: ["s3", "connections"],
+      });
+      expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/users/reset-dev-data", {
+        confirm: true,
+        scopes: ["s3", "connections"],
+      });
+    });
   });
 
   describe("setCurrentUserAgentStatus", () => {
     it("returns user on success", async () => {
-      const user = { id: "u1", email: "a@b.c", name: "A", is_active: true, is_agent: true };
+      const user = { id: "u1", email: "a@b.c", name: "A", is_active: true, roles: ["agent"] };
       vi.mocked(apiPost).mockResolvedValueOnce({
         success: true,
         user,
       });
-      await expect(adminApi.setCurrentUserAgentStatus({ is_agent: true })).resolves.toEqual(user);
+      await expect(
+        adminApi.setCurrentUserAgentStatus({ agent_role_enabled: true })
+      ).resolves.toEqual(user);
       expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/current-user-agent-status", {
-        is_agent: true,
+        agent_role_enabled: true,
       });
     });
 
@@ -179,8 +195,90 @@ describe("adminApi", () => {
         success: false,
         error: "Forbidden",
       });
-      await expect(adminApi.setCurrentUserAgentStatus({ is_agent: false })).rejects.toThrow(
+      await expect(
+        adminApi.setCurrentUserAgentStatus({ agent_role_enabled: false })
+      ).rejects.toThrow("Forbidden");
+    });
+  });
+
+  describe("setCurrentUserDevWorkspace", () => {
+    it("returns user on success", async () => {
+      const user = {
+        id: "u1",
+        email: "a@b.c",
+        name: "A",
+        is_active: true,
+        roles: ["seller"],
+      };
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        success: true,
+        user,
+      });
+      await expect(adminApi.setCurrentUserDevWorkspace({ workspace: "seller" })).resolves.toEqual(
+        user
+      );
+      expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/current-user-dev-workspace", {
+        workspace: "seller",
+      });
+    });
+
+    it("throws with server error string when present", async () => {
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        success: false,
+        error: "Forbidden",
+      });
+      await expect(adminApi.setCurrentUserDevWorkspace({ workspace: "buyer" })).rejects.toThrow(
         "Forbidden"
+      );
+    });
+  });
+
+  describe("mintDevAccountSession", () => {
+    it("returns one-time token, role, and user", async () => {
+      const user = {
+        id: "u-dev",
+        email: "dev+admin-buyer@dev.usesilverkey.test",
+        name: "Buyer",
+        is_active: true,
+        is_agent: false,
+      };
+      vi.mocked(apiPost).mockResolvedValueOnce({
+        success: true,
+        token: "one-time-token",
+        role: "buyer",
+        user,
+      });
+
+      await expect(adminApi.mintDevAccountSession({ workspace: "buyer" })).resolves.toEqual({
+        token: "one-time-token",
+        role: "buyer",
+        user,
+      });
+      expect(apiPost).toHaveBeenCalledWith("/api/v1/admin/dev-accounts/session", {
+        workspace: "buyer",
+      });
+    });
+  });
+
+  describe("exchangeDevAccountSession", () => {
+    it("exchanges a token without existing auth", async () => {
+      const response = {
+        success: true,
+        access_token: "access",
+        user: {
+          id: "u-dev",
+          email: "dev+admin-agent@dev.usesilverkey.test",
+          name: "Agent",
+          is_agent: true,
+        },
+      };
+      vi.mocked(apiPost).mockResolvedValueOnce(response);
+
+      await expect(adminApi.exchangeDevAccountSession("one-time-token")).resolves.toEqual(response);
+      expect(apiPost).toHaveBeenCalledWith(
+        "/api/v1/admin/dev-accounts/session/exchange",
+        { token: "one-time-token" },
+        { includeAuth: false, includeCredentials: false }
       );
     });
   });

@@ -52,26 +52,39 @@ export type UserPreferences = {
 };
 
 const POLYGON_SEARCH_OVERRIDE_KEYS: (keyof SearchFilterOverrides)[] = [
+  "home_budget_min",
+  "home_budget_max",
   "preferred_bedrooms_min",
   "preferred_bedrooms_max",
   "preferred_bathrooms_min",
   "preferred_bathrooms_max",
+  "preferred_sqft_min",
+  "preferred_sqft_max",
   "preferred_lot_size_min",
   "preferred_lot_size_max",
   "preferred_home_age_min",
   "preferred_home_age_max",
+  "days_on_market_min",
+  "days_on_market_max",
 ];
 
 const POLYGON_SEARCH_LIST_OVERRIDE_KEYS: (keyof SearchFilterOverrides)[] = [
+  "listing_type",
   "must_have",
   "preferred_home_features",
+  "other_requirements",
+];
+
+const POLYGON_SEARCH_STRING_OVERRIDE_KEYS: (keyof SearchFilterOverrides)[] = [
+  "preferred_housing_type",
+  "listing_status",
 ];
 
 /** Build non-empty user_preferences for polygon search when any slider override is set. */
 export function compactSearchFilterOverridesForPolygon(
   overrides: SearchFilterOverrides
 ): SearchByPolygonRequest["user_preferences"] | undefined {
-  const out: Record<string, number | string[]> = {};
+  const out: Record<string, number | string | string[]> = {};
   for (const k of POLYGON_SEARCH_OVERRIDE_KEYS) {
     const v = overrides[k];
     if (typeof v === "number" && Number.isFinite(v)) {
@@ -82,6 +95,12 @@ export function compactSearchFilterOverridesForPolygon(
     const v = overrides[k];
     if (Array.isArray(v)) {
       out[k] = [...v];
+    }
+  }
+  for (const k of POLYGON_SEARCH_STRING_OVERRIDE_KEYS) {
+    const v = overrides[k];
+    if (typeof v === "string" && v.trim()) {
+      out[k] = v.trim();
     }
   }
   return Object.keys(out).length > 0

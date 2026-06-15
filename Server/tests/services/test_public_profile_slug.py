@@ -1,6 +1,6 @@
 """Unit tests for public profile slug helpers (no DB)."""
 
-from app.services.public_profile_slug import (
+from app.services.public.profile_slug import (
     is_valid_public_profile_slug,
     slugify_display_name,
 )

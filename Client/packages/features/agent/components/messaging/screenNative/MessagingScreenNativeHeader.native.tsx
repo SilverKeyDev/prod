@@ -2,7 +2,7 @@ import React from "react";
 
 import type { AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
 
 import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 

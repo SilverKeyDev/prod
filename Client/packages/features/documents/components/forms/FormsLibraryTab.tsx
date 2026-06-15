@@ -4,7 +4,7 @@
  */
 
 import type { ChecklistForm } from "packages/features/documents/types/forms";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import FormsBrowser from "./FormsBrowser";
 

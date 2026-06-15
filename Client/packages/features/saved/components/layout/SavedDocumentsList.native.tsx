@@ -5,9 +5,9 @@ import Button from "@ui/button/Button";
 import { useLocalization } from "packages/contexts";
 import type { DocumentData } from "packages/features/documents";
 import { useAuthStore } from "packages/store";
-import { Box, Text } from "packages/ui/components/primitives";
-import { getContextualAgreementStatus } from "packages/utils/agreement/contextualAgreementStatus";
-import { formatOptionalDateStringEnUs } from "packages/utils/date";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { formatOptionalDateStringEnUs } from "packages/utils/core/date";
+import { getContextualAgreementStatus } from "packages/utils/transaction/agreement/contextualAgreementStatus";
 
 interface SavedDocumentsListProps {
   sortedDocuments: DocumentData[];

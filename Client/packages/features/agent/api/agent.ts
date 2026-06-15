@@ -1,19 +1,5 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * This file re-exports types from the generated API contract (api.generated.ts).
- * All type definitions have been moved to openapi.yaml.
- *
- * To add/modify API types:
- * 1. Edit openapi.yaml
- * 2. Run `pnpm generate:api-types`
- * 3. Types will be auto-generated in packages/types/api.generated.ts
- *
- * This shim maintains backward compatibility for existing imports.
- */
-
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { apiGet, apiPatch, apiPost, apiPut } from "packages/services/http/compatibility";
+import { log } from "packages/logger";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
 
 // Re-export types from generated schema
@@ -52,6 +38,7 @@ export type CreateTodoRequest = components["schemas"]["CreateTodoRequest"];
 export type CreateTodoResponse = components["schemas"]["CreateTodoResponse"];
 export type UpdateTodoRequest = components["schemas"]["UpdateTodoRequest"];
 export type UpdateTodoResponse = components["schemas"]["UpdateTodoResponse"];
+export type SuccessResponse = components["schemas"]["SuccessResponse"];
 
 /**
  * Agent API client using centralized utilities
@@ -116,7 +103,7 @@ export const agentApi = {
       ...(sharedDocumentId && { shared_document_id: sharedDocumentId }),
     };
 
-    log.debug(LOG_CATEGORIES.API, "Sending message request", {
+    log.debug("API", "Sending message request", {
       endpoint: "/api/v1/agent/chats/message",
       requestBody,
       conversationId,
@@ -132,7 +119,7 @@ export const agentApi = {
         requestBody
       );
 
-      log.debug(LOG_CATEGORIES.API, "Message request response", {
+      log.debug("API", "Message request response", {
         success: response.success,
         hasError: !!response.error,
         error: response.error,
@@ -141,7 +128,7 @@ export const agentApi = {
 
       return response;
     } catch (error) {
-      log.error(LOG_CATEGORIES.API, "Message request failed", {
+      log.error("API", "Message request failed", {
         error,
         requestBody,
         conversationId,
@@ -275,4 +262,10 @@ export const agentApi = {
    */
   updateTodo: (todoId: string, data: UpdateTodoRequest): Promise<UpdateTodoResponse> =>
     apiPut<UpdateTodoResponse>(`/api/v1/agent/todos/${todoId}`, data),
+
+  /**
+   * Delete a todo
+   */
+  deleteTodo: (todoId: string): Promise<SuccessResponse> =>
+    apiDelete<SuccessResponse>(`/api/v1/agent/todos/${todoId}`),
 };

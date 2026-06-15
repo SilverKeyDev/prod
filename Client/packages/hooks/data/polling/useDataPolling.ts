@@ -3,12 +3,12 @@ import { useCallback, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import type { AgentConversation } from "packages/config/http/api";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useInRouterContext, useNavigation } from "packages/navigation";
 import { useNotificationStore } from "packages/store";
 import { useAuthStore } from "packages/store";
-import { dateNow } from "packages/utils/date";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { dateNow } from "packages/utils/core/date";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import {
   runCheckForNewMessages,
@@ -81,7 +81,7 @@ export function useDataPolling() {
     if (!inRouter && windowRef && doc?.readyState === "complete") {
       // Only log if page is fully loaded (not during hydration)
       // This is a timing issue that should resolve on the next render
-      log.warn(LOG_CATEGORIES.POLLING, "Router context check failed, but location is available", {
+      log.warn("POLLING", "Router context check failed, but location is available", {
         href: windowRef.location.href,
         hasLocation: !!location,
         timestamp: dateNow().toISOString(),

@@ -12,8 +12,8 @@ import type {
 } from "packages/features/documents/types/docusign";
 import { useAuthStore } from "packages/store";
 import { Button, CancelButton } from "packages/ui";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
 
 import { BodyText, Input, Select, Title } from "@/components/ui";
 

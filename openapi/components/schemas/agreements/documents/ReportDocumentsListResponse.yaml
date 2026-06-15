@@ -8,12 +8,6 @@ allOf:
           $ref: './UploadedDocumentRecord.yaml'
         nullable: true
         description: Rows from GET /api/v1/report/documents
-      reports:
-        type: array
-        items:
-          $ref: './UploadedDocumentRecord.yaml'
-        nullable: true
-        description: Legacy alias for documents (backward compatibility)
       count:
         type: integer
         nullable: true

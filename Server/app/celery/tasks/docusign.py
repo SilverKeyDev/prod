@@ -21,9 +21,7 @@ from app.services.docusign import (
 from app.services.docusign.envelopes import TemplateEnvelopeBuilder
 from app.services.docusign.errors import DocusignAPIError, DocusignAuthError
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 _SEND_FAILED_META_MAX = 2000
 
@@ -62,6 +60,7 @@ def _record_send_failure_event(
     autoretry_for=(DocusignAPIError, ConnectionError),
     retry_backoff=True,
     retry_jitter=True,
+    queue="docusign",
 )
 def send_envelope_task(
     self,
@@ -85,8 +84,8 @@ def send_envelope_task(
     agreement = None
 
     try:
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Sending envelope to DocuSign",
             {
                 "agreement_id": agreement_id,
@@ -100,9 +99,7 @@ def send_envelope_task(
         # Load agreement
         agreement = get_model(Agreement, agreement_id)
         if not agreement:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"], "Agreement not found", {"agreement_id": agreement_id}
-            )
+            log.error("ERRORS", "Agreement not found", {"agreement_id": agreement_id})
             return {"success": False, "error": "Agreement not found"}
 
         # Build envelope (PDF revision vs DocuSign template)
@@ -139,8 +136,8 @@ def send_envelope_task(
 
         send_agreement_message(agreement, "sent")
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Envelope sent successfully to DocuSign",
             {
                 "agreement_id": agreement_id,
@@ -164,8 +161,8 @@ def send_envelope_task(
                 retryable=False,
             )
 
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             "Auth error in send envelope task (not retrying)",
             {"agreement_id": agreement_id, "error": str(exc), "actor_id": actor_id},
         )
@@ -177,8 +174,8 @@ def send_envelope_task(
         # API errors might be transient - retry
         error_msg = f"DocuSign API error: {str(exc)}"
 
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             "API error in send envelope task (retrying)",
             {
                 "agreement_id": agreement_id,
@@ -206,8 +203,8 @@ def send_envelope_task(
                 retryable=False,
             )
 
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             "Unexpected error in send envelope task (not retrying)",
             {
                 "agreement_id": agreement_id,
@@ -220,7 +217,7 @@ def send_envelope_task(
         return {"success": False, "error": error_msg, "retryable": False}
 
 
-@celery.task(name="docusign.process_webhook", bind=True, max_retries=5)
+@celery.task(name="docusign.process_webhook", bind=True, max_retries=5, queue="default")
 def process_webhook_task(self, event_id: str):
     """
     Process DocuSign Connect webhook event.
@@ -233,8 +230,8 @@ def process_webhook_task(self, event_id: str):
         return {"success": True}
 
     except Exception as exc:
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             "Webhook processing failed",
             {"event_id": event_id, "error": str(exc)},
         )
@@ -247,8 +244,8 @@ def process_webhook_task(self, event_id: str):
                 event.processing_error = str(exc)
                 db.session.commit()
         except Exception as db_exc:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 "Failed to update event retry count",
                 {"event_id": event_id, "error": str(db_exc)},
             )
@@ -263,6 +260,7 @@ def process_webhook_task(self, event_id: str):
     autoretry_for=(DocusignAPIError, ConnectionError),
     retry_backoff=True,
     retry_jitter=True,
+    queue="docusign",
 )
 def fetch_completed_documents_task(self, agreement_id: str):
     """
@@ -276,17 +274,15 @@ def fetch_completed_documents_task(self, agreement_id: str):
     agreement = None
 
     try:
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Fetching completed documents from DocuSign",
             {"agreement_id": agreement_id, "attempt": self.request.retries + 1},
         )
 
         agreement = get_model(Agreement, agreement_id)
         if not agreement or not agreement.docusign_envelope_id:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"], "Cannot fetch documents", {"agreement_id": agreement_id}
-            )
+            log.error("ERRORS", "Cannot fetch documents", {"agreement_id": agreement_id})
             return {"success": False, "error": "Invalid agreement"}
 
         client = DocusignClient(auth_type="jwt")
@@ -314,8 +310,8 @@ def fetch_completed_documents_task(self, agreement_id: str):
             if cert_uploaded:
                 agreement.certificate_path = cert_s3_key
         except Exception as e:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Failed to fetch certificate from DocuSign",
                 {"agreement_id": agreement_id, "error": str(e)},
             )
@@ -324,8 +320,8 @@ def fetch_completed_documents_task(self, agreement_id: str):
         agreement.signed_document_path = s3_key
         db.session.commit()
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Documents fetched successfully from DocuSign",
             {
                 "agreement_id": agreement_id,
@@ -338,8 +334,8 @@ def fetch_completed_documents_task(self, agreement_id: str):
 
     except DocusignAPIError as exc:
         # Retry on API errors
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             "API error fetching documents (retrying)",
             {
                 "agreement_id": agreement_id,
@@ -352,8 +348,8 @@ def fetch_completed_documents_task(self, agreement_id: str):
 
     except Exception as exc:
         # Don't retry on unexpected errors
-        logger.error(
-            LOG_CATEGORIES["ERRORS"],
+        log.error(
+            "ERRORS",
             "Unexpected error fetching documents (not retrying)",
             {"agreement_id": agreement_id, "error": str(exc)},
         )
@@ -361,7 +357,7 @@ def fetch_completed_documents_task(self, agreement_id: str):
         return {"success": False, "error": str(exc)}
 
 
-@celery.task(name="docusign.sync_templates")
+@celery.task(name="docusign.sync_templates", queue="default")
 def sync_templates_task():
     """Sync templates from DocuSign"""
     try:
@@ -369,5 +365,5 @@ def sync_templates_task():
         return {"success": True, "count": count}
 
     except Exception as e:
-        logger.error(LOG_CATEGORIES["ERRORS"], "Template sync failed", {"error": str(e)})
+        log.error("ERRORS", "Template sync failed", {"error": str(e)})
         return {"success": False, "error": str(e)}

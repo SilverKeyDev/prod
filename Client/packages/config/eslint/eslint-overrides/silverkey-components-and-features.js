@@ -39,8 +39,8 @@ export function silverkeyComponentsAndFeatures(silverkey) {
           "warn",
           {
             allowedPaths: [
-              "packages/utils/date/",
-              "packages/utils/calendar/",
+              "packages/utils/core/date/",
+              "packages/utils/comms/calendar/",
               "packages/config/eslint/eslint-plugin-silverkey/",
               "logger/",
             ],
@@ -49,13 +49,19 @@ export function silverkeyComponentsAndFeatures(silverkey) {
       },
     },
     {
-      files: ["packages/features/**/*.{ts,tsx}", "apps/web/pages/**/*.{ts,tsx}"],
+      files: [
+        "packages/features/**/*.{ts,tsx}",
+        "apps/web/pages/**/*.{ts,tsx}",
+        "apps/web/app/**/*.{ts,tsx}",
+        "apps/mobile/**/*.{ts,tsx}",
+      ],
       plugins: { silverkey },
       rules: {
         "silverkey/no-direct-accessibility-props": [
           "error",
-          { allowedInPaths: ["packages/ui/components/ui/"] },
+          { allowedInPaths: ["packages/ui/components/media/ui/"] },
         ],
+        "silverkey/require-interactive-label": ["error", { allowedInPaths: ["packages/ui/"] }],
       },
     },
     {
@@ -176,7 +182,7 @@ export function silverkeyComponentsAndFeatures(silverkey) {
     },
     // Property card UI must not depend on search feature types/imports (use shared UI types).
     {
-      files: ["packages/ui/components/cards/property/**/*.{ts,tsx}"],
+      files: ["packages/ui/components/surfaces/cards/property/**/*.{ts,tsx}"],
       rules: {
         "no-restricted-imports": [
           "error",

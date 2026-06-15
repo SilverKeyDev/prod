@@ -1,0 +1,9 @@
+type: object
+required:
+  - conversation_id
+  - message
+properties:
+  conversation_id:
+    type: string
+  message:
+    type: string

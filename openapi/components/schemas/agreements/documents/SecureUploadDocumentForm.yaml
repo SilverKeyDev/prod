@@ -1,0 +1,9 @@
+type: object
+description: >
+  Multipart form fields for POST /api/v1/upload/document (excluding binary `file`,
+  which is validated via file_security). Maps to the `address` part of SecureUploadDocumentRequest.
+properties:
+  address:
+    type: string
+    nullable: true
+    description: Optional property address associated with the upload.

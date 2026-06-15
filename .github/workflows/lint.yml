@@ -1,5 +1,5 @@
 # Single lint workflow: runs root script for client and server.
-# scripts/run-all-linters.sh applies auto-fixes first (Client: pnpm run fix; Server: ruff --fix/format), then linters.
+# scripts/ci/run-all-linters.sh applies auto-fixes first (Client: pnpm run fix; Server: ruff --fix/format), then linters.
 # Linters: Server lint_*.py + lint_*.sh; Client lint.d/*.sh + pnpm check.
 # Scheduled weekly (same cadence as dependabot.yml weekly-all). Run locally before merge: make lint / pnpm check.
 # Tests are run separately via test.yml workflow.
@@ -41,7 +41,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run all client linters (root script)
-        run: ./scripts/run-all-linters.sh client
+        run: ./scripts/ci/run-all-linters.sh client
 
   server-lint:
     name: Server (all linters)
@@ -79,4 +79,4 @@ jobs:
       - name: Run all server linters (root script)
         run: |
           export PATH="${{ github.workspace }}/Server/.venv/bin:$PATH"
-          ./scripts/run-all-linters.sh server
+          ./scripts/ci/run-all-linters.sh server

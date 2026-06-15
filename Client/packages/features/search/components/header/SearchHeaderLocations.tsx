@@ -3,16 +3,16 @@ import React, { useCallback, useEffect, useMemo } from "react";
 import Input from "@ui/form/Input";
 
 import { spacing } from "packages/design-tokens";
+import { useSearchHeaderLocations } from "packages/features/search/hooks/ui/useSearchHeaderLocations";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
-import { BaseModal } from "packages/ui/components/modals";
-import { Box } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import { ScrollView } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { ScrollView } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
 
 import { SearchHeaderLocationsTrigger } from "./SearchHeaderLocations/SearchHeaderLocationsTrigger";
 import type { SearchImportantLocation } from "./SearchHeaderLocations/types";
-import { useSearchHeaderLocations } from "./SearchHeaderLocations/useSearchHeaderLocations";
 
 function spacingToNum(token: string): number {
   const m = token.match(/^([\d.]+)rem$/);

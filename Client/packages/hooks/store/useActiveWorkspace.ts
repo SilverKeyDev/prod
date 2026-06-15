@@ -1,8 +1,8 @@
 import { useWorkspaceStore } from "packages/store/slices/workspace/workspace.slice";
-import type { Workspace } from "packages/utils/workspace";
+import { type Workspace } from "packages/utils/product/workspace";
 
 /**
- * Canonical UX workspace for Layer 2/3 UI (buyer | seller | agent | brokerage).
+ * Canonical UX workspace for Layer 2/3 UI (buyer | seller | agent | brokerage | integration_partner).
  * For server identity (API eligibility), use useIsAgent() / auth user fields.
  */
 export function useActiveWorkspace(): Workspace {

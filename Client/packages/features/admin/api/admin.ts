@@ -1,35 +1,16 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * This file re-exports types from the generated API contract (api.generated.ts).
- * All type definitions have been moved to openapi.yaml.
- *
- * To add/modify API types:
- * 1. Edit openapi.yaml
- * 2. Run `pnpm generate:api-types`
- * 3. Types will be auto-generated in packages/types/api.generated.ts
- *
- * This shim maintains backward compatibility for existing imports.
- */
-
-import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { apiGet, apiPost } from "packages/services/http";
+import { buildApiUrl } from "packages/services/http/urlHelpers";
 import type { components } from "packages/types/api.generated";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 // Re-export types from generated schema
 export type ServerLoggerConfig = components["schemas"]["ServerLoggerConfig"];
-export type DocusignOAuthStartResponse = components["schemas"]["DocusignOAuthStartResponse"];
-export type DocusignListTemplatesResponse = components["schemas"]["DocusignListTemplatesResponse"];
-export type DocusignSyncTemplatesResponse = components["schemas"]["DocusignSyncTemplatesResponse"];
+export type ClientLoggerConfig = components["schemas"]["ClientLoggerConfig"];
+export type DeploymentLoggerConfig = components["schemas"]["DeploymentLoggerConfig"];
+export type DeploymentLoggerConfigUpdates = components["schemas"]["DeploymentLoggerConfigUpdates"];
 export type DeleteUserResponse = components["schemas"]["DeleteUserResponse"];
-export type DocusignTemplateListItem = components["schemas"]["DocusignTemplateListItem"];
 
 /** Narrowed success payloads derived from OpenAPI response schemas (field names match the wire contract). */
-export type DocusignOAuthStartResult = Required<
-  Pick<components["schemas"]["DocusignOAuthStartResponse"], "auth_url">
->;
-export type DocusignSyncTemplatesResult = Required<
-  Pick<components["schemas"]["DocusignSyncTemplatesResponse"], "task_id">
->;
 export type DeleteUserByIdResult = Required<
   Pick<components["schemas"]["DeleteUserResponse"], "deleted_user_id">
 >;
@@ -37,12 +18,31 @@ export type DeleteUserByIdResult = Required<
 export type UpdateUserSystemRolesRequest = components["schemas"]["UpdateUserSystemRolesRequest"];
 export type UpdateUserSystemRolesResponse = components["schemas"]["UpdateUserSystemRolesResponse"];
 
+export type AdminGateUser = components["schemas"]["AdminGateUser"];
+export type ListAdminGateUsersResponse = components["schemas"]["ListAdminGateUsersResponse"];
+
 export type UpdateUserSystemRolesResult = Required<
   Pick<components["schemas"]["UpdateUserSystemRolesResponse"], "user_id" | "gate_roles">
 >;
 
+export type ListAdminGateUsersResult = Required<
+  Pick<components["schemas"]["ListAdminGateUsersResponse"], "admins">
+>;
+
 export type UpdateAgentStatusRequest = components["schemas"]["UpdateAgentStatusRequest"];
 export type UpdateAgentStatusResponse = components["schemas"]["UpdateAgentStatusResponse"];
+
+export type SetCurrentUserDevWorkspaceRequest =
+  components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
+export type SetCurrentUserDevWorkspaceResponse =
+  components["schemas"]["SetCurrentUserDevWorkspaceResponse"];
+export type DevAccountSessionRole = components["schemas"]["DevWorkspacePersona"];
+export type DevAccountSessionMintResponse = components["schemas"]["SuccessResponse"] & {
+  token?: string;
+  role?: DevAccountSessionRole;
+  user?: components["schemas"]["User"];
+};
+export type DevAccountSessionExchangeResponse = components["schemas"]["AuthResponse"];
 
 export type DevUserDataResetRequest = components["schemas"]["DevUserDataResetRequest"];
 export type DevUserDataResetResponse = components["schemas"]["DevUserDataResetResponse"];
@@ -52,67 +52,34 @@ export type DevUserDataResetResult = Required<
   Pick<DevUserDataResetResponse, "target_user_id" | "cleared">
 >;
 
+export type ValidationStatsResult = Required<
+  Pick<components["schemas"]["ValidationStatsApiResponse"], "data">
+>;
+
 type GetLoggerConfigResponse = components["schemas"]["GetLoggerConfigResponse"];
 type UpdateLoggerConfigRequest = components["schemas"]["UpdateLoggerConfigRequest"];
 type UpdateLoggerConfigResponse = GetLoggerConfigResponse;
 
 export const adminApi = {
-  getLoggerConfig: async (): Promise<ServerLoggerConfig> => {
+  getLoggerConfig: async (): Promise<DeploymentLoggerConfig> => {
     const response = await apiGet<GetLoggerConfigResponse>("/api/v1/admin/logger-config");
     if (!response.success || !response.config) {
-      throw new Error(response.error ?? "Failed to fetch logger config");
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch logger config"));
     }
     return response.config;
   },
 
-  updateLoggerConfig: async (updates: Partial<ServerLoggerConfig>): Promise<ServerLoggerConfig> => {
+  updateLoggerConfig: async (
+    updates: DeploymentLoggerConfigUpdates
+  ): Promise<DeploymentLoggerConfig> => {
     const response = await apiPost<UpdateLoggerConfigResponse, UpdateLoggerConfigRequest>(
       "/api/v1/admin/logger-config",
       { updates }
     );
     if (!response.success || !response.config) {
-      throw new Error(response.error ?? "Failed to update logger config");
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to update logger config"));
     }
     return response.config;
-  },
-
-  /**
-   * DocuSign OAuth start (agent only). Returns authorize URL for the agent to complete in browser.
-   */
-  docusignOAuthStart: async (): Promise<DocusignOAuthStartResult> => {
-    const response = await apiGet<DocusignOAuthStartResponse>("/api/v1/docusign/oauth/start");
-    if (!response.success || typeof response.auth_url !== "string") {
-      throw new Error(
-        typeof response.error === "string" ? response.error : "DocuSign OAuth start failed"
-      );
-    }
-    return { auth_url: response.auth_url };
-  },
-
-  /** List synced DocuSign templates (agent only). */
-  docusignListTemplates: async (): Promise<DocusignTemplateListItem[]> => {
-    const response = await apiGet<DocusignListTemplatesResponse>("/api/v1/docusign/templates");
-    if (!response.success || !Array.isArray(response.templates)) {
-      throw new Error(
-        typeof response.error === "string" ? response.error : "Failed to list DocuSign templates"
-      );
-    }
-    return response.templates;
-  },
-
-  /** Queue background template sync (agent only). Requires Celery worker. */
-  docusignSyncTemplates: async (): Promise<DocusignSyncTemplatesResult> => {
-    const response = await apiPost<DocusignSyncTemplatesResponse>(
-      "/api/v1/docusign/templates/sync",
-      {},
-      { acceptStatuses: [202] }
-    );
-    if (!response.success || typeof response.task_id !== "string") {
-      throw new Error(
-        typeof response.error === "string" ? response.error : "DocuSign template sync failed"
-      );
-    }
-    return { task_id: response.task_id };
   },
 
   /**
@@ -125,7 +92,7 @@ export const adminApi = {
       confirm: true,
     });
     if (!response.success || typeof response.deleted_user_id !== "string") {
-      throw new Error(response.error ?? "Failed to delete user");
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to delete user"));
     }
     return { deleted_user_id: response.deleted_user_id };
   },
@@ -143,15 +110,41 @@ export const adminApi = {
       typeof response.user_id !== "string" ||
       !Array.isArray(response.gate_roles)
     ) {
-      throw new Error(
-        typeof response.error === "string" ? response.error : "Failed to update roles"
-      );
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to update roles"));
     }
     return { user_id: response.user_id, gate_roles: response.gate_roles };
   },
 
+  /** Super_admin only — list users with `admin` or `super_admin` gate roles. */
+  listGateRoleUsers: async (): Promise<ListAdminGateUsersResult> => {
+    const response = await apiGet<ListAdminGateUsersResponse>("/api/v1/admin/users/gate-roles");
+    if (!response.success || !Array.isArray(response.admins)) {
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to list gate role users"));
+    }
+    return { admins: response.admins };
+  },
+
   /**
-   * Admin only — sets the signed-in user's `users.is_agent` (testing / dev persona).
+   * Admin only — sets exclusive dev workspace persona on the signed-in user (testing / dev preview).
+   * Returns the updated user row from the server.
+   */
+  setCurrentUserDevWorkspace: async (
+    body: SetCurrentUserDevWorkspaceRequest
+  ): Promise<NonNullable<SetCurrentUserDevWorkspaceResponse["user"]>> => {
+    const response = await apiPost<
+      SetCurrentUserDevWorkspaceResponse,
+      SetCurrentUserDevWorkspaceRequest
+    >("/api/v1/admin/current-user-dev-workspace", body);
+    if (!response.success || !response.user) {
+      throw new Error(
+        resolveApiResultErrorMessage(response, "Failed to update dev workspace persona")
+      );
+    }
+    return response.user;
+  },
+
+  /**
+   * Admin only — toggles the signed-in user's agent role in user_roles (testing / dev persona).
    * Returns the updated user row from the server.
    */
   setCurrentUserAgentStatus: async (
@@ -162,13 +155,36 @@ export const adminApi = {
       body
     );
     if (!response.success || !response.user) {
-      throw new Error(
-        typeof response.error === "string" && response.error.length > 0
-          ? response.error
-          : "Failed to update agent status"
-      );
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to update agent status"));
     }
     return response.user;
+  },
+
+  /** Admin/dev only — mint a one-time login token for a per-role dev test account. */
+  mintDevAccountSession: async (body: {
+    workspace: DevAccountSessionRole;
+  }): Promise<Required<Pick<DevAccountSessionMintResponse, "token" | "role" | "user">>> => {
+    const response = await apiPost<
+      DevAccountSessionMintResponse,
+      { workspace: DevAccountSessionRole }
+    >("/api/v1/admin/dev-accounts/session", body);
+    if (!response.success || !response.token || !response.role || !response.user) {
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to create dev session"));
+    }
+    return { token: response.token, role: response.role, user: response.user };
+  },
+
+  /** Dev session landing page — exchange a one-time token for this tab's bearer session. */
+  exchangeDevAccountSession: async (token: string): Promise<DevAccountSessionExchangeResponse> => {
+    const response = await apiPost<DevAccountSessionExchangeResponse, { token: string }>(
+      "/api/v1/admin/dev-accounts/session/exchange",
+      { token },
+      { includeAuth: false, includeCredentials: false }
+    );
+    if (!response.success || !response.user || !response.access_token) {
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to open dev session"));
+    }
+    return response;
   },
 
   /**
@@ -197,12 +213,20 @@ export const adminApi = {
       !response.cleared ||
       typeof response.cleared !== "object"
     ) {
-      throw new Error(
-        typeof response.error === "string" && response.error.length > 0
-          ? response.error
-          : "Failed to reset dev user data"
-      );
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to reset dev user data"));
     }
     return { target_user_id: response.target_user_id, cleared: response.cleared };
+  },
+
+  /** Admin only — OpenAPI validation stats snapshot for the rolling window. */
+  getValidationStats: async (days: number): Promise<ValidationStatsResult> => {
+    const url = buildApiUrl("/api/v1/admin/validation-stats", { days });
+    const response = await apiGet<components["schemas"]["ValidationStatsApiResponse"]>(url);
+    if (!response.success || !response.data || typeof response.data !== "object") {
+      throw new Error(
+        resolveApiResultErrorMessage(response, "Failed to fetch validation statistics")
+      );
+    }
+    return { data: response.data };
   },
 };

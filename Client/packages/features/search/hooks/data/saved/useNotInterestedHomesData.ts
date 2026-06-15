@@ -5,25 +5,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { useAuthStore } from "packages/store";
 import type { SavedHome } from "packages/types";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
+import { mapSavedHomeWireToSavedHome } from "packages/utils/transaction/saved";
 
-import { userApi } from "@/features/search/api/user";
-
-// Property data structure for mutations
-interface PropertyData {
-  id?: string;
-  home_id?: string;
-  address?: string;
-  price?: string;
-  bedrooms?: number;
-  bathrooms?: number;
-  sqft?: number;
-  lotSize?: string;
-  imageUrl?: string;
-  image_url?: string;
-  lat?: number;
-  lng?: number;
-  [key: string]: unknown;
-}
+import { userApi } from "@/features/homeauth/api/user";
 
 /**
  * Hook for managing not-interested homes data with React Query
@@ -47,17 +32,14 @@ export const useNotInterestedHomesData = () => {
     queryFn: async () => {
       const response = await userApi.getNotInterestedHomes();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to load not-interested homes");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to load not-interested homes")
+        );
       }
       const raw = response.notInterested ?? [];
       return raw
         .filter((h) => h && (h.address || h.id || h.zpid))
-        .map((h) => ({
-          home_id: h.id ?? h.zpid ?? h.mls_home_id ?? h.address ?? "",
-          address: h.address ?? "",
-          lat: h.latitude ?? 0,
-          lng: h.longitude ?? 0,
-        })) as SavedHome[];
+        .map((h, index) => mapSavedHomeWireToSavedHome(h, index));
     },
     enabled: shouldLoadData,
     placeholderData: () => queryClient.getQueryData<SavedHome[]>(queryKeys.homes.notInterested()),
@@ -76,7 +58,9 @@ export const useNotInterestedHomesData = () => {
         why,
       });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to mark home as not interested");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to mark home as not interested")
+        );
       }
       return response;
     },
@@ -84,21 +68,7 @@ export const useNotInterestedHomesData = () => {
       // Optimistic update - add the home to cache immediately
       const previousHomes = queryClient.getQueryData<SavedHome[]>(queryKeys.homes.notInterested());
 
-      // Convert property to SavedHome format for optimistic update
-      const propertyData = property as PropertyData;
-      const optimisticHome: SavedHome = {
-        home_id: propertyData.id || propertyData.home_id || `temp_${Date.now()}`,
-        description: propertyData.address || "",
-        address: propertyData.address || "",
-        price: propertyData.price || "",
-        bedrooms: propertyData.bedrooms || 0,
-        bathrooms: propertyData.bathrooms || 0,
-        sqft: propertyData.sqft || 0,
-        lot_size: propertyData.lotSize || "",
-        image_url: propertyData.imageUrl || propertyData.image_url,
-        lat: propertyData.lat || 0,
-        lng: propertyData.lng || 0,
-      };
+      const optimisticHome = mapSavedHomeWireToSavedHome(property, 0);
 
       queryClient.setQueryData(queryKeys.homes.notInterested(), (old: SavedHome[] | undefined) => {
         if (!old) return [optimisticHome];
@@ -126,7 +96,9 @@ export const useNotInterestedHomesData = () => {
     mutationFn: async ({ address }: { propertyId: string; address: string }) => {
       const response = await userApi.removeNotInterestedHome({ address });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to remove from not-interested");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to remove from not-interested")
+        );
       }
       return response;
     },
@@ -158,7 +130,9 @@ export const useNotInterestedHomesData = () => {
     mutationFn: async ({ address, why }: { address: string; why: string }) => {
       const response = await userApi.updateNotInterestedHome({ address, why });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to update not-interested reason");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to update not-interested reason")
+        );
       }
       return response;
     },

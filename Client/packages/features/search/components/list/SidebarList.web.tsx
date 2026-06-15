@@ -4,9 +4,9 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { CardCompareCheckbox } from "packages/features/compare";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { log } from "packages/logger";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import { PERFECT_CRITERIA_MATCH_CARD_CLASSNAME } from "@/components/cards/property/perfectMatchCardGlowClasses";
 import WhyNotInterestedCard from "@/components/cards/property/WhyNotInterestedCard.web";
@@ -30,7 +30,7 @@ export function SidebarList(props: {
     isSelected: (propertyId: string) => boolean;
     onToggle: (propertyId: string) => void;
   };
-  /** Agent: bottom share dock is visible (≥1 home selected); drives top-left icon (search vs +). */
+  /** Agent: bottom share dock is visible (≥1 home selected); drives top-left icon (share vs +). */
   agentShareDockVisible?: boolean;
 }): JSX.Element {
   const {
@@ -114,7 +114,7 @@ export function SidebarList(props: {
         {activeTab === "results" ? (
           <>
             <Icon name="map-pin" className="mobile-icon-lg mx-auto mb-2 text-neutral-400" />
-            <BodyText as="p" size="sm">
+            <BodyText as="p" size="sm" muted>
               {t("search.click_map_to_search")}
             </BodyText>
           </>
@@ -142,7 +142,7 @@ export function SidebarList(props: {
       await markNotInterested(property, why);
       setReasonCardPropertyId(null);
     } catch (error) {
-      log.error(LOG_CATEGORIES.SEARCH, "Failed to mark not interested", error);
+      log.error("SEARCH", "Failed to mark not interested", error);
       throw error;
     }
   };
@@ -153,7 +153,7 @@ export function SidebarList(props: {
       await removeNotInterested(property.id, propertyAddress);
       setReasonCardPropertyId(null);
     } catch (error) {
-      log.error(LOG_CATEGORIES.SEARCH, "Failed to undo", error);
+      log.error("SEARCH", "Failed to undo", error);
       throw error;
     }
   };
@@ -232,7 +232,7 @@ export function SidebarList(props: {
                       }}
                       position="top-left"
                       size="sm"
-                      unselectedIcon={agentShareDockVisible ? "plus" : "search"}
+                      unselectedIcon={agentShareDockVisible ? "plus" : "share"}
                       ariaLabel={
                         agentShareBundle.isSelected(property.id)
                           ? t("search.agent_share_select_remove_aria")

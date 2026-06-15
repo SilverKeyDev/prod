@@ -1,5 +1,6 @@
 """Unified library row for file uploads and DocuSign agreements (listing scope: user_id)."""
 
+# pyright: reportUndefinedVariable=false
 from __future__ import annotations
 
 import uuid

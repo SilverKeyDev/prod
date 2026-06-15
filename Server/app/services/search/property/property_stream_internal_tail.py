@@ -6,11 +6,10 @@ from collections.abc import Callable, Iterator
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from flask import current_app
-
 from app import db
 from app.services.property_cache import update_property_images
 from app.services.search.features.image_features import extract_and_clean_features
+from logger import log
 
 from .property_stream_steps import (
     build_combined_features,
@@ -43,7 +42,11 @@ def iter_stream_tail_after_analysis(
         and not is_stale(prop_record.images_fetched_at, images_max_age)
     ):
         zillow_images = prop_record.images if isinstance(prop_record.images, list) else []
-        current_app.logger.info("[PROPERTY] Using cached images (%d)", len(zillow_images))
+        log.info(
+            "PROPERTY_DETAILS",
+            "Using cached images",
+            {"count": len(zillow_images)},
+        )
     else:
         zillow_images = fetch_zillow_images(params, data or {})
         if prop_record:
@@ -71,7 +74,7 @@ def iter_stream_tail_after_analysis(
         and not is_stale(prop_record.image_features_generated_at, image_features_max_age)
     ):
         image_features = prop_record.image_features
-        current_app.logger.info("[PROPERTY] Using cached image_features")
+        log.info("PROPERTY_DETAILS", "Using cached image_features")
     else:
         try:
             if zillow_images:
@@ -84,7 +87,7 @@ def iter_stream_tail_after_analysis(
                     except Exception:
                         db.session.rollback()
         except Exception as e:
-            current_app.logger.error("[PROPERTY] Error extracting image features: %s", e)
+            log.error("ERRORS", "Error extracting image features", e)
             image_features = {"error": "Failed to extract features from images"}
 
     features: dict[str, Any] = {}
@@ -94,7 +97,7 @@ def iter_stream_tail_after_analysis(
         and not is_stale(prop_record.basic_data_updated_at, images_max_age)
     ):
         features = prop_record.listing_features
-        current_app.logger.info("[PROPERTY] Using cached listing_features")
+        log.info("PROPERTY_DETAILS", "Using cached listing_features")
     else:
         features = build_features(data or {})
         if prop_record:
@@ -130,10 +133,6 @@ def iter_stream_tail_after_analysis(
                 zillow_images=zillow_images,
             )
     except Exception as persist_err:
-        current_app.logger.error(
-            "[PROPERTY] Failed to persist property details: %s",
-            persist_err,
-            exc_info=True,
-        )
+        log.error("ERRORS", "Failed to persist property details", persist_err)
 
     yield sse("complete", {})

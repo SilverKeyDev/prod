@@ -1,9 +1,9 @@
 import type { RefObject } from "react";
 
 import { MapControls } from "packages/features/search/components/map/MapControls.web";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { RippleBackground } from "packages/ui/components/backgrounds";
-import { Box } from "packages/ui/components/primitives";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/structure/primitives";
+import { RippleBackground } from "packages/ui/components/surfaces/backgrounds";
 type SearchPageMapContainerProps = {
   mapRef: RefObject<HTMLDivElement | null>;
   isLoading: boolean;

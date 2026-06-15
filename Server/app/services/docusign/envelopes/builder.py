@@ -19,7 +19,7 @@ from docusign_esign import (
 from app.models import Agreement, AgreementParticipant
 from app.schemas.generated import DocuSignEnvelopeNotificationInput
 from app.services.documents.s3_service import s3_service
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..errors import AgreementStateError
 from ..utils.recipients import build_recipients_from_participants, validate_participants
@@ -29,8 +29,6 @@ from .tab_prefill import (
     parse_tab_prefill_by_participant,
     prefill_tabs_nonempty,
 )
-
-logger = get_logger()
 
 
 class EnvelopeBuilder:
@@ -50,8 +48,8 @@ class EnvelopeBuilder:
             signing_method: 'embedded' or 'email'
             envelope_options: Optional payload from SendAgreementRequest (notification, tab prefill).
         """
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Initializing envelope builder",
             {"agreement_id": agreement.id, "signing_method": signing_method},
         )
@@ -83,8 +81,8 @@ class EnvelopeBuilder:
         """Validate agreement can be sent"""
         # RelationshipProperty resolves to collection at runtime; Pyright does not treat it as Iterable
         participants_list = list(self.agreement.participants)  # pyright: ignore[reportArgumentType]
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Validating agreement for envelope building",
             {
                 "agreement_id": self.agreement.id,
@@ -94,16 +92,16 @@ class EnvelopeBuilder:
         )
 
         if not self.agreement.current_revision:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Agreement validation failed - no revision",
                 {"agreement_id": self.agreement.id},
             )
             raise AgreementStateError("Agreement has no current revision")
 
         if not participants_list:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Agreement validation failed - no participants",
                 {"agreement_id": self.agreement.id},
             )
@@ -112,23 +110,23 @@ class EnvelopeBuilder:
         # Validate participants
         is_valid, error = validate_participants(participants_list)
         if not is_valid:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Agreement validation failed - invalid participants",
                 {"agreement_id": self.agreement.id, "error": error},
             )
             raise AgreementStateError(error)
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Agreement validation successful",
             {"agreement_id": self.agreement.id},
         )
 
     def build(self) -> EnvelopeDefinition:
         """Build envelope definition"""
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Building envelope definition",
             {
                 "agreement_id": self.agreement.id,
@@ -153,8 +151,8 @@ class EnvelopeBuilder:
             status="sent",  # Send immediately
         )
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Envelope definition built successfully",
             {"agreement_id": self.agreement.id, "signing_method": self.signing_method},
         )
@@ -202,8 +200,8 @@ class EnvelopeBuilder:
         if revision is None:
             raise AgreementStateError("Agreement has no current revision")
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Building document from revision",
             {
                 "agreement_id": self.agreement.id,
@@ -217,15 +215,15 @@ class EnvelopeBuilder:
         try:
             file_bytes = s3_service.get_pdf(revision.file_path)
             if not file_bytes:
-                logger.error(
-                    LOG_CATEGORIES["ERRORS"],
+                log.error(
+                    "ERRORS",
                     "Failed to fetch document from S3 - empty response",
                     {"agreement_id": self.agreement.id, "file_path": revision.file_path},
                 )
                 raise AgreementStateError("Failed to fetch document from S3")
 
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Document fetched from S3",
                 {
                     "agreement_id": self.agreement.id,
@@ -234,8 +232,8 @@ class EnvelopeBuilder:
                 },
             )
         except Exception as e:
-            logger.error(
-                LOG_CATEGORIES["ERRORS"],
+            log.error(
+                "ERRORS",
                 "Failed to fetch document from S3",
                 {
                     "agreement_id": self.agreement.id,
@@ -248,8 +246,8 @@ class EnvelopeBuilder:
         # Encode to base64
         doc_base64 = base64.b64encode(file_bytes).decode("utf-8")
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Document encoded to base64",
             {"agreement_id": self.agreement.id, "base64_length": len(doc_base64)},
         )
@@ -263,8 +261,8 @@ class EnvelopeBuilder:
             assign_tabs_to_recipient_id=self._first_signer_recipient_id(),
         )
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Document built successfully",
             {"agreement_id": self.agreement.id, "filename": revision.filename},
         )
@@ -275,8 +273,8 @@ class EnvelopeBuilder:
         """Build recipients from participants"""
         # RelationshipProperty resolves to collection at runtime; Pyright does not treat it as Iterable
         participants_list = list(self.agreement.participants)  # pyright: ignore[reportArgumentType]
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Building recipients from participants",
             {
                 "agreement_id": self.agreement.id,
@@ -291,8 +289,8 @@ class EnvelopeBuilder:
 
         # Always set clientUserId so embedded signing works; DocuSign may still email signers.
         if "signers" in recipients_dict:
-            logger.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.debug(
+                "DOCUSIGN",
                 "Setting clientUserId for signers",
                 {
                     "agreement_id": self.agreement.id,
@@ -304,8 +302,8 @@ class EnvelopeBuilder:
 
         recipients = Recipients(**recipients_dict)
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Recipients built successfully",
             {
                 "agreement_id": self.agreement.id,

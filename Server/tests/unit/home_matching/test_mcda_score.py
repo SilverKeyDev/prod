@@ -1,0 +1,198 @@
+"""Tests for deterministic MCDA listing scores."""
+
+from __future__ import annotations
+
+import unittest
+
+from app.services.search.home_matching.mcda.criteria import hard_constraints
+from app.services.search.home_matching.mcda.criteria.amenities import soft_amenities_normalized
+from app.services.search.home_matching.mcda.score import MCDA_CONFIG, score_listing_mcda
+
+
+class McdaScoreTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.base_prefs = {
+            "home_budget_min": 400_000,
+            "home_budget_max": 1_000_000,
+            "preferred_bedrooms_min": 3,
+            "preferred_bathrooms_min": 2,
+            "preferred_housing_type": "single_family",
+        }
+        self.base_listing = {
+            "zpid": "12345",
+            "price": 650_000,
+            "bedrooms": 4,
+            "bathrooms": 2.5,
+            "homeType": "SINGLE_FAMILY",
+            "sqft": 2200,
+            "latitude": 47.6,
+            "longitude": -122.3,
+            "features": {"garage": "2 car garage", "pool": "heated pool"},
+        }
+
+    def test_score_listing_in_display_range(self) -> None:
+        s = score_listing_mcda(self.base_prefs, self.base_listing, status_type="ForSale")
+        self.assertGreaterEqual(s, 1.0)
+        self.assertLessEqual(s, 99.0)
+
+    def test_price_near_peak_higher_than_at_ceiling(self) -> None:
+        at_peak = dict(self.base_listing)
+        at_peak["price"] = int(0.65 * 1_000_000)
+        at_ceiling = dict(self.base_listing)
+        at_ceiling["price"] = 1_000_000
+        s_peak = score_listing_mcda(self.base_prefs, at_peak, status_type="ForSale")
+        s_top = score_listing_mcda(self.base_prefs, at_ceiling, status_type="ForSale")
+        self.assertGreater(s_peak, s_top)
+
+    def test_over_budget_pulls_score_down(self) -> None:
+        ok = score_listing_mcda(self.base_prefs, self.base_listing, status_type="ForSale")
+        over = dict(self.base_listing)
+        over["price"] = 1_300_000
+        bad = score_listing_mcda(self.base_prefs, over, status_type="ForSale")
+        self.assertLess(bad, ok)
+
+    def test_below_min_beds_penalty(self) -> None:
+        ok = score_listing_mcda(self.base_prefs, self.base_listing, status_type="ForSale")
+        low = dict(self.base_listing)
+        low["bedrooms"] = 2
+        bad = score_listing_mcda(self.base_prefs, low, status_type="ForSale")
+        self.assertLess(bad, ok)
+
+    def test_wrong_property_type_penalty(self) -> None:
+        ok = score_listing_mcda(self.base_prefs, self.base_listing, status_type="ForSale")
+        condo = dict(self.base_listing)
+        condo["homeType"] = "CONDO"
+        bad = score_listing_mcda(self.base_prefs, condo, status_type="ForSale")
+        self.assertLess(bad, ok)
+
+    def test_amenities_soft_normalized(self) -> None:
+        prefs = {"must_have": ["garage"], "preferred_home_features": ["pool"]}
+        prop = {"features": {"desc": "2 car garage and heated pool"}}
+        s = soft_amenities_normalized(prefs, prop)
+        self.assertGreater(s, 0.85)
+
+    def test_hard_multiplier_product(self) -> None:
+        prefs = {
+            "home_budget_max": 500_000,
+            "preferred_bedrooms_min": 3,
+            "preferred_housing_type": "condo",
+        }
+        prop = {
+            "price": 700_000,
+            "bedrooms": 1,
+            "homeType": "SINGLE_FAMILY",
+        }
+        hm = hard_constraints.hard_constraint_multiplier(
+            prefs,
+            prop,
+            "ForSale",
+            MCDA_CONFIG["hard_multipliers"],
+        )
+        self.assertLess(hm, 1.0)
+        self.assertGreaterEqual(hm, MCDA_CONFIG["hard_multipliers"]["multiplier_floor"])
+
+    def test_rent_budget_uses_monthly_equivalent(self) -> None:
+        prefs = {"home_budget_max": 36_000}
+        listing = {"price": 1800, "bedrooms": 2, "homeType": "APARTMENT"}
+        s = score_listing_mcda(prefs, listing, status_type="ForRent")
+        self.assertGreaterEqual(s, 1.0)
+        self.assertLessEqual(s, 99.0)
+
+    def test_empty_preferences_still_differentiate_listings(self) -> None:
+        """Without user prefs, objective signals must not collapse every listing to one score."""
+        cheap_small = {
+            "zpid": "a",
+            "price": 180_000,
+            "bedrooms": 2,
+            "bathrooms": 1,
+            "sqft": 950,
+            "homeType": "CONDO",
+            "daysOnMarket": 120,
+        }
+        spacious = {
+            "zpid": "b",
+            "price": 520_000,
+            "bedrooms": 4,
+            "bathrooms": 2.5,
+            "sqft": 2800,
+            "homeType": "SINGLE_FAMILY",
+            "daysOnMarket": 8,
+            "features": {"garage": "2-car", "pool": "yes", "deck": "yes"},
+        }
+        s_small = score_listing_mcda({}, cheap_small)
+        s_big = score_listing_mcda({}, spacious)
+        self.assertNotEqual(s_small, s_big)
+        self.assertGreater(s_big, s_small)
+
+    def test_preference_match_spreads_more_than_objective_only(self) -> None:
+        """Full preferences should separate good vs poor fits more than empty prefs."""
+        good = dict(self.base_listing)
+        poor = dict(self.base_listing)
+        poor["price"] = 1_350_000
+        poor["bedrooms"] = 1
+        poor["homeType"] = "CONDO"
+
+        empty_gap = score_listing_mcda({}, good) - score_listing_mcda({}, poor)
+        pref_gap = score_listing_mcda(self.base_prefs, good) - score_listing_mcda(
+            self.base_prefs, poor
+        )
+        self.assertGreater(abs(pref_gap), abs(empty_gap))
+
+    def test_in_budget_affordable_home_scores_well(self) -> None:
+        """Homes inside the budget band should not be crushed for being below price peak."""
+        prefs = {
+            "home_budget_min": 400_000,
+            "home_budget_max": 1_000_000,
+            "preferred_bedrooms_min": 3,
+            "preferred_bathrooms_min": 2,
+            "preferred_housing_type": "single_family",
+        }
+        affordable = {
+            "price": 450_000,
+            "bedrooms": 3,
+            "bathrooms": 2,
+            "sqft": 1_800,
+            "homeType": "SINGLE_FAMILY",
+        }
+        s = score_listing_mcda(prefs, affordable, status_type="ForSale")
+        self.assertGreater(s, 65.0)
+
+    def test_features_dict_keys_boost_strong_fit_score(self) -> None:
+        """Listings with features dict keys (garage/pool) should score well above mid-band."""
+        prefs = {
+            "home_budget_min": 300_000,
+            "home_budget_max": 600_000,
+            "preferred_bedrooms_min": 3,
+            "preferred_bathrooms_min": 2,
+            "preferred_sqft_min": 1_400,
+            "preferred_sqft_max": 2_800,
+            "must_have": ["garage"],
+            "preferred_home_features": ["pool"],
+        }
+        great = {
+            "zpid": "great",
+            "price": 380_000,
+            "bedrooms": 3,
+            "bathrooms": 2,
+            "livingArea": 1_800,
+            "daysOnMarket": 7,
+            "homeType": "SINGLE_FAMILY",
+            "features": {"garage": "2-car", "pool": "yes"},
+        }
+        poor = {
+            "zpid": "poor",
+            "price": 650_000,
+            "bedrooms": 2,
+            "bathrooms": 1,
+            "livingArea": 1_100,
+            "daysOnMarket": 120,
+            "homeType": "CONDO",
+        }
+        s_great = score_listing_mcda(prefs, great)
+        s_poor = score_listing_mcda(prefs, poor)
+        self.assertGreater(s_great, 70.0)
+        self.assertGreater(s_great - s_poor, 25.0)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,7 +1,7 @@
 type: object
 description: >
   Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles).
-  Closing mode is not stored on users (column removed); use PUT /user/closing-mode response only.
+  Agent identity is determined by the presence of role "agent" in user_roles (exposed as roles).
 required:
   - id
   - email
@@ -45,28 +45,6 @@ properties:
     description: ISO 8601 timestamp of last successful session activity when tracked.
   is_active:
     type: boolean
-  is_agent:
-    type: boolean
-    nullable: true
-  client_ids:
-    oneOf:
-      - type: array
-        items:
-          type: string
-      - type: string
-    nullable: true
-    description: >
-      Legacy wire shape: JSON array of client ids or a single comma-separated string. Prefer array
-      in new clients; oneOf is required until all producers normalize.
-  agent_id:
-    oneOf:
-      - type: array
-        items:
-          type: string
-      - type: string
-    nullable: true
-    description: >
-      Legacy wire shape: buyer agent id(s) as JSON array or string. Prefer array in new clients.
   mls_id:
     type: string
     nullable: true
@@ -74,39 +52,14 @@ properties:
     type: string
     nullable: true
     description: >
-      Agent brokerage name on the users row (DB column brokerage). Replaces the legacy column name
-      agency_name from early migrations; API wire name is always brokerage.
-  has_subscription:
-    type: boolean
-    nullable: true
-  subscription:
-    type: object
-    nullable: true
-    description: >
-      Optional payment-provider subscription metadata. Listed properties are common; providers may add
-      extra keys (additionalProperties allowed).
-    properties:
-      status:
-        type: string
-        nullable: true
-      plan_id:
-        type: string
-        nullable: true
-      customer_id:
-        type: string
-        nullable: true
-      current_period_end:
-        type: string
-        format: date-time
-        nullable: true
-    additionalProperties: true
+      Agent brokerage name on the users row (DB column brokerage). API wire name is always brokerage.
   has_preferences:
     type: boolean
     nullable: true
   preferences_version:
     type: string
     nullable: true
-    description: Legacy preferences version marker on users row.
+    description: Preferences schema version marker on users row (e.g. v1); null when unset.
   profile_picture:
     type: string
     nullable: true
@@ -120,15 +73,14 @@ properties:
     type: array
     items:
       type: string
-    description: Role names from user_roles; typically present on GET /user/profile.
+    description: Role names from user_roles (e.g. agent, buyer, seller). Agent UX uses roles includes agent.
   brokerage_org_ids:
     type: array
     items:
       type: string
     nullable: true
     description: >
-      Brokerage organization ids this user may administer under brokerage workspace.
-      Omitted or null until brokerage roster membership is populated server-side.
+      Brokerage organization ids from `user_org_memberships` for attribution and admin scope.
 example:
   id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   email: "jane.buyer@example.com"
@@ -137,7 +89,6 @@ example:
   phone: "+15551234567"
   cognito_id: "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890"
   google_id: null
-  is_agent: false
   has_preferences: true
   roles:
     - buyer

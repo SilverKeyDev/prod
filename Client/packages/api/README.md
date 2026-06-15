@@ -66,13 +66,14 @@ type ApiResponse<T> = {
 ### Basic API Call
 
 ```typescript
+import { log } from "packages/logger";
 import { userApi } from "../../../packages/config/api/user";
 
 const response = await userApi.getProfile();
 if (response.success && response.user) {
-  console.log(response.user);
+  log.info('API', 'Profile loaded', { userId: response.user?.id });
 } else {
-  console.error(response.error);
+  log.error('API', 'Profile request failed', { error: response.error });
 }
 ```
 
@@ -80,7 +81,7 @@ if (response.success && response.user) {
 
 ```typescript
 import { userApi } from "../../../packages/config/api/user";
-import { normalizeError } from "../../../packages/utils/errorHandling";
+import { normalizeError } from "../../../packages/utils/core/errorHandling";
 
 try {
   const response = await userApi.getProfile();
@@ -137,5 +138,7 @@ const response = await userApi.getProfile();
 
 ## Further Reading
 
-- [config/README.md](../README.md) - Config package overview
-- [query/README.md](../query/README.md) - React Query setup
+- [shared-packages.md](../../../documentation/client/architecture/shared-packages.md) — canonical API import path
+- [layered-architecture-imports.md](../../../documentation/client/architecture/layered-architecture-imports.md)
+- [config/query/README.md](../config/query/README.md) — React Query setup
+- [packages/README.md](../README.md)

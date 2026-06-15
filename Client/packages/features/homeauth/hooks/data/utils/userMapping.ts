@@ -3,6 +3,7 @@
  */
 
 import type { AuthResponse } from "packages/features/homeauth/api/types";
+import type { UserRole } from "packages/features/homeauth/types/roles";
 
 import type { UserProfile } from "@/features/homeauth/types";
 
@@ -25,10 +26,8 @@ export function mapAuthResponseToUserProfile(
     phone: ("phone" in user ? user.phone : undefined) as string | null | undefined,
     created_at: null,
     is_active: true,
-    has_subscription: false,
-    subscription: null,
     has_preferences: false,
-    is_agent: ("is_agent" in user ? (user.is_agent ?? false) : false) ?? false,
+    roles: ("roles" in user && Array.isArray(user.roles) ? user.roles : []) as UserRole[],
     auth_method: ("auth_method" in user ? user.auth_method : undefined) as
       | "cognito"
       | "google"

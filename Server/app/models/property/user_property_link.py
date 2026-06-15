@@ -1,9 +1,12 @@
 """Per-user relationship to a shared property (favorites, scoring, search state)."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -11,7 +14,7 @@ from app import db
 class UserPropertyLink(db.Model):
     """Junction table linking a user to a shared PropertyCache row.
 
-    Replaces the per-user columns that lived on HomeUniversal (is_liked, current,
+    Replaces legacy per-user favorite columns (is_liked, current,
     score, ranking).  One row per (user, property).
     """
 
@@ -41,3 +44,9 @@ class UserPropertyLink(db.Model):
     )
 
     __table_args__ = (db.UniqueConstraint("user_id", "property_id", name="uq_user_property_link"),)
+
+    property: Mapped["PropertyCache"] = relationship(
+        "PropertyCache",
+        back_populates="user_links",
+        lazy="select",
+    )

@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
 
-import type { OnboardingData } from "packages/features/profile/utils";
+import type { OnboardingData } from "packages/features/profile";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import { Transition } from "packages/ui/components/adapters/headless";
-import { Box } from "packages/ui/components/primitives";
-import { estimateMonthlyPayment, mapCreditScoreToNumber } from "packages/utils/affordability";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Transition } from "packages/ui/components/system/adapters/headless";
+import {
+  estimateMonthlyPayment,
+  mapCreditScoreToNumber,
+} from "packages/utils/transaction/affordability";
 
 import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";

@@ -9,7 +9,3 @@ properties:
   confirm:
     type: boolean
     description: Must be true to confirm deletion
-  confirmation:
-    type: string
-    nullable: true
-    description: Legacy confirmation text (optional)

@@ -17,8 +17,6 @@ components:
   schemas:
     ActionPlanResponse:
       $ref: './components/schemas/preferences/ActionPlanResponse.yaml'
-    AddAgentResponse:
-      $ref: './components/schemas/preferences/AddAgentResponse.yaml'
     AddCalendarACLRequest:
       $ref: './components/schemas/calendar/AddCalendarACLRequest.yaml'
     AddCalendarACLResponse:
@@ -191,8 +189,12 @@ components:
       $ref: './components/schemas/agreements/docusign/DocuSignPrefillTextTabInput.yaml'
     DocuSignRemindersInput:
       $ref: './components/schemas/agreements/docusign/DocuSignRemindersInput.yaml'
+    DocusignAgreementDownloadUrlResponse:
+      $ref: './components/schemas/agreements/docusign/DocusignAgreementDownloadUrlResponse.yaml'
     DocusignCreateTemplateMetadataInput:
       $ref: './components/schemas/agreements/docusign/DocusignCreateTemplateMetadataInput.yaml'
+    DocusignCreateTemplateMultipartRequest:
+      $ref: './components/schemas/agreements/docusign/DocusignCreateTemplateMultipartRequest.yaml'
     DocusignCreateTemplateResponse:
       $ref: './components/schemas/agreements/docusign/DocusignCreateTemplateResponse.yaml'
     DocusignDeleteTemplateResponse:
@@ -209,8 +211,6 @@ components:
       $ref: './components/schemas/agreements/docusign/DocusignResendRecipientRequest.yaml'
     DocusignResendRecipientResponse:
       $ref: './components/schemas/agreements/docusign/DocusignResendRecipientResponse.yaml'
-    DocusignSyncTemplatesResponse:
-      $ref: './components/schemas/agreements/docusign/DocusignSyncTemplatesResponse.yaml'
     DocusignTemplate:
       $ref: './components/schemas/agreements/docusign/DocusignTemplate.yaml'
     DocusignTemplateListItem:
@@ -253,8 +253,6 @@ components:
       $ref: './components/schemas/search/results/FeedListing.yaml'
     FeedResponse:
       $ref: './components/schemas/feed/FeedResponse.yaml'
-    FindMatchesRequest:
-      $ref: './components/schemas/search/filters/FindMatchesRequest.yaml'
     ForgotPasswordData:
       $ref: './components/schemas/auth/ForgotPasswordData.yaml'
     ForgotPasswordResponse:
@@ -273,6 +271,14 @@ components:
       $ref: './components/schemas/shared/dashboard/GetDashboardResponse.yaml'
     GetLoggerConfigResponse:
       $ref: './components/schemas/shared/logger/GetLoggerConfigResponse.yaml'
+    ClientLoggerConfig:
+      $ref: './components/schemas/shared/logger/ClientLoggerConfig.yaml'
+    ClientApiSubcategoryConfig:
+      $ref: './components/schemas/shared/logger/ClientApiSubcategoryConfig.yaml'
+    DeploymentLoggerConfig:
+      $ref: './components/schemas/shared/logger/DeploymentLoggerConfig.yaml'
+    DeploymentLoggerConfigUpdates:
+      $ref: './components/schemas/shared/logger/DeploymentLoggerConfigUpdates.yaml'
     GetSenderViewUrlResponse:
       $ref: './components/schemas/agreements/agreements/GetSenderViewUrlResponse.yaml'
     GetSigningUrlRequest:
@@ -365,8 +371,6 @@ components:
       $ref: './components/schemas/search/properties/PropertyCompsRequest.yaml'
     PropertyCompsResponse:
       $ref: './components/schemas/search/properties/PropertyCompsResponse.yaml'
-    PropertyData:
-      $ref: './components/schemas/search/properties/PropertyData.yaml'
     PropertyRequest:
       $ref: './components/schemas/search/properties/PropertyRequest.yaml'
     PropertyResearchOptions:
@@ -375,8 +379,6 @@ components:
       $ref: './components/schemas/search/properties/PropertyResponse.yaml'
     PropertySearchResult:
       $ref: './components/schemas/search/results/PropertySearchResult.yaml'
-    RemoveAgentResponse:
-      $ref: './components/schemas/preferences/RemoveAgentResponse.yaml'
     RemoveFavoriteRequest:
       $ref: './components/schemas/user/favorites/RemoveFavoriteRequest.yaml'
     RemoveNotInterestedRequest:
@@ -403,8 +405,6 @@ components:
       $ref: './components/schemas/calendar/RevokeResponse.yaml'
     SavedHome:
       $ref: './components/schemas/user/favorites/SavedHome.yaml'
-    SearchAgentsPreferencesResponse:
-      $ref: './components/schemas/preferences/SearchAgentsPreferencesResponse.yaml'
     SearchAgentsResponse:
       $ref: './components/schemas/agent/core/SearchAgentsResponse.yaml'
     SearchByPolygonRequest:
@@ -419,6 +419,12 @@ components:
       $ref: './components/schemas/search/results/SearchDisplayResponse.yaml'
     SecureUploadDocumentPayload:
       $ref: './components/schemas/agreements/documents/SecureUploadDocumentPayload.yaml'
+    SecureUploadDocumentRequest:
+      $ref: './components/schemas/agreements/documents/SecureUploadDocumentRequest.yaml'
+    SecureUploadImagePayload:
+      $ref: './components/schemas/agreements/documents/SecureUploadImagePayload.yaml'
+    SecureUploadImageRequest:
+      $ref: './components/schemas/agreements/documents/SecureUploadImageRequest.yaml'
     SendAgreementRequest:
       $ref: './components/schemas/agreements/agreements/SendAgreementRequest.yaml'
     SendAgreementResponse:
@@ -435,6 +441,8 @@ components:
       $ref: './components/schemas/user/profile/SignupData.yaml'
     SuccessResponse:
       $ref: './components/schemas/shared/core/SuccessResponse.yaml'
+    SyncTemplatesRequest:
+      $ref: './components/schemas/agreements/templates/SyncTemplatesRequest.yaml'
     SyncTemplatesResponse:
       $ref: './components/schemas/agreements/templates/SyncTemplatesResponse.yaml'
     TaskChecklistApiResponse:
@@ -461,10 +469,6 @@ components:
       $ref: './components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml'
     UpdateChecklistRequest:
       $ref: './components/schemas/checklists/UpdateChecklistRequest.yaml'
-    UpdateClosingModeRequest:
-      $ref: './components/schemas/auth/UpdateClosingModeRequest.yaml'
-    UpdateClosingModeResponse:
-      $ref: './components/schemas/auth/UpdateClosingModeResponse.yaml'
     UpdateEventRequestStatusRequest:
       $ref: './components/schemas/shared/event-requests/UpdateEventRequestStatusRequest.yaml'
     UpdateLoggerConfigRequest:
@@ -487,8 +491,6 @@ components:
       $ref: './components/schemas/agreements/documents/UploadResponse.yaml'
     User:
       $ref: './components/schemas/user/profile/User.yaml'
-    UserAgentsResponse:
-      $ref: './components/schemas/preferences/UserAgentsResponse.yaml'
     UserId:
       $ref: './components/schemas/user/profile/UserId.yaml'
     UserPreferencesData:

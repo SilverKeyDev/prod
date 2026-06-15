@@ -1,5 +1,5 @@
 import { DocuSignLegalNotice, EmbeddedSigning } from "packages/features/documents";
-import { BaseModal } from "packages/ui/components/modals";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
 
 export type DashboardAgreementSigningSession =
   | {

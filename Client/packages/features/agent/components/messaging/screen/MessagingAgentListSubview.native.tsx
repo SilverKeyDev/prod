@@ -5,12 +5,12 @@ import { FlatList, View } from "react-native";
 import { useLocalization } from "packages/contexts";
 import type { AgentClient } from "packages/features/agent/api/agent";
 import AgentClientListRow from "packages/features/agent/components/clientList/AgentClientListRow";
-import { Pressable } from "packages/ui/components/primitives";
-import { Loading } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-import { SIDEBAR_INSET_LIST_ROW_FLAT_NATIVE } from "packages/ui/components/sidebar/sidebarTheme";
-import { getMessagePreview } from "packages/utils/messaging/messagePreview";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Loading } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import { SIDEBAR_INSET_LIST_ROW_FLAT_NATIVE } from "packages/ui/components/structure/sidebar/sidebarTheme";
+import { getMessagePreview } from "packages/utils/comms/messaging/messagePreview";
 
 import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 import {

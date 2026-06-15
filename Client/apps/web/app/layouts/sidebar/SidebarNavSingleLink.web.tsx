@@ -4,10 +4,11 @@ import { Icon } from "@ui/icons";
 import { useLocation } from "react-router-dom";
 
 import { SearchNavLink } from "packages/features/search";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Link } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives";
-import { getChromeNavButtonStyles } from "packages/ui/components/sidebar/sidebarTheme";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getChromeNavButtonStyles } from "packages/ui/components/structure/sidebar/sidebarTheme";
+import AccessibleLink from "packages/ui/components/system/accessibility/AccessibleLink";
 
 import { NotificationBadge } from "@/components/ui";
 
@@ -76,7 +77,7 @@ export function SidebarNavSingleLink({
   const to = firstItem?.href ?? "/";
   const handleClick = () => {
     const navId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-    log.info(LOG_CATEGORIES.ROUTING, "[NAV] Sidebar nav click (link)", {
+    log.info("ROUTING", "[NAV] Sidebar nav click (link)", {
       navId,
       from: location.pathname,
       to,
@@ -84,24 +85,29 @@ export function SidebarNavSingleLink({
     });
     onLinkClick?.();
   };
-  return (
-    <Link
-      to={to}
-      className={buttonClass}
-      title={titleAttr}
-      onClick={handleClick}
-      onMouseEnter={() => onPrefetchHref(to)}
-      onFocus={() => onPrefetchHref(to)}
-      onTouchStart={() => onPrefetchHref(to)}
-      aria-label={firstItem?.name}
-      aria-current={isActive ? "page" : undefined}
-    >
-      {iconEl}
-      {expanded && (
+  const linkProps = {
+    to,
+    className: buttonClass,
+    title: titleAttr,
+    onClick: handleClick,
+    onMouseEnter: () => onPrefetchHref(to),
+    onFocus: () => onPrefetchHref(to),
+    onTouchStart: () => onPrefetchHref(to),
+    "aria-current": isActive ? ("page" as const) : undefined,
+  };
+  if (expanded) {
+    return (
+      <Link {...linkProps}>
+        {iconEl}
         <span className={isActive ? sidebarNavLabelActive : sidebarNavLabelInactive}>
           {firstItem?.name}
         </span>
-      )}
-    </Link>
+      </Link>
+    );
+  }
+  return (
+    <AccessibleLink {...linkProps} label={firstItem?.name ?? categoryKey}>
+      {iconEl}
+    </AccessibleLink>
   );
 }

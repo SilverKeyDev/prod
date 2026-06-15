@@ -1,0 +1,6 @@
+---
+name: silverkey-audit-axis5-bundle-import-fixer
+description: Fix audit axis 5 and fat-import issues - tree-shaking, targeted imports, lazy routes and heavy modules; pairs with bundle visualizer.
+---
+
+@../../.cursor/agents/silverkey-audit-axis5-bundle-import-fixer.md

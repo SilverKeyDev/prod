@@ -3,9 +3,7 @@
 from app import db
 from app.models import Agreement, AgreementParticipant, User
 from app.utils.db.orm_lookup import get_model
-from logger import LOG_CATEGORIES, get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def ensure_agent_counter_signer(agreement: Agreement, actor_id: str) -> None:
@@ -26,8 +24,8 @@ def ensure_agent_counter_signer(agreement: Agreement, actor_id: str) -> None:
 
     agent_user = get_model(User, agreement.agent_id)
     if not agent_user:
-        logger.warn(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.warn(
+            "DOCUSIGN",
             "Agent user not found for counter-signer",
             {"agreement_id": agreement.id, "agent_id": agreement.agent_id},
         )
@@ -43,8 +41,8 @@ def ensure_agent_counter_signer(agreement: Agreement, actor_id: str) -> None:
     )
     db.session.add(counter_signer)
 
-    logger.info(
-        LOG_CATEGORIES["DOCUSIGN"],
+    log.info(
+        "DOCUSIGN",
         "Added agent as counter-signer",
         {
             "agreement_id": agreement.id,

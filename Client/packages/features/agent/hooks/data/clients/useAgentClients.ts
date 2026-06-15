@@ -4,8 +4,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { useIsAgent } from "packages/hooks/store";
-import { HttpError } from "packages/services/http/compatibility";
+import { HttpError } from "packages/services/http/client";
 import { useAuthStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import type { AgentClient } from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";
@@ -45,7 +46,7 @@ export function useAgentClients(): UseAgentClientsReturn {
     queryFn: async () => {
       const response = await agentApi.getClients();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch clients");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch clients"));
       }
       return response.clients ?? [];
     },

@@ -9,8 +9,8 @@ import type {
   SendFormRequest,
   SendFormResponse,
 } from "packages/features/documents/types/forms";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { log } from "packages/logger";
+import { apiGet, apiPost } from "packages/services/http";
 
 /**
  * Checklist forms API client.
@@ -35,7 +35,7 @@ export const checklistFormsApi = {
     section: string,
     itemId: number
   ): Promise<GetFormsResponse> => {
-    log.debug(LOG_CATEGORIES.API, "Fetching forms for checklist step", {
+    log.debug("API", "Fetching forms for checklist step", {
       transactionId,
       section,
       itemId,
@@ -63,7 +63,7 @@ export const checklistFormsApi = {
     itemId: number,
     formId: string
   ): Promise<DownloadFormResponse> => {
-    log.debug(LOG_CATEGORIES.API, "Generating form download URL", {
+    log.debug("API", "Generating form download URL", {
       transactionId,
       section,
       itemId,
@@ -96,7 +96,7 @@ export const checklistFormsApi = {
     formId: string,
     data: SendFormRequest
   ): Promise<SendFormResponse> => {
-    log.info(LOG_CATEGORIES.API, "Sending form to client", {
+    log.info("API", "Sending form to client", {
       transactionId,
       section,
       itemId,
@@ -123,7 +123,7 @@ export const checklistFormsApi = {
    * ```typescript
    * const { categories } = await checklistFormsApi.listFormsLibrary();
    * categories.forEach(cat => {
-   *   console.log(`${cat.name}: ${cat.forms.length} forms`);
+   *   log.info('DOCUMENTS', 'Forms category', { name: cat.name, count: cat.forms.length });
    * });
    * ```
    */
@@ -131,7 +131,7 @@ export const checklistFormsApi = {
     success: boolean;
     categories: Array<{ name: string; forms: ChecklistForm[] }>;
   }> => {
-    log.debug(LOG_CATEGORIES.API, "Fetching forms library");
+    log.debug("API", "Fetching forms library");
     return apiGet("/api/v1/forms/library");
   },
 
@@ -151,7 +151,7 @@ export const checklistFormsApi = {
     download_url: string;
     form: ChecklistForm;
   }> => {
-    log.debug(LOG_CATEGORIES.API, "Getting library form download URL", {
+    log.debug("API", "Getting library form download URL", {
       formId,
     });
     return apiGet(`/api/v1/forms/library/${formId}/download`);

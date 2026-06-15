@@ -2,14 +2,15 @@
 Cohort assignment logic for grouping users with similar characteristics.
 """
 
-import logging
 from typing import Any
 
+from sqlalchemy import select
+
+from app import db
 from app.models import User
 from app.services.aggregation import get_preferences_dict_optional
 from app.utils.db.orm_lookup import get_model
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 class CohortAssigner:
@@ -90,7 +91,7 @@ class CohortAssigner:
                 return self.DEFAULT_COHORT
 
         except Exception as e:
-            logger.error(f"Error assigning cohort for user {user_id}: {e}")
+            log.error("ERRORS", f"Error assigning cohort for user {user_id}: {e}")
             return self.DEFAULT_COHORT
 
     def get_cohort_users(self, cohort_id: str) -> list:
@@ -106,7 +107,9 @@ class CohortAssigner:
         try:
             if cohort_id == self.DEFAULT_COHORT:
                 # For default cohort, return users without preferences or with minimal data
-                users = User.query.filter(User.has_preferences.is_(False)).all()
+                users = db.session.scalars(
+                    select(User).where(User.has_preferences.is_(False))
+                ).all()
                 return [str(u.id) for u in users]
 
             # For other cohorts, we'd need to query based on cohort characteristics
@@ -115,7 +118,7 @@ class CohortAssigner:
             return []
 
         except Exception as e:
-            logger.error(f"Error getting users for cohort {cohort_id}: {e}")
+            log.error("ERRORS", f"Error getting users for cohort {cohort_id}: {e}")
             return []
 
     def get_user_cohort_characteristics(self, user_id: str) -> dict[str, Any]:
@@ -151,7 +154,7 @@ class CohortAssigner:
             return characteristics
 
         except Exception as e:
-            logger.error(f"Error getting cohort characteristics for user {user_id}: {e}")
+            log.error("ERRORS", f"Error getting cohort characteristics for user {user_id}: {e}")
             return {}
 
 

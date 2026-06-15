@@ -1,0 +1,21 @@
+type: object
+required:
+  - metadata
+  - files
+properties:
+  metadata:
+    type: string
+    description: >
+      JSON string for DocusignCreateTemplateMetadataInput (name, description, roles).
+  files:
+    type: array
+    items:
+      type: string
+      format: binary
+    description: One or more PDF files (document order matches upload order).
+  file:
+    type: string
+    format: binary
+    x-unverified: true
+    description: >
+      Optional singular alias for a single PDF; backend also accepts file instead of files.

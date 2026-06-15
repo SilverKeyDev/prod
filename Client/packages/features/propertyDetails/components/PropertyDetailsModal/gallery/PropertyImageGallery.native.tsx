@@ -6,8 +6,15 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import type { PropertyImageGalleryProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import { Box, Icon, Image, Pressable, ScrollView, Text } from "packages/ui/components/primitives";
-import { getPropertyImages } from "packages/utils/propertyDetails";
+import {
+  Box,
+  Icon,
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+} from "packages/ui/components/structure/primitives";
+import { getPropertyImages } from "packages/utils/transaction/propertyDetails";
 
 import {
   propertyImageGalleryNativeStyles as styles,

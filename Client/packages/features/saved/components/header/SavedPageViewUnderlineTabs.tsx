@@ -1,6 +1,6 @@
 import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
-import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
+import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTabs";
 
 type SavedPageViewUnderlineTabsProps = {
   isAgent: boolean;

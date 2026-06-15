@@ -1,42 +1,43 @@
-module.exports = {
-  rules: {
-    "max-lines-hard": require("./rules/architecture/max-lines-hard"),
-    "folder-extension-policy": require("./rules/architecture/folder-extension-policy"),
-    "folder-max-items": require("./rules/architecture/folder-max-items"),
-    "no-empty-folders": require("./rules/architecture/no-empty-folders"),
-    "no-dynamic-class-names": require("./rules/ui/no-dynamic-class-names"),
-    "no-hardcoded-breakpoints": require("./rules/ui/no-hardcoded-breakpoints"),
-    "no-restricted-imports-architecture": require("./rules/architecture/no-restricted-imports-architecture"),
-    "no-primitive-components": require("./rules/ui/no-primitive-components"),
-    "no-console-logger": require("./rules/ui/no-console-logger"),
-    "no-raw-translation-key-literal": require("./rules/ui/no-raw-translation-key-literal"),
-    "no-zustand-get-state": require("./rules/hooks/no-zustand-get-state"),
-    "no-async-use-effect": require("./rules/hooks/no-async-use-effect"),
-    "no-focused-tests": require("./rules/ui/no-focused-tests"),
-    "no-explicit-any-disable-reason": require("./rules/ui/no-explicit-any-disable-reason"),
-    "no-relative-parent-imports": require("./rules/architecture/no-relative-parent-imports"),
-    "no-process-env-outside-config": require("./rules/architecture/no-process-env-outside-config"),
-    "no-api-any": require("./rules/architecture/no-api-any"),
-    "require-ui-alias": require("./rules/ui/require-ui-alias"),
-    "no-literal-hex-colors": require("./rules/ui/no-literal-hex-colors"),
-    "no-raw-spacing": require("./rules/ui/no-raw-spacing"),
-    "no-raw-zindex": require("./rules/ui/no-raw-zindex"),
-    "no-direct-accessibility-props": require("./rules/ui/no-direct-accessibility-props"),
-    "no-platform-feature-check": require("./rules/ui/no-platform-feature-check"),
-    "no-direct-platform-libraries": require("./rules/ui/no-direct-platform-libraries"),
-    "no-native-date": require("./rules/ui/no-native-date"),
-    "no-standalone-ts-in-pages": require("./rules/architecture/no-standalone-ts-in-pages"),
-    "no-unimported-identifiers": require("./rules/architecture/no-unimported-identifiers"),
-    "package-module-allowed-children": require("./rules/architecture/package-module-allowed-children"),
-    "platform-variants-exception-list": require("./rules/architecture/platform-variants-exception-list"),
-    "require-platform-primitives": require("./rules/ui/require-platform-primitives"),
-    "platform-file-justification": require("./rules/architecture/platform-file-justification"),
-    "primitives-justification": require("./rules/platform/primitives-justification"),
-    "variants-justification": require("./rules/platform/variants-justification"),
-    "layouts-justification": require("./rules/platform/layouts-justification"),
-    "prefer-use-window-dimensions": require("./rules/platform/prefer-use-window-dimensions"),
-    "no-scrollview-children-map": require("./rules/platform/no-scrollview-children-map"),
-    "no-legacy-viewport-units": require("./rules/ui/no-legacy-viewport-units"),
-    "no-cross-feature-utils-imports": require("./rules/architecture/no-cross-feature-utils-imports"),
-  },
-};
+"use strict";
+
+const fs = require("fs");
+const path = require("path");
+
+const RULES_ROOT = path.join(__dirname, "rules");
+
+function loadRules() {
+  const rules = {};
+  const duplicates = new Set();
+
+  function walk(dir) {
+    for (const name of fs.readdirSync(dir).sort()) {
+      const full = path.join(dir, name);
+      const stat = fs.statSync(full);
+      if (stat.isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (!name.endsWith(".js")) {
+        continue;
+      }
+      const ruleId = name.slice(0, -3);
+      if (rules[ruleId]) {
+        duplicates.add(ruleId);
+        continue;
+      }
+      rules[ruleId] = require(full);
+    }
+  }
+
+  walk(RULES_ROOT);
+
+  if (duplicates.size) {
+    throw new Error(
+      `eslint-plugin-silverkey: duplicate rule ids: ${[...duplicates].sort().join(", ")}`
+    );
+  }
+
+  return rules;
+}
+
+module.exports = { rules: loadRules() };

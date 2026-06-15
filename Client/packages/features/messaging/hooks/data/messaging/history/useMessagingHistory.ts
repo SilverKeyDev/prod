@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { mapApiMessagesToChatMessages } from "packages/features/messaging/hooks/data/messaging/helpers";
 import type { ChatMessage } from "packages/features/messaging/hooks/data/messaging/types";
 import { OLDER_CHAT_HISTORY_PAGE_SIZE } from "packages/features/messaging/hooks/data/useAgentChats.constants";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import {
   type GetChatHistoryRef,
@@ -129,7 +129,7 @@ export function useMessagingHistory(params: UseMessagingHistoryParams): UseMessa
       });
       setHasMoreOlder(data.has_more_older ?? false);
     } catch (err) {
-      log.warn(LOG_CATEGORIES.MESSAGES, "loadOlderMessages failed", err);
+      log.warn("MESSAGES", "loadOlderMessages failed", err);
     } finally {
       setIsLoadingOlder(false);
     }

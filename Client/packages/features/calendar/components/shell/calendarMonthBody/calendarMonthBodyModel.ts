@@ -1,4 +1,4 @@
-import { dateParseISO } from "packages/utils/date";
+import { dateParseISO } from "packages/utils/core/date";
 
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 

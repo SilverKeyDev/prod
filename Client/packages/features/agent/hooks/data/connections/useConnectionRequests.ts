@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "packages/config/query/keys";
 import { useAuthStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 import type { AgentConnectionRequest } from "@/features/agent/api/agent";
 import { agentApi } from "@/features/agent/api/agent";
@@ -62,7 +63,9 @@ export function useConnectionRequests(
     queryFn: async () => {
       const response = await agentApi.getConnectionRequests("inbox");
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch connection requests");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to fetch connection requests")
+        );
       }
       return response.requests ?? [];
     },
@@ -83,7 +86,9 @@ export function useConnectionRequests(
     }) => {
       const response = await agentApi.createConnectionRequest(agentId, clientId, message);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to create connection request");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to create connection request")
+        );
       }
       return {
         request: response.request,
@@ -105,7 +110,9 @@ export function useConnectionRequests(
     mutationFn: async ({ requestId, accept }: { requestId: string; accept: boolean }) => {
       const response = await agentApi.respondToConnectionRequest(requestId, accept);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to respond to connection request");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to respond to connection request")
+        );
       }
       return response.request;
     },

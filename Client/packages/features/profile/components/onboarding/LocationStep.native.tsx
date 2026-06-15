@@ -5,15 +5,16 @@ import { SearchPrefsNeighborhood } from "packages/features/profile/components/pr
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
 import { withBuyerExtV1 } from "packages/features/profile/components/profileScreen/searchPreferences/withBuyerExtV1";
 import { ImportantLocationsInput } from "packages/features/profile/components/settings/inputs/locations/ImportantLocationsInput";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import {
   AGENT_OPTIONAL_BUYER_LOCATION_PREFERENCES_HINT,
   effectiveIsAgentForOptionalBuyerUi,
   type OnboardingData,
+  primaryOnboardingRoleFromForm,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
 import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 type LocationStepProps = {
   formData: OnboardingData;
@@ -29,7 +30,7 @@ export function LocationStep({
   const authIsAgent = useIsAgent();
   const showAgentOptionalBuyerCallout = effectiveIsAgentForOptionalBuyerUi({
     authIsAgent,
-    formIsAgent: formData.is_agent,
+    formPrimaryRole: primaryOnboardingRoleFromForm(formData),
   });
   const locations = Array.isArray(formData.important_locations) ? formData.important_locations : [];
 

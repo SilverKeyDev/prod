@@ -3,7 +3,8 @@ import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useIsAgent } from "packages/hooks/store";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import { getWindow } from "packages/utils/platform";
+import { calendarDateToKey } from "packages/utils/comms/calendar/core/calendarDateKeys";
+import { getWindow } from "packages/utils/core/platform";
 
 import type { CreateModalPrefilledCreateSnapshot } from "@/features/calendar/hooks/data/createEvent/useCreateEventModal.types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
@@ -13,7 +14,6 @@ import type {
   WeekTimeSlotDoubleClickPayload,
 } from "@/features/calendar/types/calendarQuickCreate";
 import type { GoogleCalendarEventCreateBody } from "@/features/calendar/types/googleEvent";
-import { calendarDateToKey } from "@/features/calendar/utils/core/calendarDateKeys";
 import { explicitEventTypeForCalendarKind } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { runCreateEventModalSubmit } from "@/features/calendar/utils/createEventModal/createEventModalSubmit";
 import {
@@ -189,8 +189,6 @@ export function useCalendarQuickCreateSession({
       selectedCalendarId: q.selectedCalendarId,
       defaultCalendarId,
       selectedClientId: q.selectedClientId,
-      isPropertyViewing: false,
-      viewingStops: [],
       onAddWithoutSchedule: undefined,
       createEvent,
       onEventCreated: () => {

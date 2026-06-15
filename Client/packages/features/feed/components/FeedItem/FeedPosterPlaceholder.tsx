@@ -1,4 +1,4 @@
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 /**
  * Branded abstract placeholder when poster/thumbnail fails to load.

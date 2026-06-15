@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: silverkey-dev-postgres
+    environment:
+      POSTGRES_DB: silverkey_dev
+      POSTGRES_USER: silverkey
+      POSTGRES_PASSWORD: silverkey
+    ports:
+      - "5432:5432"
+    volumes:
+      - silverkey_dev_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U silverkey -d silverkey_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  silverkey_dev_postgres:

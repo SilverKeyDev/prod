@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # ----------------------------
 # Stage 1: Build Vite frontend
 # ----------------------------
@@ -11,15 +12,9 @@
   # Install pnpm (quiet)
   RUN npm install -g pnpm@9.0.0 >/dev/null 2>&1
 
-  # build-time variables (client bundle; EXPO_PUBLIC_* inlined by Vite)
-  ARG EXPO_PUBLIC_GOOGLE_MAPS_ID
-  ARG EXPO_PUBLIC_PLAID_CLIENT_ID
-  ARG EXPO_PUBLIC_GOOGLE_CLIENT_ID
-
-  # Promote to ENV
-  ENV EXPO_PUBLIC_GOOGLE_MAPS_ID=${EXPO_PUBLIC_GOOGLE_MAPS_ID}
-  ENV EXPO_PUBLIC_PLAID_CLIENT_ID=${EXPO_PUBLIC_PLAID_CLIENT_ID}
-  ENV EXPO_PUBLIC_GOOGLE_CLIENT_ID=${EXPO_PUBLIC_GOOGLE_CLIENT_ID}
+  # Client bundle keys (EXPO_PUBLIC_*) are supplied at CI build via BuildKit --secret mounts
+  # (see Client/scripts/export-bundle-docker-build-args.mjs). Never use ARG/ENV here — values
+  # would appear in image metadata and plain build logs.
 
   # Copy client source (package files first for better layer cache when only app code changes)
   COPY Client/package.json Client/pnpm-workspace.yaml Client/pnpm-lock.yaml ./
@@ -34,9 +29,23 @@
   # Headroom for Rollup
   ENV NODE_OPTIONS="--max-old-space-size=3072"
 
-  # Vite build (if build fails, this RUN fails so CI shows the error)
-  RUN pnpm --reporter=silent run -s build:web -- --logLevel warn \
-   && rm -rf /tmp/*
+  # Vite build + PostHog bundle verify (secrets mounted per RUN; not persisted to layers)
+  RUN --mount=type=secret,id=EXPO_PUBLIC_GOOGLE_MAPS_ID \
+      --mount=type=secret,id=EXPO_PUBLIC_POSTHOG_KEY \
+      --mount=type=secret,id=EXPO_PUBLIC_PLAID_CLIENT_ID,required=false \
+      --mount=type=secret,id=EXPO_PUBLIC_GOOGLE_CLIENT_ID,required=false \
+      bash -c 'set -euo pipefail; set +x; \
+        export EXPO_PUBLIC_GOOGLE_MAPS_ID="$(cat /run/secrets/EXPO_PUBLIC_GOOGLE_MAPS_ID)"; \
+        export EXPO_PUBLIC_POSTHOG_KEY="$(cat /run/secrets/EXPO_PUBLIC_POSTHOG_KEY)"; \
+        if [ -f /run/secrets/EXPO_PUBLIC_PLAID_CLIENT_ID ]; then \
+          export EXPO_PUBLIC_PLAID_CLIENT_ID="$(cat /run/secrets/EXPO_PUBLIC_PLAID_CLIENT_ID)"; \
+        fi; \
+        if [ -f /run/secrets/EXPO_PUBLIC_GOOGLE_CLIENT_ID ]; then \
+          export EXPO_PUBLIC_GOOGLE_CLIENT_ID="$(cat /run/secrets/EXPO_PUBLIC_GOOGLE_CLIENT_ID)"; \
+        fi; \
+        pnpm --reporter=silent run -s build:web -- --logLevel warn; \
+        VERIFY_POSTHOG=1 NODE_ENV=production node scripts/verify-web-posthog-config.mjs; \
+        rm -rf /tmp/*'
 
   # Verify assets exist (build must produce Client/dist when run from WORKDIR /app/client)
   RUN test -d dist && [ "$(ls -A dist)" ] || (echo "dist missing or empty!" >&2 && exit 1)
@@ -69,7 +78,13 @@
 
   # Python deps (quiet); pins live in Server/requirements/
   COPY Server/requirements ./requirements
+  # Install the CPU-only torch wheel first. There is no GPU in production, but the bare
+  # `torch==2.10.0` pin in runtime.txt resolves to the multi-GB CUDA wheel from PyPI on
+  # linux. Installing 2.10.0+cpu up front satisfies that pin, so the runtime.txt install
+  # below does not pull torch (or its CUDA deps) again. Mirrors the CPU-wheel install in
+  # .github/workflows/test-callable.yml.
   RUN pip install --upgrade pip setuptools wheel --quiet --disable-pip-version-check \
+   && pip install --no-cache-dir torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu --quiet --disable-pip-version-check \
    && pip install --no-cache-dir --prefer-binary -r requirements/runtime.txt --quiet --disable-pip-version-check \
    && pip cache purge >/dev/null 2>&1 \
    && rm -rf /tmp/* /var/tmp/* ~/.cache/pip
@@ -82,9 +97,10 @@
 
   EXPOSE 5000
 
-  # Start Flask with Gunicorn
-  # --preload: load application once in master before forking workers (faster boot, less duplicate import work).
-  CMD ["gunicorn", "--preload", "-w", "4", "-b", "0.0.0.0:5000", "--timeout", "3600", "run:app"]
+  RUN chmod +x scripts/gunicorn-entrypoint.sh
+
+  # Env-driven Gunicorn (WEB_CONCURRENCY, GUNICORN_THREADS, GUNICORN_WORKER_CLASS, etc.)
+  CMD ["./scripts/gunicorn-entrypoint.sh"]
 
   # ----------------------------
   # Stage 3: Alembic migrations only (CI / db-migrate-main workflow)

@@ -5,7 +5,7 @@ import {
   mergeServerMessagesPreservingTimestamp,
 } from "packages/features/messaging/hooks/data/messaging/send/useMessaging.sendHelpers";
 import type { ChatMessage } from "packages/features/messaging/hooks/data/messaging/types";
-import { dateParseISO } from "packages/utils/date";
+import { dateParseISO } from "packages/utils/core/date";
 
 function msg(
   partial: Partial<ChatMessage> & Pick<ChatMessage, "id" | "content" | "role">

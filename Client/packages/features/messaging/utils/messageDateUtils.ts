@@ -4,7 +4,7 @@ import {
   formatLocaleLongWeekdayMonthDayEnUs,
   formatLocaleLongWeekdayMonthDayYearEnUs,
   formatLocaleTime12HourEnUs,
-} from "packages/utils/date";
+} from "packages/utils/core/date";
 
 /**
  * Utility functions for formatting dates in message lists

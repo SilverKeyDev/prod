@@ -2,10 +2,10 @@ import { useCallback, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Transition } from "packages/ui/components/adapters/headless";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Transition } from "packages/ui/components/system/adapters/headless";
 import { formatCompactCount } from "packages/utils";
-import { dateNow, dateParseISO } from "packages/utils/date";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
 
 import {
   AccessibleDialog,

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getCalendarEventKindOptionSlice } from "@/features/calendar/utils/createEventModal/calendarEventKindOptions";
 import {
   CALENDAR_EVENT_KINDS,
   type CalendarEventKindId,
@@ -8,20 +7,13 @@ import {
 
 import type { CreateModalPrefilledCreateSnapshot } from "./useCreateEventModal.types";
 
-type ChecklistQuerySlice = {
-  isLoading: boolean;
-  data?: { checkedIds?: readonly string[] } | undefined;
-};
+const DEFAULT_CREATE_KIND_ID: CalendarEventKindId = "meeting";
 
 export type UseCreateEventModalPrefillAndKindStateParams = {
   isOpen: boolean;
   mode: "create" | "edit";
-  selectedClientId: string | null;
   prefilledCreateSnapshot: CreateModalPrefilledCreateSnapshot | null | undefined;
   prefilledCreateKey: number | undefined;
-  checklistSubjectId: string | null;
-  searchChecklistQuery: ChecklistQuerySlice;
-  offerChecklistQuery: ChecklistQuerySlice;
   setEventTitle: (value: string) => void;
   setEventDescription: (value: string) => void;
   setEventLocation: (value: string) => void;
@@ -36,12 +28,8 @@ export type UseCreateEventModalPrefillAndKindStateParams = {
 export function useCreateEventModalPrefillAndKindState({
   isOpen,
   mode,
-  selectedClientId,
   prefilledCreateSnapshot = null,
   prefilledCreateKey,
-  checklistSubjectId,
-  searchChecklistQuery,
-  offerChecklistQuery,
   setEventTitle,
   setEventDescription,
   setEventLocation,
@@ -52,7 +40,7 @@ export function useCreateEventModalPrefillAndKindState({
   setIsAllDay,
   setCreateTimesChosenViaWeekSlot,
 }: UseCreateEventModalPrefillAndKindStateParams) {
-  const [eventKindId, setEventKindId] = useState<CalendarEventKindId>("other");
+  const [eventKindId, setEventKindId] = useState<CalendarEventKindId>(DEFAULT_CREATE_KIND_ID);
   const createKindSeededRef = useRef(false);
   const appliedPrefillKeyRef = useRef<number | null>(null);
 
@@ -102,10 +90,6 @@ export function useCreateEventModalPrefillAndKindState({
   ]);
 
   useEffect(() => {
-    createKindSeededRef.current = false;
-  }, [selectedClientId]);
-
-  useEffect(() => {
     if (!isOpen || mode !== "create") {
       return;
     }
@@ -115,34 +99,10 @@ export function useCreateEventModalPrefillAndKindState({
     if (createKindSeededRef.current) {
       return;
     }
-    if (checklistSubjectId) {
-      if (searchChecklistQuery.isLoading || offerChecklistQuery.isLoading) {
-        return;
-      }
-    }
-    const slice = getCalendarEventKindOptionSlice({
-      searchCheckedIds: checklistSubjectId ? searchChecklistQuery.data?.checkedIds : undefined,
-      offerCheckedIds: checklistSubjectId ? offerChecklistQuery.data?.checkedIds : undefined,
-    });
-    setEventKindId(slice.defaultKindId);
-    if (slice.defaultKindId !== "other") {
-      setEventTitle(CALENDAR_EVENT_KINDS[slice.defaultKindId].label);
-    } else {
-      setEventTitle("");
-    }
+    setEventKindId(DEFAULT_CREATE_KIND_ID);
+    setEventTitle(CALENDAR_EVENT_KINDS[DEFAULT_CREATE_KIND_ID].label);
     createKindSeededRef.current = true;
-  }, [
-    isOpen,
-    mode,
-    checklistSubjectId,
-    searchChecklistQuery.isLoading,
-    searchChecklistQuery.data?.checkedIds,
-    offerChecklistQuery.isLoading,
-    offerChecklistQuery.data?.checkedIds,
-    prefilledCreateKey,
-    prefilledCreateSnapshot,
-    setEventTitle,
-  ]);
+  }, [isOpen, mode, prefilledCreateKey, prefilledCreateSnapshot, setEventTitle]);
 
   const handleEventKindIdChange = useCallback(
     (id: CalendarEventKindId) => {

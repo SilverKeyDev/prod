@@ -1,4 +1,4 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import type { PerformanceMetrics, PerformanceThresholds } from "./performanceMonitoringTypes";
 
@@ -9,14 +9,14 @@ export function logRenderThresholdWarnings(
   thresholds: PerformanceThresholds
 ) {
   if (renderTime > thresholds.maxRenderTime) {
-    log.warn(LOG_CATEGORIES.PAGES, "Slow render detected", {
+    log.warn("PAGES", "Slow render detected", {
       componentName,
       renderTime,
       threshold: thresholds.maxRenderTime,
     });
   }
   if (reRenderCount > thresholds.maxReRenders) {
-    log.warn(LOG_CATEGORIES.PAGES, "High re-render count", {
+    log.warn("PAGES", "High re-render count", {
       componentName,
       reRenderCount,
       threshold: thresholds.maxReRenders,

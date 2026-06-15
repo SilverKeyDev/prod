@@ -1,8 +1,8 @@
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
-import { formatLotSize } from "packages/utils/format/property/addressFormatting";
-import { formatPropertyType } from "packages/utils/format/property/propertyDetailsDisplayFormatters";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
+import { formatLotSize } from "packages/utils/core/format/property/addressFormatting";
+import { formatPropertyType } from "packages/utils/core/format/property/propertyDetailsDisplayFormatters";
 export interface PropertyDetailsListProps {
   propertyYearBuilt?: number | string;
   propertyLotSize?: number | string;

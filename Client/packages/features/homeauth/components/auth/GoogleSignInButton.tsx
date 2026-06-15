@@ -2,20 +2,20 @@ import React from "react";
 
 import { getEnv } from "packages/config";
 import { color } from "packages/design-tokens";
-import AppImage from "packages/ui/components/asset/AppImage";
+import AppImage from "packages/ui/components/media/asset/AppImage";
 import {
   GOOGLE_SIGN_IN_ANDROID_SOURCE,
   GOOGLE_SIGN_IN_IOS_SOURCE,
-} from "packages/ui/components/asset/logoSource";
-import { getWindow, isWeb, Platform } from "packages/utils/platform";
-import { Linking } from "packages/utils/platform/linking";
+} from "packages/ui/components/media/asset/logoSource";
+import { SURFACE_OUTLINE_INTERACTION_CLASSES } from "packages/ui/styles/variants/buttonVariants";
+import { getWindow, isWeb, Platform } from "packages/utils/core/platform";
+import { Linking } from "packages/utils/core/platform/linking";
 
 import { BodyText, Button } from "@/components/ui";
 
 interface GoogleSignInButtonProps {
   text?: string;
   className?: string;
-  disabled?: boolean;
 }
 
 const googleIconSvg = (
@@ -39,21 +39,32 @@ const googleIconSvg = (
   </svg>
 );
 
+function navigateToGoogleOAuth(oauthUrl: string) {
+  if (isWeb) {
+    const win =
+      getWindow() ??
+      (typeof globalThis !== "undefined" && "location" in globalThis
+        ? (globalThis as unknown as Window)
+        : null);
+    if (win?.location) {
+      win.location.assign(oauthUrl);
+    }
+    return;
+  }
+  if (typeof Linking !== "undefined" && Linking.openURL) {
+    void Linking.openURL(oauthUrl);
+  }
+}
+
 export default function GoogleSignInButton({
   text = "Continue with Google",
   className = "",
-  disabled = false,
 }: GoogleSignInButtonProps) {
   const apiUrl = getEnv().isDevelopment ? "http://localhost:5000" : "https://usesilverkey.com";
   const oauthUrl = `${apiUrl}/api/v1/auth/google/start`;
 
   const handlePress = () => {
-    if (isWeb) {
-      const win = getWindow();
-      if (win?.location) win.location.href = oauthUrl;
-    } else if (typeof Linking !== "undefined" && Linking.openURL) {
-      void Linking.openURL(oauthUrl);
-    }
+    navigateToGoogleOAuth(oauthUrl);
   };
 
   const icon =
@@ -80,11 +91,10 @@ export default function GoogleSignInButton({
       variant="outline"
       icon={icon}
       iconPosition="left"
-      onClick={disabled ? undefined : handlePress}
-      onPress={disabled ? undefined : handlePress}
-      disabled={disabled}
+      onClick={handlePress}
+      onPress={handlePress}
       fullWidth
-      className={`border-border bg-background-surface text-text-secondary hover:bg-primary-muted active:bg-primary-muted active:opacity-90 ${className}`}
+      className={`border-border bg-background-surface text-text-secondary ${SURFACE_OUTLINE_INTERACTION_CLASSES} ${className}`}
     >
       <BodyText as="span" className="whitespace-nowrap">
         {text}

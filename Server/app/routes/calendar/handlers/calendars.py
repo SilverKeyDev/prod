@@ -4,8 +4,9 @@ Calendar management endpoints for Google Calendar
 
 from typing import cast
 
-from flask import Response, jsonify, make_response, request
+from flask import Response, jsonify, make_response
 
+from app.routes.calendar.handlers.errors import calendar_permission_response
 from app.schemas import (
     AddCalendarACLRequest,
     CreateCalendarRequest,
@@ -19,11 +20,9 @@ from app.services.calendar.core import (
     handle_google_api_error,
 )
 from app.services.calendar.permissions import require_permission
+from app.utils.route import http_errors
 from app.utils.security import rate_limit
-from app.utils.security.app_logging import get_logger
 from app.utils.validation import validate_request, validate_response
-
-logger = get_logger()
 
 
 @rate_limit(max_requests=100, window_seconds=60)
@@ -45,7 +44,7 @@ def list_calendars():
 @rate_limit(max_requests=10, window_seconds=60)
 @validate_response(GoogleCalendarApiResponse)
 @validate_request(CreateCalendarRequest)
-def create_calendar(data: CreateCalendarRequest | None = None):
+def create_calendar(data: CreateCalendarRequest):
     """Create a secondary calendar (requires app-created calendar scope or broader)"""
     user_id, error_response = get_authenticated_user_id()
     if error_response:
@@ -54,13 +53,7 @@ def create_calendar(data: CreateCalendarRequest | None = None):
         return make_response(("Unauthorized", 401))
 
     try:
-        if data is None:
-            raw = request.get_json(silent=True) or {}
-            calendar_name = raw.get("summary") or raw.get("name")
-            if not calendar_name:
-                return make_response(("Calendar name is required", 400))
-        else:
-            calendar_name = data.summary
+        calendar_name = data.summary
 
         calendar = google_calendar_service.create_calendar(user_id, calendar_name)
         return jsonify({"success": True, "data": calendar}), 201
@@ -72,7 +65,7 @@ def create_calendar(data: CreateCalendarRequest | None = None):
 @rate_limit(max_requests=10, window_seconds=60)
 @validate_response(GoogleCalendarApiResponse)
 @validate_request(AddCalendarACLRequest)
-def add_calendar_acl(calendar_id, data: AddCalendarACLRequest | None = None):
+def add_calendar_acl(calendar_id, data: AddCalendarACLRequest):
     """Add an ACL rule to a calendar (grant agent access)"""
     user_id, error_response = get_authenticated_user_id()
     if error_response:
@@ -87,22 +80,18 @@ def add_calendar_acl(calendar_id, data: AddCalendarACLRequest | None = None):
             "add sharing rules to your SilverKey calendar",
         )
         if not ok and perm_err:
-            return jsonify(perm_err), 403
+            return calendar_permission_response(perm_err)
 
-        if data is None:
-            raw = request.get_json(silent=True) or {}
-            agent_email = raw.get("agent_email")
-            role = raw.get("role", "writer")
-            if not agent_email:
-                return make_response(("Agent email is required", 400))
-        else:
-            scope = data.scope
-            if scope.type != Type.user:
-                return make_response(("Only user scope is supported for agent ACL", 400))
-            if not scope.value:
-                return make_response(("Agent email (scope.value) is required", 400))
-            agent_email = scope.value
-            role = data.role.value
+        scope = data.scope
+        if scope.type != Type.user:
+            return http_errors.validation("Only user scope is supported for agent ACL")
+        if not scope.value:
+            return http_errors.validation(
+                "Agent email (scope.value) is required",
+                field_errors={"scope.value": "Required"},
+            )
+        agent_email = scope.value
+        role = data.role.value
 
         acl_rule = google_calendar_service.add_calendar_acl(user_id, calendar_id, agent_email, role)
         return jsonify({"success": True, "data": acl_rule}), 201
@@ -115,7 +104,7 @@ def add_calendar_acl(calendar_id, data: AddCalendarACLRequest | None = None):
 @validate_response(GoogleCalendarApiResponse)
 @validate_request(CreateSilverkeyCalendarRequest)
 def get_or_create_silverkey_calendar(
-    data: CreateSilverkeyCalendarRequest | None = None,
+    data: CreateSilverkeyCalendarRequest,
 ) -> Response | tuple[Response, int]:
     """Get or create the SilverKey calendar for the user"""
     user_id, error_response = get_authenticated_user_id()
@@ -126,12 +115,6 @@ def get_or_create_silverkey_calendar(
 
     try:
         buyer_name = None
-        if request.method == "POST":
-            if data is None:
-                raw = request.get_json(silent=True) or {}
-                if raw:
-                    buyer_name = raw.get("buyerName")
-            # OpenAPI body only includes `force`; buyerName remains a legacy optional field.
 
         calendar = google_calendar_service.get_or_create_silverkey_calendar(user_id, buyer_name)
         return jsonify({"success": True, "data": calendar})

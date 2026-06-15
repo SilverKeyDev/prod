@@ -1,4 +1,4 @@
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 interface DividerProps {
   text?: string;

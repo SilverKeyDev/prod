@@ -6,9 +6,9 @@ import { queryKeys } from "packages/config/query/keys";
 import { useLocalization } from "packages/contexts";
 import { docusignApi } from "packages/features/documents/api/docusign";
 import { Button, CancelButton } from "packages/ui";
-import BaseModal from "packages/ui/components/modals/BaseModal";
-import { Box } from "packages/ui/components/primitives";
-import { getWindow } from "packages/utils/platform";
+import { Box } from "packages/ui/components/structure/primitives";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
+import { getWindow } from "packages/utils/core/platform";
 
 import { BodyText, Input, Title } from "@/components/ui";
 

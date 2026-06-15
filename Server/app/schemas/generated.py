@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date as date_aliased
 from enum import Enum
 from typing import Any, Literal
 
@@ -50,21 +50,6 @@ class SuccessResponse(BaseModel):
     )
 
 
-class Subscription(BaseModel):
-    """
-    Optional payment-provider subscription metadata. Listed properties are common; providers may add extra keys (additionalProperties allowed).
-
-    """
-
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    status: str | None = None
-    plan_id: str | None = None
-    customer_id: str | None = None
-    current_period_end: AwareDatetime | None = None
-
-
 class Role(Enum):
     """
     Access role to grant
@@ -104,7 +89,7 @@ class AddCommentRequest(BaseModel):
     text: str = Field(..., description="Comment text")
 
 
-class User1(BaseModel):
+class User(BaseModel):
     id: str | None = None
     name: str | None = None
     avatarUrl: AnyUrl | None = None
@@ -112,7 +97,7 @@ class User1(BaseModel):
 
 class FeedCommentApiShape(BaseModel):
     id: str
-    user: User1
+    user: User
     text: str
     createdAt: str
     likes: int | None = None
@@ -228,12 +213,13 @@ class AgentConversation(BaseModel):
 
 class ClientKind(Enum):
     """
-    Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/investor role is set.
+    Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/renter/investor role is set.
 
     """
 
     buyer = "buyer"
     seller = "seller"
+    renter = "renter"
     investor = "investor"
     unknown = "unknown"
 
@@ -278,6 +264,10 @@ class AgentClient(BaseModel):
     """
 
     id: str = Field(..., description="Application user id for the client.")
+    transaction_id: str = Field(
+        ...,
+        description="Revenue spine id (`transactions.id`) for this client's deal. Use for checklist,\nforms, documents, and rev-share APIs — not the buyer user id.\n",
+    )
     name: str = Field(..., description="Display name shown in agent UI and shared documents.")
     email: EmailStr = Field(
         ..., description="Primary contact email for invites and DocuSign routing."
@@ -292,7 +282,7 @@ class AgentClient(BaseModel):
     )
     client_kind: ClientKind | None = Field(
         None,
-        description="Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/investor role is set.\n",
+        description="Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/renter/investor role is set.\n",
     )
     pipeline_stage: PipelineStage | None = Field(
         None,
@@ -336,6 +326,112 @@ class AgentConnectionRequest(BaseModel):
     other_party_name: str | None = None
     other_party_email: str | None = None
     created_at: str
+
+
+class WorkspaceConversationKind(Enum):
+    """
+    Workspace-scoped conversation kind
+    """
+
+    platform_support = "platform_support"
+    brokerage_agent = "brokerage_agent"
+    integrator_brokerage = "integrator_brokerage"
+    group = "group"
+
+
+class SupportCategory(Enum):
+    brokerage = "brokerage"
+    integrator = "integrator"
+
+
+class CreateWorkspaceConversationRequest(BaseModel):
+    kind: WorkspaceConversationKind
+    brokerage_org_id: str | None = None
+    partner_id: str | None = None
+    agent_user_id: str | None = None
+    support_category: SupportCategory | None = None
+
+
+class WorkspaceConversation(BaseModel):
+    id: str
+    kind: WorkspaceConversationKind
+    brokerage_org_id: str | None = None
+    partner_id: str | None = None
+    subject_user_id: str | None = None
+    support_category: SupportCategory | None = None
+    agent_user_id: str | None = None
+    title: str | None = None
+    participant_count: int | None = None
+    is_archived: bool | None = None
+    last_message: str | None = None
+    last_message_at: AwareDatetime | None = None
+    last_read_at: AwareDatetime | None = None
+    unread_count: int | None = None
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
+
+
+class WorkspaceConversationsResponse(BaseModel):
+    success: bool
+    conversations: list[WorkspaceConversation]
+
+
+class WorkspaceMessage(BaseModel):
+    id: str
+    conversation_id: str | None = None
+    sender_id: str | None = None
+    role: str
+    message: str
+    timestamp: AwareDatetime | None = None
+
+
+class SendWorkspaceMessageRequest(BaseModel):
+    conversation_id: str
+    message: str
+
+
+class Participant(BaseModel):
+    user_id: str | None = None
+    participant_role: str | None = None
+
+
+class GroupConversation(WorkspaceConversation):
+    participants: list[Participant] | None = None
+
+
+class GroupConversationCreateRequest(BaseModel):
+    """
+    Reserved for group chat — endpoints not implemented
+    """
+
+    title: constr(max_length=120)
+    participant_user_ids: list[str] = Field(..., min_length=2)
+    brokerage_org_id: str | None = None
+
+
+class GroupConversationUpdateRequest(BaseModel):
+    """
+    Reserved for group chat — endpoints not implemented
+    """
+
+    title: constr(max_length=120) | None = None
+    is_archived: bool | None = None
+
+
+class GroupParticipantAddRequest(BaseModel):
+    """
+    Reserved for group chat — endpoints not implemented
+    """
+
+    user_id: str
+
+
+class GroupParticipantRemoveRequest(BaseModel):
+    """
+    Reserved for group chat — endpoints not implemented
+    """
+
+    user_id: str
 
 
 class AgentConversationsResponse(SuccessResponse):
@@ -453,7 +549,6 @@ class AgreementRevision(BaseModel):
     id: str
     agreement_id: str
     version_number: int
-    revision_number: int | None = Field(None, description="Legacy field")
     filename: str
     file_name: str | None = Field(None, description="Alternative field name")
     file_path: str
@@ -516,7 +611,10 @@ class AuthSessionUser(BaseModel):
         description="Application user id when the row exists; null if not yet linked.",
     )
     phone: str | None = None
-    is_agent: bool
+    roles: list[str] = Field(
+        ...,
+        description="Role names from user_roles; empty when user row is not linked yet.",
+    )
     auth_method: AuthMethod = Field(
         ...,
         description="How the session authenticated relative to linked identities on the user row:\n- `unknown`: Could not classify (legacy or transitional row)\n- `cognito`: Cognito username/password or hosted UI session\n- `google`: Google OAuth identity supplied the tokens\n- `both`: User has linked Cognito and Google identities\n",
@@ -530,56 +628,6 @@ class CognitoEmailSmsMedium(Enum):
 
     EMAIL = "EMAIL"
     SMS = "SMS"
-
-
-class ViewingStop(BaseModel):
-    """
-    One stop on a multi-property viewing itinerary.
-    """
-
-    label: str | None = Field(
-        None, description="Short label shown in lists (e.g. street or listing title)."
-    )
-    address: str = Field(
-        ...,
-        description="Full address string for display and calendar location fallback.",
-    )
-    lat: float | None = Field(
-        None,
-        description="Latitude when geocoded or from listing; required for routing.",
-    )
-    lng: float | None = Field(
-        None,
-        description="Longitude when geocoded or from listing; required for routing.",
-    )
-    notes: str | None = None
-    listing_id: str | None = Field(
-        None,
-        description="Optional listing / property identifier when linked to search results.",
-    )
-
-
-class ViewingRouteEndpoint(BaseModel):
-    """
-    Start or end location for routing. Provide a non-empty address and/or both lat and lng. The server geocodes when an address is present without coordinates.
-
-    """
-
-    label: str | None = None
-    address: str | None = None
-    lat: float | None = None
-    lng: float | None = None
-
-
-class ViewingRouteEndMode(Enum):
-    """
-    How the route finishes after the last property when a start location is set. Ignored when start is omitted (legacy open tour across properties only).
-
-    """
-
-    last_property = "last_property"
-    return_to_start = "return_to_start"
-    fixed = "fixed"
 
 
 class BulkUpdateFavoritesRequest(BaseModel):
@@ -713,6 +761,66 @@ class ChecklistDispatchNoteMode(Enum):
     per_client = "per_client"
 
 
+class Method(Enum):
+    docusign = "docusign"
+    messaging = "messaging"
+    both = "both"
+
+
+class Participant1(BaseModel):
+    email: constr(max_length=320) | None = None
+    name: constr(max_length=200) | None = None
+
+
+class ChecklistFormSendRequest(BaseModel):
+    method: Method
+    conversation_id: constr(max_length=64) | None = None
+    client_id: constr(max_length=64) | None = None
+    message: constr(max_length=4000) | None = None
+    participants: list[Participant1] | None = None
+
+
+class Step(Enum):
+    messaging = "messaging"
+    docusign = "docusign"
+
+
+class ChecklistFormPartialStepError(BaseModel):
+    step: Step
+    error: str = Field(..., description="Stable error code (e.g. VALIDATION_ERROR, FORBIDDEN).")
+    message: str = Field(..., description="Safe user-facing message for the failed step.")
+
+
+class ChecklistForm(BaseModel):
+    id: str
+    form_key: str = Field(..., description="Stable key (e.g. earnest_money, wire_instructions).")
+    title: str
+    description: str | None = None
+    s3_template_path: str = Field(..., description="S3 object key for the PDF template.")
+    category: str | None = Field(None, description="Library folder (e.g. escrow, financing).")
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class ChecklistFormWithDownload(ChecklistForm):
+    download_url: AnyUrl | None = Field(
+        ..., description="Presigned S3 URL; null when URL generation fails."
+    )
+    deadline: str | None = Field(
+        None,
+        description="ISO date deadline derived from checklist step timing when available.",
+    )
+
+
+class LinkDocumentToChecklistRequest(BaseModel):
+    document_id: str | None = Field(
+        None, description="ID of the document to link to checklist item"
+    )
+    agreement_id: str | None = Field(
+        None, description="ID of the agreement to link to checklist item"
+    )
+
+
 class ClientAvailabilityRequest(BaseModel):
     start_date: AwareDatetime = Field(..., description="Start of availability window")
     end_date: AwareDatetime = Field(..., description="End of availability window")
@@ -769,6 +877,24 @@ class ClientSearchResult(BaseModel):
     )
 
 
+class ExtendedBuyerPreferences(BaseModel):
+    """
+    Versioned buyer preference extensions (v1 JSON)
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    buyer_about_me: dict[str, Any] | None = Field(
+        None,
+        description="SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation",
+    )
+    price_financing: dict[str, Any] | None = Field(
+        None,
+        description="SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc.",
+    )
+
+
 class PreferencesResponse(BaseModel):
     """
     User search preferences
@@ -777,6 +903,40 @@ class PreferencesResponse(BaseModel):
     model_config = ConfigDict(
         extra="allow",
     )
+    preferred_contact_method: str | None = Field(
+        None, description="Buyer communication preference — text, call, or email"
+    )
+    communication_frequency: str | None = Field(
+        None,
+        description="Update cadence — as_things_come_up, weekly_check_in, or daily",
+    )
+    extended_buyer_preferences: ExtendedBuyerPreferences | None = Field(
+        None, description="Versioned buyer preference extensions (v1 JSON)"
+    )
+    paying_cash: bool | None = Field(
+        None, description="Intent attribute — true when buyer pays cash"
+    )
+
+
+class HasPreferences(Enum):
+    boolean_False = False
+
+
+class DeletePreferencesApiResponse(SuccessResponse):
+    has_preferences: HasPreferences
+    preferences: Any | None = None
+    message: str | None = Field(None, description="Confirmation copy after clearing preferences.")
+
+
+class GetPreferencesApiResponse(SuccessResponse):
+    preferences: PreferencesResponse | None = None
+    has_preferences: bool | None = Field(
+        None, description="True when the user has persisted preference rows."
+    )
+
+
+class GetUserPreferencesByIdApiResponse(SuccessResponse):
+    preferences: PreferencesResponse | None = None
 
 
 class ClientsResponse(BaseModel):
@@ -828,34 +988,6 @@ class LibraryTabClientSettings(BaseModel):
     )
     layout: Layout | None = None
     sort: str | None = Field(None, description="Sort id (allowlist enforced server-side per tab).")
-
-
-class Anchor(BaseModel):
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    id: str = Field(..., description="Client-generated stable id (e.g. UUID).")
-    label: str = Field(..., description='Display name (e.g. "Midtown office").')
-    endpoint: ViewingRouteEndpoint
-
-
-class ViewingTourClientSettings(BaseModel):
-    """
-    Saved viewing-route anchors (e.g. office, home) for quick start selection on property tours.
-
-    """
-
-    model_config = ConfigDict(
-        extra="forbid",
-    )
-    anchors: list[Anchor] | None = Field(
-        None,
-        description="Named locations the user can pick as a tour start (or fixed end).",
-    )
-    default_start_anchor_id: str | None = Field(
-        None,
-        description="When set, new property-viewing events default start to this anchor id.",
-    )
 
 
 class TravelTime(BaseModel):
@@ -964,6 +1096,20 @@ class CreatePreferencesRequest(BaseModel):
 
     model_config = ConfigDict(
         extra="allow",
+    )
+    preferred_contact_method: str | None = Field(
+        None,
+        description="Buyer communication preference — text, call, or email (user_communication_prefs)",
+    )
+    communication_frequency: str | None = Field(
+        None,
+        description="Update cadence — as_things_come_up, weekly_check_in, or daily",
+    )
+    extended_buyer_preferences: ExtendedBuyerPreferences | None = Field(
+        None, description="Versioned buyer preference extensions (v1 JSON)"
+    )
+    paying_cash: bool | None = Field(
+        None, description="Intent attribute — true when buyer pays cash"
     )
 
 
@@ -1141,8 +1287,7 @@ class DeleteMyAccountRequest(BaseModel):
 
 
 class DeleteReportRequest(BaseModel):
-    s3_key: str | None = Field(None, description="Optional S3 key for the report to delete")
-    file_path: str | None = Field(None, description="Optional legacy file path (alias of s3_key)")
+    s3_key: str | None = Field(None, description="S3 key for the report to delete")
 
 
 class DeleteReportResponse(RootModel[SuccessResponse]):
@@ -1152,17 +1297,23 @@ class DeleteReportResponse(RootModel[SuccessResponse]):
 class DeleteUserRequest(BaseModel):
     user_id: str = Field(..., description="ID of user to delete")
     confirm: bool = Field(..., description="Must be true to confirm deletion")
-    confirmation: str | None = Field(None, description="Legacy confirmation text (optional)")
 
 
 class DeleteUserResponse(SuccessResponse):
     deleted_user_id: str | None = None
 
 
+class DownloadChecklistFormResponse(SuccessResponse):
+    download_url: AnyUrl
+
+
 class Scope1(Enum):
     profile = "profile"
     preferences = "preferences"
     docusign = "docusign"
+    transaction_steps = "transaction_steps"
+    s3 = "s3"
+    connections = "connections"
 
 
 class DevUserDataResetRequest(BaseModel):
@@ -1241,6 +1392,10 @@ class DocumentLibraryListItem(BaseModel):
     document_type: str | None = None
     address: str | None = None
     agreement_type: str | None = None
+    linked_checklist_item_id: str | None = Field(
+        None,
+        description="When this agreement is linked to a checklist step, the key `{checklist_category}.{item_id}` (e.g. `offer.3`, `insurance.2`).",
+    )
     event_type: EventType | None = Field(
         None,
         description="MLS-style listing event when the library item ties to a feed update:\n- `listed`: New listing associated with documents\n- `price_change`: Price update triggering revised paperwork\n- `sold`: Closed transaction context\n- `withdrawn`: Listing canceled or taken off market\n",
@@ -1260,7 +1415,7 @@ class Pagination(BaseModel):
 
 class Status3(Enum):
     """
-    Pipeline state for the stored file (DB allows additional legacy values).
+    Pipeline state for the stored file (DB allows additional values).
     """
 
     uploaded = "uploaded"
@@ -1285,7 +1440,7 @@ class UploadedDocumentRecord(BaseModel):
     file_path: str
     status: Status3 = Field(
         ...,
-        description="Pipeline state for the stored file (DB allows additional legacy values).",
+        description="Pipeline state for the stored file (DB allows additional values).",
     )
     user_id: str
     created_at: str | None = None
@@ -1362,6 +1517,17 @@ class DocuSignParticipantTabPrefillInput(BaseModel):
     checkboxes: list[DocuSignPrefillCheckboxTabInput] | None = Field(None, max_length=50)
 
 
+class DocusignAgreementDownloadUrlResponse(SuccessResponse):
+    download_url: AnyUrl = Field(
+        ...,
+        description="Pre-signed S3 URL for viewing or downloading the agreement PDF.",
+    )
+    expires_at: str | None = Field(
+        None,
+        description="Optional expiration timestamp for the pre-signed URL. Handler currently returns null.\n",
+    )
+
+
 class DocusignCreateTemplateMetadataInput(BaseModel):
     name: str = Field(..., description="Display name for the DocuSign template.")
     description: str | None = None
@@ -1370,6 +1536,20 @@ class DocusignCreateTemplateMetadataInput(BaseModel):
         description="Ordered signer role names (e.g. Agent, Buyer). Must match the number of signers you will assign in DocuSign after opening the template editor.\n",
         max_length=20,
         min_length=1,
+    )
+
+
+class DocusignCreateTemplateMultipartRequest(BaseModel):
+    metadata: str = Field(
+        ...,
+        description="JSON string for DocusignCreateTemplateMetadataInput (name, description, roles).\n",
+    )
+    files: list[bytes] = Field(
+        ..., description="One or more PDF files (document order matches upload order)."
+    )
+    file: bytes | None = Field(
+        None,
+        description="Optional singular alias for a single PDF; backend also accepts file instead of files.\n",
     )
 
 
@@ -1428,10 +1608,6 @@ class DocusignResendRecipientResponse(SuccessResponse):
     )
 
 
-class DocusignSyncTemplatesResponse(SuccessResponse):
-    task_id: str | None = None
-
-
 class DocusignTemplate(BaseModel):
     id: str
     template_id: str
@@ -1487,6 +1663,13 @@ class EarnestMoneyRequest(BaseModel):
     escrow_company: str
 
 
+class EmptyRequest(BaseModel):
+    """
+    Empty JSON body for POST/PUT/PATCH routes with no request fields (cookie auth, path-only, or multipart file handled outside OpenAPI body validation). Client may send {}.
+
+    """
+
+
 class Success1(Enum):
     boolean_False = False
 
@@ -1519,11 +1702,11 @@ class ErrorResponse(BaseModel):
     )
     validation_errors: dict[str, Any] | None = Field(
         None,
-        description="Optional alternate validation map when included via secure error additional_info. Values are usually strings or lists of strings (same shape as field_errors); additionalProperties stays open for legacy or nested payloads from some validators.\n",
+        deprecated=True,
+        description="Deprecated — use `field_errors`. Removed from SecureErrorHandler output; retained one release for client backward compatibility.\n",
     )
     details: str | dict[str, Any] | None = Field(
-        None,
-        description="Additional context as plain text or structured map (e.g. legacy Marshmallow validate_request).",
+        None, description="Additional context as plain text or structured map."
     )
     status_code: int | None = Field(
         None,
@@ -1550,7 +1733,7 @@ class FavoriteHomesPagination(BaseModel):
 
 class SavedHome(BaseModel):
     """
-    A single saved or tracked listing row (`HomeUniversal.to_dict()`). Numeric facts (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether the row reflects the latest MLS snapshot the server holds.
+    A single saved or tracked listing row from PropertyCache + UserPropertyLink. Numeric facts (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether the row reflects the latest MLS snapshot the server holds.
 
     """
 
@@ -1661,7 +1844,7 @@ class FeedListing(BaseModel):
     videoUrl: AnyUrl | None = None
     audioSpeechUrl: AnyUrl | None = None
     audioSongUrl: AnyUrl | None = None
-    user: User1
+    user: User
     stats: Stats
     images: list[AnyUrl]
 
@@ -1672,20 +1855,22 @@ class FeedResponse(BaseModel):
     cursor: str | None = None
 
 
-class FindMatchesRequest(BaseModel):
-    user_data: dict[str, Any] = Field(..., description="User preferences and profile data")
-    homes_data: list[dict[str, Any]] = Field(..., description="Array of home data objects")
-    top_k: int | None = Field(None, description="Number of top matches to return (default 10)")
-    include_explanations: bool | None = Field(
-        None, description="Include match explanations (default false)"
-    )
-    embedding_provider: str | None = Field(
-        None, description="Embedding provider to use (default sentence_transformer)"
-    )
-
-
 class ForgotPasswordData(BaseModel):
     email: EmailStr = Field(..., description="Email address for password reset")
+
+
+class FormsLibraryCategory(BaseModel):
+    name: str = Field(..., description="Category folder name (e.g. escrow).")
+    forms: list[ChecklistFormWithDownload]
+
+
+class FormsLibraryDownloadResponse(SuccessResponse):
+    download_url: AnyUrl
+    form: ChecklistForm
+
+
+class FormsLibraryResponse(SuccessResponse):
+    categories: list[FormsLibraryCategory] | None = None
 
 
 class Item(BaseModel):
@@ -1728,6 +1913,10 @@ class GenerateReportResponse(SuccessResponse):
     document_id: str | None = None
 
 
+class GetChecklistItemFormsResponse(SuccessResponse):
+    forms: list[ChecklistFormWithDownload] | None = None
+
+
 class LogLevel(Enum):
     DEBUG = "DEBUG"
     INFO = "INFO"
@@ -1735,12 +1924,22 @@ class LogLevel(Enum):
     ERROR = "ERROR"
 
 
+class ClientApiSubcategoryConfig(BaseModel):
+    initialLoad: bool
+    polling: bool
+    pageMount: bool
+    other: bool
+
+
 class ServerLoggerConfig(BaseModel):
     """
-    Logger category toggles (booleans) plus logLevel. additionalProperties allows future category keys to be boolean or string without breaking older clients when the server adds flags.
+    Resolved server logger category toggles plus logLevel.
 
     """
 
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     polling: bool
     pages: bool
     hooks: bool
@@ -1749,7 +1948,66 @@ class ServerLoggerConfig(BaseModel):
     api: bool
     errors: bool
     security: bool
+    search: bool
+    polygonSearch: bool
+    mapRendering: bool
+    propertyDetails: bool
+    negotiation: bool
+    checklists: bool
+    calendar: bool
+    dashboard: bool
+    messages: bool
+    feed: bool
+    routing: bool
+    docusign: bool
+    documents: bool
+    profilePreferences: bool
     logLevel: LogLevel
+
+
+class ClientApiSubcategoryConfigPatch(BaseModel):
+    """
+    Partial API subcategory toggles for admin logger config updates.
+    """
+
+    initialLoad: bool | None = None
+    polling: bool | None = None
+    pageMount: bool | None = None
+    other: bool | None = None
+
+
+class ServerLoggerConfigPatch(BaseModel):
+    """
+    Partial server logger config for admin updates. All fields optional; server deep-merges into stored deployment overrides.
+
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    polling: bool | None = None
+    pages: bool | None = None
+    hooks: bool | None = None
+    auth: bool | None = None
+    http: bool | None = None
+    api: bool | None = None
+    errors: bool | None = None
+    security: bool | None = None
+    search: bool | None = None
+    polygonSearch: bool | None = None
+    mapRendering: bool | None = None
+    propertyDetails: bool | None = None
+    negotiation: bool | None = None
+    checklists: bool | None = None
+    calendar: bool | None = None
+    dashboard: bool | None = None
+    messages: bool | None = None
+    feed: bool | None = None
+    routing: bool | None = None
+    docusign: bool | None = None
+    documents: bool | None = None
+    profilePreferences: bool | None = None
+    logLevel: LogLevel | None = None
 
 
 class GetSenderViewUrlResponse(SuccessResponse):
@@ -1830,21 +2088,6 @@ class GoogleConferenceData(BaseModel):
     entryPoints: list[dict[str, Any]] | None = None
 
 
-class ViewingRouteLeg(BaseModel):
-    """
-    Driving leg between two consecutive ordered stops (from Directions API).
-    """
-
-    duration_seconds: int | None = Field(
-        None, description="Travel duration in seconds for this leg."
-    )
-    distance_meters: int | None = Field(None, description="Distance in meters for this leg.")
-    encoded_polyline: str | None = Field(
-        None,
-        description="Google-encoded polyline for this leg (path for map rendering).",
-    )
-
-
 class GoogleCalendarListResponse(BaseModel):
     kind: str
     etag: str
@@ -1863,6 +2106,17 @@ class GoogleCalendarPermissionsResponse(BaseModel):
     permissions: dict[str, GoogleCalendarPermission]
     scopes: str
     last_updated: str | None = None
+
+
+class GoogleCalendarWebhookBody(BaseModel):
+    """
+    Optional JSON body on Google Calendar push notifications. Header verification (X-Goog-Channel-Token, etc.) is authoritative; body shape varies by Google.
+
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+    )
 
 
 class Creator(BaseModel):
@@ -1994,25 +2248,23 @@ class IsochroneGeometry(BaseModel):
     coordinates: list[list[list[float]]]
 
 
-class IsochroneData2(BaseModel):
-    """
-    Legacy field
-    """
-
-    type: str | None = None
-    coordinates: list[list[list[float]]] | None = None
-
-
-class Location1(BaseModel):
-    address: str | None = None
-    commute_tolerance: float | None = None
-    name: str | None = None
-
-
 class IsochroneResponse(SuccessResponse):
     data: IsochroneData | None = None
-    isochrone_data: IsochroneData2 | None = Field(None, description="Legacy field")
-    locations: list[Location1] | None = Field(None, description="Legacy field")
+
+
+class IsochroneQueryParams(BaseModel):
+    preferences_user_id: constr(max_length=64) | None = Field(
+        None,
+        description="Optional user id whose preferences drive the isochrone (agent research scope).",
+    )
+
+
+class OAuthCallbackQueryParams(BaseModel):
+    code: constr(max_length=2048) | None = Field(None, description="OAuth authorization code")
+    state: constr(max_length=512) | None = Field(None, description="OAuth CSRF state parameter")
+    error: constr(max_length=256) | None = Field(
+        None, description="OAuth error code when authorization failed"
+    )
 
 
 class ListTemplatesResponse(SuccessResponse):
@@ -2087,199 +2339,6 @@ class Strategy(BaseModel):
     market_section: MarketSection
 
 
-class PropertyData(BaseModel):
-    """
-    DEPRECATED: Use PropertyComplete with submodels instead.
-    Legacy flat property data structure. Kept for backward compatibility.
-
-    """
-
-    streetAddress: str | None = None
-    city: str | None = None
-    state: str | None = None
-    zipcode: str | None = None
-    price: float | None = None
-    listPrice: float | None = None
-    bedrooms: int | None = Field(None, description="Use this field (not beds)")
-    bathrooms: float | None = Field(None, description="Use this field (not baths)")
-    livingArea: int | None = Field(
-        None, description="Living area in sqft (use this field, not sqft)"
-    )
-    homeType: str | None = Field(None, description="Property type (SINGLE_FAMILY, CONDO, etc.)")
-    lotAreaValue: float | None = None
-    lotAreaUnit: str | None = None
-    listingStatus: str | None = None
-
-
-class NotInterestedHomeItem(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    id: str | None = None
-    address: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
-    zpid: str | None = None
-    mls_home_id: str | None = None
-
-
-class NotInterestedHomesResponse(SuccessResponse):
-    notInterested: list[NotInterestedHomeItem] | None = None
-
-
-class NotificationCounterResponse(SuccessResponse):
-    total_count: int | None = Field(
-        None,
-        description="Total unread/pending notifications; typically present when success is true.",
-    )
-
-
-class OAuthStartResponse(SuccessResponse):
-    auth_url: AnyUrl | None = None
-
-
-class PaginatedResponse(SuccessResponse):
-    count: int | None = None
-    next_page_token: str | None = None
-    next_sync_token: str | None = None
-
-
-class PaginationRequest(BaseModel):
-    """
-    Standard query pagination (page / per_page). Use as a reusable parameter schema or request property shape.
-    """
-
-    page: conint(ge=1) | None = 1
-    per_page: conint(ge=1, le=100) | None = 20
-
-
-class Status7(Enum):
-    generating = "generating"
-    completed = "completed"
-    error = "error"
-
-
-class ReportListItem(BaseModel):
-    """
-    Entry returned by GET /api/v1/report/list — property PDF reports for the current user (camelCase fields as produced by the API). Not the same shape as `UploadedDocumentRecord`.
-
-    """
-
-    id: str
-    status: Status7
-    generatedAt: int = Field(..., description="Unix timestamp in seconds")
-    address: str
-    pdfUrl: AnyUrl | None = None
-    s3Key: str | None = None
-
-
-class PreApprovalLetterRequest(BaseModel):
-    buyer_name: str
-    loan_amount: float
-    property_address: str
-    loan_type: str
-
-
-class OfferDocumentGenerationResponse(SuccessResponse):
-    document_url: AnyUrl | None = None
-    document_id: str | None = None
-    filename: str | None = None
-
-
-class ProfilePictureResponse(SuccessResponse):
-    profile_picture_url: AnyUrl | None = Field(
-        None, description="Public URL of the uploaded profile picture"
-    )
-
-
-class PublicAgentProfile(BaseModel):
-    """
-    Public, read-only agent directory fields for shareable profile URLs. Combines `users` row contact with `user_agent_profiles` when present. Omits Cognito/Google  ids and internal S3 keys; profile images are exposed only as presigned URLs when available.
-
-    """
-
-    id: str = Field(
-        ...,
-        description="User identifier (UUID or string)",
-        examples=["123e4567-e89b-12d3-a456-426614174000"],
-    )
-    name: str
-    email: EmailStr
-    phone: str | None = None
-    mls_id: str | None = None
-    brokerage: str | None = Field(None, description="Legacy brokerage name on the users row.")
-    profile_picture_url: AnyUrl | None = Field(
-        None,
-        description="Presigned URL for the user's profile picture when stored in S3.",
-    )
-    agent_bio: str | None = None
-    brokerage_name: str | None = None
-    brokerage_bic_name: str | None = None
-    brokerage_address: str | None = None
-    brokerage_email: EmailStr | None = None
-    brokerage_phone: str | None = None
-    professional_headshot_url: str | None = Field(
-        None,
-        description="URL or stored headshot reference as persisted on user_agent_profiles.",
-    )
-    primary_service_zips: list[str] | None = None
-    specialties: list[str] | None = None
-    licensed_states: list[str] | None = None
-    license_types: list[str] | None = None
-    license_numbers: list[str] | None = None
-    license_expiration_dates: list[str] | None = None
-    mls_affiliations: list[dict[str, Any]] | None = Field(
-        None,
-        description="Parsed JSON array from user_agent_profiles.mls_affiliations (list of objects).",
-    )
-    social_links: dict[str, str] | None = None
-    public_profile_slug: str | None = Field(
-        None,
-        description="Unique slug for the short public profile URL path `/a/{public_profile_slug}`. Omitted or null only for legacy rows before backfill; clients should fall back to the long id-based URL.\n",
-    )
-
-
-class PublicAgentProfileResponse(SuccessResponse):
-    agent: PublicAgentProfile = Field(
-        ...,
-        description="Public agent profile; only returned when the user exists and is an active agent.",
-    )
-
-
-class PropertyCompsRequest(BaseModel):
-    address: str
-    radius: float | None = None
-    count: int | None = None
-
-
-class Source(Enum):
-    slipstream_gamls = "slipstream_gamls"
-
-
-class PropertyCompsResponse(SuccessResponse):
-    query: dict[str, Any] | None = Field(
-        None, description="Request parameters used for the API call"
-    )
-    data: dict[str, Any] | None = Field(
-        None, description="Property comparables data from Slipstream API"
-    )
-    source: Source | None = None
-
-
-class PropertyAgent(BaseModel):
-    """
-    Agent and brokerage information
-    """
-
-    listingAgentId: str | None = Field(None, description="MLS or internal agent ID")
-    listingAgentName: str | None = Field(None, description="Full name of listing agent")
-    listingAgentPhone: str | None = Field(None, description="Agent phone number")
-    listingAgentEmail: EmailStr | None = Field(None, description="Agent email address")
-    brokerage: str | None = Field(None, description="Brokerage firm name")
-    mlsId: str | None = Field(None, description="MLS listing ID")
-    mlsRegion: str | None = Field(None, description="MLS region or board")
-
-
 class LotSizeUnit(Enum):
     """
     Unit for lot size measurement
@@ -2338,7 +2397,7 @@ class Event(Enum):
 
 
 class PriceHistoryItem(BaseModel):
-    eventDate: date = Field(..., description="Date of price event")
+    eventDate: date_aliased = Field(..., description="Date of price event")
     price: float = Field(..., description="Price at this event")
     event: Event = Field(..., description="Type of price event")
 
@@ -2356,6 +2415,20 @@ class PropertyFinancials(BaseModel):
     annualTaxes: confloat(ge=0.0) | None = Field(None, description="Annual property taxes")
     hoaFees: confloat(ge=0.0) | None = Field(None, description="Monthly HOA fees")
     insurance: confloat(ge=0.0) | None = Field(None, description="Estimated monthly insurance cost")
+
+
+class PropertyAgent(BaseModel):
+    """
+    Agent and brokerage information
+    """
+
+    listingAgentId: str | None = Field(None, description="MLS or internal agent ID")
+    listingAgentName: str | None = Field(None, description="Full name of listing agent")
+    listingAgentPhone: str | None = Field(None, description="Agent phone number")
+    listingAgentEmail: EmailStr | None = Field(None, description="Agent email address")
+    brokerage: str | None = Field(None, description="Brokerage firm name")
+    mlsId: str | None = Field(None, description="MLS listing ID")
+    mlsRegion: str | None = Field(None, description="MLS region or board")
 
 
 class HomeType(Enum):
@@ -2458,7 +2531,7 @@ class PropertyMetadata(BaseModel):
     daysOnMarket: conint(ge=0) | None = Field(
         None, description="Number of days property has been listed"
     )
-    listingDate: date | None = Field(None, description="Date property was listed")
+    listingDate: date_aliased | None = Field(None, description="Date property was listed")
     lastUpdated: AwareDatetime | None = Field(None, description="Last time listing was updated")
     createdAt: AwareDatetime | None = Field(
         None, description="When record was created in our system"
@@ -2466,6 +2539,171 @@ class PropertyMetadata(BaseModel):
     updatedAt: AwareDatetime | None = Field(
         None, description="When record was last updated in our system"
     )
+
+
+class NotInterestedHomeItem(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    id: str | None = None
+    address: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    zpid: str | None = None
+    mls_home_id: str | None = None
+
+
+class NotInterestedHomesResponse(SuccessResponse):
+    notInterested: list[NotInterestedHomeItem] | None = None
+
+
+class NotificationCounterResponse(SuccessResponse):
+    total_count: int | None = Field(
+        None,
+        description="Total unread/pending notifications; typically present when success is true.",
+    )
+
+
+class OAuthStartResponse(SuccessResponse):
+    auth_url: AnyUrl | None = None
+
+
+class PaginatedResponse(SuccessResponse):
+    count: int | None = None
+    next_page_token: str | None = None
+    next_sync_token: str | None = None
+
+
+class PaginationRequest(BaseModel):
+    """
+    Standard query pagination (page / per_page). Use as a reusable parameter schema or request property shape.
+    """
+
+    page: conint(ge=1) | None = 1
+    per_page: conint(ge=1, le=100) | None = 20
+
+
+class Status7(Enum):
+    generating = "generating"
+    completed = "completed"
+    error = "error"
+
+
+class ReportListItem(BaseModel):
+    """
+    Entry returned by GET /api/v1/report/list — property PDF reports for the current user (camelCase fields as produced by the API). Not the same shape as `UploadedDocumentRecord`.
+
+    """
+
+    id: str
+    status: Status7
+    generatedAt: int = Field(..., description="Unix timestamp in seconds")
+    address: str
+    pdfUrl: AnyUrl | None = None
+    s3Key: str | None = None
+
+
+class PreApprovalLetterRequest(BaseModel):
+    buyer_name: str
+    loan_amount: float
+    property_address: str
+    loan_type: str
+
+
+class OfferDocumentGenerationResponse(SuccessResponse):
+    document_url: AnyUrl | None = None
+    document_id: str | None = None
+    filename: str | None = None
+
+
+class UpsertPreferencesApiResponse(SuccessResponse):
+    preferences: PreferencesResponse | None = None
+    message: str | None = Field(
+        None, description="Confirmation copy (e.g. Preferences saved successfully)."
+    )
+
+
+class ProfilePictureResponse(SuccessResponse):
+    profile_picture_url: AnyUrl | None = Field(
+        None, description="Public URL of the uploaded profile picture"
+    )
+
+
+class PublicAgentProfile(BaseModel):
+    """
+    Public, read-only agent directory fields for shareable profile URLs. Combines `users` row contact with `user_agent_profiles` when present. Omits Cognito/Google  ids and internal S3 keys; profile images are exposed only as presigned URLs when available.
+
+    """
+
+    id: str = Field(
+        ...,
+        description="User identifier (UUID or string)",
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
+    )
+    name: str
+    email: EmailStr
+    phone: str | None = None
+    mls_id: str | None = None
+    brokerage: str | None = Field(
+        None,
+        description="Brokerage name from the users row (prefer `brokerage_name` when both are set).",
+    )
+    profile_picture_url: AnyUrl | None = Field(
+        None,
+        description="Presigned URL for the user's profile picture when stored in S3.",
+    )
+    agent_bio: str | None = None
+    brokerage_name: str | None = None
+    brokerage_bic_name: str | None = None
+    brokerage_address: str | None = None
+    brokerage_email: EmailStr | None = None
+    brokerage_phone: str | None = None
+    professional_headshot_url: str | None = Field(
+        None,
+        description="URL or stored headshot reference as persisted on user_agent_profiles.",
+    )
+    primary_service_zips: list[str] | None = None
+    specialties: list[str] | None = None
+    licensed_states: list[str] | None = None
+    license_types: list[str] | None = None
+    license_numbers: list[str] | None = None
+    license_expiration_dates: list[str] | None = None
+    mls_affiliations: list[dict[str, Any]] | None = Field(
+        None,
+        description="Parsed JSON array from user_agent_profiles.mls_affiliations (list of objects).",
+    )
+    social_links: dict[str, str] | None = None
+    public_profile_slug: str | None = Field(
+        None,
+        description="Unique slug for the short public profile URL path `/a/{public_profile_slug}`. Omitted or null before slug backfill; clients should fall back to the long id-based URL.\n",
+    )
+
+
+class PublicAgentProfileResponse(SuccessResponse):
+    agent: PublicAgentProfile = Field(
+        ...,
+        description="Public agent profile; only returned when the user exists and is an active agent.",
+    )
+
+
+class PropertyCompsRequest(BaseModel):
+    address: str
+    radius: float | None = None
+    count: int | None = None
+
+
+class Source(Enum):
+    slipstream_gamls = "slipstream_gamls"
+
+
+class PropertyCompsResponse(SuccessResponse):
+    query: dict[str, Any] | None = Field(
+        None, description="Request parameters used for the API call"
+    )
+    data: dict[str, Any] | None = Field(
+        None, description="Property comparables data from Slipstream API"
+    )
+    source: Source | None = None
 
 
 class DetailLevel(Enum):
@@ -2566,7 +2804,7 @@ class Essentials(BaseModel):
     yearBuilt: int | None = None
 
 
-class Location2(BaseModel):
+class Location1(BaseModel):
     """
     Property location
     """
@@ -2623,18 +2861,18 @@ class PropertySearchResult(BaseModel):
 
     """
 
-    id: str = Field(..., description="Property ID (ZPID or internal)")
+    id: str = Field(..., description="Slipstream listing key (ZPID or MLS id)")
+    home_id: str | None = Field(
+        None,
+        description="Stable PropertyCache UUID for this listing in SilverKey (use for saves, feed, and refresh).",
+    )
     essentials: Essentials = Field(..., description="Core property characteristics")
-    location: Location2 = Field(..., description="Property location")
+    location: Location1 = Field(..., description="Property location")
     financials: Financials | None = Field(None, description="Pricing information")
     media: Media | None = Field(None, description="Property images")
     metadata: Metadata | None = Field(None, description="Listing metadata")
     score: float | None = Field(None, description="Match score based on preferences")
     ranking: int | None = Field(None, description="Position in search results")
-
-
-class RemoveAgentResponse(SuccessResponse):
-    removed: bool | None = None
 
 
 class RemoveFavoriteRequest(BaseModel):
@@ -2649,9 +2887,6 @@ class RemoveNotInterestedRequest(BaseModel):
 class ReportDocumentsListResponse(SuccessResponse):
     documents: list[UploadedDocumentRecord] | None = Field(
         None, description="Rows from GET /api/v1/report/documents"
-    )
-    reports: list[UploadedDocumentRecord] | None = Field(
-        None, description="Legacy alias for documents (backward compatibility)"
     )
     count: int | None = None
     total: int | None = Field(None, description="Total matching rows when paginated")
@@ -2668,7 +2903,7 @@ class ReportsResponse(SuccessResponse):
     documents: list[UploadedDocumentRecord] | None = None
     reports: list[ReportListItem] | None = Field(
         None,
-        description="Property report list entries (GET /api/v1/report/list shape); legacy clients may have conflated this with upload rows.",
+        description="Property report list entries (GET /api/v1/report/list shape).",
     )
 
 
@@ -2692,6 +2927,31 @@ class RespondToConnectionRequestResponse(SuccessResponse):
 
 class RevokeResponse(SuccessResponse):
     revoked: bool | None = Field(None, description="Whether OAuth token was successfully revoked")
+
+
+class AgentSearchQueryParams(BaseModel):
+    q: constr(max_length=200) | None = ""
+    limit: conint(ge=1, le=50) | None = 20
+
+
+class AgentRecommendQueryParams(BaseModel):
+    zip: constr(max_length=16) | None = None
+    state: constr(max_length=8) | None = None
+    intent: constr(max_length=64) | None = None
+    limit: conint(ge=1, le=50) | None = 20
+
+
+class FeedListQueryParams(BaseModel):
+    page: conint(ge=0, le=10000) | None = 0
+    limit: conint(ge=1, le=50) | None = 10
+
+
+class FeedLikesQueryParams(BaseModel):
+    ids: constr(max_length=2000) | None = Field(None, description="Comma-separated home ids")
+
+
+class ChecklistTypeQueryParams(BaseModel):
+    type: ChecklistType | None = "escrow"
 
 
 class SearchAgentsResponse(SuccessResponse):
@@ -2786,7 +3046,9 @@ class LastSearchContext(BaseModel):
     map_center: MapCenter | None = Field(
         None, description="Map center at the time of the last search."
     )
-    map_zoom: int | None = Field(None, description="Map zoom level at the time of the last search.")
+    map_zoom: confloat(ge=1.0, le=22.0) | None = Field(
+        None, description="Map zoom level at the time of the last search."
+    )
     searched_at: AwareDatetime | None = Field(
         None, description="ISO 8601 timestamp of when the search was executed."
     )
@@ -2820,6 +3082,17 @@ class SearchDisplayResponse(SuccessResponse):
     search_display: SearchDisplayPayload | None = None
 
 
+class SecureUploadDocumentForm(BaseModel):
+    """
+    Multipart form fields for POST /api/v1/upload/document (excluding binary `file`, which is validated via file_security). Maps to the `address` part of SecureUploadDocumentRequest.
+
+    """
+
+    address: str | None = Field(
+        None, description="Optional property address associated with the upload."
+    )
+
+
 class SecureUploadDocumentPayload(BaseModel):
     """
     Nested payload returned by POST /api/v1/upload/document (field `document` on `UploadResponse`). Immediate upload metadata; not the full `UploadedDocumentRecord` (no `user_id` / pipeline status in body).
@@ -2832,6 +3105,36 @@ class SecureUploadDocumentPayload(BaseModel):
     type: str | None = Field(None, description="Validated MIME type of the uploaded file")
     hash: str | None = None
     uploaded_at: str | None = None
+
+
+class SecureUploadDocumentRequest(BaseModel):
+    file: bytes = Field(
+        ...,
+        description="Document file (PDF, DOCX, or allowed image types per handler validation).",
+    )
+    address: str | None = Field(
+        None, description="Optional property address associated with the upload."
+    )
+
+
+class SecureUploadImagePayload(BaseModel):
+    """
+    Nested payload returned by POST /api/v1/upload/image (field `image` on UploadResponse).
+
+    """
+
+    filename: str
+    size: int | None = Field(
+        None,
+        description="File size in bytes; may be null after temp file is removed post-S3 upload.",
+    )
+    type: str | None = Field(None, description="Validated MIME type of the uploaded image.")
+    hash: str | None = None
+    url: AnyUrl | None = Field(None, description="S3 URL when configured; otherwise null.")
+
+
+class SecureUploadImageRequest(BaseModel):
+    file: bytes = Field(..., description="Image file (JPEG, PNG, or GIF per handler validation).")
 
 
 class SigningMethod(Enum):
@@ -2893,8 +3196,27 @@ class SignupData(BaseModel):
     )
 
 
+class SyncTemplatesRequest(BaseModel):
+    """
+    Empty JSON body for POST /api/v1/docusign/templates/sync. Client may send {}. No fields are required or read by the handler.
+
+    """
+
+
 class SyncTemplatesResponse(SuccessResponse):
     task_id: str | None = None
+
+
+class TaskChecklistSectionProgress(BaseModel):
+    completed: conint(ge=0)
+    total: conint(ge=0)
+    isComplete: bool
+
+
+class TaskChecklistOverallProgress(BaseModel):
+    completed: conint(ge=0)
+    total: conint(ge=0)
+    percent: conint(ge=0, le=100)
 
 
 class Status8(Enum):
@@ -2949,11 +3271,131 @@ class TransactionAddressResponse(SuccessResponse):
     data: TransactionAddressData | None = None
 
 
+class Transaction(BaseModel):
+    """
+    Revenue spine row for a buyer deal. Path param `transaction_id` on checklist, documents, rev-share, and calendar APIs MUST be `transactions.id` (UUID) — never the buyer's `users.id`.
+
+    """
+
+    id: str = Field(
+        ...,
+        description="Primary key (`transactions.id`); sole deal scope id for downstream APIs.",
+    )
+    buyer_id: str = Field(..., description="Buyer user id for this deal.")
+    primary_agent_id: str | None = Field(
+        None, description="Primary agent user id when linked via agent_conversations."
+    )
+    brokerage_org_id: str = Field(
+        ..., description="Attribution org for brokerage revenue (not tenant isolation)."
+    )
+    status: str | None = Field(
+        None,
+        description="Deal lifecycle status (e.g. active, closed). Optional until engine assigns values.",
+    )
+    display_label: str | None = Field(
+        None,
+        description="Short human label (often address line) for multi-deal lists and switchers.",
+    )
+    created_at: AwareDatetime | None = Field(
+        None, description="ISO 8601 timestamp when the deal row was created."
+    )
+    updated_at: AwareDatetime | None = Field(
+        None, description="ISO 8601 timestamp when the deal row was last updated."
+    )
+
+
+class TransactionMeData(BaseModel):
+    """
+    Active deal for the authenticated buyer plus optional address summary.
+    """
+
+    transaction: Transaction
+    active_transaction_id: str | None = Field(
+        None,
+        description="Buyer user's active deal pointer (`users.active_transaction_id`); mirrors `transaction.id` when set.",
+    )
+    address: TransactionAddressData | None = Field(
+        None, description="Saved finding-home address for this deal when present."
+    )
+
+
+class TransactionMeResponse(BaseModel):
+    success: bool
+    data: TransactionMeData | None = None
+
+
+class TransactionListResponse(BaseModel):
+    success: bool
+    data: list[Transaction]
+
+
+class CreateTransactionRequest(BaseModel):
+    """
+    Create a new deal row (`transactions.id`). Buyer is implicit for self; agents may set `buyer_id` for a managed client.
+    """
+
+    buyer_id: str | None = Field(
+        None,
+        description="Buyer user id. Required when the caller is an agent creating a deal for a client; omit for buyer self-serve.",
+    )
+    primary_agent_id: str | None = Field(
+        None,
+        description="Optional primary agent override when creating on behalf of a buyer.",
+    )
+    brokerage_org_id: str | None = Field(
+        None,
+        description="Attribution org; defaults from agent membership or platform default.",
+    )
+    set_active: bool | None = Field(
+        True,
+        description="When true, sets the buyer's `active_transaction_id` to the new deal.",
+    )
+
+
+class CreateTransactionResponse(BaseModel):
+    success: bool
+    data: Transaction
+
+
+class SetActiveTransactionRequest(BaseModel):
+    transaction_id: str = Field(
+        ...,
+        description="Revenue spine id (`transactions.id`) to set as the buyer's active deal.",
+    )
+
+
+class SetActiveTransactionResponse(BaseModel):
+    success: bool
+    data: Transaction
+
+
 class UpdateAgentStatusRequest(BaseModel):
-    is_agent: bool = Field(..., description="Whether user should be an agent")
+    agent_role_enabled: bool = Field(
+        ...,
+        description="When true, ensure the agent role in user_roles; when false, remove it.",
+    )
     brokerage: str | None = Field(
         None,
         description="Optional users.brokerage when toggling agent status (if used by client).",
+    )
+
+
+class DevWorkspacePersona(Enum):
+    """
+    Dev-only workspace persona for admin self-impersonation (local QA).
+    """
+
+    buyer = "buyer"
+    seller = "seller"
+    renter = "renter"
+    agent = "agent"
+    brokerage = "brokerage"
+    integration_partner = "integration_partner"
+
+
+class SetCurrentUserDevWorkspaceRequest(BaseModel):
+    workspace: DevWorkspacePersona = Field(
+        ..., description="Exclusive workspace persona to apply to the signed-in user."
     )
 
 
@@ -2965,17 +3407,6 @@ class UpdateChecklistDispatchAutomationRequest(BaseModel):
     noteMode: ChecklistDispatchNoteMode
     noteBroadcast: constr(max_length=5000) | None = None
     notesPerClient: dict[str, str] | None = None
-
-
-class UpdateClosingModeRequest(BaseModel):
-    is_closing_mode: bool = Field(..., description="Toggle closing mode on (true) or off (false)")
-
-
-class UpdateClosingModeResponse(SuccessResponse):
-    is_closing_mode: bool | None = Field(
-        None,
-        description="Echo of the request value for API compatibility. Not persisted on the users table (column removed); do not treat as stored user profile state.\n",
-    )
 
 
 class Status9(Enum):
@@ -2992,10 +3423,6 @@ class UpdateEventRequestStatusRequest(BaseModel):
         ...,
         description="New status for the event request (pending cannot be set manually)",
     )
-
-
-class UpdateLoggerConfigRequest(BaseModel):
-    updates: dict[str, Any] = Field(..., description="Partial logger config updates")
 
 
 class UpdateNotInterestedRequest(BaseModel):
@@ -3027,6 +3454,28 @@ class UpdateTodoRequest(BaseModel):
 
 class UpdateTodoResponse(SuccessResponse):
     todo: TodoItem | None = None
+
+
+class GateRole(Enum):
+    admin = "admin"
+    super_admin = "super_admin"
+
+
+class AdminGateUser(BaseModel):
+    user_id: str = Field(..., description="User primary key (UUID).")
+    email: str = Field(..., description="User email address.")
+    name: str = Field(..., description="Display name.")
+    gate_roles: list[GateRole] = Field(
+        ...,
+        description="SilverKey gate roles assigned to this user (`admin`, `super_admin`).",
+    )
+
+
+class ListAdminGateUsersResponse(SuccessResponse):
+    admins: list[AdminGateUser] = Field(
+        ...,
+        description="Users with at least one SilverKey gate role (`admin` or `super_admin`).",
+    )
 
 
 class GrantEnum(Enum):
@@ -3063,6 +3512,7 @@ class UploadResponse(SuccessResponse):
     file_size: int | None = None
     content_type: str | None = None
     document: SecureUploadDocumentPayload | None = None
+    image: SecureUploadImagePayload | None = None
 
 
 class UserDataExportResponse(SuccessResponse):
@@ -3079,15 +3529,291 @@ class ValidationStatsApiResponse(SuccessResponse):
     )
 
 
-class ViewingNavigateResponse(BaseModel):
+class TargetRole(Enum):
+    buyer = "buyer"
+    seller = "seller"
+    renter = "renter"
+    agent = "agent"
+    brokerage = "brokerage"
+    integration_partner = "integration_partner"
+
+
+class PayoutType(Enum):
     """
-    Google Maps multi-stop navigation URL.
+    Whether payout is attributed per click or per closed transaction
     """
 
-    url: AnyUrl = Field(
+    on_click = "on_click"
+    on_close = "on_close"
+
+
+class IntegrationDisplayMode(Enum):
+    """
+    Checklist integration UI — embedded iframe plus new-tab link, or link only
+    """
+
+    iframe_and_link = "iframe_and_link"
+    link_only = "link_only"
+
+
+class Partner(BaseModel):
+    id: str
+    name: str
+    slug: str
+    destination_url_template: str
+    logo_url: str | None = None
+    description: str | None = None
+    step_id: str = Field(
         ...,
-        description="https://www.google.com/maps/dir/... deep link for driving directions.",
+        description="Deprecated primary step mirror (step_ids[0]) for analytics compatibility",
     )
+    step_ids: list[str] = Field(
+        ..., description="Checklist step references (section:item_id), e.g. closing:13"
+    )
+    target_roles: list[TargetRole] = Field(
+        ..., description="Workspaces that may see this placement"
+    )
+    payout_type: PayoutType = Field(
+        ...,
+        description="Whether payout is attributed per click or per closed transaction",
+    )
+    payout_per_conversion: float
+    integration_display_mode: IntegrationDisplayMode | None = Field(
+        "iframe_and_link",
+        description="Checklist integration UI — embedded iframe plus new-tab link, or link only",
+    )
+    embed_url_template: str | None = Field(
+        None,
+        description="Optional URL loaded in the iframe when integration_display_mode is iframe_and_link; defaults to destination_url_template",
+    )
+    is_active: bool
+    created_at: AwareDatetime | None = None
+    updated_at: AwareDatetime | None = None
+    total_clicks: int | None = None
+    click_through_rate: float | None = None
+    unique_buyer_step_views: int | None = None
+
+
+class BuyerStepView(BaseModel):
+    id: str
+    buyer_id: str
+    step_id: str
+    transaction_id: str
+    viewed_at: AwareDatetime
+    partner_payout_snapshot: list[dict[str, Any]] | None = None
+
+
+class RevShareRecentClick(BaseModel):
+    id: str
+    partner_id: str
+    link_id: str
+    agent_id: str | None = None
+    buyer_id: str | None = None
+    transaction_id: str | None = None
+    step_id: str
+    clicked_at: AwareDatetime
+    payout_per_conversion: float
+    payout_type: str
+    utm_source: str | None = None
+    utm_medium: str | None = None
+    utm_campaign: str | None = None
+    geo_city: str | None = None
+    geo_zip: str | None = None
+    geo_region: str | None = None
+    device_class: str | None = None
+    referrer: str | None = None
+    buyer_name: str | None = None
+    agent_name: str | None = None
+
+
+class PayoutType1(Enum):
+    on_click = "on_click"
+    on_close = "on_close"
+
+
+class IntegrationDisplayMode1(Enum):
+    iframe_and_link = "iframe_and_link"
+    link_only = "link_only"
+
+
+class PartnerCreateRequest(BaseModel):
+    name: str
+    slug: str
+    destination_url_template: str = Field(
+        ...,
+        description="Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here.",
+    )
+    logo_url: str | None = None
+    description: str | None = None
+    step_ids: list[str] | None = Field(
+        None, description="Required when target_roles includes buyer or seller"
+    )
+    target_roles: list[TargetRole] = Field(..., min_length=1)
+    payout_type: PayoutType1
+    payout_per_conversion: float | None = None
+    integration_display_mode: IntegrationDisplayMode1 | None = "iframe_and_link"
+    embed_url_template: str | None = Field(
+        None,
+        description="Optional iframe embed URL; when omitted, destination_url_template is used for the iframe src",
+    )
+
+
+class PartnerUpdateRequest(BaseModel):
+    name: str | None = None
+    slug: str | None = None
+    destination_url_template: str | None = Field(
+        None,
+        description="Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here.",
+    )
+    logo_url: str | None = None
+    description: str | None = None
+    step_ids: list[str] | None = None
+    target_roles: list[TargetRole] | None = None
+    payout_type: PayoutType1 | None = None
+    payout_per_conversion: float | None = None
+    integration_display_mode: IntegrationDisplayMode1 | None = "iframe_and_link"
+    embed_url_template: str | None = None
+    is_active: bool | None = Field(
+        None,
+        description="Table activate/deactivate only; not set from create/edit form",
+    )
+
+
+class Data2(BaseModel):
+    partners: list[Partner]
+
+
+class PartnerListResponse(BaseModel):
+    success: bool
+    data: Data2
+
+
+class PartnerResponse(BaseModel):
+    success: bool
+    data: Partner
+
+
+class Data3(BaseModel):
+    logo_key: str | None = None
+    logo_url: str | None = None
+
+
+class PartnerLogoUploadResponse(BaseModel):
+    success: bool
+    logo_url: str | None = Field(None, description="Presigned view URL for the uploaded logo")
+    data: Data3 | None = None
+
+
+class RevShareStepViewRequest(BaseModel):
+    step_id: str
+    transaction_id: str
+
+
+class RevShareStepViewResponse(BaseModel):
+    success: bool
+    data: BuyerStepView
+
+
+class Workspace(Enum):
+    buyer = "buyer"
+    seller = "seller"
+    renter = "renter"
+    agent = "agent"
+    brokerage = "brokerage"
+    integration_partner = "integration_partner"
+
+
+class PartnerPlacementsQueryParams(BaseModel):
+    step_id: str
+    workspace: Workspace
+    transaction_id: str | None = Field(
+        None,
+        description="Optional; used only to fill embed URL placeholders when the partner template includes them",
+    )
+
+
+class Bucket(Enum):
+    day = "day"
+    week = "week"
+
+
+class RevShareAnalyticsQueryParams(BaseModel):
+    partner_id: str
+    step_id: str | None = None
+    date_from: AwareDatetime | None = None
+    date_to: AwareDatetime | None = None
+    agent_id: str | None = None
+    brokerage: str | None = None
+    bucket: Bucket | None = "day"
+
+
+class RevShareRedirectQueryParams(BaseModel):
+    buyer_id: str | None = None
+    transaction_id: str | None = None
+    step_id: str | None = None
+    session_id: str | None = None
+    utm_source: str | None = None
+    utm_medium: str | None = None
+    utm_campaign: str | None = None
+
+
+class Placement(BaseModel):
+    partner: Partner
+    link_id: str
+    destination_url: str | None = Field(
+        None,
+        description="Resolved partner destination URL for outbound open (no /r redirect required)",
+    )
+    embed_src: str | None = Field(
+        None,
+        description="Resolved iframe URL when partner integration_display_mode is iframe_and_link",
+    )
+
+
+class Data4(BaseModel):
+    placements: list[Placement]
+
+
+class RevSharePlacementsResponse(BaseModel):
+    success: bool
+    data: Data4
+
+
+class Point(BaseModel):
+    date: str | None = None
+    count: int | None = None
+
+
+class ClicksOverTime(BaseModel):
+    bucket: str | None = None
+    points: list[Point] | None = None
+
+
+class TopAgent(BaseModel):
+    agent_id: str | None = None
+    name: str | None = None
+    clicks: int | None = None
+
+
+class Data5(BaseModel):
+    partner_id: str | None = None
+    total_clicks: int | None = None
+    unique_buyer_clicks: int | None = None
+    unique_buyer_step_views: int | None = None
+    click_through_rate: float | None = None
+    estimated_revenue: float | None = None
+    estimated_revenue_label: str | None = None
+    clicks_over_time: ClicksOverTime | None = None
+    top_agents: list[TopAgent] | None = None
+    geo_breakdown: list[dict[str, Any]] | None = None
+    device_breakdown: list[dict[str, Any]] | None = None
+    referrer_breakdown: list[dict[str, Any]] | None = None
+    recent_clicks: list[RevShareRecentClick] | None = None
+
+
+class RevShareAnalyticsResponse(BaseModel):
+    success: bool
+    data: Data5
 
 
 class VerifyData(BaseModel):
@@ -3113,74 +3839,6 @@ class VoidAgreementResponse(RootModel[SuccessResponse]):
 
 class ActionPlanResponse(SuccessResponse):
     plan: dict[str, Any] | None = Field(None, description="Generated action plan structure")
-
-
-class User(BaseModel):
-    """
-    Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Closing mode is not stored on users (column removed); use PUT /user/closing-mode response only.
-
-    """
-
-    id: str = Field(
-        ...,
-        description="User identifier (UUID or string)",
-        examples=["123e4567-e89b-12d3-a456-426614174000"],
-    )
-    cognito_id: str | None = Field(
-        None,
-        description="AWS Cognito `sub` when the account uses Cognito credentials; null for Google-only accounts until linked, or when the row predates Cognito linkage.\n",
-    )
-    google_id: str | None = Field(
-        None,
-        description="Google OAuth subject when the account is linked; omit or null for non-Google users.",
-    )
-    email: EmailStr
-    name: constr(min_length=1, max_length=200)
-    phone: str | None = None
-    created_at: AwareDatetime | None = None
-    updated_at: AwareDatetime | None = None
-    last_logged_in: AwareDatetime | None = Field(
-        None,
-        description="ISO 8601 timestamp of last successful session activity when tracked.",
-    )
-    is_active: bool
-    is_agent: bool | None = None
-    client_ids: list[str] | str | None = Field(
-        None,
-        description="Legacy wire shape: JSON array of client ids or a single comma-separated string. Prefer array in new clients; oneOf is required until all producers normalize.\n",
-    )
-    agent_id: list[str] | str | None = Field(
-        None,
-        description="Legacy wire shape: buyer agent id(s) as JSON array or string. Prefer array in new clients.\n",
-    )
-    mls_id: str | None = None
-    brokerage: str | None = Field(
-        None,
-        description="Agent brokerage name on the users row (DB column brokerage). Replaces the legacy column name agency_name from early migrations; API wire name is always brokerage.\n",
-    )
-    has_subscription: bool | None = None
-    subscription: Subscription | None = Field(
-        None,
-        description="Optional payment-provider subscription metadata. Listed properties are common; providers may add extra keys (additionalProperties allowed).\n",
-    )
-    has_preferences: bool | None = None
-    preferences_version: str | None = Field(
-        None, description="Legacy preferences version marker on users row."
-    )
-    profile_picture: str | None = Field(
-        None, description="S3 object key for the profile image when stored server-side."
-    )
-    profile_picture_url: AnyUrl | None = Field(
-        None, description="Presigned URL when returned by profile/upload handlers."
-    )
-    roles: list[str] | None = Field(
-        None,
-        description="Role names from user_roles; typically present on GET /user/profile.",
-    )
-    brokerage_org_ids: list[str] | None = Field(
-        None,
-        description="Brokerage organization ids this user may administer under brokerage workspace. Omitted or null until brokerage roster membership is populated server-side.\n",
-    )
 
 
 class AddCommentResponse(SuccessResponse):
@@ -3220,6 +3878,24 @@ class AgentChatMessage(BaseModel):
     event_request_status: EventRequestStatus | None = None
 
 
+class EligibleContact(BaseModel):
+    contact_id: str
+    contact_type: str
+    display_name: str
+    kind: WorkspaceConversationKind
+    metadata: dict[str, Any] | None = None
+
+
+class CreateWorkspaceConversationResponse(BaseModel):
+    success: bool
+    conversation: WorkspaceConversation
+
+
+class WorkspaceConversationHistoryResponse(BaseModel):
+    success: bool
+    messages: list[WorkspaceMessage]
+
+
 class AgreementParticipant(BaseModel):
     id: str
     agreement_id: str
@@ -3252,31 +3928,6 @@ class CognitoCodeDeliveryDetails(BaseModel):
         None, description="Masked destination (e.g., 'j***@example.com' or '+1***1234')"
     )
     AttributeName: str | None = Field(None, description="Attribute being verified (e.g., 'email')")
-
-
-class BuildRouteRequest(BaseModel):
-    """
-    Request to optimize stop order and compute driving legs.
-    """
-
-    stops: list[ViewingStop] = Field(
-        ...,
-        description="Property stops; order preserved when optimize_order is false.",
-        min_length=2,
-    )
-    start: ViewingRouteEndpoint | None = Field(
-        None,
-        description="Optional starting location (e.g. home or current position). When set, the route begins here and only property stops are reordered. When omitted, legacy behavior optimizes across property stops only (open tour, best first listing).\n",
-    )
-    end: ViewingRouteEndpoint | None = Field(
-        None,
-        description="Required when end_mode is fixed; ignored for last_property and return_to_start.",
-    )
-    end_mode: ViewingRouteEndMode | None = "last_property"
-    optimize_order: bool | None = Field(
-        True,
-        description="When true, reorder property stops to reduce driving time (subject to start/end_mode). When false, visit properties in request order between anchors.\n",
-    )
 
 
 class TaskChecklistItem(BaseModel):
@@ -3350,6 +4001,19 @@ class ChecklistDispatchAutomationSetting(BaseModel):
     )
 
 
+class ChecklistFormSendResponse(BaseModel):
+    success: bool
+    message_id: str | None = Field(
+        None, description="Messaging attachment message id when messaging succeeded."
+    )
+    agreement_id: str | None = Field(
+        None, description="DocuSign agreement id when signing flow succeeded."
+    )
+    partial_errors: list[ChecklistFormPartialStepError] | None = Field(
+        None, description="Per-step failures when method is both and one leg failed."
+    )
+
+
 class Preference(BaseModel):
     client: ClientInfo | None = None
     preferences: PreferencesResponse | None = None
@@ -3380,10 +4044,6 @@ class ClientSettings(BaseModel):
     library: Library | None = None
     saved: Saved | None = None
     calendar: Calendar1 | None = None
-    viewing_tour: ViewingTourClientSettings | None = Field(
-        None,
-        description="Saved tour anchors and defaults for multi-stop property viewings.",
-    )
     onboarding_draft: dict[str, Any] | None = Field(
         None,
         description="Partial onboarding / profile form payload for refresh recovery. Omitted when empty.",
@@ -3466,77 +4126,137 @@ class ForgotPasswordResponse(SuccessResponse):
     code_delivery: CognitoCodeDeliveryDetails | None = None
 
 
-class UserProfile(User):
+class UserModel(BaseModel):
     """
-    Full application user record as returned by profile and admin user endpoints.
-    Wire-identical to User; use this schema name when documenting "profile" responses
-    (e.g. GET /api/v1/user/profile). Agent rows may include `mls_id`, `brokerage`, and
-    `roles`; `profile_picture_url` is a short-lived presigned URL when present.
+    Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Agent identity is determined by the presence of role "agent" in user_roles (exposed as roles).
 
     """
 
+    id: str = Field(
+        ...,
+        description="User identifier (UUID or string)",
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
+    )
+    cognito_id: str | None = Field(
+        None,
+        description="AWS Cognito `sub` when the account uses Cognito credentials; null for Google-only accounts until linked, or when the row predates Cognito linkage.\n",
+    )
+    google_id: str | None = Field(
+        None,
+        description="Google OAuth subject when the account is linked; omit or null for non-Google users.",
+    )
+    email: EmailStr
+    name: constr(min_length=1, max_length=200)
+    phone: str | None = None
+    created_at: AwareDatetime | None = None
+    updated_at: AwareDatetime | None = None
+    last_logged_in: AwareDatetime | None = Field(
+        None,
+        description="ISO 8601 timestamp of last successful session activity when tracked.",
+    )
+    is_active: bool
+    mls_id: str | None = None
+    brokerage: str | None = Field(
+        None,
+        description="Agent brokerage name on the users row (DB column brokerage). API wire name is always brokerage.\n",
+    )
+    has_preferences: bool | None = None
+    preferences_version: str | None = Field(
+        None,
+        description="Preferences schema version marker on users row (e.g. v1); null when unset.",
+    )
+    profile_picture: str | None = Field(
+        None, description="S3 object key for the profile image when stored server-side."
+    )
+    profile_picture_url: AnyUrl | None = Field(
+        None, description="Presigned URL when returned by profile/upload handlers."
+    )
+    roles: list[str] | None = Field(
+        None,
+        description="Role names from user_roles (e.g. agent, buyer, seller). Agent UX uses roles includes agent.",
+    )
+    brokerage_org_ids: list[str] | None = Field(
+        None,
+        description="Brokerage organization ids from `user_org_memberships` for attribution and admin scope.\n",
+    )
 
-class GetLoggerConfigResponse(SuccessResponse):
-    config: ServerLoggerConfig | None = None
+
+class ClientLoggerConfig(BaseModel):
+    """
+    Resolved frontend logger category toggles with nested API subcategories plus logLevel.
+
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    polling: bool
+    pages: bool
+    hooks: bool
+    auth: bool
+    http: bool
+    api: bool | ClientApiSubcategoryConfig
+    errors: bool
+    security: bool
+    search: bool
+    polygonSearch: bool
+    mapRendering: bool
+    propertyDetails: bool
+    negotiation: bool
+    checklists: bool
+    calendar: bool
+    dashboard: bool
+    messages: bool
+    feed: bool
+    routing: bool
+    docusign: bool
+    documents: bool
+    profilePreferences: bool
+    logLevel: LogLevel
+
+
+class ClientLoggerConfigPatch(BaseModel):
+    """
+    Partial frontend logger config for admin updates. All fields optional; server deep-merges into stored deployment overrides.
+
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    polling: bool | None = None
+    pages: bool | None = None
+    hooks: bool | None = None
+    auth: bool | None = None
+    http: bool | None = None
+    api: bool | ClientApiSubcategoryConfigPatch | None = None
+    errors: bool | None = None
+    security: bool | None = None
+    search: bool | None = None
+    polygonSearch: bool | None = None
+    mapRendering: bool | None = None
+    propertyDetails: bool | None = None
+    negotiation: bool | None = None
+    checklists: bool | None = None
+    calendar: bool | None = None
+    dashboard: bool | None = None
+    messages: bool | None = None
+    feed: bool | None = None
+    routing: bool | None = None
+    docusign: bool | None = None
+    documents: bool | None = None
+    profilePreferences: bool | None = None
+    logLevel: LogLevel | None = None
+
+
+class DeploymentLoggerConfigUpdates(BaseModel):
+    client: ClientLoggerConfigPatch | None = None
+    server: ServerLoggerConfigPatch | None = None
 
 
 class GoogleEventReminders(BaseModel):
     useDefault: bool | None = None
     overrides: list[GoogleReminderOverride] | None = None
-
-
-class ViewingItinerary(BaseModel):
-    """
-    Ordered property viewing stops with optional route anchors and computed legs. `stops` are property/showing stops only; `start` and `end` (when used) are logistics anchors and are not duplicated inside `stops`.
-
-    """
-
-    stops: list[ViewingStop] = Field(
-        ...,
-        description="Property stops only, in visit order after route optimization when `ordered` is true.\n",
-        min_length=1,
-    )
-    ordered: bool | None = Field(
-        False,
-        description="True when property stop order was optimized via the route service.",
-    )
-    legs: list[ViewingRouteLeg] | None = Field(
-        None,
-        description="Per-leg metrics and polylines for the full driving path (includes legs from/to anchors). When present and complete, length equals the number of nodes in the expanded path minus one (nodes: optional start, each property stop in order, optional return or fixed end).\n",
-    )
-    start: ViewingRouteEndpoint | None = Field(
-        None, description="Optional meet-up / departure anchor (not listed in `stops`)."
-    )
-    end: ViewingRouteEndpoint | None = Field(
-        None, description="Required when `end_mode` is `fixed`; ignored otherwise."
-    )
-    end_mode: ViewingRouteEndMode | None = Field(
-        "last_property",
-        description="How the tour ends after the last property. Omitted or `last_property` for legacy itineraries.\n",
-    )
-
-
-class NegotiationStrategyResponse(SuccessResponse):
-    strategy: Strategy | None = Field(
-        None,
-        description="Generated negotiation strategy with price and market analysis",
-    )
-    property_address: str
-    strategy_id: str
-    filename: str
-    generated_at: str
-    generated_for_user: str
-    property_data: PropertyData | None = None
-    commute_data: CommuteData | None = None
-    property_analysis: dict[str, Any] | None = Field(
-        None,
-        description="Property analysis from research endpoint (same structure as in PropertyResponse)",
-    )
-    traceback: str | None = None
-
-
-class PollReportResponse(SuccessResponse):
-    report: ReportListItem | None = None
 
 
 class PropertyComplete(BaseModel):
@@ -3558,6 +4278,10 @@ class PropertyComplete(BaseModel):
     ranking: int | None = Field(None, description="Position in search results (1 = best match)")
 
 
+class PollReportResponse(SuccessResponse):
+    report: ReportListItem | None = None
+
+
 class PropertyRequest(PropertyResearchOptions):
     address: str
     zpid: str | None = None
@@ -3566,10 +4290,6 @@ class PropertyRequest(PropertyResearchOptions):
 
 class ResendCodeResponse(SuccessResponse):
     code_delivery: CognitoCodeDeliveryDetails | None = None
-
-
-class SearchAgentsPreferencesResponse(SuccessResponse):
-    agents: list[User] | None = None
 
 
 class SearchByPolygonRequest(BaseModel):
@@ -3607,6 +4327,10 @@ class SearchByPolygonRequest(BaseModel):
         None,
         description="When true, return previously materialized results only without hitting upstream MLS.",
     )
+    hydrateListings: bool | None = Field(
+        None,
+        description="When true with `onlyCached`, refresh listing snapshots (price, status, beds, etc.) from Slipstream\nusing each persisted home_id before responding. Does not re-run search or change match scores.\n",
+    )
     preferences_user_id: str | None = Field(
         None,
         description="Optional subject for preference scoring (agents: must be a linked client id; buyers are always scoped to self).\nResolved server-side via `resolve_preferences_user_id_for_research`.\n",
@@ -3633,8 +4357,24 @@ class SendAgreementRequest(BaseModel):
     )
 
 
+class TaskChecklistProgressSummary(BaseModel):
+    sections: dict[str, TaskChecklistSectionProgress] = Field(
+        ...,
+        description="Per-category progress keyed by ChecklistType (search, offer, escrow, insurance, financing, closing).",
+    )
+    overall: TaskChecklistOverallProgress
+
+
+class TaskChecklistProgressSummaryResponse(SuccessResponse):
+    data: TaskChecklistProgressSummary | None = None
+
+
 class UpdateAgentStatusResponse(SuccessResponse):
-    user: User | None = None
+    user: UserModel | None = None
+
+
+class SetCurrentUserDevWorkspaceResponse(SuccessResponse):
+    user: UserModel | None = None
 
 
 class Checklist(BaseModel):
@@ -3654,33 +4394,17 @@ class UpdateChecklistRequest(BaseModel):
     checklist: Checklist = Field(..., description="Checklist data with items and checkedIds")
 
 
+class UpdateLoggerConfigRequest(BaseModel):
+    updates: DeploymentLoggerConfigUpdates
+
+
 class UpdateRoutingOrderResponse(SuccessResponse):
     participant: AgreementParticipant | None = None
 
 
-class UserAgentsResponse(SuccessResponse):
-    agents: list[User] | None = None
-
-
 class UserResponse(SuccessResponse):
-    user: User | None = None
-    data: User | None = Field(None, description="Alternative field name for user data")
-
-
-class ViewingBuildRouteApiResponse(BaseModel):
-    success: bool
-    data: ViewingItinerary | None = None
-    error: str | None = None
-
-
-class ViewingNavigateApiResponse(BaseModel):
-    success: bool
-    data: ViewingNavigateResponse | None = None
-    error: str | None = None
-
-
-class AddAgentResponse(SuccessResponse):
-    agent: User | None = None
+    user: UserModel | None = None
+    data: UserModel | None = Field(None, description="Alternative field name for user data")
 
 
 class AgentChatHistoryResponse(SuccessResponse):
@@ -3696,12 +4420,16 @@ class AgentChatHistoryResponse(SuccessResponse):
     )
 
 
+class EligibleContactsResponse(BaseModel):
+    success: bool
+    contacts: list[EligibleContact]
+
+
 class Agreement(BaseModel):
     """
     DocuSign-backed agreement between an agent and buyer, including envelope metadata,
     participant list, optional revisions/history, and denormalized names for list views.
-    `docusign_envelope_id` is the primary correlation key with DocuSign; `envelope_id`
-    is legacy and may duplicate or diverge on older rows.
+    `docusign_envelope_id` is the primary correlation key with DocuSign.
 
     """
 
@@ -3718,7 +4446,6 @@ class Agreement(BaseModel):
         None,
         description="Free-text summary or internal notes shown on agreement detail.",
     )
-    envelope_id: str | None = Field(None, description="Legacy field")
     docusign_envelope_id: str | None = Field(
         None,
         description="Current DocuSign envelope UUID used for API callbacks and deep links.",
@@ -3799,6 +4526,26 @@ class ChecklistDispatchAutomationApiResponse(BaseModel):
     setting: ChecklistDispatchAutomationSetting | None = None
 
 
+class Data(BaseModel):
+    agreements: list[Agreement]
+
+
+class ChecklistItemDocumentsResponse(BaseModel):
+    success: bool
+    data: Data
+    error: str | None = None
+
+
+class Data1(BaseModel):
+    agreement: Agreement
+
+
+class LinkChecklistDocumentApiResponse(BaseModel):
+    success: bool
+    data: Data1
+    error: str | None = None
+
+
 class CreateAgreementResponse(SuccessResponse):
     agreement: Agreement | None = None
 
@@ -3807,8 +4554,19 @@ class GetAgreementResponse(SuccessResponse):
     agreement: Agreement | None = None
 
 
-class GetDashboardResponse(SuccessResponse):
-    user: UserProfile
+class UserProfile(UserModel):
+    """
+    Full application user record as returned by profile and admin user endpoints.
+    Wire-identical to User; use this schema name when documenting "profile" responses
+    (e.g. GET /api/v1/user/profile). Agent rows may include `mls_id`, `brokerage`, and
+    `roles`; `profile_picture_url` is a short-lived presigned URL when present.
+
+    """
+
+
+class DeploymentLoggerConfig(BaseModel):
+    client: ClientLoggerConfig
+    server: ServerLoggerConfig
 
 
 class GoogleEvent(BaseModel):
@@ -3836,10 +4594,6 @@ class GoogleEvent(BaseModel):
         description="Google Meet URL when provisioned (Calendar API `hangoutLink`).",
     )
     conferenceData: GoogleConferenceData | None = None
-    itinerary: ViewingItinerary | None = Field(
-        None,
-        description="App-only multi-stop viewing data; stripped before sending to Google Calendar. Persisted in SilverKey DB; used to build calendar description and first-stop location.\n",
-    )
     colorId: str | None = Field(
         None,
         description="Google Calendar event color id (1–11) when set on the event; returned by the Calendar API on list/get. Optional; omitted when the event uses the calendar default color.\n",
@@ -3847,6 +4601,10 @@ class GoogleEvent(BaseModel):
     silverKeyEventType: str | None = Field(
         None,
         description="SilverKey scheduling category from the app database when this event was created in-app (e.g. `property_viewing`, `meeting`, `open_house`). Not sent to Google; attached by the server when listing or getting events. Used for UI coloring when the title no longer matches a known template label.\n",
+    )
+    silverKeyVirtualMeetingEnabled: bool | None = Field(
+        None,
+        description="True when this SilverKey-managed event was saved with virtual meeting requested (derived from DB conference_status / meet_url). Omitted for events not in our DB.\n",
     )
 
 
@@ -3880,6 +4638,25 @@ class ListAgreementsResponse(SuccessResponse):
     agreements: list[Agreement] | None = None
 
 
+class NegotiationStrategyResponse(SuccessResponse):
+    strategy: Strategy | None = Field(
+        None,
+        description="Generated negotiation strategy with price and market analysis",
+    )
+    property_address: str
+    strategy_id: str
+    filename: str
+    generated_at: str
+    generated_for_user: str
+    property_data: PropertyComplete | None = None
+    commute_data: CommuteData | None = None
+    property_analysis: dict[str, Any] | None = Field(
+        None,
+        description="Property analysis from research endpoint (same structure as in PropertyResponse)",
+    )
+    traceback: str | None = None
+
+
 class TaskChecklistApiResponse(SuccessResponse):
     data: TaskChecklistResponse | None = None
 
@@ -3892,6 +4669,14 @@ class UpdateTaskChecklistRequest(BaseModel):
 
 class ChecklistResponse(SuccessResponse):
     checklist: TaskChecklistResponse | None = None
+
+
+class GetDashboardResponse(SuccessResponse):
+    user: UserProfile
+
+
+class GetLoggerConfigResponse(SuccessResponse):
+    config: DeploymentLoggerConfig | None = None
 
 
 class GoogleCalendarEventCreateBody(GoogleEvent):

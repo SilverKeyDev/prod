@@ -2,6 +2,8 @@
 
 from flask import jsonify
 
+from app.utils.security.secure_errors import SecureErrorHandler
+
 
 def standardize_success_response(data=None, message="Success", status_code=200):
     """
@@ -19,14 +21,21 @@ def standardize_success_response(data=None, message="Success", status_code=200):
     return jsonify(response), status_code
 
 
-def standardize_error_response(error_message, status_code=400, error_code=None):
+def standardize_error_response(
+    message: str,
+    status_code: int = 400,
+    error_code: str = "invalid_request",
+):
     """
-    Create standardized error response format.
-    Eliminates repeated error response patterns.
-    """
-    response = {"success": False, "error": error_message}
+    Create standardized error response format aligned with OpenAPI ErrorResponse.
 
-    if error_code:
-        response["error_code"] = error_code
+    ``error`` is a stable machine code; ``message`` is safe to show to users.
+    """
+    response = {
+        "success": False,
+        "error": error_code,
+        "message": message,
+        "error_id": SecureErrorHandler.generate_error_id(),
+    }
 
     return jsonify(response), status_code

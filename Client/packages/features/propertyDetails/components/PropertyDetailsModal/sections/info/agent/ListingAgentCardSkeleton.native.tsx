@@ -3,8 +3,8 @@ import React from "react";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 type ListingAgentCardSkeletonProps = {
   title?: string;

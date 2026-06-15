@@ -1,8 +1,7 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
-import PreferencesFormContent, {
-  type PreferencesFormActionsRef,
-} from "@/features/profile/components/settings/inputs/PreferencesFormContent.web";
+import { type PreferencesFormActionsRef, PreferencesFormContent } from "packages/features/profile";
+import { useSearchContextStore } from "packages/store";
 
 import SearchFilterBar from "./SearchFilterBar.web";
 
@@ -11,6 +10,31 @@ type SearchFiltersDropdownProps = {
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
 };
+
+type FlushPreferencesSaveRegistrarProps = {
+  flushPreferencesSave: () => Promise<void>;
+  children: React.ReactNode;
+};
+
+/**
+ * Agents may select a client to load that client's preferences for search context.
+ * All edits in this dropdown still POST to the signed-in user's profile only.
+ */
+function FlushPreferencesSaveRegistrar({
+  flushPreferencesSave,
+  children,
+}: FlushPreferencesSaveRegistrarProps): React.ReactElement {
+  const setFlushPreferencesSave = useSearchContextStore((s) => s.setFlushPreferencesSave);
+
+  useEffect(() => {
+    setFlushPreferencesSave(() => flushPreferencesSave);
+    return () => {
+      setFlushPreferencesSave(null);
+    };
+  }, [flushPreferencesSave, setFlushPreferencesSave]);
+
+  return <>{children}</>;
+}
 
 export default function SearchFiltersDropdown({
   variant = "desktop",
@@ -28,19 +52,27 @@ export default function SearchFiltersDropdown({
         updateFormData,
         patchBuyerPreferenceExtensions,
         scriptsReady,
+        cancelPendingSave,
+        flushPreferencesSave,
+        saveStatus,
       }) => (
-        <SearchFilterBar
-          formData={formData}
-          updateFormData={updateFormData}
-          variant={variant}
-          selectedClientId={selectedClientId}
-          onClientChange={onClientChange}
-          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
-          scriptsReady={scriptsReady}
-          onAgentSyncPreferencesFetched={(onboarding) =>
-            preferencesFormActionsRef.current?.replaceFormData(onboarding)
-          }
-        />
+        <FlushPreferencesSaveRegistrar flushPreferencesSave={flushPreferencesSave}>
+          <SearchFilterBar
+            formData={formData}
+            updateFormData={updateFormData}
+            variant={variant}
+            selectedClientId={selectedClientId}
+            onClientChange={onClientChange}
+            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+            scriptsReady={scriptsReady}
+            saveStatus={saveStatus}
+            onAgentSyncPreferencesFetched={(onboarding) =>
+              preferencesFormActionsRef.current?.replaceFormData(onboarding)
+            }
+            replaceFormData={(next) => preferencesFormActionsRef.current?.replaceFormData(next)}
+            cancelPendingSave={cancelPendingSave}
+          />
+        </FlushPreferencesSaveRegistrar>
       )}
     />
   );

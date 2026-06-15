@@ -1,6 +1,5 @@
 """Per-section HTTP calls and payload building for property report generation."""
 
-import logging
 import os
 import time
 
@@ -9,11 +8,10 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from app.config.llm_models import perplexity_model_report
+from logger import log
 
 from .perplexity_analysis import _safe_parse_json
 from .perplexity_config import PERPLEXITY_HEADERS, PERPLEXITY_URL
-
-logger = logging.getLogger(__name__)
 
 # Rate limiting configuration based on Perplexity API tiers
 # Tier 0: 50 RPM, Tier 1: 150 RPM, Tier 2: 500 RPM, Tier 3+: 1000+ RPM
@@ -26,9 +24,15 @@ REQUEST_DELAY = (60.0 / RPM_LIMIT) * 1.1
 # Max concurrent requests: allow up to 5 concurrent or RPM/20 (whichever is smaller)
 MAX_CONCURRENT = min(5, max(2, RPM_LIMIT // 20))
 
-logger.info(
-    f"🚀 [PERPLEXITY_CONFIG] Tier {PERPLEXITY_TIER}: {RPM_LIMIT} RPM limit, "
-    f"{REQUEST_DELAY:.2f}s delay, {MAX_CONCURRENT} max concurrent requests"
+log.info(
+    "API",
+    "Perplexity rate limit configuration",
+    {
+        "tier": PERPLEXITY_TIER,
+        "rpm_limit": RPM_LIMIT,
+        "request_delay_s": round(REQUEST_DELAY, 2),
+        "max_concurrent": MAX_CONCURRENT,
+    },
 )
 
 _SYSTEM_CONTENT = (
@@ -131,9 +135,15 @@ def _process_section(payload_info, max_retries=2):
                         wait_time = float(retry_after)
                     else:
                         wait_time = (2**attempt) * REQUEST_DELAY
-                    logger.warning(
-                        f"⏱️ [PROPERTY_ANALYSIS] Rate limited on {section_name}, "
-                        f"waiting {wait_time:.1f}s (attempt {attempt + 1}/{max_retries + 1})"
+                    log.warn(
+                        "API",
+                        "Rate limited on property analysis section",
+                        {
+                            "section_name": section_name,
+                            "wait_time_s": round(wait_time, 1),
+                            "attempt": attempt + 1,
+                            "max_retries": max_retries + 1,
+                        },
                     )
                     time.sleep(wait_time)
                     continue
@@ -145,9 +155,16 @@ def _process_section(payload_info, max_retries=2):
             # Retry server errors
             if attempt < max_retries and response.status_code in [500, 502, 503, 504]:
                 wait_time = 2**attempt
-                logger.warning(
-                    f"⏱️ [PROPERTY_ANALYSIS] Server error {response.status_code} on {section_name}, "
-                    f"waiting {wait_time}s (attempt {attempt + 1}/{max_retries + 1})"
+                log.warn(
+                    "API",
+                    "Server error on property analysis section",
+                    {
+                        "section_name": section_name,
+                        "status_code": response.status_code,
+                        "wait_time_s": wait_time,
+                        "attempt": attempt + 1,
+                        "max_retries": max_retries + 1,
+                    },
                 )
                 time.sleep(wait_time)
                 continue
@@ -158,17 +175,28 @@ def _process_section(payload_info, max_retries=2):
             }
         except requests.exceptions.Timeout:
             if attempt < max_retries:
-                logger.warning(
-                    f"⏱️ [PROPERTY_ANALYSIS] Timeout on {section_name}, "
-                    f"retrying (attempt {attempt + 1}/{max_retries + 1})"
+                log.warn(
+                    "API",
+                    "Timeout on property analysis section",
+                    {
+                        "section_name": section_name,
+                        "attempt": attempt + 1,
+                        "max_retries": max_retries + 1,
+                    },
                 )
                 continue
             return {"section": section_name, "success": False, "error": "Request timeout"}
         except Exception as e:
             if attempt < max_retries:
-                logger.warning(
-                    f"⚠️ [PROPERTY_ANALYSIS] Error on {section_name}: {str(e)}, "
-                    f"retrying (attempt {attempt + 1}/{max_retries + 1})"
+                log.warn(
+                    "API",
+                    "Error on property analysis section, retrying",
+                    {
+                        "section_name": section_name,
+                        "error": str(e),
+                        "attempt": attempt + 1,
+                        "max_retries": max_retries + 1,
+                    },
                 )
                 continue
             return {
@@ -198,9 +226,10 @@ def _build_section_payloads(
                         else 999
                     )
                     if priority_index >= 5 and len(recent_data) >= 3:
-                        logger.info(
-                            "⏭️ [PROPERTY_ANALYSIS] Skipping %s (recent complete data exists, low priority)",
-                            section_name,
+                        log.info(
+                            "PROPERTY_DETAILS",
+                            "Skipping section (recent complete data exists, low priority)",
+                            {"section_name": section_name},
                         )
                         continue
             section_schema = get_individual_section_schema(
@@ -211,10 +240,10 @@ def _build_section_payloads(
                 section_priorities=section_priorities,
             )
             if "error" in section_schema:
-                logger.warning(
-                    "⚠️ [PROPERTY_ANALYSIS] Skipping section %s: %s",
-                    section_name,
-                    section_schema.get("error"),
+                log.warn(
+                    "PROPERTY_DETAILS",
+                    "Skipping section (schema error)",
+                    {"section_name": section_name},
                 )
                 continue
             payload = {
@@ -237,7 +266,9 @@ def _build_section_payloads(
             }
             payloads.append((payload, section_name))
         except Exception as e:
-            logger.error(
-                "❌ [PROPERTY_ANALYSIS] Error building payload for section %s: %s", section_name, e
+            log.error(
+                "ERRORS",
+                "Error building payload for section",
+                {"section_name": section_name, "error": str(e)},
             )
     return payloads

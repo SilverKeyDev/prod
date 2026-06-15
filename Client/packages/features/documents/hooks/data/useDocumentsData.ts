@@ -5,8 +5,9 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "packages/config/query/keys";
 import { reportApi } from "packages/features/documents/api/report";
 import type { DocumentLibraryKind } from "packages/features/documents/types/documentLibrary";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type AgreementParticipantData = {
   user_id: string;
@@ -32,6 +33,8 @@ export type DocumentData = {
   library_item_id?: string;
   library_kind?: DocumentLibraryKind;
   agreement_type?: string | null;
+  /** When set, `{checklist_category}.{item_id}` for checklist-linked agreements. */
+  linked_checklist_item_id?: string | null;
   // Agreement-specific fields (populated when library_kind === "agreement")
   agent_id?: string | null;
   buyer_id?: string | null;
@@ -50,8 +53,11 @@ export async function fetchDocumentLibraryQuery(clientId?: string): Promise<Docu
   try {
     const response = await reportApi.getDocumentLibrary(clientId);
     if (!response.success) {
-      const errorMessage = response.error ?? "Failed to fetch document library";
-      log.error(LOG_CATEGORIES.API, "Failed to fetch document library", {
+      const errorMessage = resolveApiResultErrorMessage(
+        response,
+        "Failed to fetch document library"
+      );
+      log.error("API", "Failed to fetch document library", {
         error: errorMessage,
       });
       throw new Error(errorMessage);
@@ -71,6 +77,7 @@ export async function fetchDocumentLibraryQuery(clientId?: string): Promise<Docu
       library_item_id: row.library_item_id,
       library_kind: row.library_kind,
       agreement_type: row.agreement_type ?? null,
+      linked_checklist_item_id: row.linked_checklist_item_id ?? null,
       agent_id: ((row as Record<string, unknown>).agent_id as string | null) ?? null,
       buyer_id: ((row as Record<string, unknown>).buyer_id as string | null) ?? null,
       participants:
@@ -78,7 +85,7 @@ export async function fetchDocumentLibraryQuery(clientId?: string): Promise<Docu
         null,
     }));
   } catch (err) {
-    log.error(LOG_CATEGORIES.ERRORS, "Error fetching documents", err);
+    log.error("ERRORS", "Error fetching documents", err);
     throw err;
   }
 }

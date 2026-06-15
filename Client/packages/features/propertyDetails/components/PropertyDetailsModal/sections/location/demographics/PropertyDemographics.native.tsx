@@ -11,7 +11,7 @@ import {
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import { buildPropertyDemographicsViewModel } from "packages/features/propertyDetails/utils/propertyDemographicsModel";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 type PropertyDemographicsProps = PropertyComponentProps & {
   analysisContent?: unknown;

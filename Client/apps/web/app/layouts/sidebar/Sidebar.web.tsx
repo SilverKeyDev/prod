@@ -2,13 +2,14 @@ import React from "react";
 
 import { useLocation } from "react-router-dom";
 
+import { useLocalization } from "packages/contexts";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { useViewStore, type ViewState } from "packages/store";
 import { useNotificationStore } from "packages/store";
-import { Box } from "packages/ui/components/primitives";
-import { SIDEBAR_CHROME_SHELL } from "packages/ui/components/sidebar/sidebarTheme";
+import { Box } from "packages/ui/components/structure/primitives";
+import { SIDEBAR_CHROME_SHELL } from "packages/ui/components/structure/sidebar/sidebarTheme";
 
-import { useDashboardShellRoutePrefetch } from "@/app/layouts/dashboard/useDashboardShellRoutePrefetch.web";
+import { useDashboardShellRoutePrefetch } from "@/app/navigation/useDashboardShellRoutePrefetch.web";
 import { useAuthStoreIntegration } from "@/features/homeauth/hooks/store/useAuthStoreIntegration";
 import type { UserProfile } from "@/features/homeauth/types";
 
@@ -30,6 +31,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const { user: authUser, authReady, authStatus } = useAuthStoreIntegration();
   const isLoading = authStatus === "checking" || !authReady;
+  const { t } = useLocalization();
   const activeWorkspace = useActiveWorkspace();
   const openCategories = useViewStore((s: ViewState) => s.openCategories);
   const toggleCategoryInStore = useViewStore((s: ViewState) => s.toggleCategory);
@@ -44,7 +46,9 @@ export default function Sidebar({
   };
   const toggleCategory = (category: string) => toggleCategoryInStore(category);
   const isCategoryActive = (items: SidebarNavItem[]) => items.some((item) => isActive(item.href));
-  const navigation = getNavigation(activeWorkspace, isMobile);
+  const navigation = getNavigation(activeWorkspace, isMobile, (labelKey, fallback) =>
+    t(labelKey, fallback)
+  );
   const prefetchHref = useDashboardShellRoutePrefetch();
   return (
     <Box

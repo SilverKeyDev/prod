@@ -7,9 +7,12 @@
       "enabled": true
     },
     "slack": {
-      "enabled": true
+      "enabled": false
     },
     "datadog": {
+      "enabled": false
+    },
+    "posthog": {
       "enabled": true
     }
   }

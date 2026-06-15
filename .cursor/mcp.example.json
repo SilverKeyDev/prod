@@ -1,17 +1,17 @@
 {
-  "_comment": "Do not put secrets here. Copy server blocks into Cursor Settings → MCP. Use env vars for credentials.",
+  "_comment": "Copy to .cursor/mcp.json (gitignored). This file is the lightweight default profile for daily coding. Replace YOUR_GITHUB_PAT. For optional finance/analytics/infra connectors, see setup.md MCP profiles.",
   "mcpServers": {
-    "postgres-example": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres", "${DATABASE_URL}"]
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer YOUR_GITHUB_PAT"
+      }
     },
-    "filesystem-example": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/absolute/path/to/SilverKey"
-      ]
+    "linear": {
+      "url": "https://mcp.linear.app/mcp"
+    },
+    "slack": {
+      "url": "https://mcp.slack.com/mcp"
     }
   }
 }

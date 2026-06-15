@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 type UpcomingEventsSectionProps = {
   sectionTitle?: string;

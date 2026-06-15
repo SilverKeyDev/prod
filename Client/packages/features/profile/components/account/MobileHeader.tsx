@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import { Button, CancelButton } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 type PersonalizationMobileHeaderProps = {
   isEditMode: boolean;

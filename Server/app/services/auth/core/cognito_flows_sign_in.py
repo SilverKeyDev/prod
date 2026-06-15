@@ -1,6 +1,5 @@
 """Cognito sign-in flow."""
 
-import logging
 import random
 import time
 from collections.abc import Callable
@@ -8,7 +7,7 @@ from datetime import datetime, timezone
 
 from botocore.exceptions import ClientError
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 def sign_in(client, client_id: str, get_secret_hash: Callable[[str], str], username, password):
@@ -21,9 +20,10 @@ def sign_in(client, client_id: str, get_secret_hash: Callable[[str], str], usern
 
     try:
         if not username:
-            logger.error(
+            log.error(
+                "ERRORS",
                 "AWS_COGNITO_SIGNIN_VALIDATION_ERROR",
-                extra={
+                {
                     "request_id": request_id,
                     "error": "Missing username",
                     "duration_ms": duration_ms(),
@@ -36,9 +36,10 @@ def sign_in(client, client_id: str, get_secret_hash: Callable[[str], str], usern
                 "login_failed": True,
             }
         if not password:
-            logger.error(
+            log.error(
+                "ERRORS",
                 "AWS_COGNITO_SIGNIN_VALIDATION_ERROR",
-                extra={
+                {
                     "request_id": request_id,
                     "error": "Missing password",
                     "duration_ms": duration_ms(),
@@ -52,18 +53,16 @@ def sign_in(client, client_id: str, get_secret_hash: Callable[[str], str], usern
             }
         try:
             secret_hash = get_secret_hash(username)
-            logger.debug(
+            log.debug(
+                "AUTH",
                 "AWS_COGNITO_SECRET_HASH_GENERATED",
-                extra={"request_id": request_id, "secret_hash_length": len(secret_hash)},
+                {"request_id": request_id, "secret_hash_length": len(secret_hash)},
             )
         except Exception as hash_error:
-            logger.error(
+            log.error(
+                "ERRORS",
                 "AWS_COGNITO_SECRET_HASH_ERROR",
-                extra={
-                    "request_id": request_id,
-                    "error": str(hash_error),
-                    "duration_ms": duration_ms(),
-                },
+                {"request_id": request_id, "error": str(hash_error), "duration_ms": duration_ms()},
             )
             return {
                 "success": False,
@@ -81,9 +80,10 @@ def sign_in(client, client_id: str, get_secret_hash: Callable[[str], str], usern
         dm = duration_ms()
         error_code = e.response["Error"]["Code"]
         error_message = e.response["Error"]["Message"]
-        logger.error(
+        log.error(
+            "ERRORS",
             "AWS_COGNITO_SIGNIN_CLIENT_ERROR",
-            extra={
+            {
                 "request_id": request_id,
                 "error_code": error_code,
                 "error_message": error_message,
@@ -133,9 +133,10 @@ def sign_in(client, client_id: str, get_secret_hash: Callable[[str], str], usern
             "login_failed": True,
         }
     except Exception as e:
-        logger.error(
+        log.error(
+            "ERRORS",
             "AWS_COGNITO_SIGNIN_UNEXPECTED_ERROR",
-            extra={
+            {
                 "request_id": request_id,
                 "error_type": type(e).__name__,
                 "error_message": str(e),

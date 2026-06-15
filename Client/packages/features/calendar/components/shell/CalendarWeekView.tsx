@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 
 import { CalendarTimeGrid } from "packages/features/calendar/components/timeGrid";
-import { dayjs } from "packages/utils/date";
+import { getWeekStart } from "packages/utils/comms/calendar/core/date";
+import { dayjs } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { WeekTimeSlotDoubleClickPayload } from "@/features/calendar/types/calendarQuickCreate";
-import { getWeekStart } from "@/features/calendar/utils/core/date";
 
 export type CalendarWeekViewProps = {
   focusedDate: Date;

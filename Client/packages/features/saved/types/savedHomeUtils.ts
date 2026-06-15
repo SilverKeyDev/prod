@@ -1,5 +1,5 @@
 import type { SavedHome } from "packages/types";
-import { isLikelyInternalAppListingKey } from "packages/utils/property/listingIdentifier";
+import { isLikelyInternalAppListingKey } from "packages/utils/transaction/property/listingIdentifier";
 
 /**
  * Returns true if the value is an array of processed SavedHome items (each has home_id and address).

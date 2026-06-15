@@ -4,13 +4,20 @@ export type ChecklistComponentKey =
   | "define_criteria"
   | "set_budget"
   | "finding_home"
-  | "home_concierge"
+  | "partner_placements"
   | "partner_agent"
   | "review_comparables";
+
+import type { PartnerPlacement } from "packages/features/partners/api/partners";
 
 /** Props expected by checklist integration components. */
 export type ChecklistIntegrationComponentProps = {
   onComplete?: () => void;
+  stepId?: string;
+  transactionId?: string | null;
+  /** Active rev-share placements for this checklist step (from ChecklistIntegrationSlot). */
+  placements?: PartnerPlacement[];
+  placementsLoading?: boolean;
 };
 
 const VALID_KEYS: ChecklistComponentKey[] = [
@@ -18,7 +25,7 @@ const VALID_KEYS: ChecklistComponentKey[] = [
   "define_criteria",
   "set_budget",
   "finding_home",
-  "home_concierge",
+  "partner_placements",
   "partner_agent",
   "review_comparables",
 ];

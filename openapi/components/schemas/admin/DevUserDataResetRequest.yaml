@@ -15,6 +15,9 @@ properties:
         - profile
         - preferences
         - docusign
+        - transaction_steps
+        - s3
+        - connections
     description: Data domains to clear for the target user.
   user_id:
     type: string

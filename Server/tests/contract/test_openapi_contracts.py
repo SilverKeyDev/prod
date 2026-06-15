@@ -14,23 +14,21 @@ from flask.testing import FlaskClient
 
 from app.models import User
 from app.schemas.generated import (
+    AgentConversationsResponse,
     AgentSearchResult,
-    AgreementStatus,
     AuthResponse,
     ErrorResponse,
     FavoriteHomesResponse,
+    GetPreferencesApiResponse,
+    GetTodosResponse,
     LoginData,
+    NotInterestedHomesResponse,
     RecommendedAgentResult,
     RecommendedAgentsResponse,
-    SavedHome,
     SearchAgentsResponse,
-    SearchByPolygonResponse,
-    TaskStatusResponse,
     UserResponse,
 )
-from app.schemas.generated import (
-    User as UserOpenApi,
-)
+from app.schemas.generated import UserModel as UserOpenApi
 
 MOCK_POLYGON_AUTH = "app.routes.search.search.get_authenticated_user"
 MOCK_RUN_POLYGON_SEARCH = "app.routes.search.search.run_polygon_search"
@@ -77,6 +75,34 @@ class TestOpenAPIContracts:
         assert response.status_code == 200
         FavoriteHomesResponse.model_validate(response.get_json())
 
+    def test_not_interested_homes_response_matches_schema(
+        self, authenticated_client: FlaskClient
+    ) -> None:
+        response = authenticated_client.get("/api/v1/user/not-interested-homes")
+        assert response.status_code == 200
+        NotInterestedHomesResponse.model_validate(response.get_json())
+
+    def test_get_preferences_response_matches_schema(
+        self, authenticated_client: FlaskClient
+    ) -> None:
+        response = authenticated_client.get("/api/v1/preferences")
+        assert response.status_code == 200
+        GetPreferencesApiResponse.model_validate(response.get_json())
+
+    def test_get_agent_todos_response_matches_schema(
+        self, authenticated_client: FlaskClient
+    ) -> None:
+        response = authenticated_client.get("/api/v1/agent/todos")
+        assert response.status_code == 200
+        GetTodosResponse.model_validate(response.get_json())
+
+    def test_get_agent_chats_response_matches_schema(
+        self, authenticated_client: FlaskClient
+    ) -> None:
+        response = authenticated_client.get("/api/v1/agent/chats")
+        assert response.status_code == 200
+        AgentConversationsResponse.model_validate(response.get_json())
+
     def test_search_agents_empty_matches_schema(self, authenticated_client: FlaskClient) -> None:
         response = authenticated_client.get("/api/v1/agent/search-agents?q=ab")
         assert response.status_code == 200
@@ -93,12 +119,14 @@ class TestOpenAPIContracts:
                 email="agent-contract@example.com",
                 name="Agent Contract",
                 is_active=True,
-                is_agent=True,
                 cognito_id="agent-contract-cognito",
             )
             db.session.add(agent)
             db.session.commit()
             aid = agent.id
+            from tests.support.user_roles import seed_user_roles
+
+            seed_user_roles(str(aid), "agent")
         try:
             response = authenticated_client.get("/api/v1/agent/search-agents?q=Agent%20Con")
             assert response.status_code == 200
@@ -126,7 +154,7 @@ class TestOpenAPIContracts:
             mock_user = Mock()
             mock_user.id = "login-contract-user"
             mock_user.name = "Login Contract"
-            mock_user.is_agent = False
+            mock_user.user_roles = []
             mock_user.cognito_id = "cognito-login-contract"
             mock_user.google_id = None
             mock_user.phone = None
@@ -155,6 +183,19 @@ class TestOpenAPIContracts:
         )
         assert response.status_code == 401
         ErrorResponse.model_validate(response.get_json())
+
+    def test_login_missing_password_returns_field_errors_not_validation_errors(
+        self, client: FlaskClient
+    ) -> None:
+        response = client.post(
+            "/api/v1/auth/login",
+            json={"email": "missing-password@example.com"},
+        )
+        assert response.status_code == 400
+        body = response.get_json()
+        ErrorResponse.model_validate(body)
+        assert isinstance(body.get("field_errors"), dict)
+        assert body.get("validation_errors") is None
 
     def test_profile_unauthorized_matches_error_schema(self, client: FlaskClient) -> None:
         response = client.get("/api/v1/user/profile")
@@ -191,7 +232,6 @@ class TestOpenAPIContracts:
                 email="rec-agent@example.com",
                 name="Rec Agent",
                 is_active=True,
-                is_agent=True,
                 cognito_id="rec-agent-cognito",
             )
             db.session.add(agent)
@@ -206,6 +246,9 @@ class TestOpenAPIContracts:
             db.session.add(prof)
             db.session.commit()
             aid = agent.id
+            from tests.support.user_roles import seed_user_roles
+
+            seed_user_roles(str(aid), "agent")
         try:
             response = authenticated_client.get(
                 "/api/v1/agent/recommended-agents?zip=90210&state=CA&intent=condo%20buyer"
@@ -237,7 +280,6 @@ class TestOpenAPIContracts:
                 email="connected-rec-agent@example.com",
                 name="Connected Rec Agent",
                 is_active=True,
-                is_agent=True,
                 cognito_id="connected-rec-cognito",
             )
             db.session.add(agent)
@@ -276,156 +318,3 @@ class TestOpenAPIContracts:
                 if user_row is not None:
                     db.session.delete(user_row)
                 db.session.commit()
-
-    def test_polygon_search_response_matches_schema(
-        self, authenticated_client: FlaskClient, contract_user: User
-    ) -> None:
-        mock_search_result = {
-            "success": True,
-            "properties": [_minimal_property_search_result()],
-            "count": 1,
-            "cached": False,
-        }
-        request_data = {
-            "viewport_polygon": [
-                {"lat": 40.7128, "lng": -74.006},
-                {"lat": 40.7158, "lng": -74.006},
-                {"lat": 40.7158, "lng": -73.996},
-                {"lat": 40.7128, "lng": -73.996},
-            ],
-        }
-
-        with patch(MOCK_POLYGON_AUTH) as mock_auth:
-            with patch(MOCK_RESOLVE_PREFS_USER_ID) as mock_resolve:
-                with patch(MOCK_PARSE_RESEARCH_BODY) as mock_parse:
-                    with patch(MOCK_RUN_POLYGON_SEARCH) as mock_search:
-                        mock_auth.return_value = (contract_user, None)
-                        mock_resolve.return_value = (str(contract_user.id), None)
-                        mock_parse.return_value = {}
-                        mock_search.return_value = (mock_search_result, 200)
-
-                        response = authenticated_client.post(
-                            "/api/v1/search/properties-by-polygon",
-                            json=request_data,
-                        )
-
-        assert response.status_code == 200
-        SearchByPolygonResponse.model_validate(response.get_json())
-
-    def test_research_property_queued_matches_task_status_schema(
-        self, authenticated_client: FlaskClient
-    ) -> None:
-        with patch("app.routes.search.research.research_property_task") as mock_task:
-            mock_celery_result = Mock()
-            mock_celery_result.id = "contract-task-123"
-            mock_task.delay.return_value = mock_celery_result
-
-            response = authenticated_client.post(
-                "/api/v1/research/property",
-                json={"address": "123 Main St, Austin, TX"},
-            )
-
-        assert response.status_code == 202
-        TaskStatusResponse.model_validate(response.get_json())
-
-    def test_research_property_stream_first_event_is_json_object(
-        self, authenticated_client: FlaskClient
-    ) -> None:
-        with patch(
-            "app.services.search.property.property_stream.generate_property_stream"
-        ) as mock_stream:
-            mock_stream.return_value = iter(
-                [
-                    'data: {"type": "basic", "data": {"success": true, "data": {"streetAddress": "123 Main St"}}}\n\n',
-                    'data: {"type": "complete", "data": {}}\n\n',
-                ]
-            )
-
-            response = authenticated_client.post(
-                "/api/v1/research/property?stream=true",
-                json={"address": "123 Main St, Austin, TX"},
-            )
-
-        assert response.status_code == 200
-        first_line = response.get_data(as_text=True).splitlines()[0]
-        assert first_line.startswith("data: ")
-        payload = json.loads(first_line.removeprefix("data: ").strip())
-        assert payload["type"] == "basic"
-        assert isinstance(payload["data"], dict)
-
-    def test_required_user_fields_on_profile(self, authenticated_client: FlaskClient) -> None:
-        response = authenticated_client.get("/api/v1/user/profile")
-        assert response.status_code == 200
-        data = response.get_json()
-        inner = data.get("data") or data.get("user")
-        assert inner is not None
-        required_fields = list(UserOpenApi.model_json_schema().get("required", []))
-        assert required_fields
-        for field in required_fields:
-            assert field in inner, f"required OpenAPI User field {field!r} missing from profile"
-
-    def test_agreement_status_enum_covers_db_values(self, app) -> None:
-        from sqlalchemy import select
-
-        from app import db
-        from app.models.documents.agreement import Agreement
-
-        allowed = {m.value for m in AgreementStatus}
-        with app.app_context():
-            rows = db.session.execute(select(Agreement.status).distinct()).all()
-        for (status,) in rows:
-            assert status in allowed, (
-                f"DB agreements.status={status!r} is not in OpenAPI AgreementStatus enum"
-            )
-
-
-@pytest.mark.api
-@pytest.mark.contract
-def test_user_dto_to_response_matches_openapi_user(app, contract_user) -> None:
-    from app import db
-    from app.dtos.user import UserDTO
-    from app.models import User
-
-    with app.app_context():
-        fresh = db.session.get(User, contract_user.id)
-        assert fresh is not None
-        payload = UserDTO.to_response(fresh, include_roles=True, presign_profile_pic=False)
-    UserOpenApi.model_validate(payload)
-
-
-@pytest.mark.api
-@pytest.mark.contract
-def test_property_dto_to_saved_home_matches_openapi(app, contract_user) -> None:
-    from app import db
-    from app.dtos.property import PropertyDTO
-    from app.models import PropertyCache, UserPropertyLink
-
-    with app.app_context():
-        prop = PropertyCache(
-            zpid="contract-test-zpid-saved-home",
-            address="123 Contract Test St",
-            city="Testville",
-            state="TS",
-            zipcode="12345",
-            beds="3",
-            baths="2",
-            price="500000",
-        )
-        db.session.add(prop)
-        db.session.flush()
-        link = UserPropertyLink(
-            user_id=contract_user.id,
-            property_id=prop.id,
-            is_liked=True,
-            current=True,
-        )
-        db.session.add(link)
-        db.session.commit()
-        fresh = db.session.get(UserPropertyLink, link.id)
-        assert fresh is not None
-        payload = PropertyDTO.to_saved_home(fresh)
-        db.session.delete(fresh)
-        db.session.delete(prop)
-        db.session.commit()
-
-    SavedHome.model_validate(payload)

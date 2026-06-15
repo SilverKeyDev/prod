@@ -4,16 +4,16 @@ import { useLocalization } from "packages/contexts";
 import { PropertySectionRatingBadge } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/PropertySectionRatingBadge";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 import type { IconName } from "packages/ui/types/icons";
-import { DEFAULT_REPORT_SECTIONS } from "packages/utils/domain/defaultReportSections";
+import { DEFAULT_REPORT_SECTIONS } from "packages/utils/product/domain/defaultReportSections";
 import {
   buildPropertyAnalysisSections,
   type PropertyAnalysisSection,
   stripSectionRatingField,
   unwrapPropertyAnalysisSection,
-} from "packages/utils/propertyDetails";
-import { getSectionIconName } from "packages/utils/propertyDetails/analysis/sectionIconNames";
+} from "packages/utils/transaction/propertyDetails";
+import { getSectionIconName } from "packages/utils/transaction/propertyDetails/analysis/sectionIconNames";
 
 import { renderPropertyAnalysisSectionBody } from "./propertyAnalysisSectionRenderers";
 

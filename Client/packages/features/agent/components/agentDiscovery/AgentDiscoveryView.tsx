@@ -5,9 +5,9 @@ import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore, useUIStore } from "packages/store";
 import { Button } from "packages/ui";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { Box } from "packages/ui/components/primitives";
-import { buildAgentProfileUrl, openAgentPublicProfileExternal } from "packages/utils/agent";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/structure/primitives";
+import { buildAgentProfileUrl, openAgentPublicProfileExternal } from "packages/utils/growth/agent";
 
 import { BodyText, Title } from "@/components/ui";
 import type { AgentSearchResult, RecommendedAgentResult } from "@/features/agent/api/agent";
@@ -31,6 +31,7 @@ export function AgentDiscoveryView({
   onOpenAgentProfile: onOpenAgentProfileProp,
   onConnectionSuccess,
   className = "",
+  suppressRecommendationsLoading = false,
 }: AgentDiscoveryViewProps) {
   const { t } = useLocalization();
   const { getCurrentRoute, navigateToPath } = useNavigation();
@@ -163,9 +164,11 @@ export function AgentDiscoveryView({
             </Button>
           </Box>
         ) : isLoading ? (
-          <Box className="flex justify-start py-6">
-            <KeyTurnLoader message={t("agent.discovery_loading_recommendations")} />
-          </Box>
+          suppressRecommendationsLoading ? null : (
+            <Box className="flex justify-start py-6">
+              <KeyTurnLoader message={t("agent.discovery_loading_recommendations")} />
+            </Box>
+          )
         ) : recommendedAgentsToShow.length === 0 ? (
           <BodyText size="sm" className="text-text-secondary">
             {t("agent.discovery_no_recommendations")}

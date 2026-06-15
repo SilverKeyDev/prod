@@ -1,12 +1,13 @@
-"""Transaction checklist progress. One row per user/category or per completed item.
-Category: escrow, financing, closing, insurance, timeline.
-Stored in table user_tasks for backward compatibility."""
+"""Transaction checklist progress. One row per transaction/category or per completed item."""
+
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -17,7 +18,10 @@ class TransactionTask(db.Model):
     id: Mapped[str] = mapped_column(
         db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
-    user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"))
+    transaction_id: Mapped[str] = mapped_column(
+        db.ForeignKey("transactions.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id: Mapped[str] = mapped_column(db.ForeignKey("users.id"), index=True)
     category: Mapped[str] = mapped_column(db.String(50))
     title: Mapped[str] = mapped_column(db.String(500))
     status: Mapped[str] = mapped_column(db.String(20), default="todo")
@@ -29,7 +33,8 @@ class TransactionTask(db.Model):
         default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
 
-    user = db.relationship("User", backref=db.backref("user_tasks", lazy="dynamic"))
+    transaction: Mapped["Transaction"] = relationship("Transaction", back_populates="user_tasks")
+    user: Mapped["User"] = relationship("User", back_populates="user_tasks")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

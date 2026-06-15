@@ -50,7 +50,6 @@ export function seoStaticFilesPlugin(opts) {
         "/profile",
         "/library",
         "/saved",
-        "/find-agents",
         "/admin",
         "/onboarding",
         "/button-showcase",

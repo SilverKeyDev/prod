@@ -5,10 +5,10 @@ import Button from "@ui/button/Button";
 import { useLocalization } from "packages/contexts";
 import { type ChecklistForm, FormsBrowser, useDocuments } from "packages/features/documents";
 import { useAuthStore, useUIStore } from "packages/store";
-import { BaseModal } from "packages/ui/components/modals";
-import { Box, Text } from "packages/ui/components/primitives";
-import { UnderlineTabs } from "packages/ui/components/tabs/UnderlineTabs";
-import { Platform } from "packages/utils/platform";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTabs";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
+import { Platform } from "packages/utils/core/platform";
 
 type DocumentUploadModalProps = {
   isOpen: boolean;
@@ -191,7 +191,7 @@ export default function DocumentUploadModal({
 }: DocumentUploadModalProps) {
   const { t } = useLocalization();
   const user = useAuthStore((s) => s.user);
-  const isAgent = user?.is_agent ?? false;
+  const isAgent = (user?.roles ?? []).includes("agent");
   const [activeTab, setActiveTab] = useState<UploadTab>("upload");
   const [WebUpload, setWebUpload] = useState<React.ComponentType<{
     onUploadSuccess?: () => void | Promise<unknown>;

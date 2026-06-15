@@ -129,23 +129,7 @@ recipient = build_recipient_from_participant(participant)
 # May omit "tabs" entirely when relying on transformPdfFields + PDF-only fields.
 ```
 
-### Custom Tab Configuration
-
-For custom tab positions (advanced use case):
-
-```python
-from app.services.docusign.utils.recipients import build_tabs_coordinate_fallback
-
-# Override default tabs with custom coordinates
-custom_tabs = build_tabs_coordinate_fallback(
-    participant=participant,
-    page_number=2,       # Signature on page 2
-    x_position=150,      # 150px from left
-    y_position=500       # 500px from top
-)
-
-recipient["tabs"] = custom_tabs
-```
+For custom tab positions, use PDF AcroForm fields with ``transformPdfFields`` or anchor-based tabs via ``tab_prefill`` on the participant.
 
 ## Multi-Signer Workflows
 

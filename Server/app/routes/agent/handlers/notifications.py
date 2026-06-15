@@ -1,16 +1,18 @@
 """Agent notification counter endpoint."""
 
-import logging
-
 from flask import jsonify
 
 from app.schemas.generated import NotificationCounterResponse
 from app.services.agent import get_notification_counter
-from app.utils.common_patterns import handle_exceptions_with_logging, require_authenticated_user
+from app.services.auth.user_role_helpers import user_is_agent
+from app.utils.common_patterns import (
+    handle_exceptions_with_logging,
+    require_authenticated_user,
+    unauthorized,
+)
 from app.utils.security import rate_limit
 from app.utils.validation import validate_response
-
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 @rate_limit(max_requests=200, window_seconds=60)
@@ -20,7 +22,7 @@ logger = logging.getLogger(__name__)
 def get_notification_counter_endpoint(user):
     """Get total notification count (unread messages + pending requests)"""
     if not user.id:
-        logger.error("User ID is None in get_notification_counter")
-        return jsonify({"success": False, "error": "Invalid user session"}), 401
-    total_count = get_notification_counter(str(user.id), bool(user.is_agent))
+        log.error("AUTH", "User ID is None in get_notification_counter")
+        return unauthorized()
+    total_count = get_notification_counter(str(user.id), user_is_agent(user))
     return jsonify({"success": True, "total_count": total_count})

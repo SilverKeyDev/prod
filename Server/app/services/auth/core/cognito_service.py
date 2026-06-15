@@ -7,40 +7,29 @@ import os
 
 import boto3
 
-from .cognito_admin import (
-    admin_create_user as _admin_create_user,
-)
-from .cognito_admin import (
-    admin_get_user as _admin_get_user,
-)
-from .cognito_admin import (
-    admin_get_user_status as _admin_get_user_status,
-)
-from .cognito_admin import (
-    admin_reset_user_password as _admin_reset_user_password,
-)
-from .cognito_admin import (
-    admin_set_user_password as _admin_set_user_password,
-)
-from .cognito_auth_flows import (
-    confirm_forgot_password as _confirm_forgot_password,
-)
-from .cognito_auth_flows import (
-    confirm_sign_up as _confirm_sign_up,
-)
-from .cognito_auth_flows import (
-    forgot_password as _forgot_password,
-)
-from .cognito_auth_flows import (
-    refresh_access_token as _refresh_access_token,
-)
-from .cognito_auth_flows import (
-    sign_in as _sign_in,
-)
-from .cognito_auth_flows import (
-    sign_up as _sign_up,
-)
+from logger import log
+
+from .cognito_admin import admin_create_user as _admin_create_user
+from .cognito_admin import admin_delete_user as _admin_delete_user
+from .cognito_admin import admin_get_user as _admin_get_user
+from .cognito_admin import admin_get_user_status as _admin_get_user_status
+from .cognito_admin import admin_reset_user_password as _admin_reset_user_password
+from .cognito_admin import admin_set_user_password as _admin_set_user_password
+from .cognito_auth_flows import confirm_forgot_password as _confirm_forgot_password
+from .cognito_auth_flows import confirm_sign_up as _confirm_sign_up
+from .cognito_auth_flows import forgot_password as _forgot_password
+from .cognito_auth_flows import refresh_access_token as _refresh_access_token
+from .cognito_auth_flows import sign_in as _sign_in
+from .cognito_auth_flows import sign_up as _sign_up
 from .cognito_crypto import get_secret_hash as _get_secret_hash_impl
+
+
+def _redact(value: str) -> str:
+    if not value:
+        return "(empty)"
+    if len(value) <= 8:
+        return f"{value[:2]}..."
+    return f"{value[:4]}...{value[-4:]}"
 
 
 def _get_username_from_request():
@@ -62,19 +51,32 @@ class CognitoService:
     def __init__(self):
         from app.config import Config
 
-        self.region = Config.AWS_REGION
+        self.user_pool_id = Config.AWS_COGNITO_USER_POOL_ID or ""
+        self.client_id = Config.AWS_COGNITO_CLIENT_ID or ""
+        self.client_secret = Config.AWS_COGNITO_CLIENT_SECRET or ""
+        pool_region = self.user_pool_id.split("_", 1)[0] if "_" in self.user_pool_id else ""
+        self.region = os.getenv("AWS_COGNITO_REGION") or pool_region or Config.AWS_REGION
         self.client = boto3.client(
             "cognito-idp",
             region_name=self.region,
-            config=boto3.session.Config(  # type: ignore[attr-defined]; boto3.session not fully typed
+            config=boto3.session.Config(
                 read_timeout=Config.AWS_COGNITO_TIMEOUT,
                 connect_timeout=Config.AWS_COGNITO_TIMEOUT,
                 retries={"max_attempts": 3},
             ),
         )
-        self.user_pool_id = os.getenv("AWS_COGNITO_USER_POOL_ID") or ""
-        self.client_id = os.getenv("AWS_COGNITO_CLIENT_ID") or ""
-        self.client_secret = os.getenv("AWS_COGNITO_CLIENT_SECRET") or ""
+        if pool_region and pool_region != Config.AWS_REGION:
+            log.warn(
+                "AUTH",
+                "AWS_COGNITO_REGION_MISMATCH",
+                {
+                    "aws_region": Config.AWS_REGION,
+                    "cognito_region": self.region,
+                    "pool_region": pool_region,
+                    "user_pool_id": _redact(self.user_pool_id),
+                    "client_id": _redact(self.client_id),
+                },
+            )
         self._get_secret_hash = lambda username: _get_secret_hash_impl(
             self.client_id, self.client_secret, username
         )
@@ -126,6 +128,9 @@ class CognitoService:
             temporary_password,
             admin_get_user_fn=lambda u: _admin_get_user(self.client, self.user_pool_id, u),
         )
+
+    def admin_delete_user(self, username):
+        return _admin_delete_user(self.client, self.user_pool_id, username)
 
     def admin_get_user(self, username):
         return _admin_get_user(self.client, self.user_pool_id, username)

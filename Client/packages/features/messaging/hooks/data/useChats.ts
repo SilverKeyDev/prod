@@ -7,8 +7,9 @@ import { useFiltersQueryParams } from "packages/config/query/adapters";
 import { queryKeys } from "packages/config/query/keys";
 import { getChatsFromSharedData } from "packages/features/messaging/utils/reportToChat";
 import { useAuthStore } from "packages/store";
-import { dateParseISO } from "packages/utils/date";
-import { formatFilenameToAddress } from "packages/utils/format/address";
+import { dateParseISO } from "packages/utils/core/date";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
+import { formatFilenameToAddress } from "packages/utils/core/format/address";
 
 /**
  * Enhanced chat data hook with TanStack Query integration
@@ -47,7 +48,7 @@ export const useChats = () => {
       // Fallback to API
       const response = await reportApi.list();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch chats");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch chats"));
       }
       return (response.documents ?? []).map((doc) => ({
         id: doc.id,

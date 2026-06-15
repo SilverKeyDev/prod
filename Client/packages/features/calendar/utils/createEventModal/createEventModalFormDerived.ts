@@ -19,10 +19,6 @@ export function deriveCreateEventModalFormSubmitState(input: {
   isSavingUnscheduled: boolean;
   isCreatingEvent: boolean;
   isUpdatingEvent: boolean;
-  /** Property viewings / multi-stop tour: require at least one property address. */
-  isPropertyViewing?: boolean;
-  hasViewingTourPropertyAddresses?: boolean;
-  /** Messaging: calendar event request uses the same form as Add to Agenda with different submit rules. */
   calendarEventRequest?: {
     enabled: boolean;
     isAgent: boolean;
@@ -45,8 +41,6 @@ export function deriveCreateEventModalFormSubmitState(input: {
   );
 
   const req = input.calendarEventRequest;
-  const propertyViewingBlocked =
-    Boolean(input.isPropertyViewing) && !input.hasViewingTourPropertyAddresses;
 
   const innerCanSubmit =
     req?.enabled && input.mode === "create"
@@ -62,7 +56,7 @@ export function deriveCreateEventModalFormSubmitState(input: {
           ? canSubmitScheduled
           : canSubmitUnscheduled;
 
-  const canSubmit = innerCanSubmit && !propertyViewingBlocked;
+  const canSubmit = innerCanSubmit;
 
   const formSubmitting =
     input.isSubmitting ||

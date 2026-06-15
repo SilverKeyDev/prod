@@ -19,7 +19,7 @@ import type {
   FetchJsonOpts,
   RetryOpts,
 } from "packages/types/domain/api";
-import { getFetch } from "packages/utils/platform";
+import { getFetch } from "packages/utils/core/platform";
 
 import { getAuthToken, httpClient } from "./config";
 

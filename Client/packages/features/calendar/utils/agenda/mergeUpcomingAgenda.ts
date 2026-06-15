@@ -1,14 +1,18 @@
-import { dateParseISO } from "packages/utils/date";
+import { getEventStartDate } from "packages/utils/comms/calendar/parsing/eventParsing";
+import { dateParseISO } from "packages/utils/core/date";
 
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { UpcomingAgendaItem } from "@/features/calendar/types/upcomingAgenda";
-import { getEventStartDate } from "@/features/calendar/utils/parsing/eventParsing";
+import { compareAgendaItemsByTypeThenDate } from "@/features/calendar/utils/agenda/agendaDisplayCategory";
 
 export type { UpcomingAgendaItem } from "@/features/calendar/types/upcomingAgenda";
 
+/** Empty state for the dashboard agenda preview (today only). */
+export const AGENDA_TODAY_EMPTY_MESSAGE = "No events, to-dos, or signatures for today";
+
 /**
- * Todos use start-of-local-day for sorting so they align with the upcoming week window.
+ * Todos use start-of-local-day for sorting so they align with the agenda day window.
  */
 export function todoAgendaSortTimestamp(todo: AgendaTodoDTO): number {
   if (todo.due_date == null || todo.due_date === "") {
@@ -39,6 +43,7 @@ export function filterTodosInRange(
   }
 
   return todos.filter((t) => {
+    // Active DocuSign rows and undated to-dos always surface in the day preview.
     if (t.due_date == null || t.due_date === "") {
       return true;
     }
@@ -84,15 +89,10 @@ export function mergeUpcomingAgendaItems(
     ...todos.map((todo) => ({ kind: "todo" as const, todo })),
   ];
 
-  return items.sort((a, b) => {
-    const ta =
-      a.kind === "event"
-        ? (getEventStartDate(a.event)?.getTime() ?? Number.MAX_SAFE_INTEGER)
-        : todoAgendaSortTimestamp(a.todo);
-    const tb =
-      b.kind === "event"
-        ? (getEventStartDate(b.event)?.getTime() ?? Number.MAX_SAFE_INTEGER)
-        : todoAgendaSortTimestamp(b.todo);
-    return ta - tb;
-  });
+  const getCompactTimestamp = (item: UpcomingAgendaItem): number =>
+    item.kind === "event"
+      ? (getEventStartDate(item.event)?.getTime() ?? Number.MAX_SAFE_INTEGER)
+      : todoAgendaSortTimestamp(item.todo);
+
+  return items.sort((a, b) => compareAgendaItemsByTypeThenDate(a, b, getCompactTimestamp));
 }

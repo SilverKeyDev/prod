@@ -1,0 +1,9 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    required:
+      - download_url
+    properties:
+      download_url:
+        type: string
+        format: uri

@@ -3,9 +3,9 @@ import { type RefObject } from "react";
 import { Icon } from "@ui/icons";
 
 import { Button, IconButton, OliveCheckbox, OliveCheckboxRowLabel } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import { dayjs } from "packages/utils/date";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import { dayjs } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import { CalendarWeekView } from "@/features/calendar/components/shell/CalendarWeekView";
@@ -241,7 +241,7 @@ export function CalendarStyleDateRangePickerPopoverBody({
                   type="button"
                   variant="ghost"
                   onPress={() => handleDayClick(key)}
-                  className={`hover:bg-accent-muted relative flex h-10 min-h-10 w-full min-w-0 items-center justify-center rounded border p-0 text-sm transition-colors hover:border-neutral-400 ${selected} ${muted} ${mutualHighlight}`}
+                  className={`relative flex h-10 min-h-10 w-full min-w-0 items-center justify-center rounded border p-0 text-sm transition-colors hover:border-neutral-400 ${selected} ${muted} ${mutualHighlight}`}
                 >
                   {cell.date.getDate()}
                 </Button>

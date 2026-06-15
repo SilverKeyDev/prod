@@ -5,13 +5,16 @@
  */
 
 import { authUtils } from "packages/config/auth/auth";
-import { secureLogger } from "packages/services/security/secureLogger";
-import { dateNow } from "packages/utils/date";
-import { getSessionStorage } from "packages/utils/storage/platformStorage";
+import type { SessionVerifyResult } from "packages/features/homeauth/api/handlers/session";
+import { log } from "packages/logger";
+import { dateNow } from "packages/utils/core/date";
+import { getSessionStorage } from "packages/utils/core/storage/platformStorage";
 
 import type { UserProfile } from "@/features/homeauth/types";
 
 const BOOTSTRAP_KEY = "auth_bootstrap_started";
+const BOOTSTRAP_RETRY_DELAYS_MS = [500, 1000] as const;
+const BOOTSTRAP_MAX_ATTEMPTS = 3;
 
 export type AuthBootstrapSetters = {
   setStoreAuthStatus: (s: "checking" | "authenticated" | "unauthenticated") => void;
@@ -27,83 +30,95 @@ export type AuthBootstrapStorage = {
   removeItem: (key: string) => void;
 };
 
-type SessionResult = Awaited<
-  ReturnType<Awaited<typeof import("packages/config/http/api")>["authApi"]["verifySession"]>
->;
+function isCompleteUserProfile(user: unknown): user is UserProfile {
+  return !!user && typeof user === "object" && "created_at" in user && "is_active" in user;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function applySessionResult(
-  sessionResult: SessionResult,
+  sessionResult: SessionVerifyResult,
   setters: AuthBootstrapSetters,
   requestId: string,
   currentPath: string,
   storage: AuthBootstrapStorage
 ): void {
   const { setStoreUser, setIsAuthenticated, setStoreAuthStatus } = setters;
+
   if (sessionResult.success) {
-    if (!sessionResult.user) {
-      // Keep authenticated state when server confirms session but omits user payload.
-      // Downstream hooks/components must handle missing profile data gracefully.
-      secureLogger.warn(
-        "🔍 FRONTEND_AUTH_BOOTSTRAP_MISSING_USER",
-        "Session is valid but user payload is missing",
-        {
-          requestId,
-          currentPath,
-        }
-      );
+    if (!sessionResult.user || !isCompleteUserProfile(sessionResult.user)) {
+      log.warn("AUTH", "Auth bootstrap incomplete user profile", {
+        requestId,
+        currentPath,
+        hasUser: !!sessionResult.user,
+      });
       setStoreUser(null);
-      setIsAuthenticated(true);
-      setStoreAuthStatus("authenticated");
+      setIsAuthenticated(false);
+      setStoreAuthStatus("unauthenticated");
       return;
     }
 
     const user = sessionResult.user;
-    if ("created_at" in user && "is_active" in user) {
-      secureLogger.info(
-        "🔍 FRONTEND_AUTH_BOOTSTRAP_SUCCESS",
-        "Session verified successfully, user authenticated",
-        {
-          requestId,
-          userId: user.id,
-          userEmail: user.email
-            ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
-            : "missing",
-          isAgent: user.is_agent || false,
-          hasSubscription: user.has_subscription || false,
-        }
-      );
-      setStoreUser(user as UserProfile);
-      try {
-        storage.setItem("auth_last_verify_at", String(Date.now()));
-      } catch {
-        /* ignore */
-      }
-    } else {
-      secureLogger.warn("🔍 FRONTEND_AUTH_BOOTSTRAP_PARTIAL_USER", "Received partial user data", {
-        requestId,
-        userKeys: Object.keys(user),
-        hasCreatedAt: "created_at" in user,
-        hasIsActive: "is_active" in user,
-      });
-      setStoreUser(null);
+    log.info("AUTH", "Auth bootstrap success", {
+      requestId,
+      userId: user.id,
+      userEmail: user.email
+        ? `${user.email.substring(0, 3)}***${user.email.substring(user.email.length - 3)}`
+        : "missing",
+      isAgent: (user.roles ?? []).includes("agent"),
+    });
+    setStoreUser(user);
+    try {
+      storage.setItem("auth_last_verify_at", String(Date.now()));
+    } catch {
+      /* ignore */
     }
     setIsAuthenticated(true);
     setStoreAuthStatus("authenticated");
-  } else {
-    setStoreUser(null);
-    setIsAuthenticated(false);
-    setStoreAuthStatus("unauthenticated");
-    secureLogger.info(
-      "🔍 FRONTEND_AUTH_BOOTSTRAP_NO_SESSION",
-      "No valid session found - user is not authenticated",
-      {
-        requestId,
-        sessionSuccess: sessionResult.success,
-        hasUser: !!sessionResult.user,
-        currentPath,
-      }
-    );
+    return;
   }
+
+  setStoreUser(null);
+  setIsAuthenticated(false);
+  setStoreAuthStatus("unauthenticated");
+  log.info("AUTH", "Auth bootstrap no session", {
+    requestId,
+    sessionSuccess: sessionResult.success,
+    transient: sessionResult.transient,
+    hasUser: !!sessionResult.user,
+    currentPath,
+  });
+}
+
+async function attemptVerifyAndRefresh(
+  _requestId: string,
+  _currentPath: string,
+  _isPublicRoute: boolean
+): Promise<SessionVerifyResult> {
+  const { authApi } = await import("packages/config/http/api");
+
+  let sessionResult = await authApi.verifySession();
+
+  if (sessionResult.success) {
+    return sessionResult;
+  }
+
+  if (sessionResult.transient) {
+    return sessionResult;
+  }
+
+  const refreshResult = await authApi.refreshToken();
+  if (refreshResult.transient) {
+    return { success: false, transient: true };
+  }
+  if (refreshResult.success) {
+    sessionResult = await authApi.verifySession();
+    return sessionResult;
+  }
+
+  return sessionResult;
 }
 
 async function verifyAndApplySession(
@@ -113,46 +128,28 @@ async function verifyAndApplySession(
   setters: AuthBootstrapSetters,
   storage: AuthBootstrapStorage
 ): Promise<void> {
-  const { authApi } = await import("packages/config/http/api");
-  secureLogger.info(
-    "🔍 FRONTEND_AUTH_BOOTSTRAP_VERIFYING",
-    "Verifying session with server (all routes)",
-    { requestId, currentPath, isPublicRoute }
-  );
-  const verifyStart = Date.now();
-  let sessionResult = await authApi.verifySession();
-  const verifyMs = Date.now() - verifyStart;
-  secureLogger.info("🔍 FRONTEND_AUTH_VERIFY_RESPONSE", "Session verification response received", {
-    requestId,
-    success: sessionResult.success,
-    hasUser: !!sessionResult.user,
-    durationMs: verifyMs,
-  });
+  for (let attempt = 1; attempt <= BOOTSTRAP_MAX_ATTEMPTS; attempt++) {
+    const sessionResult = await attemptVerifyAndRefresh(requestId, currentPath, isPublicRoute);
 
-  if (!sessionResult.success) {
-    secureLogger.info(
-      "🔍 FRONTEND_AUTH_SESSION_INVALID",
-      "Session invalid, attempting silent refresh",
-      { requestId, currentPath }
-    );
-    const refreshResult = await authApi.refreshToken();
-    if (refreshResult.success) {
-      secureLogger.info(
-        "🔍 FRONTEND_AUTH_REFRESH_SUCCESS",
-        "Token refresh successful, retrying session verification",
-        { requestId }
-      );
-      sessionResult = await authApi.verifySession();
-    } else {
-      secureLogger.info(
-        "🔍 FRONTEND_AUTH_REFRESH_FAILED",
-        "Token refresh failed, user must log in",
-        { requestId, error: refreshResult.error }
-      );
+    if (sessionResult.success) {
+      applySessionResult(sessionResult, setters, requestId, currentPath, storage);
+      return;
     }
-  }
 
-  applySessionResult(sessionResult, setters, requestId, currentPath, storage);
+    if (sessionResult.transient && attempt < BOOTSTRAP_MAX_ATTEMPTS) {
+      const delay = BOOTSTRAP_RETRY_DELAYS_MS[attempt - 1] ?? 1000;
+      log.warn("AUTH", "Auth bootstrap retry", {
+        requestId,
+        attempt,
+        delayMs: delay,
+      });
+      await sleep(delay);
+      continue;
+    }
+
+    applySessionResult(sessionResult, setters, requestId, currentPath, storage);
+    return;
+  }
 }
 
 /**
@@ -180,23 +177,19 @@ export async function runAuthBootstrap(
     getAuthStatusRef,
   } = setters;
 
-  secureLogger.info(
-    "🔍 FRONTEND_AUTH_BOOTSTRAP_START",
-    "Starting auth bootstrap (always verifying session)",
-    {
-      requestId,
-      currentPath,
-      isPublicRoute,
-      timestamp: dateNow().toISOString(),
-    }
-  );
+  log.info("AUTH", "Auth bootstrap start", {
+    requestId,
+    currentPath,
+    isPublicRoute,
+    timestamp: dateNow().toISOString(),
+  });
   setStoreAuthStatus("checking");
   setStoreAuthReady(false);
   try {
     await verifyAndApplySession(requestId, currentPath, isPublicRoute, setters, storage);
   } catch (error) {
     const err = error as Error;
-    secureLogger.error("🔍 FRONTEND_AUTH_BOOTSTRAP_ERROR", "Auth bootstrap failed with error", {
+    log.error("AUTH", "Auth bootstrap error", {
       requestId,
       currentPath,
       error: err?.message || "Unknown error",
@@ -213,7 +206,7 @@ export async function runAuthBootstrap(
     } catch {
       /* ignore */
     }
-    secureLogger.info("🔍 FRONTEND_AUTH_BOOTSTRAP_COMPLETE", "Auth bootstrap finished", {
+    log.info("AUTH", "Auth bootstrap complete", {
       requestId,
       currentPath,
       finalStatus: getAuthStatusRef(),

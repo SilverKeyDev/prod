@@ -4,17 +4,15 @@ Match-score-aligned pros/cons counts for property highlights (same MCDA as searc
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from app.services.search.home_matching.mcda.score import get_mcda_config, score_listing_mcda
+from logger import log
 
 from .research_preferences_context import (
     ResearchAnalysisOptions,
     compute_analysis_cache_signature,
 )
-
-logger = logging.getLogger(__name__)
 
 
 def infer_status_type_from_listing(data: dict[str, Any]) -> str:
@@ -37,7 +35,7 @@ def compute_listing_match_score(
         st = infer_status_type_from_listing(data)
         return score_listing_mcda(preferences, data, status_type=st, config=config)
     except Exception:
-        logger.debug("compute_listing_match_score failed", exc_info=True)
+        log.debug("SEARCH", "compute_listing_match_score failed")
         return None
 
 

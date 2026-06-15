@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
-import { useAdminValidationStats } from "packages/hooks/data/admin/useAdminValidationStats";
-import { Box } from "packages/ui/components/primitives";
+import { useAdminValidationStats } from "packages/features/admin/hooks/data/useAdminValidationStats";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, Title } from "@/components/ui";

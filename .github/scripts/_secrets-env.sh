@@ -39,10 +39,29 @@ fetch_secret_raw() {
 
 log_secret_fetch_failure() {
   local id="$1"
-  echo "--- aws secretsmanager get-secret-value (diagnostic, secret-id=$id region=$REGION) ---"
-  aws secretsmanager get-secret-value \
+  local script_dir err_json
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  echo "--- Secrets Manager diagnostic (secret-id=$id region=$REGION; values never logged) ---"
+  aws secretsmanager describe-secret \
     --secret-id "$id" --region "$REGION" \
-    --query SecretString --output text 2>&1 || true
+    --query '{Name:Name,ARN:ARN,DeletedDate:DeletedDate,LastChangedDate:LastChangedDate}' \
+    --output json 2>&1 | bash "$script_dir/redact-ci-log.sh" || true
+  local aws_err_file aws_rc
+  aws_err_file="$(mktemp)"
+  set +e
+  aws secretsmanager get-secret-value \
+    --secret-id "$id" --region "$REGION" --output json >/dev/null 2>"$aws_err_file"
+  aws_rc=$?
+  set -e
+  if [ "$aws_rc" -ne 0 ]; then
+    echo "GetSecretValue error (metadata only):"
+    bash "$script_dir/redact-ci-log.sh" <"$aws_err_file" || true
+  else
+    echo "GetSecretValue: secret readable; DATABASE_URL missing — check JSON keys (db_url, DATABASE_URL, url)."
+  fi
+  rm -f "$aws_err_file"
+  aws sts get-caller-identity \
+    --query '{Account:Account,Arn:Arn}' --output json 2>&1 | bash "$script_dir/redact-ci-log.sh" || true
   echo "--- end diagnostic ---"
 }
 
@@ -120,6 +139,39 @@ is_client_bundle_env_key() {
   esac
 }
 
+# Trim and strip simple quotes from an env value string; prints result.
+normalize_env_value() {
+  local val="$1"
+  val="${val%$'\r'}"
+  val="${val#"${val%%[![:space:]]*}"}"
+  val="${val%"${val##*[![:space:]]}"}"
+  case "$val" in
+    \"*\") val="${val#\"}"; val="${val%\"}" ;;
+    \'*\') val="${val#\'}"; val="${val%\'}" ;;
+  esac
+  printf '%s' "$val"
+}
+
+# Write a non-empty client bundle key to GITHUB_ENV (heredoc-safe) or export locally.
+write_client_bundle_env_var() {
+  local key="$1"
+  local val="$2"
+  val="$(normalize_env_value "$val")"
+  is_client_bundle_env_key "$key" || return 0
+  [ -n "$val" ] || return 0
+
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    local delim="BUNDLE_ENV_${key}_EOF"
+    {
+      echo "${key}<<${delim}"
+      printf '%s\n' "$val"
+      echo "${delim}"
+    } >>"$GITHUB_ENV"
+  else
+    export "${key}=${val}"
+  fi
+}
+
 # Same key extraction as Server/app/utils/config_validator.py (KEY= lines only).
 required_env_keys_from_example_file() {
   local f="$1" key
@@ -189,18 +241,97 @@ ensure_database_url_alias() {
   done
 }
 
-build_env_file() {
+# Merge Secrets Manager payloads into $ENV_FILE (caller must set ENV_FILE).
+build_merged_env_file() {
   local secret_ids=("$@")
   local id
   if [ "${DEPLOY_LOG_TIMING:-}" = "1" ]; then
-    echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') build_env_file: GetSecretValue merge starting (${#secret_ids[@]} secret(s))"
+    echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') build_merged_env_file: GetSecretValue merge starting (${#secret_ids[@]} secret(s))"
   fi
   for id in "${secret_ids[@]}"; do
     merge_sm_secret_into_env "$id"
   done
   if [ "${DEPLOY_LOG_TIMING:-}" = "1" ]; then
-    echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') build_env_file: GetSecretValue merge finished (${#secret_ids[@]} secret(s))"
+    echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') build_merged_env_file: GetSecretValue merge finished (${#secret_ids[@]} secret(s))"
   fi
+}
+
+# Fetch deploy secrets and write EXPO_PUBLIC_* / VITE_* lines to a temp file; prints its path.
+build_client_bundle_env_file() {
+  local example_file="$1"
+  local merged_tmp bundle_tmp
+  merged_tmp="$(mktemp)"
+  bundle_tmp="$(mktemp)"
+  : >"$merged_tmp"
+  : >"$bundle_tmp"
+
+  # fetch-client-bundle-env.sh does not set ENV_FILE; use a temp merge target only.
+  local prev_env_file="${ENV_FILE:-}"
+  ENV_FILE="$merged_tmp"
+  export ENV_FILE
+
+  local secret_ids=()
+  mapfile -t secret_ids < <(resolve_deploy_secret_ids_from_example "$example_file")
+  build_merged_env_file "${secret_ids[@]}"
+
+  if [ -n "$prev_env_file" ]; then
+    ENV_FILE="$prev_env_file"
+  else
+    unset ENV_FILE
+  fi
+
+  awk -F= '
+    /^EXPO_PUBLIC_[A-Za-z0-9_]*=/ || /^VITE_[A-Za-z0-9_]*=/ {
+      key = $1
+      lines[key] = $0
+    }
+    END {
+      for (k in lines) print lines[k]
+    }
+  ' "$merged_tmp" >"$bundle_tmp"
+
+  rm -f "$merged_tmp"
+  printf '%s\n' "$bundle_tmp"
+}
+
+# Apply non-empty KEY=VALUE lines from env_file to GITHUB_ENV or the current shell.
+# filter: client (EXPO_PUBLIC_* / VITE_* only) | all
+apply_env_file_to_environment() {
+  local env_file="$1"
+  local filter="${2:-all}"
+  local line key val
+
+  if [ ! -f "$env_file" ] || [ ! -s "$env_file" ]; then
+    return 0
+  fi
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    [ -z "$line" ] && continue
+    key="${line%%=*}"
+    val="${line#*=}"
+    case "$filter" in
+      client)
+        is_client_bundle_env_key "$key" || continue
+        ;;
+      all) ;;
+      *)
+        echo "ERROR: apply_env_file_to_environment: unknown filter '$filter'" >&2
+        return 1
+        ;;
+    esac
+    val="$(normalize_env_value "$val")"
+    [ -n "$val" ] || continue
+    write_client_bundle_env_var "$key" "$val"
+  done <"$env_file"
+}
+
+# Back-compat alias (ci_web fetch step).
+append_env_file_to_github_env() {
+  apply_env_file_to_environment "$@"
+}
+
+build_env_file() {
+  build_merged_env_file "$@"
   ensure_database_url_alias
 
   if ! grep -q '^DATABASE_URL=' "$ENV_FILE"; then

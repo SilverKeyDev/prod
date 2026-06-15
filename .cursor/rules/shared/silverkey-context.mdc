@@ -1,0 +1,47 @@
+---
+description: SilverKey company context — applies to every conversation in this repo
+alwaysApply: true
+---
+
+# SilverKey company context
+
+Canonical context lives in this rule for company-level constraints and in [pitch-and-fundraising.mdc](./pitch-and-fundraising.mdc) for investor/deck language. Engineering quickstart: [AGENTS.md](../../../AGENTS.md).
+
+## RESPA reflex
+
+When designing or reviewing **partner-facing** features (placement, marketplace, referrals, lender/title/insurance surfacing, agent compensation tied to partners):
+
+- Assume **RESPA Section 8** applies.
+- Prefer **brokerage-level marketplace placement** over buyer-personalized steering.
+- Flag compliance risks explicitly; link [respa-compliance.mdc](./respa-compliance.mdc) for code in scoped paths.
+
+## Real partners only
+
+Use actual partners and facts from this rule and `pitch-and-fundraising.mdc`. Do not invent MSAs, logos, or signed deals.
+
+| Partner | Fact |
+| ------- | ---- |
+| **Better** | Signed MSA: $3K + $1,500/user on launch |
+| **eXp** | Pilot committed — Rob & Kim's team |
+
+## Live data over guessing
+
+| Topic | Source |
+| ----- | ------ |
+| Financials, balances, runway | **Mercury** MCP (read-only) |
+| Roadmap, tickets, status, **planned product work** | **Linear** MCP — do not track future work in repo markdown |
+| Code, branches, PRs | **GitHub** MCP |
+| Team threads | **Slack** MCP |
+
+If MCP is unavailable, say so and mark figures **TBD** — do not fabricate.
+
+## Communication (Jayce)
+
+- **Direct, diagnostic** feedback — name the problem, not vague praise.
+- **Concrete rewrites** when suggesting copy or code changes.
+- **Explain what changed and why** in summaries and PR-facing text.
+- No fluff, no jargon-stuffing; specific numbers and partner names where they belong.
+
+## Fundraising and pitch
+
+When editing pitch/deck/investor markdown, follow [pitch-and-fundraising.mdc](./pitch-and-fundraising.mdc). Tagline verbatim unless explicitly iterating: *"The operating system unlocking home transactions."*

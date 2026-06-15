@@ -10,7 +10,8 @@ import zlib
 from typing import Any, cast
 
 import redis
-from flask import current_app
+
+from logger import log
 
 from ..home_matching.config.match import find_best_matches
 from ..home_matching.mcda import MCDA_CONFIG, score_listing_mcda
@@ -18,6 +19,44 @@ from ..home_matching.preprocessing.home_input_data import format_homes_data_from
 
 _REDIS_SOCKET_CONNECT_TIMEOUT_S = 5.0
 _REDIS_SOCKET_TIMEOUT_S = 5.0
+_REDIS_MAX_CONNECTIONS = 32
+_SCORE_SORT_KEY_TTL_S = 300
+
+_scoring_redis: redis.Redis | None = None
+
+
+def _scoring_redis_url() -> str | None:
+    """Prefer REDIS_URL; fall back to Celery broker (same instance in local dev)."""
+    return (os.getenv("REDIS_URL") or os.getenv("CELERY_URL") or "").strip() or None
+
+
+def _get_scoring_redis() -> redis.Redis | None:
+    """Shared pooled client for ephemeral sorted-set sorts (see optional_redis_json_cache)."""
+    global _scoring_redis
+    if _scoring_redis is not None:
+        return _scoring_redis
+    url = _scoring_redis_url()
+    if url:
+        _scoring_redis = redis.Redis.from_url(
+            url,
+            decode_responses=True,
+            max_connections=_REDIS_MAX_CONNECTIONS,
+            socket_connect_timeout=_REDIS_SOCKET_CONNECT_TIMEOUT_S,
+            socket_timeout=_REDIS_SOCKET_TIMEOUT_S,
+        )
+        return _scoring_redis
+    redis_host = os.getenv("REDIS_HOST", "localhost")
+    redis_port = int(os.getenv("REDIS_PORT", 6379))
+    _scoring_redis = redis.Redis(
+        host=redis_host,
+        port=redis_port,
+        db=0,
+        decode_responses=True,
+        max_connections=_REDIS_MAX_CONNECTIONS,
+        socket_connect_timeout=_REDIS_SOCKET_CONNECT_TIMEOUT_S,
+        socket_timeout=_REDIS_SOCKET_TIMEOUT_S,
+    )
+    return _scoring_redis
 
 
 def _listings_have_scoring_payload(properties: list[dict[str, Any]]) -> bool:
@@ -28,10 +67,58 @@ def _listings_have_scoring_payload(properties: list[dict[str, Any]]) -> bool:
     return False
 
 
+_DISPLAY_STRETCH_RANGE_THRESHOLD = 18.0
+_DISPLAY_STRETCH_UNIQUE_THRESHOLD = 4
+_DISPLAY_STRETCH_MIN_LISTINGS = 3
+_DISPLAY_STRETCH_FLOOR_OFFSET = 5.0
+_DISPLAY_STRETCH_CEILING_OFFSET = 1.0
+_DISPLAY_STRETCH_QUALITY_CAP_RATIO = 0.35
+
+
+def _score_cluster_detected(score_map: dict[str, float]) -> bool:
+    if len(score_map) < _DISPLAY_STRETCH_MIN_LISTINGS:
+        return False
+    values = list(score_map.values())
+    raw_min = min(values)
+    raw_max = max(values)
+    if raw_max - raw_min < _DISPLAY_STRETCH_RANGE_THRESHOLD:
+        return True
+    rounded = {round(v, 1) for v in values}
+    return len(rounded) < _DISPLAY_STRETCH_UNIQUE_THRESHOLD
+
+
+def _apply_result_set_display_spread(score_map: dict[str, float]) -> None:
+    """
+    Affine min-max stretch within a search batch when raw MCDA scores cluster.
+    Order-preserving; quality cap prevents inflating mediocre batches to the high 90s.
+    """
+    if not _score_cluster_detected(score_map):
+        return
+
+    out_lo = float(MCDA_CONFIG["output_display_min"])
+    out_hi = float(MCDA_CONFIG["output_display_max"])
+    values = list(score_map.values())
+    raw_min = min(values)
+    raw_max = max(values)
+    if raw_max <= raw_min:
+        return
+
+    stretch_lo = out_lo + _DISPLAY_STRETCH_FLOOR_OFFSET
+    stretch_hi = out_hi - _DISPLAY_STRETCH_CEILING_OFFSET
+    span = raw_max - raw_min
+
+    for zpid, raw in score_map.items():
+        normalized = (raw - raw_min) / span
+        stretched = stretch_lo + normalized * (stretch_hi - stretch_lo)
+        quality_cap = raw + (out_hi - raw) * _DISPLAY_STRETCH_QUALITY_CAP_RATIO
+        display = min(stretched, quality_cap)
+        score_map[zpid] = round(max(out_lo, min(out_hi, display)), 1)
+
+
 def _apply_deterministic_score_tiebreak(
     score_map: dict[str, float], properties: list[dict[str, Any]]
 ) -> None:
-    """When every listing rounds to the same score, spread by 0.1 steps for sort and UI."""
+    """When every listing rounds to the same score, spread deterministically for sort and UI."""
     if len(score_map) < 2 or not _listings_have_scoring_payload(properties):
         return
     rounded = {zpid: round(score, 1) for zpid, score in score_map.items()}
@@ -39,9 +126,19 @@ def _apply_deterministic_score_tiebreak(
         return
     out_lo = float(MCDA_CONFIG["output_display_min"])
     out_hi = float(MCDA_CONFIG["output_display_max"])
+    stretch_lo = out_lo + _DISPLAY_STRETCH_FLOOR_OFFSET
+    stretch_hi = out_hi - _DISPLAY_STRETCH_CEILING_OFFSET
     base = next(iter(rounded.values()))
-    zpids_sorted = sorted(score_map.keys(), key=lambda z: (zlib.crc32(str(z).encode("utf-8")), str(z)))
+    zpids_sorted = sorted(
+        score_map.keys(), key=lambda z: (zlib.crc32(str(z).encode("utf-8")), str(z))
+    )
     n = len(zpids_sorted)
+    if n >= _DISPLAY_STRETCH_MIN_LISTINGS:
+        for i, zpid in enumerate(zpids_sorted):
+            frac = i / (n - 1) if n > 1 else 0.5
+            adjusted = stretch_lo + frac * (stretch_hi - stretch_lo)
+            score_map[zpid] = round(max(out_lo, min(out_hi, adjusted)), 1)
+        return
     for i, zpid in enumerate(zpids_sorted):
         offset = (i - (n - 1) / 2.0) * 0.1
         adjusted = base + offset
@@ -111,6 +208,7 @@ def score_and_sort_properties(
                     mcda = round(mcda, 1)
             score_map[zkey] = mcda
 
+        _apply_result_set_display_spread(score_map)
         _apply_deterministic_score_tiebreak(score_map, properties)
 
         # Try Redis sorting first
@@ -122,7 +220,7 @@ def score_and_sort_properties(
         return _sort_with_python(properties, score_map)
 
     except Exception as e:
-        current_app.logger.error(f"⚠️ Property scoring failed: {str(e)}")
+        log.error("ERRORS", "Property scoring failed", e)
         # Return properties with default scores
         for prop in properties:
             prop["_score"] = 0.0
@@ -132,47 +230,21 @@ def score_and_sort_properties(
 def _sort_with_redis(
     properties: list[dict[str, Any]], score_map: dict[str, float], request_id: str
 ) -> list[dict[str, Any]]:
-    """Sort properties using Redis sorted set."""
-    redis_client = None
+    """Sort properties using a short-lived Redis sorted set (pipelined ZADD, TTL on key)."""
     try:
-        redis_url = os.getenv("REDIS_URL", "").strip()
-        if redis_url:
-            redis_client = redis.Redis.from_url(
-                redis_url,
-                decode_responses=False,
-                socket_connect_timeout=_REDIS_SOCKET_CONNECT_TIMEOUT_S,
-                socket_timeout=_REDIS_SOCKET_TIMEOUT_S,
-                retry_on_timeout=True,
-            )
-        else:
-            redis_host = os.getenv("REDIS_HOST", "localhost")
-            redis_port = int(os.getenv("REDIS_PORT", 6379))
-            redis_client = redis.Redis(
-                host=redis_host,
-                port=redis_port,
-                db=0,
-                decode_responses=False,
-                socket_connect_timeout=_REDIS_SOCKET_CONNECT_TIMEOUT_S,
-                socket_timeout=_REDIS_SOCKET_TIMEOUT_S,
-                retry_on_timeout=True,
-            )
-
+        redis_client = _get_scoring_redis()
         sort_key = f"property_scores:{request_id}:{int(time.time())}"
 
-        # Add scores to Redis
+        pipe = redis_client.pipeline(transaction=False)
         for zpid, score in score_map.items():
-            redis_client.zadd(sort_key, {str(zpid): score})
+            pipe.zadd(sort_key, {str(zpid): score})
+        pipe.expire(sort_key, _SCORE_SORT_KEY_TTL_S)
+        pipe.execute()
 
-        redis_client.expire(sort_key, 300)
-
-        # Get sorted zpids (cast: sync Redis client returns list, not Awaitable)
-        raw_zpids = cast(
-            list[bytes | str],
+        sorted_zpids = cast(
+            list[str],
             redis_client.zrevrange(sort_key, 0, -1, withscores=False),
         )
-        sorted_zpids = [
-            zpid.decode("utf-8") if isinstance(zpid, bytes) else str(zpid) for zpid in raw_zpids
-        ]
 
         # Build sorted properties list
         prop_map = {str(prop.get("zpid")): prop for prop in properties}
@@ -195,16 +267,12 @@ def _sort_with_redis(
         return scored_properties
 
     except Exception as redis_error:
-        current_app.logger.warning(
-            f"⚠️ Redis sorting failed: {str(redis_error)}, falling back to Python sort"
+        log.warn(
+            "SEARCH",
+            "Redis sorting failed; falling back to Python sort",
+            {"error": str(redis_error)},
         )
         return []
-    finally:
-        if redis_client:
-            try:
-                redis_client.close()
-            except Exception:
-                pass
 
 
 def _sort_with_python(

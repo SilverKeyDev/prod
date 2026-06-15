@@ -6,8 +6,6 @@ Consolidates common logic shared between /property and /compare routes.
 
 from typing import Any
 
-from flask import current_app
-
 from app.services.auth import SecurityException, get_current_user
 from app.services.search.features.image_features import extract_and_clean_features
 from app.services.search.features.property_features import extract_property_features
@@ -16,6 +14,7 @@ from app.services.search.scoring import (
     build_research_analysis_options,
     public_property_analysis,
 )
+from logger import log
 
 from .property_analysis import get_property_analysis_for_property
 from .property_analysis_payload import finalize_property_analysis_payload
@@ -28,7 +27,7 @@ from .property_params import (
 from .property_persistence import persist_property_data
 from .property_research_cache import (
     check_cache_fast_path,
-    fetch_property_from_rapidapi,
+    fetch_property_detail_for_research,
     get_cached_details_with_pros_cons_removal,
 )
 
@@ -41,7 +40,6 @@ def process_property_data(
     cached_property_analysis: dict[str, Any] | None,
     cached_features: dict[str, Any] | None,
     google_maps_api_key: str,
-    rapidapi_key: str = "",
     log_prefix: str = "[PROPERTY]",
     skip_pros_cons: bool = False,
     analysis_options: ResearchAnalysisOptions | None = None,
@@ -58,7 +56,6 @@ def process_property_data(
         cached_property_analysis: Cached property analysis if available
         cached_features: Cached features if available
         google_maps_api_key: Google Maps API key
-        rapidapi_key: Unused (kept for backward compat)
         log_prefix: Logging prefix
         skip_pros_cons: If True, skip pros/cons generation in property analysis
 
@@ -96,13 +93,21 @@ def process_property_data(
             images_to_analyze = zillow_api_images[:5]
             image_features = extract_and_clean_features(images_to_analyze)
     except Exception as e:
-        current_app.logger.error(f"🔍 {log_prefix} Error during image feature extraction: {e}")
+        log.error(
+            "ERRORS",
+            "Error during image feature extraction",
+            {"log_prefix": log_prefix, "error": str(e)},
+        )
         image_features = {"error": "Failed to extract features from images"}
 
     # Extract features
     features = cached_features if cached_features else extract_property_features(data)
     if cached_features:
-        current_app.logger.info(f"{log_prefix} ⏭️ Skipping features extraction, using cached data")
+        log.info(
+            "PROPERTY_DETAILS",
+            "Skipping features extraction, using cached data",
+            {"log_prefix": log_prefix},
+        )
 
     # Persist property data
     try:
@@ -124,8 +129,10 @@ def process_property_data(
         # Silently handle SecurityException for optional user context
         pass
     except Exception as persist_err:
-        current_app.logger.error(
-            f"{log_prefix} ⚠️ Failed to persist property details: {persist_err}", exc_info=True
+        log.error(
+            "ERRORS",
+            "Failed to persist property details",
+            {"log_prefix": log_prefix, "error": str(persist_err)},
         )
 
     # Build response (strip server-only analysis keys for clients)
@@ -153,7 +160,6 @@ def handle_property_request_non_streaming(
     params: dict[str, Any],
     address: str | None,
     google_maps_api_key: str,
-    rapidapi_key: str = "",
     start_time: float = 0.0,
     log_prefix: str = "[PROPERTY]",
     skip_pros_cons: bool = False,
@@ -167,7 +173,6 @@ def handle_property_request_non_streaming(
         params: API parameters dict
         address: Address string from request
         google_maps_api_key: Google Maps API key
-        rapidapi_key: Unused (kept for backward compat)
         start_time: Start time for elapsed calculation
         log_prefix: Logging prefix
         skip_pros_cons: If True, skip pros/cons generation
@@ -213,7 +218,7 @@ def handle_property_request_non_streaming(
             }
         return resp_dict, code
 
-    data, error_response = fetch_property_from_rapidapi(params)
+    data, error_response = fetch_property_detail_for_research(params)
     if error_response:
         return error_response
 

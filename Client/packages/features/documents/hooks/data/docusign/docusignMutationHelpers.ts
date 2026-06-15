@@ -1,7 +1,11 @@
 import type { UseMutationOptions } from "@tanstack/react-query";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UIState } from "packages/store";
+import {
+  resolveApiResultErrorMessage,
+  resolveUserFacingMessage,
+} from "packages/utils/core/errorHandling";
 
 /**
  * Shared helpers for DocuSign mutations: logging and standard onSuccess/onError handlers.
@@ -13,34 +17,10 @@ export type DocusignApiResponse<T> = {
   [key: string]: unknown;
 } & T;
 
-/**
- * Map backend error messages to user-friendly messages
- */
 function getErrorMessage(error: Error): string {
-  const errorMessage = error.message.toLowerCase();
-
-  // Map backend error types to user-friendly messages
-  if (errorMessage.includes("no current revision")) {
-    return "Please add a document to the agreement before sending it for signature";
-  }
-  if (errorMessage.includes("no participants")) {
-    return "Please add a recipient to the agreement before sending";
-  }
-  if (errorMessage.includes("invalid state") || errorMessage.includes("cannot be sent")) {
-    return "This agreement cannot be sent in its current state";
-  }
-  if (errorMessage.includes("not found")) {
-    return "The agreement could not be found";
-  }
-  if (errorMessage.includes("access denied") || errorMessage.includes("forbidden")) {
-    return "You don't have permission to perform this action";
-  }
-  if (errorMessage.includes("authentication") || errorMessage.includes("unauthorized")) {
-    return "Please sign in to continue";
-  }
-
-  // Default to the error message if we don't have a specific mapping
-  return error.message || "An error occurred while processing your request";
+  return resolveUserFacingMessage(error, {
+    fallbackMessage: "An error occurred while processing your request",
+  });
 }
 
 /**
@@ -53,25 +33,21 @@ export async function runDocusignApi<T, R>(
   apiCall: () => Promise<DocusignApiResponse<R>>,
   getData: (response: DocusignApiResponse<R>) => T
 ): Promise<T> {
-  log.debug(LOG_CATEGORIES.DOCUSIGN, errorLabel.replace(" failed", ""), debugContext);
+  log.debug("DOCUSIGN", errorLabel.replace(" failed", ""), debugContext);
   const response = await apiCall();
   if (!response.success) {
-    const errorMessage = response.error ?? errorLabel;
-    log.error(LOG_CATEGORIES.DOCUSIGN, errorLabel, {
+    const errorMessage = resolveApiResultErrorMessage(response, errorLabel);
+    log.error("DOCUSIGN", errorLabel, {
       ...debugContext,
       error: errorMessage,
       success: false,
     });
     throw new Error(errorMessage);
   }
-  log.debug(
-    LOG_CATEGORIES.DOCUSIGN,
-    `${errorLabel.replace(" failed", "")} completed successfully`,
-    {
-      ...debugContext,
-      success: true,
-    }
-  );
+  log.debug("DOCUSIGN", `${errorLabel.replace(" failed", "")} completed successfully`, {
+    ...debugContext,
+    success: true,
+  });
   return getData(response);
 }
 
@@ -88,14 +64,14 @@ export function getDocusignMutationHandlers(
   return {
     onSuccess: async () => {
       onSuccessInvalidate();
-      log.info(LOG_CATEGORIES.DOCUSIGN, successLabel);
+      log.info("DOCUSIGN", successLabel);
       enqueueToast({
         type: "success",
         message: successLabel,
       });
     },
     onError: async (error: Error) => {
-      log.error(LOG_CATEGORIES.DOCUSIGN, errorLabel, {
+      log.error("DOCUSIGN", errorLabel, {
         error: error.message,
         errorName: error.name,
       });
@@ -120,14 +96,14 @@ export function getDocusignMutationHandlersWithVars<TVariables>(
   return {
     onSuccess: async (_: unknown, variables: TVariables) => {
       onSuccessInvalidate(variables);
-      log.info(LOG_CATEGORIES.DOCUSIGN, successLabel, variables as Record<string, unknown>);
+      log.info("DOCUSIGN", successLabel, variables as Record<string, unknown>);
       enqueueToast({
         type: "success",
         message: successLabel,
       });
     },
     onError: async (error: Error, variables: TVariables) => {
-      log.error(LOG_CATEGORIES.DOCUSIGN, errorLabel, {
+      log.error("DOCUSIGN", errorLabel, {
         error: error.message,
         errorName: error.name,
         variables: variables as Record<string, unknown>,

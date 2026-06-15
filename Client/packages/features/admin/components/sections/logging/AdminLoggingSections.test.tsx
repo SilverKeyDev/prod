@@ -3,6 +3,48 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AdminLoggingSections } from "./AdminLoggingSections";
 
+vi.mock("packages/features/admin/hooks/data/useAdminLoggerConfig", () => ({
+  useAdminLoggerConfig: () => ({
+    config: {
+      client: {
+        polling: false,
+        pages: false,
+        hooks: false,
+        auth: false,
+        http: false,
+        api: { initialLoad: false, polling: false, pageMount: false, other: false },
+        errors: true,
+        security: true,
+        search: false,
+        feed: false,
+        logLevel: "ERROR",
+      },
+      server: {
+        polling: true,
+        pages: true,
+        hooks: true,
+        auth: true,
+        http: true,
+        api: true,
+        errors: true,
+        security: true,
+        search: false,
+        feed: false,
+        logLevel: "INFO",
+      },
+    },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useUpdateAdminLoggerConfig: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+  }),
+}));
+
 vi.mock("./AdminBackendLoggerSection", () => ({
   AdminBackendLoggerSection: () => <div data-testid="admin-backend-logger" />,
 }));

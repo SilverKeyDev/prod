@@ -5,14 +5,13 @@ This module provides standardized functions for database operations with
 automatic retry logic, connection management, and error handling.
 """
 
-import logging
 import time
 from collections.abc import Callable
 from typing import Any
 
 from sqlalchemy.exc import DisconnectionError, OperationalError
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 
 def with_db_retry(
@@ -48,7 +47,11 @@ def with_db_retry(
         try:
             db_engine.dispose()
         except Exception as e:
-            logger.warning(f"⚠️ Failed to dispose engine before {operation_name}: {str(e)}")
+            log.warn(
+                "ERRORS",
+                "Failed to dispose engine before operation",
+                {"operation": operation_name, "error": str(e)},
+            )
 
     retry_delay = initial_delay
     last_exception = None
@@ -60,8 +63,15 @@ def with_db_retry(
 
         except (OperationalError, DisconnectionError) as e:
             last_exception = e
-            logger.warning(
-                f"🔄 {operation_name} connection error on attempt {attempt + 1}/{max_retries}: {str(e)}"
+            log.warn(
+                "ERRORS",
+                "Database connection error; retrying",
+                {
+                    "operation": operation_name,
+                    "attempt": attempt + 1,
+                    "max_retries": max_retries,
+                    "error": str(e),
+                },
             )
 
             # Clean up session
@@ -81,11 +91,19 @@ def with_db_retry(
                 time.sleep(retry_delay)
                 retry_delay *= 2  # Exponential backoff
             else:
-                logger.error(f"❌ Max retries exceeded for {operation_name}")
+                log.error(
+                    "ERRORS",
+                    "Max database retries exceeded",
+                    {"operation": operation_name},
+                )
 
         except Exception as e:
             last_exception = e
-            logger.error(f"❌ Non-connection error in {operation_name}: {str(e)}")
+            log.error(
+                "ERRORS",
+                "Non-connection database error",
+                {"operation": operation_name, "error": str(e)},
+            )
             try:
                 db_session.rollback()
             except Exception:
@@ -177,4 +195,8 @@ def dispose_engine_safely(db_engine, operation_name: str = "operation") -> None:
     try:
         db_engine.dispose()
     except Exception as e:
-        logger.warning(f"⚠️ Failed to dispose engine before {operation_name}: {str(e)}")
+        log.warn(
+            "ERRORS",
+            "Failed to dispose engine before operation",
+            {"operation": operation_name, "error": str(e)},
+        )

@@ -1,7 +1,6 @@
 """Map and commute image generation (Google Maps Static/Directions API)."""
 
 import json
-import logging
 import re
 import traceback
 import urllib.parse
@@ -10,7 +9,7 @@ from io import BytesIO
 import requests
 from PIL import Image as PILImage
 
-logger = logging.getLogger(__name__)
+from logger import log
 
 # Get Google Maps Map ID - hardcoded for consistency with frontend
 GOOGLE_MAPS_ID = "20e2eb0b8f03975aaf072074"
@@ -50,10 +49,10 @@ def save_map_as_image(url, filename="map.png"):
             img.save(filename)
             return True
         else:
-            logger.error(f"❌ Failed to fetch map: {response.status_code}, {response.text}")
+            log.error("ERRORS", "Failed to fetch map: {response.status_code}, {response.text}")
             return False
-    except Exception as e:
-        logger.error(f"❌ Error saving map image: {e}")
+    except Exception:
+        log.error("ERRORS", "Error saving map image: {e}")
         return False
 
 
@@ -71,25 +70,21 @@ def fetch_directions_leg(origin, destination, api_key):
         }
         response = requests.get(url, params=params, timeout=30)
         if response.status_code != 200:
-            logger.error(
-                "Directions API error: %s, %s",
-                response.status_code,
-                response.text,
-            )
+            log.error("ERRORS", "Directions API error:", {"detail": str(response.status_code)})
             return None
         data = response.json()
         routes = data.get("routes") or []
         if not routes or not routes[0].get("legs"):
             o_prev = origin[:30] if isinstance(origin, str) else ""
             d_prev = destination[:30] if isinstance(destination, str) else ""
-            logger.warning("No route found from %s... to %s...", o_prev, d_prev)
+            log.warn("API", "No route found from ... to ...", {"detail": f"{o_prev} -> {d_prev}"})
             return None
         leg = routes[0]["legs"][0]
         duration = (leg.get("duration") or {}).get("text")
         enc = (routes[0].get("overview_polyline") or {}).get("points")
         return {"duration_text": duration, "encoded_polyline": enc}
     except Exception as e:
-        logger.error("Error fetching directions leg: %s", e)
+        log.error("ERRORS", "Error fetching directions leg:", {"detail": str(e)})
         return None
 
 
@@ -184,10 +179,10 @@ def save_map_as_buffer(url):
             output.seek(0)
             return output
         else:
-            logger.error(f"❌ Failed to fetch map: {response.status_code}, {response.text}")
+            log.error("ERRORS", "Failed to fetch map: {response.status_code}, {response.text}")
             return None
-    except Exception as e:
-        logger.error(f"❌ Error loading map image to buffer: {e}")
+    except Exception:
+        log.error("ERRORS", "Error loading map image to buffer: {e}")
         return None
 
 
@@ -195,11 +190,11 @@ def generate_commute_map(primary_address, user_preferences, api_key):
     """Generate a commute map showing routes from primary address to important locations."""
     try:
         if not api_key:
-            logger.error("🗺️ COMMUTE MAP: ❌ No API key provided")
+            log.error("ERRORS", "🗺️ COMMUTE MAP: ❌ No API key provided")
             return None
 
         if not user_preferences:
-            logger.error("🗺️ COMMUTE MAP: ❌ No user preferences provided")
+            log.error("ERRORS", "🗺️ COMMUTE MAP: ❌ No user preferences provided")
             return None
 
         important_locations = []
@@ -213,8 +208,11 @@ def generate_commute_map(primary_address, user_preferences, api_key):
             try:
                 locations_data = json.loads(locations_data)
             except json.JSONDecodeError as e:
-                logger.error(f"🗺️ COMMUTE MAP: ❌ Failed to parse important_locations JSON: {e}")
-                logger.error(f"🗺️ COMMUTE MAP: Raw JSON string: {repr(locations_data)}")
+                log.error(
+                    "ERRORS",
+                    "COMMUTE MAP: Failed to parse important_locations JSON",
+                    {"error": str(e), "raw_json": repr(locations_data)},
+                )
                 return None
 
         if isinstance(locations_data, list):
@@ -228,14 +226,19 @@ def generate_commute_map(primary_address, user_preferences, api_key):
                     )
                     important_locations.append({"name": loc_name, "address": loc["address"]})
                 else:
-                    logger.warning(
-                        f"🗺️ COMMUTE MAP: ❌ Skipped invalid location {i + 1}: missing address or not dict"
+                    log.warn(
+                        "API",
+                        "🗺️ COMMUTE MAP: Skipped invalid location {i + 1}: missing address or not dict",
                     )
         else:
-            logger.warning(f"🗺️ COMMUTE MAP: locations_data is not a list: {type(locations_data)}")
+            log.warn(
+                "API",
+                "COMMUTE MAP: locations_data is not a list",
+                {"type": str(type(locations_data))},
+            )
 
         if not important_locations:
-            logger.warning("🗺️ COMMUTE MAP: ❌ No valid locations found after processing")
+            log.warn("PROPERTY_DETAILS", "COMMUTE MAP: No valid locations found after processing")
             return None
 
         important_locations = important_locations[:5]
@@ -266,6 +269,9 @@ def generate_commute_map(primary_address, user_preferences, api_key):
             return None
 
     except Exception as e:
-        logger.error(f"🗺️ COMMUTE MAP: ❌ Exception: {e}")
-        logger.error(traceback.format_exc())
+        log.error(
+            "ERRORS",
+            "COMMUTE MAP exception",
+            {"error": str(e), "traceback": traceback.format_exc()},
+        )
         return None

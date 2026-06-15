@@ -30,3 +30,13 @@ export const CHECKLIST_TYPE_TO_TAB: Record<ChecklistType, ChecklistTab> = {
   financing: "financing",
   closing: "closing",
 };
+
+/** Maps buyer-roadmap `ChecklistTab` to API checklist `type` query value. */
+export const CHECKLIST_TAB_TO_TYPE: Record<ChecklistTab, ChecklistType> = {
+  search: "search",
+  offer: "offer",
+  escrow: "escrow",
+  inspections: "insurance",
+  financing: "financing",
+  closing: "closing",
+};

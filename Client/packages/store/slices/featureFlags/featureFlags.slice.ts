@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 export type FeatureFlagsState = {
   flags: Record<string, boolean>;

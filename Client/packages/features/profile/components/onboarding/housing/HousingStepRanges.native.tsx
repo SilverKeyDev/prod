@@ -3,10 +3,9 @@ import React from "react";
 import Input from "@ui/form/Input";
 
 import { LotSizeAndHomeAgeSliders } from "packages/features/profile";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-
-import { FIELD_LABELS, type OnboardingData, SECTION_TITLES } from "@/features/profile/utils";
+import { FIELD_LABELS, type OnboardingData, SECTION_TITLES } from "packages/features/profile/utils";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -59,7 +58,11 @@ export function HousingStepRanges({ formData, updateFormData }: Props) {
         <Text className="text-text-secondary text-xs">
           Lot size and home age use the same ranges as search and profile. Adjust the sliders below.
         </Text>
-        <LotSizeAndHomeAgeSliders formData={formData} updateFormData={updateFormData} />
+        <LotSizeAndHomeAgeSliders
+          formData={formData}
+          updateFormData={updateFormData}
+          layout="responsive-row"
+        />
       </Box>
 
       <Box>

@@ -1,4 +1,4 @@
-import { ACTION_LABELS } from "packages/utils/domain/actionLabels";
+import { ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 /** Shared translation strings (common, form, validation, feedback, house). Used by LocalizationContext. */
 export const SHARED_TRANSLATIONS: Record<string, string> = {
   "common.save": ACTION_LABELS.SAVE,

@@ -1,3 +1,7 @@
+> **Status:** Partial
+> **Last verified:** 2026-06-04
+> **Shipped feature docs:** [search.md](../client/features/search.md) (polygon search + cache); client Reels UI under `Client/packages/features/search/components/reels/`.
+
 # Reels for Homes
 
 Instagram/TikTok-style vertical feed for property listings: instant scroll, hyper-personalized ranking, and conversion-optimized experience (saves, agent contact, tour bookings).
@@ -20,5 +24,5 @@ Instagram/TikTok-style vertical feed for property listings: instant scroll, hype
 |---|---------------|---------------|
 | Feed API | Returns empty stub | Serves pre-ranked feed from cache |
 | Ranking | Embedding similarity (EnsembleScorer) | Conversion-optimized (MTML) |
-| Cache | HomeUniversal (PostgreSQL) | Redis feed queue + vector DB retrieval |
+| Cache | PropertyCache + UserPropertyLink (PostgreSQL) | Redis feed queue + vector DB retrieval |
 | Client | Virtuoso, infinite scroll | Sliding-window prefetch, instant next item |

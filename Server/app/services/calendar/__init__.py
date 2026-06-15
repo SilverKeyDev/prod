@@ -62,6 +62,7 @@ from .oauth import (
     get_scope_urls_by_category,
     normalize_scope_url,
     validate_state,
+    validate_state_and_get_user_id,
 )
 
 # Permissions
@@ -92,6 +93,7 @@ __all__ = [
     # OAuth
     "generate_state",
     "validate_state",
+    "validate_state_and_get_user_id",
     "build_auth_url",
     "exchange_code_for_tokens",
     "GoogleScope",

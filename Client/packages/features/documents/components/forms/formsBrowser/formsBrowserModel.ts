@@ -3,7 +3,7 @@ import type { ChecklistForm } from "packages/features/documents/types/forms";
 import {
   formatFormsLibraryCategoryLabel,
   sortFormCategoriesForLibrary,
-} from "packages/utils/documents";
+} from "packages/utils/transaction/documents";
 
 export function formMatchesSearch(form: ChecklistForm, q: string): boolean {
   const hay =

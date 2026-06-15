@@ -8,7 +8,7 @@ import { subscribeWithSelector } from "zustand/middleware";
 import { withDevtools } from "packages/store/middleware/devtools";
 import { persistSafe } from "packages/store/middleware/persistSafe";
 import { withResettable } from "packages/store/middleware/resettable";
-import { createPersistStorageProxy } from "packages/utils/storage/platformStorage";
+import { createPersistStorageProxy } from "packages/utils/core/storage/platformStorage";
 
 import { createResettableState } from "./resettableState";
 import { baseCreator } from "./sliceBase";
@@ -109,7 +109,7 @@ export const selectToasts = (state: ConsolidatedSearchState) => ({
 
 export type { ActiveTab, ConsolidatedSearchState, ToastItem, ToastType } from "./types";
 
-// Search context, view, and filters (legacy slices; prefer useConsolidatedSearchStore for new code)
+// Map/display filters — extended fields not on ConsolidatedSearchState (sort, camera, overlays, etc.)
 export {
   type MapRegionSnapshot,
   type SearchSource,
@@ -117,11 +117,15 @@ export {
   useFiltersStore,
   type WebMapCameraSnapshot,
 } from "./filters.slice";
+// Ephemeral search context: anchor, location bar, filter overrides, feed cursor
 export {
+  requestOpenSearchPreferencesPanel,
   type SearchContextAnchor,
   type SearchFilterOverrides,
   useSearchContextStore,
 } from "./searchContext.slice";
+// Results vs map view mode (list/map toggle)
+export { type GoogleMapsState, useGoogleMapsStore } from "./googleMaps.slice";
 export {
   SEARCH_VIEW_MODE_CHANGED_EVENT,
   type SearchViewMode,

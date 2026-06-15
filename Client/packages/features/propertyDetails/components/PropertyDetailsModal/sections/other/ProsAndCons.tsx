@@ -3,11 +3,11 @@ import React from "react";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
 import { useProsAndConsData } from "packages/features/propertyDetails/hooks/useProsAndConsData";
-import { Icon } from "packages/ui/components/icons";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
-import { ProsConsStarRow } from "packages/ui/components/ui/ProsConsStarRow";
+import { Icon } from "packages/ui/components/media/icons";
+import { ProsConsStarRow } from "packages/ui/components/media/ui/ProsConsStarRow";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
 
 export const ProsAndCons: React.FC<PropertyComponentProps> = ({ property }) => {
   const { contextLine, prosList, consList, highlightsSubtitle, propertyAnalysis, isAgent, t } =

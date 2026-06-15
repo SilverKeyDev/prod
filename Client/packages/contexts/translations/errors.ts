@@ -1,0 +1,37 @@
+/** Cross-cutting API error strings (errors.*). Used by resolveUserFacingMessage. */
+export const ERRORS_TRANSLATIONS: Record<string, string> = {
+  "errors.generic": "Something went wrong. Please try again later.",
+
+  "errors.authentication_failed": "Authentication required",
+  "errors.authorization_failed": "Access denied",
+  "errors.invalid_request": "Invalid request",
+  "errors.resource_not_found": "Resource not found",
+  "errors.validation_error": "Invalid input provided",
+  "errors.server_error": "An error occurred processing your request",
+  "errors.rate_limit_exceeded": "Too many requests. Please try again later.",
+  "errors.file_upload_error": "File upload failed",
+  "errors.database_error": "Unable to process request",
+  "errors.external_api_error": "External service temporarily unavailable",
+  "errors.configuration_error": "Service temporarily unavailable",
+  "errors.agreement_state_error": "Agreement cannot be sent in its current state",
+  "errors.agreement_not_found": "Agreement not found",
+  "errors.participant_not_found": "Participant not found",
+  "errors.revision_not_found": "Agreement revision not found",
+  "errors.template_not_found": "Template not found",
+  "errors.docusign_error": "Document signing service error",
+
+  "errors.invalid_credentials": "The provided email or password is incorrect",
+  "errors.token_expired": "Your session has expired. Please log in again.",
+  "errors.invalid_token": "Your session is invalid. Please log in again.",
+  "errors.unauthorized": "Authentication required",
+  "errors.no_token": "Authentication required",
+  "errors.access_token_missing": "Authentication required",
+  "errors.refresh_token_expired": "Your session has expired. Please log in again.",
+  "errors.refresh_token_invalid": "Your session is invalid. Please log in again.",
+  "errors.refresh_token_missing": "Your session has expired. Please log in again.",
+
+  "errors.super_admin_required": "Super admin access required",
+  "errors.admin_forbidden": "You do not have permission to perform this action",
+  "errors.partner_not_found": "Partner not found",
+  "errors.transaction_not_found": "Transaction not found",
+};

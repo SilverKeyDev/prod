@@ -1,22 +1,25 @@
 """Agreement document download routes."""
 
 from flask import jsonify
+from sqlalchemy import select
 
+from app import db
 from app.models import Agreement
-from app.services.auth import get_current_user
+from app.schemas import DocusignAgreementDownloadUrlResponse
 from app.services.documents.s3_service import S3Service
 from app.services.docusign.utils.permissions import can_access_agreement
+from app.utils.common_patterns import forbidden, not_found, require_authenticated_user, server_error
 from app.utils.security import rate_limit
-from app.utils.security.secure_errors import SecureErrorHandler
-from logger import LOG_CATEGORIES, get_logger
-
-log = get_logger()
+from app.utils.validation import validate_response
+from logger import log
 
 
 def register_download_routes(bp):
     @bp.route("/agreements/<agreement_id>/download", methods=["GET"])
     @rate_limit(max_requests=100, window_seconds=60)
-    def get_download_url(agreement_id):
+    @require_authenticated_user
+    @validate_response(DocusignAgreementDownloadUrlResponse)
+    def get_download_url(user, agreement_id):
         """
         Get a pre-signed S3 URL for viewing or downloading the agreement PDF.
 
@@ -31,39 +34,30 @@ def register_download_routes(bp):
             500: Server error
         """
         try:
-            user = get_current_user()
-            if not user:
-                log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
-                    "Unauthenticated download attempt",
-                    {"agreement_id": agreement_id},
-                )
-                return jsonify({"success": False, "error": "Authentication required"}), 401
-
             log.debug(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Fetching download URL for agreement",
                 {"agreement_id": agreement_id, "user_id": user.id},
             )
 
             # Get agreement
-            agreement = Agreement.query.filter_by(id=agreement_id).first()
+            agreement = db.session.scalar(select(Agreement).where(Agreement.id == agreement_id))
             if not agreement:
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "Agreement not found for download",
                     {"agreement_id": agreement_id, "user_id": user.id},
                 )
-                return jsonify({"success": False, "error": "Agreement not found"}), 404
+                return not_found("Agreement not found")
 
             # Check access
             if not can_access_agreement(user, agreement):
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "User denied access to download agreement",
                     {"agreement_id": agreement_id, "user_id": user.id},
                 )
-                return jsonify({"success": False, "error": "Access denied"}), 403
+                return forbidden()
 
             document_path = agreement.signed_document_path
             if not document_path:
@@ -73,7 +67,7 @@ def register_download_routes(bp):
 
             if not document_path:
                 log.warn(
-                    LOG_CATEGORIES["DOCUSIGN"],
+                    "DOCUSIGN",
                     "No agreement document available for download",
                     {
                         "agreement_id": agreement_id,
@@ -81,22 +75,14 @@ def register_download_routes(bp):
                         "status": agreement.status,
                     },
                 )
-                return (
-                    jsonify(
-                        {
-                            "success": False,
-                            "error": "Document not yet available",
-                        }
-                    ),
-                    404,
-                )
+                return not_found("Document not yet available")
 
             # Pre-signed TTL comes from S3_PRESIGNED_URL_EXPIRATION / config (default 1 hour).
             s3_service = S3Service()
             download_url = s3_service.generate_presigned_url(document_path)
 
             log.info(
-                LOG_CATEGORIES["DOCUSIGN"],
+                "DOCUSIGN",
                 "Download URL generated successfully",
                 {
                     "agreement_id": agreement_id,
@@ -119,8 +105,10 @@ def register_download_routes(bp):
 
         except Exception as e:
             log.error(
-                LOG_CATEGORIES["ERRORS"],
+                "ERRORS",
                 "Failed to generate download URL",
                 {"agreement_id": agreement_id, "error": str(e)},
             )
-            return SecureErrorHandler.handle_error(e, "Failed to generate download URL")
+            return server_error(
+                e, context={"function": "get_download_url", "agreement_id": agreement_id}
+            )

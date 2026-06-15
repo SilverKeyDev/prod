@@ -1,4 +1,4 @@
-import { Box, Image } from "packages/ui/components/primitives";
+import { Box, Image } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button } from "@/components/ui";
 import { FeedAffordabilityBadge } from "@/features/feed/components/Modals/FeedAffordabilityBadge";

@@ -1,14 +1,14 @@
-import { type RefObject, useCallback, useRef } from "react";
+import { type MutableRefObject, type RefObject, useCallback, useRef } from "react";
 
 import Loading from "@ui/asset/loading/Loading";
 import { FlatList, View } from "react-native";
 
-import { Box, Text } from "packages/ui/components/primitives";
+import type { EventRequestPayload } from "packages/features/messaging";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 import { MessagingMessageRowNative } from "@/features/agent/components/messaging/messageRow/MessagingMessageRow.native";
 import type { MessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/types";
-import type { EventRequestPayload } from "@/features/messaging/utils/eventRequestPayload";
 
 type MessagingScreenNativeMessageListHandlers = {
   handleAcceptEventRequest: (messageId: string, payload: EventRequestPayload) => Promise<void>;
@@ -17,6 +17,7 @@ type MessagingScreenNativeMessageListHandlers = {
 
 type MessagingScreenNativeMessageListProps = {
   listRef: RefObject<FlatList<ChatMessage> | null>;
+  initialScrollSettledRef: MutableRefObject<boolean>;
   localMessages: ChatMessage[];
   isLoadingHistory: boolean;
   centeredStyle: object;
@@ -37,6 +38,7 @@ type MessagingScreenNativeMessageListProps = {
 
 export function MessagingScreenNativeMessageList({
   listRef,
+  initialScrollSettledRef,
   localMessages,
   isLoadingHistory,
   centeredStyle,
@@ -57,6 +59,7 @@ export function MessagingScreenNativeMessageList({
   const loadOlderGuardRef = useRef(false);
 
   const handleStartReached = useCallback(() => {
+    if (!initialScrollSettledRef.current) return;
     if (!hasMoreOlder || isLoadingOlder || loadOlderGuardRef.current) return;
     loadOlderGuardRef.current = true;
     void onLoadOlder().finally(() => {
@@ -64,7 +67,7 @@ export function MessagingScreenNativeMessageList({
         loadOlderGuardRef.current = false;
       }, 400);
     });
-  }, [hasMoreOlder, isLoadingOlder, onLoadOlder]);
+  }, [hasMoreOlder, initialScrollSettledRef, isLoadingOlder, onLoadOlder]);
 
   if (isLoadingHistory) {
     return (

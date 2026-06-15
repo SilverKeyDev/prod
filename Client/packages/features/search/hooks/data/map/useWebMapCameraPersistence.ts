@@ -1,10 +1,7 @@
 import { useEffect, useRef } from "react";
 
-import {
-  applyStoredMapCamera,
-  snapshotMapCamera,
-} from "packages/features/search/utils/googleMaps/mapCamera";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { applyStoredMapCamera, snapshotMapCamera } from "packages/features/search/utils/googleMaps";
+import { log } from "packages/logger";
 import { useFiltersStore } from "packages/store";
 
 const IDLE_PERSIST_MS = 450;
@@ -79,13 +76,9 @@ export function useWebMapCameraPersistence(params: {
       if (frames < MAP_ATTACH_MAX_FRAMES) {
         requestAnimationFrame(tryAttach);
       } else {
-        log.debug(
-          LOG_CATEGORIES.MAP_RENDERING,
-          "Map not ready for camera persistence within frame budget",
-          {
-            frames,
-          }
-        );
+        log.debug("MAP_RENDERING", "Map not ready for camera persistence within frame budget", {
+          frames,
+        });
       }
     };
 

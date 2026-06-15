@@ -85,7 +85,7 @@ function Component() {
 
 ```typescript
 // ✅ CORRECT: Component uses store integration hook
-import { useSavedHomesStoreIntegration } from "../../../packages/hooks/store/useSavedHomesStoreIntegration";
+import { useSavedHomesStoreIntegration } from "packages/hooks/store";
 
 function Component() {
   const { savedHomes, saveHome } = useSavedHomesStoreIntegration();
@@ -114,6 +114,7 @@ function Component() {
 
 ## Further Reading
 
-- [data/README.md](./data/README.md) - Data fetching hooks
-- [store/README.md](./store/README.md) - Store integration hooks
-- [ui/README.md](./ui/README.md) - UI state hooks
+- [documentation/client/architecture/layered-architecture-imports.md](../../../documentation/client/architecture/layered-architecture-imports.md)
+- [data/README.md](./data/README.md) — Data fetching hooks
+- [store/README.md](./store/README.md) — Store integration hooks
+- [ui/README.md](./ui/README.md) — UI state hooks

@@ -1,3 +1,5 @@
+> **Status:** Planned
+> **Last verified:** 2026-06-04
 # Reels MVP 2: Engagement and Cache
 
 ## Goal
@@ -9,7 +11,7 @@ Conversion-aware ranking, Redis feed cache, and engagement event pipeline. Feed 
 1. **Engagement event logging** — Capture swipe, pause, save, contact (and optionally view duration). Ingest via a simple REST API or Kafka topic. Store in a form suitable for training (e.g. event table or Kafka-backed warehouse).
 2. **Conversion-aware ranking** — Extend ranking to use ReelLike/save (and optionally other) signals. Options: (a) re-rank existing candidates by a simple score combining similarity and save rate, or (b) lightweight MTML predicting P(save) and blend with current EnsembleScorer.
 3. **Pre-compute feed in Redis** — Celery task (scheduled or triggered) builds the top N listing IDs per user using the updated ranking; write to Redis key `feed:{user_id}` (e.g. JSON list of IDs or full metadata).
-4. **Feed API reads Redis first** — On `GET /api/v1/feed`, read `feed:{user_id}` from Redis; if miss, fall back to HomeUniversal (MVP 1 behavior). Return items in cache order.
+4. **Feed API reads Redis first** — On `GET /api/v1/feed`, read `feed:{user_id}` from Redis; if miss, fall back to PropertyCache + UserPropertyLink (MVP 1 behavior). Return items in cache order.
 
 ## New components
 

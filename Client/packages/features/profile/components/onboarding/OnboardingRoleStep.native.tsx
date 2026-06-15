@@ -1,22 +1,21 @@
 import React from "react";
 
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
-
 import {
   applyOnboardingRoleSelection,
   FIELD_LABELS,
-  ONBOARDING_ROLE_OPTIONS,
   type OnboardingData,
   type PrimaryOnboardingRole,
   primaryOnboardingRoleFromForm,
-} from "@/features/profile/utils";
+} from "packages/features/profile/utils";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import { ONBOARDING_ROLE_PICKER_OPTIONS } from "packages/utils/product/domain/profile/onboardingRolePicker";
 
 type OnboardingRoleStepProps = {
   formData: OnboardingData;
   updateFormData: (field: string | number | symbol, value: unknown) => void;
 };
 
-/** First onboarding step: 2×2 role tiles (Buyer / Seller / Investor / Agent). */
+/** First onboarding step: role tiles for all supported workspace personas. */
 export function OnboardingRoleStep({ formData, updateFormData }: OnboardingRoleStepProps) {
   const selected = primaryOnboardingRoleFromForm(formData);
 
@@ -34,8 +33,8 @@ export function OnboardingRoleStep({ formData, updateFormData }: OnboardingRoleS
       </Text>
 
       <Box className="-mx-0.5 flex flex-row flex-wrap gap-3">
-        {ONBOARDING_ROLE_OPTIONS.map((opt) => {
-          const role = opt.value as PrimaryOnboardingRole;
+        {ONBOARDING_ROLE_PICKER_OPTIONS.map((opt) => {
+          const role = opt.value;
           const isSelected = selected === role;
           return (
             <Pressable
@@ -43,7 +42,7 @@ export function OnboardingRoleStep({ formData, updateFormData }: OnboardingRoleS
               onPress={() => onPick(role)}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
-              className={`min-h-20 w-[48%] flex-grow basis-[44%] rounded-2xl border-2 px-3 py-4 ${
+              className={`min-h-20 w-[48%] flex-grow basis-[44%] rounded-2xl border-2 px-3 py-4 sm:basis-[30%] ${
                 isSelected ? "border-primary bg-primary/10" : "border-border bg-background-surface"
               }`}
             >

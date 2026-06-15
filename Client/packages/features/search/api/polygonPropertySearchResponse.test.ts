@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { handlePolygonSearchFiltersTooTightOutcome } from "packages/features/search/utils/outcomes/searchFiltersTooTightOutcome";
+import { warnSearchEmptyResults } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import type { SearchByPolygonResponse } from "packages/types/domain/api";
 
 import { handlePolygonSearchResponse } from "./polygonPropertySearchResponse";
@@ -17,6 +19,10 @@ vi.mock("packages/logger", () => ({
 
 vi.mock("packages/features/search/utils/outcomes/searchOutcomeToast", () => ({
   warnSearchEmptyResults: vi.fn(),
+}));
+
+vi.mock("packages/features/search/utils/outcomes/searchFiltersTooTightOutcome", () => ({
+  handlePolygonSearchFiltersTooTightOutcome: vi.fn(() => false),
 }));
 
 vi.mock("packages/features/search/utils/transform/searchTransform", () => ({
@@ -195,5 +201,50 @@ describe("handlePolygonSearchResponse", () => {
         controller.signal
       )
     ).rejects.toMatchObject({ name: "AbortError" });
+  });
+
+  it("handles filters-too-tight outcome instead of generic empty toast", async () => {
+    vi.mocked(handlePolygonSearchFiltersTooTightOutcome).mockReturnValueOnce(true);
+    const setters = createSetters();
+
+    const promise = handlePolygonSearchResponse(
+      successResponse({ properties: [], meta: { filtersTooTight: true, cached: false } }),
+      { lat: 0, lng: 0 },
+      setters.setSearchStage,
+      setters.setSearchResults,
+      setters.setIsSearching,
+      setters.setHasSearched,
+      setters.setCurrentPage,
+      setters.setShowPropertyModals,
+      true
+    );
+
+    await vi.advanceTimersByTimeAsync(2000);
+    await promise;
+
+    expect(handlePolygonSearchFiltersTooTightOutcome).toHaveBeenCalled();
+    expect(warnSearchEmptyResults).not.toHaveBeenCalled();
+  });
+
+  it("shows generic empty toast when filters are not too tight", async () => {
+    vi.mocked(handlePolygonSearchFiltersTooTightOutcome).mockReturnValueOnce(false);
+    const setters = createSetters();
+
+    const promise = handlePolygonSearchResponse(
+      successResponse({ properties: [], meta: { cached: false } }),
+      { lat: 0, lng: 0 },
+      setters.setSearchStage,
+      setters.setSearchResults,
+      setters.setIsSearching,
+      setters.setHasSearched,
+      setters.setCurrentPage,
+      setters.setShowPropertyModals,
+      false
+    );
+
+    await vi.advanceTimersByTimeAsync(2000);
+    await promise;
+
+    expect(warnSearchEmptyResults).toHaveBeenCalledWith({ preferencesStrictFilter: false });
   });
 });

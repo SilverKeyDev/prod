@@ -1,6 +1,6 @@
 import type { CompareHomesComparisonField } from "packages/features/compare/types/compareHomes";
-import { formatPrice, formatPropertyType } from "packages/utils/format/property";
-import { formatLotSize } from "packages/utils/format/property/addressFormatting";
+import { formatPrice, formatPropertyType } from "packages/utils/core/format/property";
+import { formatLotSize } from "packages/utils/core/format/property/addressFormatting";
 
 export function getCoreFields(): CompareHomesComparisonField[] {
   return [

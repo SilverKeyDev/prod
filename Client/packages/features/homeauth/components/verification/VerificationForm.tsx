@@ -2,8 +2,12 @@ import React, { type RefObject } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Box } from "packages/ui/components/primitives";
-import { applyCodeChange, applyPaste, getBackspaceFocusIndex } from "packages/utils/verification";
+import { Box } from "packages/ui/components/structure/primitives";
+import {
+  applyCodeChange,
+  applyPaste,
+  getBackspaceFocusIndex,
+} from "packages/utils/auth/verification";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Button, Input, Label, MiniLogo, Title } from "@/components/ui";
@@ -190,11 +194,13 @@ export function VerificationForm({
                 onVerify={onVerify}
               />
               <Box className="text-responsive-sm text-text-secondary text-center">
-                Didn't receive a code?{" "}
+                Didn't receive a code?
+              </Box>
+              <Box className="flex justify-center">
                 <Button
                   type="button"
                   onClick={onResendCode}
-                  variant="ghost"
+                  variant={canResend ? "ghost" : "secondary"}
                   size="sm"
                   disabled={!canResend || loading}
                   loading={loading}

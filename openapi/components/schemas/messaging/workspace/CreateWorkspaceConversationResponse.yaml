@@ -1,0 +1,9 @@
+type: object
+required:
+  - success
+  - conversation
+properties:
+  success:
+    type: boolean
+  conversation:
+    $ref: "./WorkspaceConversation.yaml"

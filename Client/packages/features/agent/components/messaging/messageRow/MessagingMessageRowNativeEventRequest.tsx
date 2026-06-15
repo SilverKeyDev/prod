@@ -1,9 +1,9 @@
 import React from "react";
 
+import type { EventRequestPayload } from "packages/features/messaging";
 import type { EventRequestStatus } from "packages/features/messaging/hooks/data/messaging/types";
-import type { EventRequestPayload } from "packages/features/messaging/utils/eventRequestPayload";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
-import { formatEventRequestRangeSummaryEnUs } from "packages/utils/date";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import { formatEventRequestRangeSummaryEnUs } from "packages/utils/core/date";
 
 export type MessagingEventRequestCardNativeProps = {
   messageId: string;

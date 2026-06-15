@@ -8,8 +8,8 @@ import React, {
   useState,
 } from "react";
 
-import { dateParseISO } from "packages/utils/date";
-import { getDocument as _getDocument } from "packages/utils/platform";
+import { dateParseISO } from "packages/utils/core/date";
+import { getDocument as _getDocument } from "packages/utils/core/platform";
 
 /**
  * Localization context for non-state i18n concerns (English only).

@@ -29,10 +29,8 @@ export function useCreateEventModalDateHandlers(
       if (!scheduleStart || !scheduleEnd) {
         return;
       }
-
-      setIsAllDay(scheduleStart !== scheduleEnd);
     },
-    [mode, setCreateTimesChosenViaWeekSlot, setEndDate, setIsAllDay, setStartDate]
+    [mode, setCreateTimesChosenViaWeekSlot, setEndDate, setStartDate]
   );
 
   const onCalendarTimedSlotPick = useCallback(

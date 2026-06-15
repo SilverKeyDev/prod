@@ -5,13 +5,13 @@ import {
   deriveAllowedWorkspaces,
   type DeriveAllowedWorkspacesInput,
   type Workspace,
-} from "packages/utils/workspace";
+} from "packages/utils/product/workspace";
 import {
   readPersistedActiveWorkspace,
   writePersistedActiveWorkspace,
-} from "packages/utils/workspace/workspaceSessionStorage";
+} from "packages/utils/product/workspace/workspaceSessionStorage";
 
-export type { Workspace } from "packages/utils/workspace";
+export type { Workspace } from "packages/utils/product/workspace";
 
 export type WorkspaceState = {
   allowedWorkspaces: Workspace[];
@@ -23,7 +23,6 @@ export type WorkspaceState = {
    */
   syncFromIdentity: (input: {
     user: {
-      is_agent?: boolean | null;
       roles?: readonly string[];
       brokerage_org_ids?: readonly string[] | null;
     } | null;
@@ -70,6 +69,7 @@ const baseCreator: import("zustand").StateCreator<WorkspaceState> = (set, get) =
   setActiveWorkspace: (workspace) => {
     const { allowedWorkspaces } = get();
     if (!allowedWorkspaces.includes(workspace)) return;
+
     writePersistedActiveWorkspace(workspace);
     set({ activeWorkspace: workspace });
   },
@@ -78,14 +78,12 @@ const baseCreator: import("zustand").StateCreator<WorkspaceState> = (set, get) =
     const { user, profileRoles } = input;
     if (!user) {
       writePersistedActiveWorkspace(null);
-      set({ ...initialState() });
+      set(initialState());
       return;
     }
 
-    const isAgent = Boolean(user.is_agent);
     const roles = mergeRoles(user, profileRoles);
     const deriveInput: DeriveAllowedWorkspacesInput = {
-      isAgent,
       roles,
       brokerageOrgIds: user.brokerage_org_ids ?? undefined,
     };

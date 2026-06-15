@@ -1,11 +1,7 @@
 """S3 presigned URL generation."""
 
-from app.utils.security.app_logging import get_logger
-
 from ..s3_urls import generate_presigned_url as url_generate_presigned
 from ..s3_urls import generate_view_url as url_generate_view
-
-logger = get_logger()
 
 
 def generate_presigned_url(

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { getWindow } from "packages/utils/platform";
+import { log } from "packages/logger";
+import { getWindow } from "packages/utils/core/platform";
 
 /**
  * Memory monitoring utilities (map-related).
@@ -38,7 +38,7 @@ export function useMemoryMonitoring() {
       setMemoryUsage({ used, total, percentage });
 
       if (percentage > 80) {
-        log.warn(LOG_CATEGORIES.MAP_RENDERING, "High memory usage detected", {
+        log.warn("MAP_RENDERING", "High memory usage detected", {
           used,
           total,
           percentage,
@@ -47,12 +47,9 @@ export function useMemoryMonitoring() {
         if (winGc && "gc" in winGc) {
           try {
             winGc.gc?.();
-            log.debug(
-              LOG_CATEGORIES.MAP_RENDERING,
-              "Triggered garbage collection due to high memory usage"
-            );
+            log.debug("MAP_RENDERING", "Triggered garbage collection due to high memory usage");
           } catch (error) {
-            log.warn(LOG_CATEGORIES.MAP_RENDERING, "Could not trigger garbage collection", error);
+            log.warn("MAP_RENDERING", "Could not trigger garbage collection", error);
           }
         }
       }

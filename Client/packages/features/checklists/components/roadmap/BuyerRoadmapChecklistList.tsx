@@ -19,9 +19,10 @@ import {
   getRoadmapChecklistItemBlockerKind,
 } from "packages/features/checklists/utils/rules/checklistRules";
 import { sortTaskChecklistItemsForDisplay } from "packages/features/checklists/utils/sort/sortTaskChecklistItemsForDisplay";
-import { Loading } from "packages/ui/components/asset/loading/Loading";
-import Card from "packages/ui/components/cards/Card";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Loading } from "packages/ui/components/media/asset/loading/Loading";
+import { SCROLL_PANEL_MAX, ScrollPanel } from "packages/ui/components/structure/layout/ScrollPanel";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 import { BuyerRoadmapChecklistItemCard } from "./BuyerRoadmapChecklistItemCard";
 
@@ -74,6 +75,8 @@ export type BuyerRoadmapChecklistListProps = {
   sectionProgress: Record<ChecklistTab, { isComplete: boolean }>;
   /** Navigates roadmap phase tabs (e.g. Search → Offer) when a section or row is gated. */
   onRoadmapTabNavigate?: (tab: ChecklistTab) => void;
+  /** Transaction subject for rev-share placement and integration context. */
+  transactionId?: string | null;
 };
 
 type TabDisclosure = { futureOpen: boolean; completedOpen: boolean };
@@ -106,6 +109,7 @@ export function BuyerRoadmapChecklistList({
   sectionProgress,
   onRoadmapTabNavigate,
   isChecklistUpdatePending = false,
+  transactionId,
 }: BuyerRoadmapChecklistListProps) {
   const { t } = useLocalization();
   const [dispatchModalItemId, setDispatchModalItemId] = useState<number | null>(null);
@@ -179,8 +183,10 @@ export function BuyerRoadmapChecklistList({
 
   const getRoadmapItemBlocker = useCallback(
     (itemId: number) =>
-      getRoadmapChecklistItemBlockerKind(sortedItems, checkedIds, itemId, !isSectionLocked),
-    [sortedItems, checkedIds, isSectionLocked]
+      getRoadmapChecklistItemBlockerKind(sortedItems, checkedIds, itemId, !isSectionLocked, {
+        isAgentViewer: isAgent === true,
+      }),
+    [sortedItems, checkedIds, isSectionLocked, isAgent]
   );
 
   const revealRoadmapItem = useCallback(
@@ -232,6 +238,7 @@ export function BuyerRoadmapChecklistList({
     onRoadmapTabNavigate,
     onRevealRoadmapItem: revealRoadmapItem,
     isChecklistUpdatePending,
+    transactionId,
   };
 
   return (
@@ -260,89 +267,100 @@ export function BuyerRoadmapChecklistList({
               <Text className="text-text-tertiary text-base">No checklist items yet.</Text>
             </Box>
           ) : (
-            <Box className="flex flex-col gap-2">
-              {segments.map((segment, segIdx) => {
-                if (segment.kind === "completed_collapsed") {
-                  return (
-                    <Pressable
-                      key={`cc-${segIdx}`}
-                      onPress={() => setTabDisclosure({ completedOpen: true })}
-                      className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                      aria-expanded={false}
-                    >
-                      <Icon name="chevron-right" className="text-text-secondary h-4 w-4 shrink-0" />
-                      <Text className="text-text-primary text-sm font-medium">
-                        {t("checklists.progressive.completed_collapsed", {
-                          count: segment.count,
-                        })}
-                      </Text>
-                    </Pressable>
-                  );
-                }
-                if (segment.kind === "completed_expanded_header") {
-                  return (
-                    <Pressable
-                      key={`ceh-${segIdx}`}
-                      onPress={() => setTabDisclosure({ completedOpen: false })}
-                      className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                      aria-expanded
-                    >
-                      <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
-                      <Text className="text-text-primary text-sm font-medium">
-                        {t("checklists.progressive.completed_collapsed", {
-                          count: segment.count,
-                        })}
-                      </Text>
-                    </Pressable>
-                  );
-                }
-                if (segment.kind === "future_collapsed") {
-                  return (
-                    <Pressable
-                      key={`fc-${segIdx}`}
-                      onPress={() => setTabDisclosure({ futureOpen: true })}
-                      className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                      aria-expanded={false}
-                    >
-                      <Icon name="chevron-right" className="text-text-secondary h-4 w-4 shrink-0" />
-                      <Text className="text-text-secondary text-sm font-medium">
-                        {t("checklists.progressive.show_more_collapsed", {
-                          count: segment.count,
-                        })}
-                      </Text>
-                    </Pressable>
-                  );
-                }
-                if (
-                  segment.kind === "completed_item" ||
-                  segment.kind === "current" ||
-                  segment.kind === "upcoming" ||
-                  segment.kind === "future_item"
-                ) {
-                  return (
-                    <BuyerRoadmapChecklistItemCard
-                      key={`${segment.kind}-${segment.item.id}`}
-                      {...cardProps}
-                      item={segment.item}
-                      rowKind={segment.kind}
-                    />
-                  );
-                }
-                return null;
-              })}
-              {disclosure.futureOpen && futureHidden > 0 ? (
-                <Pressable
-                  onPress={() => setTabDisclosure({ futureOpen: false })}
-                  className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
-                  aria-expanded
-                >
-                  <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
-                  <Text className="text-text-secondary text-sm font-medium">
-                    {t("checklists.progressive.show_more_expanded")}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </Box>
+            <ScrollPanel maxHeight={SCROLL_PANEL_MAX.checklist}>
+              <Box className="flex flex-col gap-2">
+                {segments.map((segment, segIdx) => {
+                  if (segment.kind === "completed_collapsed") {
+                    return (
+                      <Pressable
+                        key={`cc-${segIdx}`}
+                        onPress={() => setTabDisclosure({ completedOpen: true })}
+                        className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
+                        aria-expanded={false}
+                      >
+                        <Icon
+                          name="chevron-right"
+                          className="text-text-secondary h-4 w-4 shrink-0"
+                        />
+                        <Text className="text-text-primary text-sm font-medium">
+                          {t("checklists.progressive.completed_collapsed", {
+                            count: segment.count,
+                          })}
+                        </Text>
+                      </Pressable>
+                    );
+                  }
+                  if (segment.kind === "completed_expanded_header") {
+                    return (
+                      <Pressable
+                        key={`ceh-${segIdx}`}
+                        onPress={() => setTabDisclosure({ completedOpen: false })}
+                        className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
+                        aria-expanded
+                      >
+                        <Icon
+                          name="chevron-down"
+                          className="text-text-secondary h-4 w-4 shrink-0"
+                        />
+                        <Text className="text-text-primary text-sm font-medium">
+                          {t("checklists.progressive.completed_collapsed", {
+                            count: segment.count,
+                          })}
+                        </Text>
+                      </Pressable>
+                    );
+                  }
+                  if (segment.kind === "future_collapsed") {
+                    return (
+                      <Pressable
+                        key={`fc-${segIdx}`}
+                        onPress={() => setTabDisclosure({ futureOpen: true })}
+                        className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
+                        aria-expanded={false}
+                      >
+                        <Icon
+                          name="chevron-right"
+                          className="text-text-secondary h-4 w-4 shrink-0"
+                        />
+                        <Text className="text-text-secondary text-sm font-medium">
+                          {t("checklists.progressive.show_more_collapsed", {
+                            count: segment.count,
+                          })}
+                        </Text>
+                      </Pressable>
+                    );
+                  }
+                  if (
+                    segment.kind === "completed_item" ||
+                    segment.kind === "current" ||
+                    segment.kind === "upcoming" ||
+                    segment.kind === "future_item"
+                  ) {
+                    return (
+                      <BuyerRoadmapChecklistItemCard
+                        key={`${segment.kind}-${segment.item.id}`}
+                        {...cardProps}
+                        item={segment.item}
+                        rowKind={segment.kind}
+                      />
+                    );
+                  }
+                  return null;
+                })}
+                {disclosure.futureOpen && futureHidden > 0 ? (
+                  <Pressable
+                    onPress={() => setTabDisclosure({ futureOpen: false })}
+                    className="border-border bg-background-base m-1.5 flex flex-row items-center gap-2 rounded-lg border px-4 py-3"
+                    aria-expanded
+                  >
+                    <Icon name="chevron-down" className="text-text-secondary h-4 w-4 shrink-0" />
+                    <Text className="text-text-secondary text-sm font-medium">
+                      {t("checklists.progressive.show_more_expanded")}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </Box>
+            </ScrollPanel>
           )}
         </Card>
         {hubClientUserId && checklistCategory && dispatchModalItemId != null ? (

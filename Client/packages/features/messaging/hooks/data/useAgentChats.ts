@@ -18,9 +18,10 @@ import type {
   UseAgentChatsReturn,
 } from "packages/features/messaging/hooks/data/useAgentChats.types";
 import { showErrorToast } from "packages/hooks/ui/toast";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { useNotificationStore } from "packages/store";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 /**
  * Hook to manage agent conversations
@@ -67,7 +68,7 @@ export function useAgentChats(
     queryFn: async () => {
       const response = await agentApi.getChats(clientId);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch conversations");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch conversations"));
       }
       return response.conversations ?? [];
     },
@@ -83,7 +84,7 @@ export function useAgentChats(
   });
 
   useEffect(() => {
-    log.debug(LOG_CATEGORIES.MESSAGES, "useAgentChats: observer", {
+    log.debug("MESSAGES", "useAgentChats: observer", {
       instanceId: instanceIdRef.current,
       fetchEnabled,
       clientId: clientId ?? null,
@@ -95,7 +96,7 @@ export function useAgentChats(
   useEffect(() => {
     if (!loadData) {
       if (!shouldLoadData) {
-        log.info(LOG_CATEGORIES.MESSAGES, "useAgentChats: query disabled until auth ready", {
+        log.info("MESSAGES", "useAgentChats: query disabled until auth ready", {
           authReady,
           isAuthenticated,
           instanceId: instanceIdRef.current,
@@ -104,7 +105,7 @@ export function useAgentChats(
       return;
     }
     if (error) {
-      log.warn(LOG_CATEGORIES.MESSAGES, "useAgentChats: fetch failed", {
+      log.warn("MESSAGES", "useAgentChats: fetch failed", {
         message: error instanceof Error ? error.message : String(error),
         clientIdFilter: clientId ?? null,
         instanceId: instanceIdRef.current,
@@ -112,7 +113,7 @@ export function useAgentChats(
       return;
     }
     if (isLoading && conversationsResponse === undefined) {
-      log.debug(LOG_CATEGORIES.MESSAGES, "useAgentChats: loading", {
+      log.debug("MESSAGES", "useAgentChats: loading", {
         clientIdFilter: clientId ?? null,
         instanceId: instanceIdRef.current,
       });
@@ -128,7 +129,7 @@ export function useAgentChats(
     ].join("|");
     if (fingerprint === lastConversationLogFingerprintRef.current) return;
     lastConversationLogFingerprintRef.current = fingerprint;
-    log.info(LOG_CATEGORIES.MESSAGES, "useAgentChats: conversations result", {
+    log.info("MESSAGES", "useAgentChats: conversations result", {
       count: conversationsResponse?.length ?? 0,
       clientIdFilter: clientId ?? null,
       ids,
@@ -160,7 +161,7 @@ export function useAgentChats(
       sharedHomeId?: string;
       sharedDocumentId?: string;
     }) => {
-      log.debug(LOG_CATEGORIES.MESSAGES, "sendMessageMutation called", {
+      log.debug("MESSAGES", "sendMessageMutation called", {
         conversationId,
         messageLength: message.length,
         hasClientId: !!clientId,
@@ -179,7 +180,7 @@ export function useAgentChats(
         sharedDocumentId
       );
 
-      log.debug(LOG_CATEGORIES.MESSAGES, "sendMessage API response", {
+      log.debug("MESSAGES", "sendMessage API response", {
         success: response.success,
         hasError: !!response.error,
         error: response.error,
@@ -187,7 +188,7 @@ export function useAgentChats(
       });
 
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to send message");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to send message"));
       }
       return response;
     },
@@ -200,7 +201,7 @@ export function useAgentChats(
       });
     },
     onError: (error, variables) => {
-      log.error(LOG_CATEGORIES.ERRORS, "Send message failed", error);
+      log.error("ERRORS", "Send message failed", error);
       const convId = variables?.conversationId ?? "";
       const msg =
         error instanceof Error ? error.message : typeof error === "string" ? error : "unknown";
@@ -219,7 +220,7 @@ export function useAgentChats(
     async (conversationId: string, limit: number): Promise<AgentChatHistoryCacheEntry> => {
       const response = await agentApi.getChatHistory(conversationId, { limit });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch chat history");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch chat history"));
       }
       return {
         messages: response.messages ?? [],
@@ -270,7 +271,7 @@ export function useAgentChats(
           after_message_id: options?.afterMessageId,
         });
         if (!response.success) {
-          throw new Error(response.error ?? "Failed to fetch chat history");
+          throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch chat history"));
         }
         return {
           messages: response.messages ?? [],
@@ -300,7 +301,7 @@ export function useAgentChats(
         queryClient.setQueryData(historyKey, result);
         return result;
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Get chat history failed", {
+        log.error("ERRORS", "Get chat history failed", {
           error,
           conversationId,
         });
@@ -317,7 +318,9 @@ export function useAgentChats(
     queryFn: async () => {
       const response = await agentApi.getNotificationCounter();
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to fetch notification counter");
+        throw new Error(
+          resolveApiResultErrorMessage(response, "Failed to fetch notification counter")
+        );
       }
       return response.total_count;
     },

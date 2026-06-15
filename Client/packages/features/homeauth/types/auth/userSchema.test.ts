@@ -14,7 +14,7 @@ describe("userResponseSchema", () => {
         created_at: "2024-01-01T00:00:00",
         is_active: true,
         has_preferences: false,
-        is_agent: false,
+        roles: ["buyer"],
       },
     };
     const parsed = userResponseSchema.safeParse(raw);
@@ -47,20 +47,16 @@ describe("userResponseSchema", () => {
         email: "admin@example.com",
         name: "Admin",
         is_active: null,
-        is_agent: null,
-        is_closing_mode: null,
-        has_subscription: null,
         has_preferences: null,
+        roles: [],
       },
     };
     const parsed = userResponseSchema.safeParse(raw);
     expect(parsed.success).toBe(true);
     if (parsed.success && parsed.data.data) {
       expect(parsed.data.data.is_active).toBe(false);
-      expect(parsed.data.data.is_agent).toBe(false);
-      expect(parsed.data.data.is_closing_mode).toBe(false);
-      expect(parsed.data.data.has_subscription).toBe(false);
       expect(parsed.data.data.has_preferences).toBe(false);
+      expect(parsed.data.data.roles).toEqual([]);
     }
   });
 });

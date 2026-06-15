@@ -6,10 +6,16 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
+import { getDocument } from "packages/utils/core/platform";
+
 import App from "./app/App";
 import { CoreProviders } from "./app/providers/CoreProviders";
 
-const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
+const rootElement = getDocument()?.getElementById("root");
+if (!rootElement) {
+  throw new Error("Root element #root not found");
+}
+const root = ReactDOM.createRoot(rootElement);
 
 // v7_startTransition: false so navigation commits synchronously. When true, the previous
 // screen can stay visible and Search URL-sync timeouts can race with navigate() and overwrite nav.

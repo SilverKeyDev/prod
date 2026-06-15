@@ -1,4 +1,4 @@
-import { dayjs } from "packages/utils/date";
+import { dayjs } from "packages/utils/core/date";
 
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 

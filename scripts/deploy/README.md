@@ -1,38 +1,48 @@
 # Deploy Scripts
 
-Scripts used by the prod deploy workflow (`.github/workflows/deploy/ci_web.yml`).
+**Canonical prod deploy:** [`.github/workflows/ci_web.yml`](../../.github/workflows/ci_web.yml) runs [`.github/scripts/ec2-deploy.sh`](../../.github/scripts/ec2-deploy.sh) on the EC2 host via SSH. That script preserves Redis, replaces stateless app/worker containers, and syncs the frontend.
 
-## Runner scripts (run on GitHub Actions runner)
+**Prod rollback:** redeploy a prior immutable SHA tag with:
 
-| Script | Purpose |
-|--------|---------|
-| `docker-build-push.sh` | Build and push Docker image to ECR |
-| `prune-buildx.sh` | Prune Buildx cache after build |
-| `final-cleanup.sh` | Prune Docker, apt, caches on runner (run with `if: always()`) |
-
-## EC2 scripts (run on EC2 host via appleboy SSH)
-
-Sequential steps in `ec2/`:
-
-| Step | Script | Purpose |
-|------|--------|---------|
-| 1 | `01-ensure-docker.sh` | Ensure Docker is installed and running |
-| 2 | `02-cleanup-and-pull.sh` | Clean containers/caches, pull image, create network |
-| 3 | `03-start-redis.sh` | Start Redis container, wait for healthy |
-| 4 | `04-start-app.sh` | Start App container, wait for healthy |
-| 5 | `05-start-worker.sh` | Start Worker container |
-| 6 | `06-sync-frontend.sh` | Sync static frontend to /var/www/html |
-| 7 | `07-verify-health.sh` | Final health check for all containers |
-
-Orchestration: `ec2/run-all.sh` fetches and runs each step in sequence. Used by ci_web via curl.
-
-## Usage
-
-**Runner (from repo root):**
 ```bash
-./scripts/deploy/docker-build-push.sh
-./scripts/deploy/prune-buildx.sh
-./scripts/deploy/final-cleanup.sh
+scripts/deploy/rollback-prod-web.sh <prior-12-char-sha-tag>
 ```
 
-**EC2 (via appleboy):** Workflow runs `run-all.sh` which curls each step. Requires `GITHUB_REPOSITORY` and `GITHUB_SHA` in env. For private repos, add `GITHUB_TOKEN`.
+See [documentation/server/ops/prod-web-rollback.md](../../documentation/server/ops/prod-web-rollback.md).
+
+## Scaling env vars (EC2 deploy)
+
+Passed by `ec2-deploy.sh` to app/worker/beat containers — see [documentation/server/ops/scaling-playbook.md](../../documentation/server/ops/scaling-playbook.md).
+
+## Local prod-parity
+
+Compose stack under [`prod-parity/`](./prod-parity/) — app, Redis, Celery worker, and Beat (mirrors EC2 container layout).
+
+**Prerequisites:**
+
+- `Server/.env` with `DATABASE_URL` and required server keys (`make setup`)
+- `Client/.env` with bundle build args (`make secrets` or copy from `Client/.env.example`) — same `EXPO_PUBLIC_*` keys CI passes to `Dockerfile.web`
+
+**Interactive (foreground):**
+
+```bash
+make prod-parity-build
+make prod-parity
+```
+
+**Automated smoke (build → boot → health checks → tear down):**
+
+```bash
+make prod-parity-smoke
+# reuse image: SKIP_BUILD=1 make prod-parity-smoke
+```
+
+Smoke waits for the app container healthcheck (`/livez`), then curls `/livez` and `/readyz` (DB + Redis). Run before merging `Dockerfile.web` or deploy-script changes.
+
+On `build`, [`prod-parity/compose.sh`](./prod-parity/compose.sh) passes every `Client/.env` entry as a Docker `--build-arg` (no hardcoded keys in compose YAML). `up` uses `Client/.env` only for compose interpolation.
+
+**Docker Desktop (Apple Silicon):** prod-parity images are `linux/arm64`. If the app dies with exit **132** while loading routes (SIGILL), it is usually `cryptography` 47+ — not torch. Pin is documented in `Server/requirements/runtime.txt`; rebuild after changing it (`make prod-parity-build`).
+
+## Load testing
+
+See [scripts/load/README.md](../load/README.md) — local/staging only.

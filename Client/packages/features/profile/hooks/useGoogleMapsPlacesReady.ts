@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useGoogleMapsStore } from "packages/store";
-import { getWindow } from "packages/utils/platform";
+import { getWindow } from "packages/utils/core/platform";
 
 type WindowWithGoogle = Window & {
   google?: { maps?: { places?: unknown } };
@@ -18,7 +18,7 @@ export function useGoogleMapsPlacesReady(): {
 
   useEffect(() => {
     if (googleMapsError) {
-      log.error(LOG_CATEGORIES.ERRORS, "Google Maps loading error", googleMapsError);
+      log.error("ERRORS", "Google Maps loading error", googleMapsError);
       setLoadError("Failed to load Google Maps script.");
       return;
     }

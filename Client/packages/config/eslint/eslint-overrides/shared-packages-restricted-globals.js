@@ -15,10 +15,43 @@ const SHARED_PACKAGE_FILES = [
   "packages/utils/**/*.{js,jsx,ts,tsx}",
 ];
 
+const WEB_OR_NATIVE_PLATFORM_FILES = [
+  "packages/**/*.{web,native}.{js,jsx,ts,tsx}",
+  "apps/web/**/*.{web}.{js,jsx,ts,tsx}",
+];
+
 export function sharedPackagesRestrictedGlobals() {
   return [
     {
+      files: WEB_OR_NATIVE_PLATFORM_FILES,
+      rules: {
+        "no-restricted-globals": [
+          "warn",
+          {
+            name: "fetch",
+            message: "Use apiClient (config/api or services/http) instead of direct fetch.",
+          },
+          {
+            name: "localStorage",
+            message:
+              "Do not use localStorage in shared packages; it is not available in React Native. Use a platform abstraction or pass storage as a dependency.",
+          },
+          {
+            name: "sessionStorage",
+            message:
+              "Do not use sessionStorage in shared packages; it is not available in React Native.",
+          },
+          {
+            name: "navigator",
+            message:
+              "Do not use navigator in shared packages; it is not available in React Native.",
+          },
+        ],
+      },
+    },
+    {
       files: SHARED_PACKAGE_FILES,
+      ignores: WEB_OR_NATIVE_PLATFORM_FILES,
       rules: {
         "no-restricted-globals": [
           "warn",

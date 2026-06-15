@@ -1,3 +1,7 @@
+> **Status:** partial
+> **Last verified:** 2026-06-04
+> **Shipped checklist phases:** [checklists.md](../../client/features/checklists.md).
+
 ## Timeline Phases and Deadlines
 
 This folder describes the **phase-by-phase timeline** of a residential purchase transaction, including:

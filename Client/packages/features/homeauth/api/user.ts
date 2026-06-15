@@ -1,19 +1,5 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * This file re-exports types from the generated API contract (api.generated.ts).
- * All type definitions have been moved to openapi.yaml.
- *
- * To add/modify API types:
- * 1. Edit openapi.yaml
- * 2. Run `pnpm generate:api-types`
- * 3. Types will be auto-generated in packages/types/api.generated.ts
- *
- * This shim maintains backward compatibility for existing imports.
- */
-
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { apiGet, apiPost, apiPut, apiUpload } from "packages/services/http/compatibility";
+import { log } from "packages/logger";
+import { apiGet, apiPost, apiUpload } from "packages/services/http";
 
 import type {
   AddFavoriteRequest,
@@ -77,7 +63,7 @@ export const userApi = {
     const parsed = userResponseSchema.safeParse(raw);
     if (!parsed.success) {
       const paths = parsed.error.errors.map((e) => e.path.join("."));
-      log.error(LOG_CATEGORIES.API, "User profile validation failed", {
+      log.error("API", "User profile validation failed", {
         paths,
       });
       const msg = parsed.error.errors.map((e) => e.message).join("; ");
@@ -90,7 +76,7 @@ export const userApi = {
    * Update user profile - Note: Backend endpoint not implemented yet
    */
   updateProfile: (_userData: Partial<User>): Promise<UserResponse> => {
-    log.warn(LOG_CATEGORIES.API, "User profile update endpoint not implemented on backend");
+    log.warn("API", "User profile update endpoint not implemented on backend");
     return Promise.reject(new Error("Profile update not available"));
   },
 
@@ -98,9 +84,18 @@ export const userApi = {
    * Get user's favorite homes
    * @param clientId - Optional client ID for agents to view client's saved homes
    */
-  getFavoriteHomes: (clientId?: string): Promise<FavoriteHomesResponse> => {
-    const params = clientId ? `?client_id=${encodeURIComponent(clientId)}` : "";
-    return apiGet<FavoriteHomesResponse>(`/api/v1/user/favorite-homes${params}`);
+  getFavoriteHomes: (
+    clientId?: string,
+    pagination?: { page?: number; perPage?: number }
+  ): Promise<FavoriteHomesResponse> => {
+    const search = new URLSearchParams({
+      page: String(pagination?.page ?? 1),
+      per_page: String(pagination?.perPage ?? 20),
+    });
+    if (clientId) {
+      search.set("client_id", clientId);
+    }
+    return apiGet<FavoriteHomesResponse>(`/api/v1/user/favorite-homes?${search.toString()}`);
   },
 
   /**
@@ -140,26 +135,6 @@ export const userApi = {
     apiPost<FavoriteHomesResponse>("/api/v1/user/not-interested-homes/update", data),
 
   /**
-   * Get assigned agent for current user
-   */
-  getAssignedAgent: (): Promise<{
-    success: boolean;
-    data?: unknown;
-    message?: string;
-  }> =>
-    apiGet<{ success: boolean; data?: unknown; message?: string }>("/api/v1/user/assigned-agent"),
-
-  /**
-   * Search for agents
-   */
-  searchAgents: (
-    query: string
-  ): Promise<{ success: boolean; agents?: unknown[]; message?: string }> =>
-    apiGet<{ success: boolean; agents?: unknown[]; message?: string }>(
-      `/api/v1/user/search-agents?q=${encodeURIComponent(query)}`
-    ),
-
-  /**
    * Assign an agent to current user
    */
   assignAgent: (
@@ -174,22 +149,6 @@ export const userApi = {
    */
   removeAgent: (): Promise<{ success: boolean; message?: string }> =>
     apiPost<{ success: boolean; message?: string }>("/api/v1/user/remove-agent", {}),
-
-  /**
-   * Update user's closing mode status
-   */
-  updateClosingMode: (
-    isClosingMode: boolean
-  ): Promise<{
-    success: boolean;
-    data?: { is_closing_mode: boolean };
-    error?: string;
-  }> =>
-    apiPut<{
-      success: boolean;
-      data?: { is_closing_mode: boolean };
-      error?: string;
-    }>("/api/v1/user/closing-mode", { is_closing_mode: isClosingMode }),
 
   /**
    * Irreversibly delete the current user's account and related data.

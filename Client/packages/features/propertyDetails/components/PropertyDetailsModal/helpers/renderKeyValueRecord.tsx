@@ -1,10 +1,10 @@
 import React from "react";
 
 import { AnalysisKeyValueLine } from "packages/features/propertyDetails/components/PropertyDetailsModal/helpers/analysisKeyValueLine";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
-import { formatAnalysisLabel } from "packages/utils/propertyDetails";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
+import { formatAnalysisLabel } from "packages/utils/transaction/propertyDetails";
 
 /**
  * Renders a shallow record as labeled blocks (lists for array values).

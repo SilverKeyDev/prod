@@ -1,19 +1,19 @@
 import React from "react";
 
-import type { BuyerNeighborhoodPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerNeighborhoodPrefs } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import {
   FIELD_LABELS,
   PROFILE_NOT_SPECIFIED_LABEL,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
+import { profileFieldValueClassName } from "packages/features/profile/utils";
 import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/public/constants";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { FormFieldLabel as Label } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import { Dropdown } from "@/components/ui";
-import Label from "@/features/profile/components/settings/inputs/Label";
-import { profileFieldValueClassName } from "@/features/profile/utils";
 
 import type { PatchBuyerPreferenceExtensions } from "./types";
 import { withBuyerExtV1 } from "./withBuyerExtV1";
@@ -22,12 +22,15 @@ type SearchPrefsNeighborhoodProps = {
   isEditMode: boolean;
   patch: PatchBuyerPreferenceExtensions;
   neigh: BuyerNeighborhoodPrefs;
+  /** Keep top-level walkability_importance in sync for save/load roundtrip. */
+  onWalkabilityImportanceChange?: (value: string | undefined) => void;
 };
 
 export function SearchPrefsNeighborhood({
   isEditMode,
   patch,
   neigh,
+  onWalkabilityImportanceChange,
 }: SearchPrefsNeighborhoodProps) {
   return (
     <Box className="gap-4">
@@ -44,18 +47,20 @@ export function SearchPrefsNeighborhood({
             content: isEditMode ? (
               <Dropdown
                 value={neigh.walkability_importance ?? ""}
-                onChange={(value) =>
+                onChange={(value) => {
+                  const next = value || undefined;
+                  onWalkabilityImportanceChange?.(next);
                   patch((p) => {
                     const b = withBuyerExtV1(p);
                     return {
                       ...b,
                       neighborhood: {
                         ...b.neighborhood,
-                        walkability_importance: value || undefined,
+                        walkability_importance: next,
                       },
                     };
-                  })
-                }
+                  });
+                }}
                 options={WALKABILITY_OPTIONS}
                 placeholder="Select walkability importance"
               />

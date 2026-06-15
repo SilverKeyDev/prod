@@ -11,24 +11,24 @@ import MapView, {
 
 import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Button } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import { buildGoogleStreetViewUrl } from "packages/utils/maps/googleMapsLinks";
-import { getIsochroneUnionFillNativeRgba } from "packages/utils/maps/isochroneUnionStyle";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getIsochroneUnionFillNativeRgba } from "packages/utils/product/maps/isochrone/isochroneUnionStyle";
+import { buildGoogleStreetViewUrl } from "packages/utils/product/maps/links/googleMapsLinks";
 import {
   getGoogleMapIdForNative,
   getUseGoogleMapsProvider,
-} from "packages/utils/maps/nativeGoogleMapsCloudConfig";
+} from "packages/utils/product/maps/native/nativeGoogleMapsCloudConfig";
 import {
   COMMUTE_NATIVE_POLYGON_INDIVIDUAL_Z,
   COMMUTE_NATIVE_POLYGON_UNION_Z,
-} from "packages/utils/maps/propertyCommuteNative.constants";
+} from "packages/utils/product/maps/native/propertyCommuteNative.constants";
 import type {
   IsochronePolygonsNative,
   NativeDestinationMarker,
   NativeRouteOverlay,
-} from "packages/utils/maps/propertyCommuteNative.types";
+} from "packages/utils/product/maps/native/propertyCommuteNative.types";
 
 const SEARCH_NATIVE_GOOGLE_MAPS_FLAG = "search_native_google_maps";
 
@@ -84,7 +84,7 @@ export function PropertyCommuteNativeMap({
 
   React.useEffect(() => {
     if (mapIdApplied) {
-      log.info(LOG_CATEGORIES.PROPERTY_DETAILS, "Property commute native map using Cloud Map ID", {
+      log.info("PROPERTY_DETAILS", "Property commute native map using Cloud Map ID", {
         googleMapId,
       });
     }

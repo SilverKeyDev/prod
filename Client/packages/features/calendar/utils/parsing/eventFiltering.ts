@@ -1,9 +1,25 @@
 import type { ExtendedGoogleEvent } from "packages/features/calendar/types/calendar";
-import { dateNow, dateParseISO } from "packages/utils/date";
+import { calculateCalendarDateRange } from "packages/utils/comms/calendar/core/date";
+import {
+  getEventLocalDayKeys,
+  getEventStartDate,
+} from "packages/utils/comms/calendar/parsing/eventParsing";
+import { dateNow, dateParseISO } from "packages/utils/core/date";
 
-import { calculateCalendarDateRange } from "@/features/calendar/utils/core/date";
-
-import { getEventStartDate } from "./eventParsing";
+/**
+ * Agenda calendar scope: events from the primary/SilverKey fetch path are tagged
+ * `calendarId: "primary"` while `silverKeyCalendarId` is the resolved Google resource id.
+ */
+export function eventMatchesAgendaCalendarScope(
+  event: ExtendedGoogleEvent,
+  silverKeyCalendarId: string | null
+): boolean {
+  if (!silverKeyCalendarId) {
+    return true;
+  }
+  const eventCalendarId = event.calendarId ?? "primary";
+  return eventCalendarId === silverKeyCalendarId || eventCalendarId === "primary";
+}
 
 /**
  * Filter events for current 4-week period
@@ -28,6 +44,25 @@ export function filterCurrentPeriodEvents(
 }
 
 /**
+ * Filter events occurring today — only from SilverKey calendar when `silverKeyCalendarId` is set.
+ * Uses local day keys (same as the calendar grid) so multi-day / all-day events count on today.
+ */
+export function filterTodayEvents(
+  events: ExtendedGoogleEvent[],
+  silverKeyCalendarId: string | null
+): ExtendedGoogleEvent[] {
+  const todayKey = dateNow().format("YYYY-MM-DD");
+
+  return events.filter((event) => {
+    if (!eventMatchesAgendaCalendarScope(event, silverKeyCalendarId)) {
+      return false;
+    }
+    const dayKeys = getEventLocalDayKeys(event);
+    return dayKeys.includes(todayKey);
+  });
+}
+
+/**
  * Filter upcoming events (next 7 days) - only from SilverKey calendar
  * Uses calculateCalendarDateRange to get the standard date range, then filters to next 7 days
  */
@@ -39,7 +74,7 @@ export function filterUpcomingEvents(
   const nextWeek = dateNow().startOf("day").add(7, "day").endOf("day").toDate();
 
   return events.filter((event) => {
-    if (silverKeyCalendarId && event.calendarId !== silverKeyCalendarId) {
+    if (!eventMatchesAgendaCalendarScope(event, silverKeyCalendarId)) {
       return false;
     }
     const eventDate = getEventStartDate(event);
@@ -57,7 +92,7 @@ export function filterAgendaEventsAllTime(
   silverKeyCalendarId: string | null
 ): ExtendedGoogleEvent[] {
   return events.filter((event) => {
-    if (silverKeyCalendarId && event.calendarId !== silverKeyCalendarId) {
+    if (!eventMatchesAgendaCalendarScope(event, silverKeyCalendarId)) {
       return false;
     }
     const eventDate = getEventStartDate(event);

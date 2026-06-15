@@ -19,7 +19,7 @@ vi.mock("packages/contexts", () => ({
 
 const mutateAsync = vi.fn();
 
-vi.mock("packages/hooks/data/admin/useUpdateUserSystemRolesMutation", () => ({
+vi.mock("packages/features/admin/hooks/data/useUpdateUserSystemRolesMutation", () => ({
   useUpdateUserSystemRolesMutation: () => ({
     mutateAsync,
     isPending: false,

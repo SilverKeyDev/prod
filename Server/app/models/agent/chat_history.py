@@ -1,9 +1,12 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import json
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -20,10 +23,15 @@ class ChatHistory(db.Model):
     conversation_id: Mapped[str | None] = mapped_column(
         db.ForeignKey("agent_conversations.id")
     )  # For agent-client conversations
+    workspace_conversation_id: Mapped[str | None] = mapped_column(
+        db.ForeignKey("workspace_conversations.id"), nullable=True, index=True
+    )  # For workspace/operator conversations
     sender_id: Mapped[str | None] = mapped_column(
         db.String(36)
     )  # For agent conversations: agent_id or client_id
-    role: Mapped[str] = mapped_column(db.String(10))  # 'user', 'assistant', or 'agent'
+    role: Mapped[str] = mapped_column(
+        db.String(20)
+    )  # user, assistant, agent, system, brokerage_admin, integrator, support
     message: Mapped[str] = mapped_column(db.Text)
     shared_home_id: Mapped[str | None] = mapped_column(
         db.String(255)
@@ -45,8 +53,15 @@ class ChatHistory(db.Model):
         default=False, server_default=db.text("false")
     )  # Simple boolean flag if message was read
 
-    # Relationship to agent conversation
-    conversation = db.relationship("AgentConnections", backref=db.backref("messages", lazy=True))
+    conversation: Mapped["AgentConnections | None"] = relationship(
+        "AgentConnections",
+        back_populates="messages",
+    )
+    workspace_conversation: Mapped["WorkspaceConversation | None"] = relationship(
+        "WorkspaceConversation",
+        back_populates="messages",
+        foreign_keys=[workspace_conversation_id],
+    )
 
     def mark_as_read(self, user_id: str):
         """Mark this message as read by a user"""

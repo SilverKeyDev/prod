@@ -7,16 +7,16 @@ import { PropertySectionRatingBadge } from "packages/features/propertyDetails/co
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper.native";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
-import { usePropertyCommuteMapUnavailableLog } from "packages/hooks/data/property/usePropertyCommuteMapUnavailableLog";
-import { usePropertyCommuteNativeOverlays } from "packages/hooks/data/property/usePropertyCommuteNativeOverlays";
-import { Box, Text } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/maps/propertyDetailsMapRegion";
+import { usePropertyCommuteMapUnavailableLog } from "packages/features/search/hooks/data/map/commute/usePropertyCommuteMapUnavailableLog";
+import { usePropertyCommuteNativeOverlays } from "packages/features/search/hooks/data/map/commute/usePropertyCommuteNativeOverlays";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import { PROPERTY_DETAILS_MAP_REGION_DELTA } from "packages/utils/product/maps/native/propertyDetailsMapRegion";
 import {
   stripSectionRatingField,
   unwrapPropertyAnalysisSection,
-} from "packages/utils/propertyDetails";
-import { getListingCoords } from "packages/utils/propertyDetails/location/listingCoords";
+} from "packages/utils/transaction/propertyDetails";
+import { getListingCoords } from "packages/utils/transaction/propertyDetails/location/listingCoords";
 
 import { PropertyCommuteMapLegendNative } from "./PropertyCommuteMapLegend.native";
 import { PropertyCommuteNativeMap } from "./PropertyCommuteNativeMap";

@@ -1,111 +1,35 @@
-## Option: Calendar Sync Strategy
+> **Status:** Partial — Google Calendar user integration shipped; transaction milestone calendar not wired.  
+> **Last verified:** 2026-05-28
 
-### Problem / goal
+## Problem
 
-We need a strategy for syncing transaction-related events between:
-- SilverKey’s internal transaction calendar.
-- External calendars (initially Google Calendar).
+Sync transaction milestones and user events with external calendars without losing auditability or deadline-engine ownership.
 
-Key questions:
-- Which system is the **source of truth** for event timing?
-- How do we handle edits and deletions?
-- How complex should bidirectional sync be in v1?
+## Settled decisions
 
-### Existing infrastructure to align with
+| Decision | Choice |
+| -------- | ------ |
+| System of record | **Option A** — SilverKey (internal) calendar owns timing; Google is a mirror via push + `CalendarEventLink`-style mapping. |
+| Google as SoR (**Option B**) | Rejected for v1. |
+| Full dual-write reconciliation (**Option C**) | Rejected for v1. |
 
-- **Current Google Calendar integration**
-  - `Client/packages/features/calendar/components/view/CalendarHeader.tsx`
-  - `Client/packages/features/calendar/components/view/CreateEventModal.tsx`
-  - Any hooks/services that manage:
-    - Access tokens.
-    - Event creation and listing.
+## Code today
 
-We should build on this integration rather than starting a separate one for transactions.
+| Area | What exists | Pointers |
+| ---- | ----------- | -------- |
+| Google OAuth + events | Create/edit/list flows, Meet defaults, screen hooks. | `Client/packages/features/calendar/hooks/data/`, `components/view/CreateEventModal.tsx`, `CalendarHeader.tsx` |
+| Location on events | Places autocomplete on create modal (same family as Finding home). | `CreateEventModal.tsx` |
+| Form deadlines | Server can compute form `deadline` from step calendar config + transaction start date. | `Server/app/services/documents/forms_service.py` (`calculate_deadline`) |
+| Transaction filter | No `transactionId` on calendar queries or milestone-derived events in app calendar UI. | — |
 
----
+## Gaps
 
-### Option A – Internal calendar as system of record (recommended)
+- No transaction-scoped in-app calendar or `GET .../milestones` feeding the calendar UI.
+- No `CalendarEventLink` table usage found for external event back-links.
+- Legacy `milestones` table removed in migrations — deadline engine docs under `transactions/mechanics/` are still **planned**.
 
-**Idea:** Treat SilverKey’s transaction calendar as the **authoritative model**, and:
-- Push events to Google Calendar as a convenience.
-- Store back-links (`CalendarEventLink`) to external events.
+## v1 behavior (when milestones ship)
 
-- **Pros**
-  - Clear ownership of data and behavior:
-    - Transaction timelines and milestones live in one place.
-  - Easier to reason about:
-    - Deadline engine and checklist logic always reference internal milestones.
-  - External calendars are:
-    - Mirrors that can be regenerated if necessary.
-- **Cons**
-  - Edits done purely in Google Calendar (by the user) need explicit:
-    - Handling rules (ignore, soft sync, or limited set of supported updates).
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [docusign-integration.md](../../client/features/docusign-integration.md).
 
-**Recommended v1 behavior**
-- One-way push:
-  - Internal changes (milestone updates, created events) push to Google Calendar.
-  - Edits directly in Google Calendar are:
-    - Either ignored.
-    - Or treated as advisory and reconciled via a narrow set of mappings later.
-
----
-
-### Option B – Google Calendar as system of record
-
-**Idea:** Make Google Calendar the primary source of event timing:
-- Internal milestone dates adapt to changes in Google.
-
-- **Pros**
-  - Respects user behavior:
-    - Many users are accustomed to managing events in Google.
-  - Changes made in Google reflect directly in SilverKey timelines.
-- **Cons**
-  - Makes the system highly dependent on:
-    - External platform availability, semantics, and rate limits.
-  - Hard to maintain:
-    - A coherent transaction timeline when users can arbitrarily edit/delete events.
-  - Complicates:
-    - Compliance and auditability.
-
-**Conclusion:** Too risky and complex for v1; not recommended.
-
----
-
-### Option C – Dual-write with reconciliation
-
-**Idea:** Try to treat both internal and Google calendars as peers:
-- Changes in either system are reconciled into a common state.
-
-- **Pros**
-  - Potentially the best user experience in theory.
-  - Minimizes friction for users who already live in Google Calendar.
-- **Cons**
-  - Very complex to implement:
-    - Conflict resolution semantics.
-    - Edge-case handling (partial failures, event series, time zone shifts).
-  - High operational risk.
-
-**Conclusion:** Overkill for v1; can be explored selectively for specific event types later.
-
----
-
-### Recommended v1 path
-
-Adopt **Option A (internal calendar as system of record)**:
-
-- **Model**
-  - All transaction-related events originate from:
-    - Milestones computed by the deadline engine.
-    - User-created in-app events.
-  - External calendars:
-    - Receive copies via existing Google integration.
-
-- **Implementation notes**
-  - Use `CalendarEventLink` to track:
-    - The mapping between internal events and external provider events.
-  - Limit interpretation of changes in Google to:
-    - A small set of supported actions (if any) and document these clearly.
-
-- **Future extensions**
-  - For specific cases (e.g. manual ad-hoc events created only in Google):
-    - Consider one-off import flows instead of full dual-sync.
+One-way push: internal milestone change → Google event create/update; edits in Google are ignored or narrowly reconciled later.

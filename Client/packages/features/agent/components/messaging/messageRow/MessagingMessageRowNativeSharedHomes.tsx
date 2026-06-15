@@ -4,8 +4,8 @@ import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { FlatList } from "react-native";
 
 import { IconButton } from "packages/ui";
-import type { HomeDescription } from "packages/ui/components/cards/HomeCard";
-import { Box, Image, Text } from "packages/ui/components/primitives";
+import { Box, Image, Text } from "packages/ui/components/structure/primitives";
+import type { HomeDescription } from "packages/ui/components/surfaces/cards/HomeCard";
 
 import { formatHomePrice } from "./MessagingMessageRowNativeSharedHomes.helpers";
 

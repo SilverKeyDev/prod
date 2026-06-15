@@ -6,7 +6,7 @@ import type { SavedPageViewType } from "packages/features/documents";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { SAVED_PAGE_SEARCH_INPUT_CLASS } from "packages/features/saved/utils/constants";
 import { useIsMobile } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
 import { BodyText, Input } from "@/components/ui";

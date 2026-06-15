@@ -12,13 +12,22 @@ def test_livez_returns_ok(client):
     LivezResponse.model_validate(res.get_json())
 
 
-def test_healthz_and_readyz_return_same_shape(client):
+def test_healthz_returns_db_shape(client):
     health = client.get("/healthz")
-    ready = client.get("/readyz")
-    assert health.status_code == ready.status_code
-    assert health.get_json() == ready.get_json()
+    assert health.status_code == 200
     HealthResponse.model_validate(health.get_json())
-    HealthResponse.model_validate(ready.get_json())
+    body = health.get_json()
+    assert body["status"] == "ok"
+    assert body["database"] == "connected"
+
+
+def test_readyz_includes_redis_status(client):
+    ready = client.get("/readyz")
+    assert ready.status_code == 200
+    body = ready.get_json()
+    assert body["status"] == "ok"
+    assert body["database"] == "connected"
+    assert body["redis"] in ("connected", "not_configured")
 
 
 def test_health_probes_support_head(client):

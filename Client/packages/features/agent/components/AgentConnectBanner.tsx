@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 
 import { useLocalization } from "packages/contexts";
-import { ProfileAvatar } from "packages/ui/components/avatar/ProfileAvatar";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import { getPendingPublicAgentConnectMeta } from "packages/utils/agent";
+import { ProfileAvatar } from "packages/ui/components/media/avatar/ProfileAvatar";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import { getPendingPublicAgentConnectMeta } from "packages/utils/growth/agent";
 
 /**
  * Context strip shown on login/signup pages when the user arrived via an agent's

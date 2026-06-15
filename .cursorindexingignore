@@ -1,6 +1,11 @@
 # Exclude from automatic codebase index only; paths remain @-mentionable.
 # See .cursor/README.md
 
+# Thin adapters to .cursor/ (canonical rules, skills, agents live there)
+.claude/
+.codex/
+.agents/
+
 # Heavy or rarely-needed in default context
 Server/migrations/versions/
 

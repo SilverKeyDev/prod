@@ -22,7 +22,7 @@ import { type ComponentType, useEffect, useState } from "react";
 import { registerRootComponent } from "expo";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 // Avoid literal ESM meta token in source so Metro web transformer does not false-positive
 const IMPORT_META_LABEL = "import" + ".meta";
@@ -31,7 +31,7 @@ const IMPORT_META_LABEL = "import" + ".meta";
 function reportUncaughtError(message: string, stack?: string, source?: string): void {
   const location = source ? ` at ${source}` : "";
   const full = stack ? `${message}${location}\n${stack}` : `${message}${location}`;
-  log.error(LOG_CATEGORIES.ERRORS, "[Uncaught error]" + location, new Error(full));
+  log.error("ERRORS", "[Uncaught error]" + location, new Error(full));
 }
 
 if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
@@ -40,7 +40,7 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
     reportUncaughtError(String(msg), err?.stack, source);
     if (typeof msg === "string" && msg.includes(IMPORT_META_LABEL)) {
       log.error(
-        LOG_CATEGORIES.ERRORS,
+        "ERRORS",
         `[${IMPORT_META_LABEL}] error (script): ${url ?? "(no url)"}:${line ?? "?"}:${col ?? "?"}`,
         err ?? new Error(String(msg))
       );
@@ -58,7 +58,7 @@ if (typeof window !== "undefined" && typeof window.addEventListener === "functio
     reportUncaughtError(message, stack, source);
     if (typeof message === "string" && message.includes(IMPORT_META_LABEL)) {
       log.error(
-        LOG_CATEGORIES.ERRORS,
+        "ERRORS",
         `[${IMPORT_META_LABEL}] error (file): ${err?.fileName ?? "(no fileName)"}:${err?.lineNumber ?? "?"}:${err?.columnNumber ?? "?"}`,
         err ?? new Error(message)
       );
@@ -75,7 +75,7 @@ function Root() {
     import("./App")
       .then((m) => setAppComponent(() => m.default))
       .catch((err) => {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to load App", err);
+        log.error("ERRORS", "Failed to load App", err);
         setLoadError(err instanceof Error ? err : new Error(String(err)));
       });
   }, []);

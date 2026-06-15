@@ -622,7 +622,7 @@ Builds complete envelope definition.
 ```python
 from app.services.docusign.envelopes.builder import EnvelopeBuilder
 
-agreement = Agreement.query.get("agreement-123")
+agreement = db.session.get(Agreement, "agreement-123")
 builder = EnvelopeBuilder(agreement, signing_method="embedded")
 envelope_definition = builder.build()
 
@@ -779,19 +779,6 @@ Builds signature tabs using anchor-based positioning (NEW).
     "dateSignedTabs": [...]
 }
 ```
-
----
-
-```python
-def build_tabs_coordinate_fallback(
-    participant: AgreementParticipant,
-    document_id: str = "1",
-    page_number: int = 1,
-    x_position: int = 100,
-    y_position: int = 400
-) -> dict[str, Any]
-```
-Builds tabs using coordinate positioning (fallback, NEW).
 
 ---
 

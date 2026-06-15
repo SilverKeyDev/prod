@@ -1,0 +1,16 @@
+type: object
+required:
+  - success
+  - data
+properties:
+  success:
+    type: boolean
+  data:
+    type: object
+    required:
+      - partners
+    properties:
+      partners:
+        type: array
+        items:
+          $ref: "./Partner.yaml"

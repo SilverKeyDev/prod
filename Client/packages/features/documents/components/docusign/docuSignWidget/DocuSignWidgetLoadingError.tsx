@@ -1,6 +1,6 @@
 import { useLocalization } from "packages/contexts";
-import KeyTurnLoader from "packages/ui/components/asset/loading/KeyTurnLoader.web";
-import { Box } from "packages/ui/components/primitives";
+import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText } from "@/components/ui";
 

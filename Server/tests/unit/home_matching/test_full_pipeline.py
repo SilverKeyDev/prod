@@ -66,19 +66,19 @@ class TestEndToEndPipeline:
         Delegates to the dedicated test (test_preferences_filters.py has 61
         tests). Here we verify the function is importable and test a basic case.
         """
-        from unittest.mock import MagicMock, patch
+        from app.services.search.helpers.preferences_helpers import (
+            map_user_preferences_to_filters,
+        )
 
-        with patch("app.services.search.helpers.preferences_helpers.current_app", MagicMock()):
-            from app.services.search.helpers.preferences_helpers import (
-                map_user_preferences_to_filters,
-            )
-
-            filters = map_user_preferences_to_filters(
-                {"budget_min": 250000, "budget_max": 500000, "bedrooms_min": 3},
-                "ForSale",
-            )
-            assert isinstance(filters, dict)
-            assert "sortField" in filters
+        filters = map_user_preferences_to_filters(
+            {
+                "home_budget_min": 250000,
+                "home_budget_max": 500000,
+                "preferred_bedrooms_min": 3,
+            },
+        )
+        assert isinstance(filters, dict)
+        assert "sortField" in filters
 
     def test_geometry_conversion(self):
         """Step 2: Internal polygon coords -> GeoJSON for Slipstream."""
@@ -95,7 +95,7 @@ class TestEndToEndPipeline:
         assert geojson["coordinates"][0][0] == [-84.45, 33.70]
         assert geojson["coordinates"][0][-1] == geojson["coordinates"][0][0]
 
-    @patch("app.services.search.data.listings.listings_active.slipstream_get")
+    @patch("app.services.search.helpers.search_loop_helpers.slipstream_get")
     def test_search_and_normalize(self, mock_get):
         """Steps 3-4: API call -> raw -> normalized."""
         mock_get.return_value = MagicMock(
@@ -104,13 +104,18 @@ class TestEndToEndPipeline:
             content=True,
             json=MagicMock(return_value=_slipstream_raw_response(5)),
         )
-        from app.services.search.data.listings.listings_active import search_active_listings
+        from app.services.search.helpers.search_loop_helpers import search_properties_paginated
 
-        listings, paging, errors = search_active_listings(
-            polygon_geojson={
+        listings, _requests_made, errors = search_properties_paginated(
+            polygon_param={
                 "type": "Polygon",
                 "coordinates": [[[-84, 33], [-84, 34], [-83, 34], [-83, 33], [-84, 33]]],
             },
+            filters={},
+            status_type="active",
+            per_pages=1,
+            target_limit=25,
+            request_id="test-search-and-normalize",
         )
         assert len(listings) == 5
         assert errors == []

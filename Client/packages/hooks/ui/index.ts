@@ -63,4 +63,4 @@ export { useOnceEffect } from "./core";
 
 // Error reporting and logging (architecture: components use hooks, not services directly)
 export { useErrorReporting } from "./useErrorReporting";
-export { useSecureLogger } from "./useSecureLogger";
+export { useUserFacingErrorMessage } from "./useUserFacingErrorMessage";

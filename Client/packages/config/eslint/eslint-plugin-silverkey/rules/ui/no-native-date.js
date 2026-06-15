@@ -2,14 +2,14 @@
 
 /**
  * Ban new Date() and Date.parse() in app and shared code.
- * Use the date wrapper (packages/utils/date) with Day.js for consistent parsing and formatting across V8 and Hermes (RN).
+ * Use the date wrapper (packages/utils/core/date) with Day.js for consistent parsing and formatting across V8 and Hermes (RN).
  */
 module.exports = {
   meta: {
     type: "problem",
     docs: {
       description:
-        "Do not use new Date() or Date.parse(). Use the date wrapper from packages/utils/date (Day.js) for cross-platform consistency.",
+        "Do not use new Date() or Date.parse(). Use the date wrapper from packages/utils/core/date (Day.js) for cross-platform consistency.",
     },
     schema: [
       {
@@ -26,8 +26,8 @@ module.exports = {
     ],
     messages: {
       useDateWrapper:
-        "Use the date wrapper from packages/utils/date (e.g. dateNow(), dateParse()) instead of native Date for cross-platform consistency (V8 vs Hermes).",
-      noDateParse: "Use dateParse() from packages/utils/date instead of Date.parse().",
+        "Use the date wrapper from packages/utils/core/date (e.g. dateNow(), dateParse()) instead of native Date for cross-platform consistency (V8 vs Hermes).",
+      noDateParse: "Use dateParse() from packages/utils/core/date instead of Date.parse().",
     },
   },
 
@@ -35,8 +35,8 @@ module.exports = {
     const filename = context.getFilename();
     const opt = context.options[0] || {};
     const allowedPaths = opt.allowedPaths || [
-      "packages/utils/date/",
-      "packages/utils/calendar/",
+      "packages/utils/core/date/",
+      "packages/utils/comms/calendar/",
       "packages/config/eslint/eslint-plugin-silverkey/",
       "logger/",
     ];

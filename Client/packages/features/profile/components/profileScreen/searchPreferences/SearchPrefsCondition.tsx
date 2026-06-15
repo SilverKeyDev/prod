@@ -1,6 +1,6 @@
 import React from "react";
 
-import type { BuyerConditionPrefs } from "packages/features/profile/types/buyerPreferenceExtensions";
+import type { BuyerConditionPrefs } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import {
   FIELD_LABELS,
   LISTING_STATUS_PROFILE_OPTIONS,
@@ -8,16 +8,13 @@ import {
   PROFILE_NOT_SPECIFIED_LABEL,
   SECTION_TITLES,
 } from "packages/features/profile/utils";
-import { Box } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { profileFieldValueClassName } from "packages/features/profile/utils";
+import { FormFieldLabel as Label, OptionTagInput, type OptionTagOption } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 import AlignedRow from "@/components/layout/AlignedRow";
 import { Dropdown } from "@/components/ui";
-import Label from "@/features/profile/components/settings/inputs/Label";
-import OptionTagInput, {
-  type OptionTagOption,
-} from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
-import { profileFieldValueClassName } from "@/features/profile/utils";
 
 import type { PatchBuyerPreferenceExtensions } from "./types";
 import { withBuyerExtV1 } from "./withBuyerExtV1";

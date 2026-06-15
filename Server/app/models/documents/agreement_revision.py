@@ -1,10 +1,10 @@
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app import db
-from app.utils.format.datetime import to_aware_utc_iso
 
 
 class AgreementRevision(db.Model):
@@ -47,23 +47,6 @@ class AgreementRevision(db.Model):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "agreement_id": self.agreement_id,
-            "version_number": self.version_number,
-            "file_path": self.file_path,
-            "filename": self.filename,
-            "file_size": self.file_size,
-            "file_hash": self.file_hash,
-            "mime_type": self.mime_type,
-            "template_id": self.template_id,
-            "template_variables": self.template_variables,
-            "created_by": self.created_by,
-            "created_at": to_aware_utc_iso(self.created_at),
-            "notes": self.notes,
-        }
 
     def __repr__(self):
         return f"<AgreementRevision {self.id} v{self.version_number}>"

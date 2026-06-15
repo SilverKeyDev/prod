@@ -14,11 +14,11 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { color, spacing, Z_LAYERS } from "packages/design-tokens";
 import { Button, ClientSelector, Dropdown, IconButton, OliveCheckbox } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import Input from "packages/ui/components/primitives/input/Input";
-import Label from "packages/ui/components/text/Label.web";
+import { Box } from "packages/ui/components/structure/primitives";
+import Input from "packages/ui/components/structure/primitives/input/Input";
+import Label from "packages/ui/components/structure/text/Label.web";
 import { boxShadow } from "packages/ui/styles/shadows/shadows.web";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import { Title } from "@/components/ui";
 import { CalendarStyleDateRangePicker } from "@/features/calendar/components/eventForm/CalendarStyleDateRangePicker";

@@ -4,11 +4,11 @@ User lookup utilities for authentication.
 
 from datetime import datetime, timezone
 
-from flask import current_app
 from sqlalchemy import text
 
 from app import db
 from app.models import User
+from logger import log
 
 from .user_fetch import (
     fetch_user_by_cognito_id,
@@ -70,5 +70,5 @@ def find_or_create_user_by_cognito(
 
         return user
     except Exception as e:
-        current_app.logger.error(f"Error during user lookup: {str(e)}")
+        log.error("ERRORS", f"Error during user lookup: {str(e)}")
         return None

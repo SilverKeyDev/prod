@@ -1,17 +1,17 @@
 """
 Training data extraction for weight learning.
-Extracts impressions and labels from UserPropertyLink, HomeLikes, and ScoringResultsTracker.
+Extracts impressions and labels from UserPropertyLink and ScoringResultsTracker.
 """
 
-import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import numpy as np
+from sqlalchemy import select
 
-from app.models import HomeLikes, ScoringResultsTracker, UserPropertyLink
-
-logger = logging.getLogger(__name__)
+from app import db
+from app.models import ScoringResultsTracker, UserPropertyLink
+from logger import log
 
 
 class WeightTrainingDataExtractor:
@@ -45,29 +45,26 @@ class WeightTrainingDataExtractor:
         try:
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=lookback_days)
 
-            impressions = UserPropertyLink.query.filter(
-                UserPropertyLink.user_id == user_id,
-                UserPropertyLink.created_at >= cutoff_date,
+            impressions = db.session.scalars(
+                select(UserPropertyLink).where(
+                    UserPropertyLink.user_id == user_id,
+                    UserPropertyLink.created_at >= cutoff_date,
+                )
             ).all()
 
             if len(impressions) < self.min_impressions:
-                logger.debug(
+                log.debug(
+                    "SEARCH",
                     "User %s has only %d impressions, need %d",
-                    user_id,
-                    len(impressions),
-                    self.min_impressions,
+                    {
+                        "arg0": str(user_id),
+                        "arg1": str(len(impressions)),
+                        "arg2": str(self.min_impressions),
+                    },
                 )
                 return [], 0, 0
 
-            liked_homes = HomeLikes.query.filter(
-                HomeLikes.user_id == user_id, HomeLikes.is_liked.is_(True)
-            ).all()
-
-            liked_home_ids = {str(home.id) for home in liked_homes}
-
-            for imp in impressions:
-                if imp.is_liked:
-                    liked_home_ids.add(str(imp.property_id))
+            liked_home_ids = {str(imp.property_id) for imp in impressions if imp.is_liked}
 
             training_examples = []
             num_positive = 0
@@ -76,13 +73,13 @@ class WeightTrainingDataExtractor:
             for impression in impressions:
                 is_positive = str(impression.property_id) in liked_home_ids or impression.is_liked
 
-                score_event = (
-                    ScoringResultsTracker.query.filter(
+                score_event = db.session.scalar(
+                    select(ScoringResultsTracker)
+                    .where(
                         ScoringResultsTracker.user_id == user_id,
                         ScoringResultsTracker.home_id == str(impression.property_id),
                     )
                     .order_by(ScoringResultsTracker.created_at.desc())
-                    .first()
                 )
 
                 embedding_score = None
@@ -93,7 +90,9 @@ class WeightTrainingDataExtractor:
                     llm_score = score_event.llm_score
                 else:
                     if impression.score is not None:
-                        logger.debug("No subscores found for link %s, skipping", impression.id)
+                        log.debug(
+                            "SEARCH", "No subscores found for link %s, skipping", impression.id
+                        )
                         continue
 
                 if embedding_score is None:
@@ -126,20 +125,22 @@ class WeightTrainingDataExtractor:
 
             # Check if we have enough positive examples
             if num_positive < self.min_positive:
-                logger.debug(
-                    f"User {user_id} has only {num_positive} positive examples, need {self.min_positive}"
+                log.debug(
+                    "SEARCH",
+                    f"User {user_id} has only {num_positive} positive examples, need {self.min_positive}",
                 )
                 return [], 0, 0
 
-            logger.info(
+            log.info(
+                "SEARCH",
                 f"Extracted {len(training_examples)} training examples for user {user_id} "
-                f"({num_positive} positive, {num_negative} negative)"
+                f"({num_positive} positive, {num_negative} negative)",
             )
 
             return training_examples, num_positive, num_negative
 
         except Exception as e:
-            logger.error(f"Error extracting training data for user {user_id}: {e}", exc_info=True)
+            log.error("ERRORS", f"Error extracting training data for user {user_id}: {e}")
             return [], 0, 0
 
     def extract_cohort_training_data(
@@ -167,17 +168,16 @@ class WeightTrainingDataExtractor:
                 total_positive += pos
                 total_negative += neg
 
-            logger.info(
+            log.info(
+                "SEARCH",
                 f"Extracted {len(all_examples)} training examples for cohort {cohort_id} "
-                f"({total_positive} positive, {total_negative} negative)"
+                f"({total_positive} positive, {total_negative} negative)",
             )
 
             return all_examples, total_positive, total_negative
 
         except Exception as e:
-            logger.error(
-                f"Error extracting training data for cohort {cohort_id}: {e}", exc_info=True
-            )
+            log.error("ERRORS", f"Error extracting training data for cohort {cohort_id}: {e}")
             return [], 0, 0
 
     def _normalize_address(self, address: str) -> str:
@@ -224,7 +224,7 @@ class WeightTrainingDataExtractor:
             }
 
         except Exception as e:
-            logger.error(f"Error getting training data summary for user {user_id}: {e}")
+            log.error("ERRORS", f"Error getting training data summary for user {user_id}: {e}")
             return {
                 "has_sufficient_data": False,
                 "total_examples": 0,

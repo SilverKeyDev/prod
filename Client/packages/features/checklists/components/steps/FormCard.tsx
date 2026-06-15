@@ -5,8 +5,8 @@
 import { useLocalization } from "packages/contexts";
 import type { ChecklistForm } from "packages/features/documents";
 import { Button } from "packages/ui";
-import { Box, Text } from "packages/ui/components/primitives";
-import { dateParse } from "packages/utils/date";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { dateParse } from "packages/utils/core/date";
 
 type FormCardProps = {
   form: ChecklistForm;

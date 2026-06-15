@@ -3,7 +3,7 @@ import React from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
-import { Text } from "packages/ui/components/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 import type { UseCalendarEventRequestFormParams } from "@/features/agent/hooks/data/calendar/useCalendarEventRequestForm";
 

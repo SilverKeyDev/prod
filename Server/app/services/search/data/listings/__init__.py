@@ -1,1 +1,1 @@
-"""Active and inactive Slipstream listing search helpers."""
+"""Slipstream listing normalization helpers."""

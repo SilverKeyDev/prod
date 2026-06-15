@@ -1,0 +1,61 @@
+---
+description: Do not add .env keys unless a new integration or deployment surface requires it
+alwaysApply: true
+---
+
+# Environment variables — minimal surface
+
+**Default: do not add keys to any `.env` or `.env.example` file.**
+
+Every new env var is operational debt: local setup, CI secrets, deploy config, and docs must stay in sync. Prefer existing configuration first.
+
+## Prefer instead
+
+| Need | Use |
+| ---- | --- |
+| Feature toggle / dev behavior | PostHog flags, existing config modules, JSON config (`logger.config.json`, etc.) |
+| Non-secret default | Constants in code, shared config under `Client/packages/config/` or `Server/config/` |
+| Secret already in AWS | Existing `Server/scripts/secrets.sh` flow — do not invent parallel secret paths |
+| API URL / environment | Reuse `EXPO_PUBLIC_API_URL`, `FLASK_ENV`, existing deploy env in CI |
+
+## When adding IS justified
+
+Add a new env var **only** when the task introduces something that **must** be configured per environment and cannot use existing keys:
+
+- A **new third-party integration** (API key, OAuth client, webhook secret)
+- A **new deployment target** or infrastructure surface (region, bucket, queue URL)
+- A **new build-time public key** required by a SDK (maps, analytics, OAuth) with no existing var
+
+If unsure, **ask the user** before editing any `.env*` file.
+
+## If you must add one
+
+1. **Server secrets:** extend the appropriate AWS Secrets Manager secret and regenerate via `Server/scripts/secrets.sh` — do not hand-edit `Server/.env.example` for secret keys unless that script flow is updated in the same change.
+2. **Client public vars:** add to `Client/.env.example` only; never commit real values. Match existing `EXPO_PUBLIC_*` naming.
+3. **Document why** in the PR — what integration requires it and why existing vars are insufficient.
+4. **Never commit** populated `.env` files (see [security.mdc](./security.mdc)).
+
+## Server-specific constraint
+
+Flask startup validates **every key listed in `Server/.env.example`** via `config_validator.py`. A new key there becomes **mandatory for all local and non-test runs** — another reason to avoid casual additions.
+
+## Examples
+
+```bash
+# ❌ BAD — new env var for a boolean dev shortcut
+DEBUG_SHOW_PARTNER_PANEL=true
+
+# ✅ GOOD — PostHog flag or existing admin/dev persona tooling
+```
+
+```bash
+# ❌ BAD — duplicate API base URL under a new name
+SILVERKEY_API_BASE=https://...
+
+# ✅ GOOD — reuse EXPO_PUBLIC_API_URL / existing server config
+```
+
+```bash
+# ✅ OK — new Stripe webhook secret when adding Stripe for the first time
+STRIPE_WEBHOOK_SECRET=""
+```

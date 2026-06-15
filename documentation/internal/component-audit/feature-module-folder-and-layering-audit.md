@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-13
 **Scope:** Feature packages under [`Client/packages/features/`](../../../Client/packages/features/) that are missing one or more canonical top-level folders (`api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`).
-**Rubric:** [documentation/client/react-component-audit-rubric.md](../../client/react-component-audit-rubric.md) (five axes, 1–3; fix list when total ≤ 9 or any axis = 1).
+**Rubric:** [documentation/client/patterns/react-component-audit-rubric.md](../../client/patterns/react-component-audit-rubric.md) (five axes, 1–3; fix list when total ≤ 9 or any axis = 1).
 
 ## ESLint vs “full skeleton”
 
@@ -44,9 +44,9 @@ Legend: **Not needed** = no action; **Defer** = add only when a concrete need ap
 
 ---
 
-## Section B — Documentation vs enforced imports
+## Section B — Cross-feature composition
 
-[`Client/packages/features/README.md`](../../../Client/packages/features/README.md) states that feature code **cannot import from other feature packages**. In practice, several features compose across package boundaries (often through public barrels).
+Canonical policy: [cross-feature-composition.md](../../client/architecture/cross-feature-composition.md). Orchestrators compose via barrels/subpaths; ESLint does not ban all cross-feature imports.
 
 **Example (agent client hub → checklists, homeauth, profile):**
 
@@ -85,8 +85,6 @@ import {
 import { DEFAULT_REPORT_SECTIONS } from "@/features/profile/utils";
 ```
 
-**Recommendation (architecture choice, not done in this pass):** Either (1) narrow the README to what ESLint actually allows (document allowed cross-feature patterns and barrels), or (2) tighten ESLint import graphs and refactor composition through `packages/hooks` / shared contracts. Pick one source of truth.
-
 ---
 
 ## Section C — Rubric sampling (primary entry files)
@@ -105,13 +103,23 @@ Scores: axis1 size/responsibility, axis2 props/API, axis3 state/data flow, axis4
 | propertyDetails | [`PropertyDetailsBody.tsx`](../../../Client/packages/features/propertyDetails/components/PropertyDetailsModal/body/PropertyDetailsBody.tsx) (~269) | 2 | 2 | 2 | 2 | 3 | **11** | Under 300 LOC; still dense section composition—watch **A1** if it grows. |
 | saved | [`SavedFeature.tsx`](../../../Client/packages/features/saved/components/SavedFeature.tsx) (~366) | 1 | 2 | 2 | 2 | 3 | **10** | **fix list** (borderline): **A1** 300+ LOC; coordinates documents + homes + modals (`32:79`). |
 
-### P0 / P1 / P2 triage (from this sample)
+Follow-up refactors: [SIL-167](https://linear.app/silverkey/issue/SIL-167/component-audit-split-300-loc-feature-shells-when-touched).
 
-| Priority | Item |
-|----------|------|
-| **P2** | Split or extract sub-layouts for **A1** borderline files (agent messaging screen, checklist layout, messaging sidebar, profile feature shell, saved feature) when touching those areas for product work. |
-| **P1** | Align README with real **cross-feature** composition rules (Section B). |
-| **P0** | None identified from this sample alone (no axis scored **1** with cited proof in the strictest reading; client hub checklist prefetch lives in agent—see `packages/features/agent/hooks/data/useClientHubChecklistPrefetch.ts`). |
+### SIL-167 execution policy
+
+- **Trigger:** Product work touches a listed shell, or the file approaches ESLint `max-lines-hard` warn (**500** LOC; error **650**).
+- **Scope:** One semantic extraction per PR (hook, tab chrome, or panel)—not `*.helpers.ts` / `*.types.ts` fragmentation.
+- **Verify:** `cd Client && pnpm typecheck && pnpm lint` on touched paths.
+- **Track:** PR description links SIL-167; note file + extraction in a Linear comment.
+
+| Shell | Extractions (2026-06) |
+|-------|------------------------|
+| ChecklistLayout | `useChecklistLayoutController`, `ChecklistLayoutDisclosureSections` |
+| ClientHubScreen | `useClientHubRoute`, `ClientHubHeaderCard`, `ClientHubRoadmapPanel` |
+| SavedFeature | `useSavedLibraryChrome`, `useSavedDocumentsCoordinator` |
+| MessagingScreen.native | `useMessagingScreenNativeController` |
+| UnifiedMessagingSidebar | `UnifiedMessagingSidebarClientList`, `UnifiedMessagingSidebarInbox` |
+| ProfileFeature | `useProfileFeatureShell` |
 
 ---
 
@@ -122,7 +130,7 @@ Commands (from repo root; `Client/packages/features/<pkg>`):
 - `moment` / `lodash` default import: `rg "from ['\\\"]moment['\\\"]|from ['\\\"]lodash['\\\"]" Client/packages/features/<pkg>` → **no matches** across the nine scoped packages (excluding the English word “moment” in user-facing strings).
 - Heavy chart stacks (`recharts`, `chart.js`, `@visx`): **no matches** in `propertyDetails`, `messaging`, `dashboard`, `compare`, `saved`, `admin` quick scans.
 
-**Note:** `propertyDetails` uses lightweight custom SVG-style visualizations (e.g. [`VerticalBarChart.tsx`](../../../Client/packages/features/propertyDetails/components/visualizations/VerticalBarChart.tsx)) rather than a second charting stack—**axis 5** friendly for that subtree.
+**Note:** Shared chart primitives live in [`packages/ui/components/data-viz/`](../../../Client/packages/ui/components/data-viz/) (e.g. `VerticalBarChart.tsx`, `DonutChart.tsx`). Property-specific section chrome stays under `propertyDetails/components/visualizations/`.
 
 ---
 
@@ -130,4 +138,3 @@ Commands (from repo root; `Client/packages/features/<pkg>`):
 
 - Feature layout rule: [`.cursor/rules/shared/package-feature-structure.mdc`](../../../.cursor/rules/shared/package-feature-structure.mdc)
 - Features README: [`Client/packages/features/README.md`](../../../Client/packages/features/README.md)
-- Prior triage queue: [`TRIAGE.md`](./TRIAGE.md)

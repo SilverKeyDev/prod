@@ -56,14 +56,63 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2.1.5
 
-      - name: Build & push to ECR
+      # Load optional repo variable DB_URL_SECRET_ID without ${{ vars.* }} (IDE language service flags unknown var names).
+      - name: Load DB_URL_SECRET_ID from repository variables
         env:
-          # GitHub Actions: add repository secrets EXPO_PUBLIC_* (Plaid Link / Maps / OAuth client IDs for the web bundle).
-          EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
-          EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
-          EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/variables/DB_URL_SECRET_ID"
+          tmp="$(mktemp)"
+          code="$(curl -sS -o "$tmp" -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$api")"
+          if [ "$code" = "200" ]; then
+            value="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("value") or "")' < "$tmp")"
+            printf '%s\n' "DB_URL_SECRET_ID=${value}" >> "$GITHUB_ENV"
+          else
+            echo "DB_URL_SECRET_ID=" >> "$GITHUB_ENV"
+          fi
+          rm -f "$tmp"
+
+      - name: Install jq (Secrets Manager bundle env)
+        run: sudo apt-get update -y >/dev/null 2>&1 && sudo apt-get install -y jq >/dev/null 2>&1
+
+      - name: Load client bundle env from AWS Secrets Manager
+        env:
+          AWS_REGION: ${{ env.REGION }}
+          DB_URL_SECRET_ID: ${{ env.DB_URL_SECRET_ID }}
+        run: |
+          set +x
+          bash .github/scripts/fetch-client-bundle-env.sh
+
+      - name: Apply GitHub bundle env fallback
+        env:
+          # Planned for removal: repository secrets used only when AWS SM omits a bundle key.
+          GITHUB_FALLBACK_EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
+        run: |
+          set +x
+          bash .github/scripts/apply-bundle-env-github-fallback.sh
+
+      - name: Assert bundle build secrets
+        run: node Client/scripts/assert-bundle-secrets.mjs Client
+
+      - name: Build & push to ECR
+        env:
+          # Planned for removal: GitHub repository secrets as fallback (see apply-bundle-env-github-fallback.sh).
+          GITHUB_FALLBACK_EXPO_PUBLIC_GOOGLE_MAPS_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_CLIENT_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_PLAID_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_PLAID_CLIENT_ID }}
+          GITHUB_FALLBACK_EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
+        run: |
+          set -euo pipefail
+          set +x
+          bash .github/scripts/apply-bundle-env-github-fallback.sh
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           echo "ACCOUNT_ID=$ACCOUNT_ID" >> $GITHUB_ENV
 
@@ -73,17 +122,19 @@ jobs:
           CACHE_REF="$BASE_REF:buildcache"
           WEB_PROD_REF="$BASE_REF:web-prod"
 
+          BUILD_SECRETS="$(node Client/scripts/export-bundle-docker-build-args.mjs Client)"
+
           export DOCKER_BUILDKIT=1
+          # plain: full build errors in CI; bundle keys use BuildKit --secret (not logged).
           export BUILDKIT_PROGRESS=plain
+          # shellcheck disable=SC2086
           docker buildx build \
             --platform linux/amd64 \
             -f Dockerfile.web \
             --target backend \
             --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
             --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
-            --build-arg EXPO_PUBLIC_GOOGLE_MAPS_ID="$EXPO_PUBLIC_GOOGLE_MAPS_ID" \
-            --build-arg EXPO_PUBLIC_GOOGLE_CLIENT_ID="$EXPO_PUBLIC_GOOGLE_CLIENT_ID" \
-            --build-arg EXPO_PUBLIC_PLAID_CLIENT_ID="$EXPO_PUBLIC_PLAID_CLIENT_ID" \
+            $BUILD_SECRETS \
             --tag "$IMAGE_REF" \
             --tag "$WEB_PROD_REF" \
             --cache-from type=registry,ref="$CACHE_REF" \
@@ -115,7 +166,7 @@ jobs:
           ENTRYPOINT="$(docker image inspect --format='{{json .Config.Entrypoint}}' "$IMAGE_REF")"
           echo "Image CMD: $CMD"
           echo "Image Entrypoint: $ENTRYPOINT"
-          if ! echo "$CMD" | grep -q gunicorn; then
+          if ! echo "$CMD" | grep -qE 'gunicorn|gunicorn-entrypoint'; then
             echo "ERROR: Image CMD does not include gunicorn — build must use Dockerfile.web --target backend (migrate target runs flask db upgrade and exits)." >&2
             exit 1
           fi
@@ -130,38 +181,22 @@ jobs:
           docker buildx prune -af >/dev/null 2>&1 || true
           docker system df || true
 
+      - name: Write ephemeral EC2 SSH key
+        if: ${{ success() }}
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: bash .github/scripts/write-ephemeral-ssh-key.sh
+
       - name: Copy deploy scripts to EC2
         if: ${{ success() }}
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: ".github/scripts/ec2-deploy.sh,.github/scripts/_secrets-env.sh"
+          key_path: ${{ env.EC2_SSH_KEY_FILE }}
+          source: ".github/scripts/ec2-deploy.sh,.github/scripts/_secrets-env.sh,.github/scripts/redact-ci-log.sh,.github/scripts/redact-ci-log.py"
           target: "/tmp/deploy/"
           strip_components: 2
-
-      # Load optional repo variable DB_URL_SECRET_ID without ${{ vars.* }} (IDE language service flags unknown var names).
-      - name: Load DB_URL_SECRET_ID from repository variables
-        if: ${{ success() }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/variables/DB_URL_SECRET_ID"
-          tmp="$(mktemp)"
-          code="$(curl -sS -o "$tmp" -w '%{http_code}' \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "$api")"
-          if [ "$code" = "200" ]; then
-            value="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("value") or "")' < "$tmp")"
-            printf '%s\n' "DB_URL_SECRET_ID=${value}" >> "$GITHUB_ENV"
-          else
-            echo "DB_URL_SECRET_ID=" >> "$GITHUB_ENV"
-          fi
-          rm -f "$tmp"
 
       - name: SSH into EC2 and Deploy Container + Copy Frontend
         if: ${{ success() }}
@@ -173,16 +208,24 @@ jobs:
           IMAGE_DIGEST: ${{ env.IMAGE_DIGEST }}
           REPO: ${{ env.REPO }}
           DB_URL_SECRET_ID: ${{ env.DB_URL_SECRET_ID }}
-          DEPLOY_DEBUG: "1"
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ACCOUNT_ID,AWS_REGION,IMAGE_TAG,IMAGE_DIGEST,REPO,DB_URL_SECRET_ID,DEPLOY_DEBUG
+          key_path: ${{ env.EC2_SSH_KEY_FILE }}
+          debug: false
+          envs: ACCOUNT_ID,AWS_REGION,IMAGE_TAG,IMAGE_DIGEST,REPO,DB_URL_SECRET_ID
           script: |
             mkdir -p /tmp/deploy
             chmod +x /tmp/deploy/ec2-deploy.sh
             bash /tmp/deploy/ec2-deploy.sh
+
+      - name: Remove ephemeral EC2 SSH key
+        if: always()
+        run: |
+          set +x
+          if [ -n "${EC2_SSH_KEY_FILE:-}" ] && [ -f "$EC2_SSH_KEY_FILE" ]; then
+            rm -f "$EC2_SSH_KEY_FILE"
+          fi
 
       - name: Final cleanup (safe)
         if: always()

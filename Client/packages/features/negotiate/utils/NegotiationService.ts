@@ -2,10 +2,10 @@
  * Negotiation service: state, callbacks, and orchestration.
  */
 
-import { log } from "packages/services/security/secureLogger";
+import { log } from "packages/logger";
 import type { SavedHome } from "packages/types";
 import { asError } from "packages/utils";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
 
 import {
   downloadStrategyJson as doDownloadStrategyJson,
@@ -70,7 +70,7 @@ export class NegotiationService {
   }
 
   public selectHome(home: unknown): void {
-    log.info("NEGOTIATION_SERVICE", "Home selected", {
+    log.info("NEGOTIATION", "Home selected", {
       homeAddress:
         home &&
         typeof home === "object" &&
@@ -164,20 +164,20 @@ export class NegotiationService {
         });
       }
 
-      log.info("NEGOTIATION_SERVICE", "Negotiation data saved to sessionStorage");
+      log.info("NEGOTIATION", "Negotiation data saved to sessionStorage");
     } catch (err: unknown) {
       this.currentAbortController = null;
 
       const error = asError(err);
       if (err instanceof Error && err.name === "AbortError") {
-        log.warn("NEGOTIATION_SERVICE", "Request aborted - likely due to timeout or cancellation");
+        log.warn("NEGOTIATION", "Request aborted - likely due to timeout or cancellation");
         this.updateState({ isLoading: false });
         this.storeBridge?.setLoading(false);
         this.storeBridge?.setError(null);
         return;
       }
 
-      log.error("NEGOTIATION_SERVICE", "Error generating strategy", error);
+      log.error("NEGOTIATION", "Error generating strategy", error);
 
       let errorMessage = "Failed to generate strategy. Please try again.";
 
@@ -227,7 +227,7 @@ export class NegotiationService {
       getLocalStorage().removeItem(key);
     });
 
-    log.info("NEGOTIATION_SERVICE", "All data cleared");
+    log.info("NEGOTIATION", "All data cleared");
   }
 
   public reset(): void {

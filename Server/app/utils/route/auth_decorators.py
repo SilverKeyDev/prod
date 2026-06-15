@@ -6,13 +6,12 @@ from flask import jsonify, request
 
 from app.services.agent.client_service import agent_may_access_client
 from app.services.auth import SecurityException
+from app.services.auth.user_role_helpers import user_is_agent
 from app.utils.route.auth_errors import (
     security_exception_response,
     unexpected_auth_error_response,
 )
-from app.utils.security.app_logging import get_logger
-
-logger = get_logger()
+from logger import log
 
 
 def require_authenticated_user(f):
@@ -29,7 +28,11 @@ def require_authenticated_user(f):
         try:
             user = get_current_user()
             if not user:
-                logger.warning("Unauthorized request to %s: user not found in token", f.__name__)
+                log.warn(
+                    "AUTH",
+                    "Unauthorized request: user not found in token",
+                    {"route": f.__name__},
+                )
                 return jsonify({"error": "Unauthorized", "success": False}), 401
 
             return f(user, *args, **kwargs)
@@ -56,12 +59,18 @@ def require_agent_access(f):
         try:
             user = get_current_user()
             if not user:
-                logger.warning(f"🚫 Unauthorized request to {f.__name__}: user not found in token")
+                log.warn(
+                    "AUTH",
+                    "Unauthorized request: user not found in token",
+                    {"route": f.__name__},
+                )
                 return jsonify({"error": "Unauthorized", "success": False}), 401
 
-            if not user.is_agent:
-                logger.warning(
-                    f"🚫 Non-agent user {user.id} attempted to access agent endpoint {f.__name__}"
+            if not user_is_agent(user):
+                log.warn(
+                    "AUTH",
+                    "Non-agent user attempted agent endpoint",
+                    {"route": f.__name__, "user_id": str(user.id)},
                 )
                 return jsonify(
                     {"error": "Only agents can access this endpoint", "success": False}
@@ -78,8 +87,14 @@ def require_agent_access(f):
             if target_user_id:
                 target_s = str(target_user_id).strip()
                 if not agent_may_access_client(str(user.id), target_s):
-                    logger.warning(
-                        f"🚫 Agent {user.id} attempted to access client {target_s} not in their list"
+                    log.warn(
+                        "AUTH",
+                        "Agent attempted to access client not in their list",
+                        {
+                            "route": f.__name__,
+                            "agent_id": str(user.id),
+                            "target_user_id": target_s,
+                        },
                     )
                     return jsonify(
                         {"error": "Access denied: User is not your client", "success": False}
@@ -116,15 +131,19 @@ def require_brokerage_scope(f):
         try:
             user = get_current_user()
             if not user:
-                logger.warning("Unauthorized request to %s: user not found in token", f.__name__)
+                log.warn(
+                    "AUTH",
+                    "Unauthorized request: user not found in token",
+                    {"route": f.__name__},
+                )
                 return jsonify({"error": "Unauthorized", "success": False}), 401
 
             allowed = getattr(user, "brokerage_org_ids", None) or []
             if not allowed:
-                logger.warning(
-                    "Brokerage scope denied for %s: user %s has no brokerage_org_ids",
-                    f.__name__,
-                    getattr(user, "id", "unknown"),
+                log.warn(
+                    "AUTH",
+                    "Brokerage scope denied: no brokerage_org_ids on user",
+                    {"route": f.__name__, "user_id": str(getattr(user, "id", "unknown"))},
                 )
                 return jsonify(
                     {
@@ -142,11 +161,14 @@ def require_brokerage_scope(f):
 
             allowed_set = {str(x) for x in allowed}
             if str(org_id) not in allowed_set:
-                logger.warning(
-                    "Brokerage scope denied for %s: org %s not in allowed list for user %s",
-                    f.__name__,
-                    org_id,
-                    getattr(user, "id", "unknown"),
+                log.warn(
+                    "AUTH",
+                    "Brokerage scope denied: org not in allowed list",
+                    {
+                        "route": f.__name__,
+                        "brokerage_org_id": str(org_id),
+                        "user_id": str(getattr(user, "id", "unknown")),
+                    },
                 )
                 return jsonify(
                     {"error": "Forbidden for this brokerage organization", "success": False}

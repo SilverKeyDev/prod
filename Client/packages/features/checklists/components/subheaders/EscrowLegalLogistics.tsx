@@ -25,7 +25,7 @@ export default function EscrowLegalLogistics({
       title={CHECKLIST_TITLES.escrow}
       subtitle={CHECKLIST_SUBTITLES.escrow}
       sectionTitle="Legal & Title Tasks"
-      apiEndpoint="/api/v1/tasks?type=escrow"
+      checklistType="escrow"
       setClosePageHeaderData={setClosePageHeaderData}
     />
   );

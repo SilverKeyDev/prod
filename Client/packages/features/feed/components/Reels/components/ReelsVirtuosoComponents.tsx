@@ -1,7 +1,7 @@
 import { forwardRef, useCallback, useEffect, useRef } from "react";
 
 import { spacing } from "packages/design-tokens";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 export type ReelsScrollerProps = React.HTMLAttributes<HTMLDivElement> & {
   isHorizontalGestureActive?: boolean;

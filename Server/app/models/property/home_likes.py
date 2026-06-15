@@ -1,3 +1,4 @@
+# pyright: reportUndefinedVariable=false
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -48,19 +49,3 @@ class HomeLikes(db.Model):
         super().__init__(**kwargs)
         if self.like_history is None:
             self.like_history = []
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "address": self.address,
-            "isLiked": self.is_liked,
-            "like_history": self.like_history,
-            "score": self.score,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "zpid": self.zpid,
-            "mls_home_id": self.mls_home_id,
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-        }

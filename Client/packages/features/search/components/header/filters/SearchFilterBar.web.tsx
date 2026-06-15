@@ -2,17 +2,23 @@ import React, { useCallback, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile";
+import type { OnboardingData } from "packages/features/profile";
 import {
   SEARCH_HEADER_PANEL_CLASS_DEFAULT,
   SEARCH_HEADER_PANEL_MAX_HEIGHT,
 } from "packages/features/search/components/header/searchHeaderConstants";
-import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/searchHeaderPopoverDismiss.web";
-import { Box } from "packages/ui/components/primitives";
+import { useRegisterSearchHeaderPopoverWhenOpen } from "packages/features/search/hooks/ui/popovers/searchHeaderPopoverDismiss.web";
+import { usePreferencesPanelOpenOnRequest } from "packages/features/search/hooks/ui/usePreferencesPanelOpenOnRequest";
+import { formDataToSearchFilterOverrides } from "packages/features/search/utils/preferences/searchPreferencesOverrides";
+import { useSearchContextStore } from "packages/store";
+import { Box } from "packages/ui/components/structure/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
-import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "packages/utils/tour/tourTargets";
+import {
+  TOUR_TARGETS_DESKTOP,
+  TOUR_TARGETS_MOBILE,
+} from "packages/utils/transaction/tour/tourTargets";
 
 import { BodyText, Button, DropdownChevron, Popover } from "@/components/ui";
-import type { OnboardingData } from "@/features/profile/utils";
 import SearchPreferencesContent from "@/features/search/components/filters/SearchPreferencesContent.web";
 
 import SearchFiltersSheet from "./SearchFiltersSheet.web";
@@ -30,6 +36,10 @@ export type SearchFilterBarProps = {
   patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
   scriptsReady: boolean;
   onAgentSyncPreferencesFetched?: (onboarding: Partial<OnboardingData>) => void;
+  replaceFormData?: (next: Partial<OnboardingData>) => void;
+  cancelPendingSave?: () => void;
+  onAfterClear?: () => void | Promise<void>;
+  saveStatus?: "idle" | "saving" | "saved";
 };
 
 export default function SearchFilterBar({
@@ -42,15 +52,63 @@ export default function SearchFilterBar({
   patchBuyerPreferenceExtensions,
   scriptsReady,
   onAgentSyncPreferencesFetched,
+  replaceFormData,
+  cancelPendingSave,
+  onAfterClear,
+  saveStatus = "idle",
 }: SearchFilterBarProps): React.ReactElement {
   const { t } = useLocalization();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const setSearchFilterOverrides = useSearchContextStore((s) => s.setSearchFilterOverrides);
+
+  const syncOverridesFromForm = useCallback(
+    (nextForm: Partial<OnboardingData>) => {
+      setSearchFilterOverrides(formDataToSearchFilterOverrides(nextForm));
+    },
+    [setSearchFilterOverrides]
+  );
+
+  const updateSearchFormData = useCallback(
+    (field: keyof OnboardingData, value: unknown) => {
+      updateFormData(field, value);
+      const nextForm = { ...formData, [field]: value };
+      syncOverridesFromForm(nextForm);
+    },
+    [formData, syncOverridesFromForm, updateFormData]
+  );
+
+  const patchSearchBuyerPreferenceExtensions = useCallback<PatchBuyerPreferenceExtensions>(
+    (fn) => {
+      patchBuyerPreferenceExtensions((prev) => {
+        const nextExtensions = fn(prev);
+        const walkability = nextExtensions.neighborhood?.walkability_importance;
+        const nextForm: Partial<OnboardingData> = {
+          ...formData,
+          buyerPreferenceExtensions: nextExtensions,
+          ...(walkability !== undefined ? { walkability_importance: walkability } : {}),
+        };
+        syncOverridesFromForm(nextForm);
+        return nextExtensions;
+      });
+    },
+    [formData, patchBuyerPreferenceExtensions, syncOverridesFromForm]
+  );
 
   const closePopover = useCallback(() => {
     setPopoverOpen(false);
     onPopoverClose?.();
   }, [onPopoverClose]);
+
+  const openPreferencesPanel = useCallback(() => {
+    if (variant === "mobile") {
+      setSheetOpen(true);
+      return;
+    }
+    setPopoverOpen(true);
+  }, [variant]);
+
+  usePreferencesPanelOpenOnRequest(openPreferencesPanel);
   useRegisterSearchHeaderPopoverWhenOpen(popoverOpen, closePopover);
 
   if (variant === "mobile") {
@@ -75,12 +133,16 @@ export default function SearchFilterBar({
           open={sheetOpen}
           onClose={() => setSheetOpen(false)}
           formData={formData}
-          updateFormData={updateFormData}
+          updateFormData={updateSearchFormData}
           scriptsReady={scriptsReady}
           selectedClientId={selectedClientId}
           onClientChange={onClientChange}
-          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+          patchBuyerPreferenceExtensions={patchSearchBuyerPreferenceExtensions}
           onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
+          replaceFormData={replaceFormData}
+          cancelPendingSave={cancelPendingSave}
+          onAfterClear={onAfterClear}
+          saveStatus={saveStatus}
         />
       </>
     );
@@ -124,14 +186,20 @@ export default function SearchFilterBar({
           </Button>
         )}
       >
-        {() => (
+        {({ registerOutsideClickSafeTarget }) => (
           <SearchPreferencesContent
             formData={formData}
-            updateFormData={updateFormData}
-            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+            updateFormData={updateSearchFormData}
+            patchBuyerPreferenceExtensions={patchSearchBuyerPreferenceExtensions}
             scriptsReady={scriptsReady}
             viewingClientId={selectedClientId ?? null}
             onAgentSyncPreferencesFetched={onAgentSyncPreferencesFetched}
+            onClientChange={onClientChange}
+            replaceFormData={replaceFormData}
+            cancelPendingSave={cancelPendingSave}
+            onAfterClear={onAfterClear}
+            registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}
+            saveStatus={saveStatus}
           />
         )}
       </Popover>

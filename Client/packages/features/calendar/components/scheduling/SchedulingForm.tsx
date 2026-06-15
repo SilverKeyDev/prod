@@ -1,7 +1,8 @@
 import { useState } from "react";
 
-import { Button, CancelButton } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { validateSchedulingFormWithZod } from "packages/schemas/schedulingForm";
+import { BodyText, Button, CancelButton } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { Input, Label, Textarea } from "@/components/ui";
 
@@ -30,9 +31,16 @@ export function SchedulingForm({
 }: SchedulingFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validation = validateSchedulingFormWithZod(title, description, selectedSlot !== null);
+    if (!validation.ok) {
+      setValidationError(validation.message);
+      return;
+    }
+    setValidationError(null);
     if (!selectedSlot) return;
     await onSubmit({
       title: title || "Scheduled event",
@@ -44,6 +52,11 @@ export function SchedulingForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {validationError ? (
+        <BodyText as="p" size="sm" className="text-rose-700" role="alert">
+          {validationError}
+        </BodyText>
+      ) : null}
       <Box>
         <Label size="sm">Title</Label>
         <Input

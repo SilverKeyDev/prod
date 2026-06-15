@@ -1,35 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useIsAgent } from "packages/hooks/store";
 import type { UIState } from "packages/store";
-import { useAuthStore, useGoogleMapsStore, useUIStore } from "packages/store";
+import { useGoogleMapsStore, useUIStore } from "packages/store";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
-import { getWindow } from "packages/utils/platform";
+import { isVirtualMeetingEnabled } from "packages/utils/comms/calendar/parsing/eventMeetLink";
+import { getWindow } from "packages/utils/core/platform";
 
 import type { CreateEventModalFormProps } from "@/features/calendar/components/view/eventModal/CreateEventModalForm";
-import type { ViewingStop } from "@/features/calendar/components/viewings/ViewingStopList";
 import { useCreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
 import { useCreateEventModalEffects } from "@/features/calendar/hooks/ui/useCreateEventModalEffects";
 import { buildCreateEventModalFormProps } from "@/features/calendar/utils/createEventModal/buildCreateEventModalFormProps";
-import { getCalendarEventKind } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
+import { CALENDAR_EVENT_KIND_ORDER } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { deriveCreateEventModalFormSubmitState } from "@/features/calendar/utils/createEventModal/createEventModalFormDerived";
 import { defaultGoogleMeetForCreate } from "@/features/calendar/utils/createEventModal/defaultGoogleMeetForCreate";
-import type {
-  ViewingRouteEndMode,
-  ViewingRouteEndpoint,
-  ViewingTourAnchor,
-  ViewingTourStartSelection,
-} from "@/features/calendar/utils/viewing/viewingRoutePlan";
-import { viewingStopsHaveAtLeastOneAddress } from "@/features/calendar/utils/viewing/viewingRoutePlan";
+import { showGoogleMeetToggleForCreate } from "@/features/calendar/utils/createEventModal/googleMeetCreateEligibility";
 
 import type { UseCreateEventModalParams } from "./useCreateEventModal.types";
-import { useCreateEventModalChecklists } from "./useCreateEventModalChecklists";
 import { useCreateEventModalDateHandlers } from "./useCreateEventModalDateHandlers";
 import { useCreateEventModalPrefillAndKindState } from "./useCreateEventModalPrefillAndKindState";
 import { useCreateEventModalSubmitFlow } from "./useCreateEventModalSubmitFlow";
-import { useCreateEventModalViewingRouteEffects } from "./useCreateEventModalViewingRouteEffects";
 
 export type { UseCreateEventModalParams } from "./useCreateEventModal.types";
 
@@ -50,13 +41,7 @@ export function useCreateEventModal({
   registerOutsideClickSafeTarget,
 }: UseCreateEventModalParams) {
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
-  const authUserId = useAuthStore((s) => s.user?.id ?? null);
   const isAgent = useIsAgent();
-  const { clientSettings } = useClientSettings();
-  const viewingTourAnchors: ViewingTourAnchor[] = useMemo(
-    () => clientSettings?.viewing_tour?.anchors ?? [],
-    [clientSettings?.viewing_tour?.anchors]
-  );
   const {
     createEvent,
     updateEvent: updateEventFromHook,
@@ -83,14 +68,7 @@ export function useCreateEventModal({
   const [selectedCalendarId, setSelectedCalendarId] = useState<string>("primary");
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [isSavingUnscheduled, setIsSavingUnscheduled] = useState(false);
-  const [viewingStops, setViewingStops] = useState<ViewingStop[]>([]);
-  const [viewingStartSelection, setViewingStartSelection] = useState<ViewingTourStartSelection>({
-    kind: "omit",
-  });
-  const [viewingEndMode, setViewingEndMode] = useState<ViewingRouteEndMode>("last_property");
-  const [viewingEndFixed, setViewingEndFixed] = useState<ViewingRouteEndpoint | null>(null);
   const [addGoogleMeet, setAddGoogleMeet] = useState(true);
-  /** Create flow: true after week double-click set times (used for submit-time end clamp); cleared on date-only picks. */
   const [createTimesChosenViaWeekSlot, setCreateTimesChosenViaWeekSlot] = useState(false);
   const [isSendingCalendarRequest, setIsSendingCalendarRequest] = useState(false);
 
@@ -98,30 +76,12 @@ export function useCreateEventModal({
   const showAgentClientPicker = mode === "create" && isAgent;
   const isCalendarEventRequestFlow = Boolean(calendarEventRequest && mode === "create");
 
-  const {
-    checklistSubjectId,
-    checklistProgressLoading,
-    kindOptionSlice,
-    searchChecklistQuery,
-    offerChecklistQuery,
-  } = useCreateEventModalChecklists({
-    isOpen,
-    mode,
-    isAgent,
-    authUserId,
-    selectedClientId,
-  });
-
   const { eventKindId, setEventKindId, handleEventKindIdChange } =
     useCreateEventModalPrefillAndKindState({
       isOpen,
       mode,
-      selectedClientId,
       prefilledCreateSnapshot,
       prefilledCreateKey,
-      checklistSubjectId,
-      searchChecklistQuery,
-      offerChecklistQuery,
       setEventTitle,
       setEventDescription,
       setEventLocation,
@@ -133,36 +93,6 @@ export function useCreateEventModal({
       setCreateTimesChosenViaWeekSlot,
     });
 
-  const kindDef = useMemo(() => getCalendarEventKind(eventKindId), [eventKindId]);
-
-  const hasViewingTourPropertyAddresses = useMemo(
-    () => viewingStopsHaveAtLeastOneAddress(viewingStops),
-    [viewingStops]
-  );
-
-  const useViewingStopList = useMemo(() => {
-    if (mode === "edit") {
-      return (existingEvent?.itinerary?.stops?.length ?? 0) > 0;
-    }
-    return kindDef.usesViewingStops;
-  }, [mode, existingEvent?.itinerary?.stops, kindDef.usesViewingStops]);
-
-  const isPropertyViewing = useViewingStopList;
-
-  useCreateEventModalViewingRouteEffects({
-    isOpen,
-    mode,
-    isPropertyViewing,
-    setViewingStops,
-    setViewingStartSelection,
-    setViewingEndMode,
-    setViewingEndFixed,
-    viewingTourAnchors,
-    clientSettingsViewingTour: clientSettings?.viewing_tour ?? null,
-    viewingEndMode,
-    viewingStartSelection,
-  });
-
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -171,11 +101,15 @@ export function useCreateEventModal({
   }, [isOpen, loadGoogleMaps]);
 
   useEffect(() => {
-    if (!isOpen || mode !== "create") {
+    if (!isOpen) {
       return;
     }
-    setAddGoogleMeet(defaultGoogleMeetForCreate({ eventKindId, eventTitle }));
-  }, [isOpen, mode, eventKindId, eventTitle]);
+    if (mode === "create") {
+      setAddGoogleMeet(defaultGoogleMeetForCreate());
+    } else if (mode === "edit" && existingEvent) {
+      setAddGoogleMeet(isVirtualMeetingEnabled(existingEvent));
+    }
+  }, [isOpen, mode, existingEvent]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -215,12 +149,7 @@ export function useCreateEventModal({
     setSelectedClientId,
     setLoadError,
     setIsSavingUnscheduled,
-    setViewingStops,
     setEventKindId,
-    viewingTourAnchors,
-    setViewingStartSelection,
-    setViewingEndMode,
-    setViewingEndFixed,
   });
 
   const { onDateRangeChange, onCalendarTimedSlotPick, onIsAllDayChange } =
@@ -234,10 +163,17 @@ export function useCreateEventModal({
       setCreateTimesChosenViaWeekSlot
     );
 
-  const showGoogleMeetOption = useMemo(
-    () => mode === "create" && !isCalendarEventRequestFlow,
-    [isCalendarEventRequestFlow, mode]
-  );
+  const showGoogleMeetOption = useMemo(() => {
+    if (isCalendarEventRequestFlow) {
+      return false;
+    }
+    return showGoogleMeetToggleForCreate({
+      mode,
+      startDate,
+      endDate,
+      isAllDay,
+    });
+  }, [isCalendarEventRequestFlow, mode, startDate, endDate, isAllDay]);
 
   const mutualScheduleFull = useCreateEventMutualAvailability({
     isOpen,
@@ -264,12 +200,6 @@ export function useCreateEventModal({
     startTime,
     endTime,
     isAllDay,
-    isPropertyViewing,
-    viewingStops,
-    viewingStartSelection,
-    viewingTourAnchors,
-    viewingEndMode,
-    viewingEndFixed,
     isAgent,
     selectedClientId,
     mode,
@@ -299,8 +229,6 @@ export function useCreateEventModal({
     isAllDay,
     defaultCalendarId,
     onAddWithoutSchedule: isCalendarEventRequestFlow ? undefined : onAddWithoutSchedule,
-    isPropertyViewing,
-    hasViewingTourPropertyAddresses,
     isSubmitting,
     isSavingUnscheduled,
     isCreatingEvent,
@@ -330,8 +258,7 @@ export function useCreateEventModal({
     setSelectedCalendarId,
     eventKindId,
     handleEventKindIdChange,
-    kindOptionSlice,
-    checklistProgressLoading,
+    allowedKindIds: CALENDAR_EVENT_KIND_ORDER,
     eventTitle,
     setEventTitle,
     showAgentClientPicker,
@@ -347,16 +274,6 @@ export function useCreateEventModal({
     setStartTime,
     setEndTime,
     onCalendarTimedSlotPick,
-    isPropertyViewing,
-    viewingStops,
-    setViewingStops,
-    viewingStartSelection,
-    setViewingStartSelection,
-    viewingEndMode,
-    setViewingEndMode,
-    viewingEndFixed,
-    setViewingEndFixed,
-    viewingTourAnchors,
     eventLocation,
     handleEventLocationChange,
     locationScriptsReady,
@@ -370,6 +287,7 @@ export function useCreateEventModal({
     addGoogleMeet,
     setAddGoogleMeet,
     showGoogleMeetOption,
+    existingEvent,
     mutualSchedule: mutualScheduleForForm,
     registerOutsideClickSafeTarget,
   });

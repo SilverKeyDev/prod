@@ -6,9 +6,9 @@ import SearchMobileHeader from "packages/features/search/components/header/Searc
 import { SearchPageMapView } from "packages/features/search/components/layout/SearchPageMapView";
 import { SearchPageModals } from "packages/features/search/components/layout/SearchPageModals";
 import { DesktopReelsView } from "packages/features/search/components/reels/DesktopReelsView";
-import { useSearchFeatureController } from "packages/features/search/hooks/ui/useSearchFeatureController";
-import { MotionView } from "packages/ui/components/adapters/motion";
-import { Box } from "packages/ui/components/primitives";
+import { useSearchFeatureController } from "packages/features/search/hooks/ui/controller/useSearchFeatureController";
+import { Box } from "packages/ui/components/structure/primitives";
+import { MotionView } from "packages/ui/components/system/adapters/motion";
 
 import { SearchFeatureAgentShareMount } from "./SearchFeatureAgentShareMount.web";
 

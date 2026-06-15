@@ -4,10 +4,10 @@ import { useLocalization } from "packages/contexts";
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
 import { useFormsLibrary } from "packages/features/documents/hooks/data/useFormsLibrary";
 import type { ChecklistForm } from "packages/features/documents/types/forms";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
-import type { DocumentCardExternalActionHandlers } from "packages/ui/components/cards/document/types";
-import { tryWebShareUrl } from "packages/utils/share";
+import type { DocumentCardExternalActionHandlers } from "packages/ui/components/surfaces/cards/document/types";
+import { tryWebShareUrl } from "packages/utils/comms/share";
 
 import { buildFormIdMap, buildProcessedFormCategories } from "./formsBrowserModel";
 
@@ -61,7 +61,7 @@ export function useFormsBrowserController({
         openPdfModal(form.download_url, documentName, undefined);
         return;
       }
-      log.error(LOG_CATEGORIES.ERRORS, "Form has no view URL", { documentId });
+      log.error("ERRORS", "Form has no view URL", { documentId });
     },
     [openPdfModal, resolveForm]
   );
@@ -70,7 +70,7 @@ export function useFormsBrowserController({
     async (documentId: string, documentName: string) => {
       const form = resolveForm(documentId);
       if (!form?.download_url) {
-        log.error(LOG_CATEGORIES.ERRORS, "Form has no download URL", { documentId });
+        log.error("ERRORS", "Form has no download URL", { documentId });
         return;
       }
       const safeName = `${documentName
@@ -136,7 +136,7 @@ export function useFormsBrowserController({
   );
 
   const logFormSelected = useCallback((form: ChecklistForm) => {
-    log.info(LOG_CATEGORIES.API, "Form selected from library", {
+    log.info("API", "Form selected from library", {
       formId: form.id,
       formKey: form.form_key,
     });

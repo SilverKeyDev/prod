@@ -10,8 +10,8 @@ import {
 } from "packages/features/feed";
 import type { SearchResult } from "packages/features/search/types";
 import { useReelsCleanup } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/primitives";
-import { searchResultToFeedListing } from "packages/utils/search/feed/searchResultToFeedListing";
+import { Box } from "packages/ui/components/structure/primitives";
+import { searchResultToFeedListing } from "packages/utils/product/search/feed/searchResultToFeedListing";
 
 import { ReelsSearchEmptyState } from "./ReelsSearchEmptyState";
 

@@ -5,13 +5,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { PublicAgentProfileConnect } from "packages/features/agent/components/PublicAgentProfileConnect";
+import { usePublicAgentProfile } from "packages/features/agent/hooks/data/public/usePublicAgentProfile";
 import { AgentPublicProfileView } from "packages/features/profile/components/AgentPublicProfileView";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
-import { usePublicAgentProfile } from "packages/hooks/data/integrations/usePublicAgentProfile";
 import type { AgentProfileScreenParams } from "packages/navigation/types";
 import { useAuthStore } from "packages/store";
-import { Loading } from "packages/ui/components/asset/loading/Loading";
-import { ScrollView, Text } from "packages/ui/components/primitives";
+import { Loading } from "packages/ui/components/media/asset/loading/Loading";
+import { ScrollView, Text } from "packages/ui/components/structure/primitives";
 
 function isSlugParams(p: AgentProfileScreenParams | undefined): p is { publicProfileSlug: string } {
   return Boolean(

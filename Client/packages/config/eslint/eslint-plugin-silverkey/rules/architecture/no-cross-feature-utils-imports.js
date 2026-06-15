@@ -15,17 +15,28 @@ function consumerFeatureFromFilename(filename) {
   return seg || null;
 }
 
+/** Normalize @/features/ alias to packages/features/ for consistent checks. */
+function normalizeFeatureImportPath(importPath) {
+  if (typeof importPath !== "string") return importPath;
+  if (importPath.startsWith("@/features/")) {
+    return `packages/features/${importPath.slice("@/features/".length)}`;
+  }
+  return importPath;
+}
+
 /** First segment after packages/features/ in an import source string. */
 function providerFeatureFromImportSource(importPath) {
-  if (typeof importPath !== "string" || !importPath.startsWith("packages/features/")) {
+  const normalized = normalizeFeatureImportPath(importPath);
+  if (typeof normalized !== "string" || !normalized.startsWith("packages/features/")) {
     return null;
   }
-  const rest = importPath.slice("packages/features/".length);
+  const rest = normalized.slice("packages/features/".length);
   return rest.split("/")[0] || null;
 }
 
 function isUtilsModulePath(importPath) {
-  return importPath.includes("/utils/");
+  const normalized = normalizeFeatureImportPath(importPath);
+  return /\/utils(\/|$)/.test(normalized);
 }
 
 function isAllowedByPrefixes(importPath, allowImportPrefixes) {
@@ -70,7 +81,8 @@ module.exports = {
 
         const importPath = node.source.value;
         if (typeof importPath !== "string") return;
-        if (!importPath.startsWith("packages/features/")) return;
+        const normalizedImportPath = normalizeFeatureImportPath(importPath);
+        if (!normalizedImportPath.startsWith("packages/features/")) return;
         if (!isUtilsModulePath(importPath)) return;
 
         const provider = providerFeatureFromImportSource(importPath);

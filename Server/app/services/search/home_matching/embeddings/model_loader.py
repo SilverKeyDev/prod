@@ -2,7 +2,6 @@
 Model loader for sentence-transformers, OpenAI, and Perplexity embeddings.
 """
 
-import logging
 import re
 import time
 import warnings
@@ -14,11 +13,9 @@ from openai import APIError, RateLimitError
 from sentence_transformers import SentenceTransformer
 
 from app.config.llm_models import openai_embedding_model
+from logger import log
 
 from ..config.settings import EMBEDDING_MODEL, OPENAI_KEY
-
-# Suppress verbose logging from sentence-transformers
-logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
 
 # Suppress FutureWarning about deprecated resume_download parameter in huggingface_hub
 # This is a known issue in sentence-transformers 2.6.1 that will be fixed in future versions
@@ -28,8 +25,6 @@ warnings.filterwarnings(
     category=FutureWarning,
     module="huggingface_hub",
 )
-
-logger = logging.getLogger(__name__)
 
 
 def _extract_retry_after_time(error_message: str) -> float | None:
@@ -61,37 +56,40 @@ def _make_openai_request_with_retry(request_func, max_retries: int = 3):
 
             if wait_time is None:
                 wait_time = 2**attempt
-                logger.warning(
-                    f"⏳ Rate limit hit on attempt {attempt + 1}, using exponential backoff: {wait_time}s"
+                log.warn(
+                    "SEARCH",
+                    f"⏳ Rate limit hit on attempt {attempt + 1}, using exponential backoff: {wait_time}s",
                 )
             else:
                 wait_time = max(wait_time + 0.1, 0.1)
-                logger.warning(
-                    f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time:.3f}s (as requested by API)..."
+                log.warn(
+                    "SEARCH",
+                    f"⏳ Rate limit hit on attempt {attempt + 1}, waiting {wait_time:.3f}s (as requested by API)...",
                 )
 
             if attempt < max_retries - 1:
                 time.sleep(wait_time)
             else:
-                logger.error(f"❌ Rate limit exceeded after {max_retries} attempts: {e}")
+                log.error("ERRORS", f"❌ Rate limit exceeded after {max_retries} attempts: {e}")
                 raise
         except APIError as e:
             wait_time = 2**attempt
             if attempt < max_retries - 1:
-                logger.warning(
-                    f"⚠️ API error on attempt {attempt + 1}: {e}, waiting {wait_time}s before retry..."
+                log.warn(
+                    "SEARCH",
+                    f"⚠️ API error on attempt {attempt + 1}: {e}, waiting {wait_time}s before retry...",
                 )
                 time.sleep(wait_time)
             else:
-                logger.error(f"❌ API error after {max_retries} attempts: {e}")
+                log.error("ERRORS", f"❌ API error after {max_retries} attempts: {e}")
                 raise
         except Exception as e:
             if attempt == max_retries - 1:
-                logger.error(f"❌ Unexpected error after {max_retries} attempts: {e}")
+                log.error("ERRORS", f"❌ Unexpected error after {max_retries} attempts: {e}")
                 raise
             else:
-                logger.warning(
-                    f"⚠️ Unexpected error on attempt {attempt + 1}: {e}, retrying in 1s..."
+                log.warn(
+                    "SEARCH", f"⚠️ Unexpected error on attempt {attempt + 1}: {e}, retrying in 1s..."
                 )
                 time.sleep(1)
 
@@ -114,7 +112,7 @@ class EmbeddingModelLoader:
                 model = SentenceTransformer(model_name)
                 self._model_cache[model_name] = model
             except Exception as e:
-                logger.error(f"Error loading sentence-transformer {model_name}: {e}")
+                log.error("ERRORS", f"Error loading sentence-transformer {model_name}: {e}")
                 raise
 
         return self._model_cache[model_name]
@@ -128,7 +126,7 @@ class EmbeddingModelLoader:
             try:
                 self.openai_client = openai.OpenAI(api_key=OPENAI_KEY)
             except Exception as e:
-                logger.error(f"Error loading OpenAI client: {e}")
+                log.error("ERRORS", f"Error loading OpenAI client: {e}")
                 raise
 
         return self.openai_client
@@ -151,7 +149,7 @@ class EmbeddingModelLoader:
             embedding = np.array(data[0].embedding)
             return embedding
         except Exception as e:
-            logger.error(f"Error getting OpenAI embedding: {e}")
+            log.error("ERRORS", f"Error getting OpenAI embedding: {e}")
             raise
 
     def get_openai_embeddings_batch(
@@ -174,7 +172,7 @@ class EmbeddingModelLoader:
             embeddings = [np.array(d.embedding) for d in data]
             return embeddings
         except Exception as e:
-            logger.error(f"Error getting OpenAI embeddings batch: {e}")
+            log.error("ERRORS", f"Error getting OpenAI embeddings batch: {e}")
             raise
 
     def get_sentence_transformer_embedding(
@@ -186,7 +184,7 @@ class EmbeddingModelLoader:
             embedding = model.encode(text)
             return np.array(embedding)
         except Exception as e:
-            logger.error(f"Error getting sentence-transformer embedding: {e}")
+            log.error("ERRORS", f"Error getting sentence-transformer embedding: {e}")
             raise
 
     def get_sentence_transformer_embeddings_batch(
@@ -198,7 +196,7 @@ class EmbeddingModelLoader:
             embeddings = model.encode(texts)
             return [np.array(emb) for emb in embeddings]
         except Exception as e:
-            logger.error(f"Error getting sentence-transformer embeddings batch: {e}")
+            log.error("ERRORS", f"Error getting sentence-transformer embeddings batch: {e}")
             raise
 
     def get_embedding(
@@ -238,7 +236,7 @@ class EmbeddingModelLoader:
                     "max_seq_length": getattr(st_model, "max_seq_length", "unknown"),
                 }
             except Exception as e:
-                logger.error(f"Error getting sentence-transformer model info: {e}")
+                log.error("ERRORS", f"Error getting sentence-transformer model info: {e}")
                 return {"provider": "sentence_transformer", "error": str(e)}
 
         elif provider == "openai":

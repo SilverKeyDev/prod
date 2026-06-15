@@ -1,0 +1,14 @@
+type: object
+properties:
+  code:
+    type: string
+    maxLength: 2048
+    description: OAuth authorization code
+  state:
+    type: string
+    maxLength: 512
+    description: OAuth CSRF state parameter
+  error:
+    type: string
+    maxLength: 256
+    description: OAuth error code when authorization failed

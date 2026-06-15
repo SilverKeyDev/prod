@@ -2,11 +2,10 @@
    HTTP Client Instance
    ========================= */
 
-import { getBaseUrl, getDefaultRetries, getDefaultTimeout } from "packages/config";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { getAuthToken } from "packages/utils";
+import { getBaseUrl, getDefaultRetries, getDefaultTimeout } from "packages/config/env";
+import { log } from "packages/logger";
 
-import { HttpClient, type HttpClientConfig } from "./client";
+import { HttpClient, type HttpClientConfig } from "./client/HttpClient";
 
 /* =========================
    Environment Configuration
@@ -19,14 +18,7 @@ import { HttpClient, type HttpClientConfig } from "./client";
    ========================= */
 
 function createAuthTokenProvider(): () => string | null {
-  return () => {
-    try {
-      return getAuthToken();
-    } catch (error: unknown) {
-      log.warn(LOG_CATEGORIES.HTTP, "Failed to get auth token", error);
-      return null;
-    }
-  };
+  return () => null;
 }
 
 /* =========================
@@ -35,7 +27,7 @@ function createAuthTokenProvider(): () => string | null {
 
 function createAuthErrorHandler(): (error: Error) => void {
   return (error: Error) => {
-    log.warn(LOG_CATEGORIES.AUTH, "Auth error in HTTP client", error);
+    log.warn("AUTH", "Auth error in HTTP client", error);
     // Note: Removed authChange dispatch to prevent conflicts
   };
 }

@@ -23,7 +23,7 @@ This document defines the coding standards and architectural patterns for the Fl
 ### Agent Routes
 
 - **MUST** use `@require_agent_access` decorator for agent-only routes
-- **MUST NOT** manually check `user.is_agent` in route functions
+- **MUST NOT** manually check `user.is_agent` in route functions — use `user_is_agent(user)` or `@require_agent_access`
 - **MUST** use `@require_agent_access` instead of manual agent authorization checks
 
 ### Examples
@@ -35,7 +35,8 @@ from ..utils.common_patterns import require_authenticated_user
 @user_bp.route('/profile', methods=['GET'])
 @require_authenticated_user
 def get_user_profile(user):
-    return jsonify({'success': True, 'data': user.to_dict()})
+    from app.dtos.user import UserDTO
+    return jsonify({'success': True, 'data': UserDTO.to_response(user)})
 
 # ❌ WRONG: Manual authentication
 from ..services.auth.current_user import get_current_user

@@ -12,7 +12,7 @@
   "background-surface": "#FFFFFF",
   "background-sidebar": "#646663",
   "text-primary": "#2D2D2A",
-  "text-secondary": "#A8A8A2",
+  "text-secondary": "#6B6B65",
   "text-tertiary": "#646663",
   "text-disabled": "#D5D5D1",
   "border": "#A8A8A2",
@@ -110,7 +110,7 @@
   "off-white-gray": "#f5f5f5",
   "navy": "#2D2D2A",
   "dark-green": "#3D5A3D",
-  "gray-brown": "#A8A8A2",
+  "gray-brown": "#6B6B65",
   "sidebar-gray": "#646663",
   "warm-stone": "#646663",
   "sidebar": {

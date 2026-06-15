@@ -1,8 +1,9 @@
 import React from "react";
 
 import { AccountLogoutAction } from "packages/features/homeauth/components/account/AccountLogoutAction";
-import WhiteLogo from "packages/ui/components/asset/WhiteLogo";
-import { Box } from "packages/ui/components/primitives";
+import WhiteLogo from "packages/ui/components/media/asset/WhiteLogo";
+import { Box } from "packages/ui/components/structure/primitives";
+import Region from "packages/ui/components/system/accessibility/Region";
 
 import { BodyText } from "@/components/ui";
 import type { UserProfile } from "@/features/homeauth/types";
@@ -82,7 +83,7 @@ export function SidebarNav({
   onPrefetchHref,
 }: SidebarNavProps) {
   return (
-    <nav className="mt-4 pb-4" aria-label="Primary navigation">
+    <Region as="nav" label="Primary navigation" className="mt-4 pb-4">
       {Object.entries(navigation).map(([categoryKey, category]) => (
         <Box key={categoryKey}>
           <SidebarNavCategory
@@ -100,6 +101,6 @@ export function SidebarNav({
           />
         </Box>
       ))}
-    </nav>
+    </Region>
   );
 }

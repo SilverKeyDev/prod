@@ -1,0 +1,70 @@
+---
+description: PostHog api_request telemetry and endpoint inventory sync for Flask routes
+globs:
+  - "Server/app/http/**"
+  - "Server/app/routes/**"
+  - "Server/app/services/analytics/posthog_events.py"
+  - "Server/app/services/analytics/api_request_error_semantics.py"
+  - "Server/scripts/endpoints/**"
+alwaysApply: false
+---
+
+# API PostHog instrumentation
+
+HTTP route telemetry is **centralized** — do not add per-route `api_request` PostHog capture in handlers.
+
+## Route inventory
+
+- After adding or changing Flask routes, run `make routes-extract` and commit [`Server/endpoints.json`](../../../Server/endpoints.json).
+- CI enforces drift via `make routes-extract-verify` in [`.github/workflows/test-callable.yml`](../../../.github/workflows/test-callable.yml).
+- After **Test & Coverage** succeeds on `main`, [`.github/workflows/endpoints-sync-posthog.yml`](../../../.github/workflows/endpoints-sync-posthog.yml) POSTs coverage via [`sync_inventory_posthog.py`](../../../Server/scripts/endpoints/sync_inventory_posthog.py): `endpoint_inventory_sync` (full inventory + `dead_endpoints` summary) and one `endpoint_dead_route` event per route with zero `api_request` hits in 7d (reads committed `endpoints.json` only — no `DATABASE_URL`; secrets `POSTHOG_PROJECT_TOKEN` + `POSTHOG_QUERY_API_KEY`).
+
+## `api_request` event contract
+
+Captured in [`Server/app/http/api_telemetry.py`](../../../Server/app/http/api_telemetry.py) + [`posthog_events.py`](../../../Server/app/services/analytics/posthog_events.py).
+
+| Property | Required | Notes |
+| -------- | -------- | ----- |
+| `endpoint` | yes | `"METHOD /path/{param}"` — use [`normalize_flask_route_rule`](../../../Server/app/utils/http/route_pattern.py) |
+| `method` | yes | HTTP verb |
+| `status_code` | yes | int |
+| `is_error` | yes | `status_code >= 400` (legacy; do not use alone for SLO red/green) |
+| `is_server_error` | yes | `status_code >= 500` |
+| `error_kind` | yes | `none`, `server`, `auth`, `forbidden`, `not_found`, `rate_limited`, `client` — see [`api_request_error_semantics.py`](../../../Server/app/services/analytics/api_request_error_semantics.py) |
+| `expected_client_error` | yes | `true` when the outcome is normal product flow (expired session, role gate, etc.) |
+| `duration_ms` | yes | `time.perf_counter()` delta from `g._request_start_perf` in `before_request` |
+| `latency_ms` | deprecated | Same value as `duration_ms`; remove after dashboard migration |
+
+Timing starts in [`flask_runtime_routes.py`](../../../Server/app/http/flask_runtime_routes.py) `before_request`. Use `after_request` + `teardown_request` (unhandled exceptions) with `g._api_telemetry_captured` dedupe.
+
+## Intentionally excluded (document if adding similar routes)
+
+- `/healthz`, `/readyz`, `/livez` — probes
+- `/static/`, `/assets/` — static delivery
+- `OPTIONS` preflight
+- SPA `catch_all` (`/login`, etc.)
+- `text/event-stream` (SSE) responses
+- Unmatched 404s (`request.endpoint is None`)
+
+Rev-share redirect `GET /r/{link_id}` **is** instrumented.
+
+## Examples
+
+```python
+# ✅ CORRECT: add route; regenerate inventory
+@rev_share_redirect_bp.route("/r/<link_id>", methods=["GET"])
+def rev_share_redirect(link_id: str):
+    ...
+
+# Then: make routes-extract && commit Server/endpoints.json
+
+# ❌ WRONG: per-route PostHog capture for HTTP telemetry
+def my_handler():
+    capture_product_event(..., event="api_request", ...)  # use centralized hook instead
+```
+
+```python
+# ✅ CORRECT: endpoint string format matches inventory
+normalize_flask_route_rule("/api/v1/users/<int:user_id>")  # -> "/api/v1/users/{user_id}"
+# PostHog endpoint: "GET /api/v1/users/{user_id}"
+```

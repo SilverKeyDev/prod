@@ -6,16 +6,20 @@ import { queryKeys } from "packages/config/query/keys";
 import { useLocalization } from "packages/contexts";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import { isSetBudgetStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
-import { ProfileFinancialSection } from "packages/features/profile/components/profileScreen/sections/financial/ProfileFinancialSection";
-import type { OnboardingData } from "packages/features/profile/utils";
+import {
+  FinancialSection,
+  type OnboardingData,
+  userPreferencesToOnboardingData,
+} from "packages/features/profile";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import { calculateAffordableHomePrice, type HomePriceResult } from "packages/utils/affordability";
-
-import { userPreferencesToOnboardingData } from "@/features/profile/utils";
+import { Box } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
+import {
+  calculateAffordableHomePrice,
+  type HomePriceResult,
+} from "packages/utils/transaction/affordability";
 
 type SetBudgetSectionProps = {
   onComplete?: () => void;
@@ -36,11 +40,7 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
     // refetch that re-runs remote sync and can wipe in-progress field edits.
   }, [queryClient]);
 
-  const {
-    updateFormData: updateFormDataWithAutoSave,
-    autoSave,
-    flushSave,
-  } = useAutoSavePreferences({
+  const { updateFormData: updateFormDataWithAutoSave, flushSave } = useAutoSavePreferences({
     refreshUserPreferences,
     showErrorToastOnError: true,
     showSuccessToastOnSave: false,
@@ -123,24 +123,6 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
     [formData, updateFormDataWithAutoSave]
   );
 
-  const patchBuyerPreferenceExtensions = useCallback(
-    (
-      fn: (
-        prev: OnboardingData["buyerPreferenceExtensions"]
-      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>
-    ) => {
-      setFormData((prev) => {
-        const next = {
-          ...prev,
-          buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
-        } as OnboardingData;
-        autoSave(next);
-        return next;
-      });
-    },
-    [autoSave]
-  );
-
   const stepComplete = useMemo(() => isSetBudgetStepComplete(formData), [formData]);
 
   const handleSubmitStep = useCallback(() => {
@@ -167,11 +149,10 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
   return (
     <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
-        <ProfileFinancialSection
+        <FinancialSection
           formData={formData as OnboardingData}
           isEditMode={true}
           updateField={updateField}
-          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
           homePriceResult={homePriceResult}
           homePriceLoading={homePriceLoading}
           homePriceError={homePriceError}

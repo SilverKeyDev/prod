@@ -1,16 +1,17 @@
 import React from "react";
 
-import { PrimitiveInput } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-
-import type { ImportantLocation } from "@/features/profile/utils/public/importantLocations";
+import type { ImportantLocation } from "packages/features/profile/utils/public/importantLocations";
+import { PrimitiveInput } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 type ImportantLocationsInputProps = {
   locations: ImportantLocation[];
   onChange: (locations: ImportantLocation[]) => void;
+  scriptsReady?: boolean;
   isEditMode?: boolean;
+  addButtonLabel?: string;
 };
 
 export function ImportantLocationsInput({

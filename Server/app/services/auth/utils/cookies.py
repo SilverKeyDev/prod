@@ -4,7 +4,9 @@ Cookie management utilities for authentication.
 
 import os
 
-from flask import Response, current_app
+from flask import Response
+
+from logger import log
 
 
 def set_auth_cookies(
@@ -15,9 +17,7 @@ def set_auth_cookies(
     Handles errors gracefully and logs them.
     """
     is_production = os.getenv("FLASK_ENV") == "production"
-
     try:
-        # Session cookie (access token)
         response.set_cookie(
             "session",
             value=access_token,
@@ -25,10 +25,8 @@ def set_auth_cookies(
             secure=is_production,
             samesite="Lax",
             path="/",
-            max_age=60 * 60 * 8,  # 8 hours
+            max_age=60 * 60 * 8,
         )
-
-        # Refresh token cookie
         response.set_cookie(
             "refresh_token",
             value=refresh_token,
@@ -36,13 +34,12 @@ def set_auth_cookies(
             secure=is_production,
             samesite="Lax",
             path="/",
-            max_age=60 * 60 * 24 * 30,  # 30 days
+            max_age=60 * 60 * 24 * 30,
         )
-
-        # Log successful cookie setting at debug level to avoid noisy INFO logs
-        current_app.logger.debug(
+        log.debug(
+            "AUTH",
             "🔍 BACKEND_AUTH_COOKIES_SET",
-            extra={
+            {
                 "request_id": request_id or "unknown",
                 "session_cookie_set": True,
                 "refresh_cookie_set": True,
@@ -53,21 +50,19 @@ def set_auth_cookies(
                 "samesite": "Lax",
             },
         )
-
     except Exception as cookie_error:
         if request_id:
-            current_app.logger.error(
+            log.error(
+                "ERRORS",
                 "Cookie setting error",
-                extra={
+                {
                     "request_id": request_id,
                     "error": str(cookie_error),
                     "error_type": type(cookie_error).__name__,
                 },
             )
         else:
-            current_app.logger.error(f"Cookie setting error: {str(cookie_error)}")
-        # Continue even if cookie setting fails
-
+            log.error("ERRORS", f"Cookie setting error: {str(cookie_error)}")
     return response
 
 
@@ -76,7 +71,6 @@ def clear_auth_cookies(response: Response) -> Response:
     Clear authentication cookies by setting them to empty with max_age=0.
     """
     is_production = os.getenv("FLASK_ENV") == "production"
-
     try:
         response.set_cookie(
             "session",
@@ -85,9 +79,8 @@ def clear_auth_cookies(response: Response) -> Response:
             secure=is_production,
             samesite="Lax",
             path="/",
-            max_age=0,  # Expire immediately
+            max_age=0,
         )
-
         response.set_cookie(
             "refresh_token",
             value="",
@@ -95,9 +88,8 @@ def clear_auth_cookies(response: Response) -> Response:
             secure=is_production,
             samesite="Lax",
             path="/",
-            max_age=0,  # Expire immediately
+            max_age=0,
         )
     except Exception as e:
-        current_app.logger.error(f"Error clearing cookies: {str(e)}")
-
+        log.error("ERRORS", f"Error clearing cookies: {str(e)}")
     return response

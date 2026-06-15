@@ -23,7 +23,7 @@ export default function SearchSection({ setClosePageHeaderData }: SearchSectionP
       title={CHECKLIST_TITLES.search}
       subtitle={CHECKLIST_SUBTITLES.search}
       sectionTitle="Search Tasks"
-      apiEndpoint="/api/v1/tasks?type=search"
+      checklistType="search"
       showLoadingScreen={true}
       setClosePageHeaderData={setClosePageHeaderData}
     />

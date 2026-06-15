@@ -3,11 +3,10 @@
  * Uses platform getLocalStorage so draft works on web and React Native.
  */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { getWindow } from "packages/utils/platform";
-import { getLocalStorage } from "packages/utils/storage/platformStorage";
-
-import type { OnboardingData } from "@/features/profile/utils";
+import type { OnboardingData } from "packages/features/profile";
+import { log } from "packages/logger";
+import { getWindow } from "packages/utils/core/platform";
+import { getLocalStorage } from "packages/utils/core/storage/platformStorage";
 
 const ONBOARDING_DRAFT_KEY = "onboardingDraft";
 
@@ -21,7 +20,7 @@ export function getOnboardingDraftFromStorage(): OnboardingData | null {
       return parsed as OnboardingData;
     }
   } catch {
-    log.warn(LOG_CATEGORIES.ERRORS, "Invalid onboarding draft data");
+    log.warn("ERRORS", "Invalid onboarding draft data");
   }
   return null;
 }

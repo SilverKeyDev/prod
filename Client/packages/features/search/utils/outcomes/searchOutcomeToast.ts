@@ -1,7 +1,8 @@
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
-import { HttpError, TimeoutError } from "packages/services/http/compatibility";
-import { SUPPORTED_SERVICE_AREA_WARNING } from "packages/utils/search/locations/serviceAreaAvailability";
+import { HttpError, TimeoutError } from "packages/services/http/client";
+import { resolveUserFacingMessage } from "packages/utils/core/errorHandling";
+import { SUPPORTED_SERVICE_AREA_WARNING } from "packages/utils/product/search/locations/serviceAreaAvailability";
 
 const MAX_ERROR_MESSAGE_LEN = 200;
 
@@ -13,10 +14,9 @@ function translation(key: keyof typeof SEARCH_TRANSLATIONS | string): string {
 /** Prefer a short single-line API/network message; never stack traces. */
 export function userFacingSearchErrorMessage(error: unknown): string {
   const generic = translation("search.search_failed_generic");
-  if (!(error instanceof Error) || !error.message?.trim()) {
-    return generic;
-  }
-  const msg = error.message.trim();
+  const resolved = resolveUserFacingMessage(error, { fallbackMessage: generic });
+  if (resolved === generic) return generic;
+  const msg = resolved.trim();
   if (
     msg.length > MAX_ERROR_MESSAGE_LEN ||
     msg.includes("\n") ||
@@ -49,6 +49,26 @@ export function warnSearchServerOrTimeout(error: unknown): void {
     return;
   }
   warnSearchFailed(error);
+}
+
+export function warnGeolocationDeniedBlocksSearch(): void {
+  showWarningToast(translation("search.geolocation_denied_blocks_search"));
+}
+
+export function warnGeolocationUnavailableUsingDefaultMarket(): void {
+  showWarningToast(translation("search.geolocation_unavailable_default_market"));
+}
+
+export function warnSearchAreaWarnings(
+  warnings: Array<"geolocation_denied" | "geolocation_unavailable">
+): void {
+  if (warnings.includes("geolocation_denied")) {
+    warnGeolocationDeniedBlocksSearch();
+    return;
+  }
+  if (warnings.includes("geolocation_unavailable")) {
+    warnGeolocationUnavailableUsingDefaultMarket();
+  }
 }
 
 export function warnSearchAreaInvalid(kind: "isochrone_api" | "geometry" | "viewport"): void {

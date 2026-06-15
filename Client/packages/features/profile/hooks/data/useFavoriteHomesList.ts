@@ -6,9 +6,9 @@ import { useMemo } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 
+import { userApi } from "packages/features/profile/api/user";
 import { useAuthStore } from "packages/store";
-
-import { userApi } from "@/features/profile/api/user";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
 export type FavoriteHomeItem = {
   user_id: string;
@@ -64,7 +64,7 @@ export function useFavoriteHomesList(clientId?: string) {
     queryFn: async () => {
       const response = await userApi.getFavoriteHomes(clientId);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to load favorite homes");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to load favorite homes"));
       }
       const raw = (response.favorites ?? []) as unknown[];
       return raw.map(mapRawToFavoriteHome);

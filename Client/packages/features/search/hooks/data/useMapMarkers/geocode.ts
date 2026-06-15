@@ -1,5 +1,5 @@
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { getWindow } from "packages/utils/platform";
+import { log } from "packages/logger";
+import { getWindow } from "packages/utils/core/platform";
 
 export async function geocodeAddress(
   address: string
@@ -19,7 +19,7 @@ export async function geocodeAddress(
       }
     }
   } catch (error) {
-    log.error(LOG_CATEGORIES.MAP_RENDERING, "Geocoding failed for address", {
+    log.error("MAP_RENDERING", "Geocoding failed for address", {
       address,
       error,
     });

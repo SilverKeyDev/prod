@@ -1,10 +1,13 @@
 """Shared property cache — one row per physical property, no user_id."""
 
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
 
 from app import db
 
@@ -12,7 +15,7 @@ from app import db
 class PropertyCache(db.Model):
     """Canonical shared property record.
 
-    Unlike HomeUniversal (per-user), PropertyCache stores exactly one row per
+    Canonical listing snapshot keyed by zpid. One row per property;
     physical property identified by *zpid* or *address_normalized*.  Shared data
     (images, listing features, image features, raw API data) lives here so that
     any user viewing the same property benefits from cached API results.
@@ -87,28 +90,27 @@ class PropertyCache(db.Model):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # Relationships (loaded lazily to avoid import cycles)
-    analysis_sections = db.relationship(
+    analysis_sections: DynamicMapped["PropertyAnalysisSection"] = relationship(
         "PropertyAnalysisSection",
-        backref=db.backref("property", lazy="select"),
+        back_populates="property",
         lazy="dynamic",
         cascade="all, delete-orphan",
     )
-    user_highlights = db.relationship(
+    user_highlights: DynamicMapped["UserPropertyHighlights"] = relationship(
         "UserPropertyHighlights",
-        backref=db.backref("property", lazy="select"),
+        back_populates="property",
         lazy="dynamic",
         cascade="all, delete-orphan",
     )
-    user_commutes = db.relationship(
+    user_commutes: DynamicMapped["UserPropertyCommute"] = relationship(
         "UserPropertyCommute",
-        backref=db.backref("property", lazy="select"),
+        back_populates="property",
         lazy="dynamic",
         cascade="all, delete-orphan",
     )
-    user_links = db.relationship(
+    user_links: DynamicMapped["UserPropertyLink"] = relationship(
         "UserPropertyLink",
-        backref=db.backref("property", lazy="select"),
+        back_populates="property",
         lazy="dynamic",
         cascade="all, delete-orphan",
     )

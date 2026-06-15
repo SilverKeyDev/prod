@@ -98,7 +98,9 @@ class TestIsochroneUnionForAddresses:
     @patch(MOCK_ISO_POLYGON)
     @patch(MOCK_GEOCODE)
     @patch(MOCK_PICK_TOKEN, return_value="test-token")
-    def test_multiple_locations_disjoint_intersection_empty(self, _mock_token, mock_geocode, mock_iso):
+    def test_multiple_locations_disjoint_intersection_empty(
+        self, _mock_token, mock_geocode, mock_iso
+    ):
         mock_geocode.side_effect = [(0.0, 0.0), (10.0, 10.0)]
         mock_iso.side_effect = [_square_polygon(0.0), _square_polygon(5.0)]
 
@@ -139,9 +141,7 @@ class TestIsochroneUnionForAddresses:
 
     @patch(MOCK_PICK_TOKEN, return_value="test-token")
     def test_string_minutes_coerced(self, _mock_token):
-        with patch(
-            "app.services.search.polygon.locationPolygon.requests.get"
-        ) as mock_get:
+        with patch("app.services.search.polygon.locationPolygon.requests.get") as mock_get:
             mock_get.return_value.status_code = 200
             mock_get.return_value.json.return_value = {
                 "features": [_square_polygon()],

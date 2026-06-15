@@ -1,7 +1,7 @@
 import React from "react";
 
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 import { BodyText } from "@/components/ui";
 

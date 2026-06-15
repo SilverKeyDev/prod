@@ -2,12 +2,11 @@ import type { IconName } from "packages/ui/types/icons";
 
 /** URL segment under `/admin/` (kebab-case). */
 export const ADMIN_ROUTE_SEGMENTS = {
-  platformHealth: "platform-health",
-  notifications: "notifications",
   logging: "logging",
   partners: "partners",
   superadmin: "superadmin",
   devPersona: "dev-persona",
+  supportMessaging: "support-messaging",
 } as const;
 
 export type AdminRouteSegment = (typeof ADMIN_ROUTE_SEGMENTS)[keyof typeof ADMIN_ROUTE_SEGMENTS];
@@ -24,16 +23,6 @@ export type AdminNavSpecItem = {
 /** Static nav metadata (icons resolved in the web shell). */
 export const ADMIN_NAV_SPEC: readonly AdminNavSpecItem[] = [
   {
-    key: ADMIN_ROUTE_SEGMENTS.platformHealth,
-    label: "Platform health",
-    iconName: "activity",
-  },
-  {
-    key: ADMIN_ROUTE_SEGMENTS.notifications,
-    label: "Notifications",
-    iconName: "inbox",
-  },
-  {
     key: ADMIN_ROUTE_SEGMENTS.logging,
     label: "Logging",
     iconName: "file-text",
@@ -42,10 +31,17 @@ export const ADMIN_NAV_SPEC: readonly AdminNavSpecItem[] = [
     key: ADMIN_ROUTE_SEGMENTS.partners,
     label: "Partners",
     iconName: "handshake",
+    superadminOnly: true,
+  },
+  {
+    key: ADMIN_ROUTE_SEGMENTS.supportMessaging,
+    label: "Support messaging",
+    iconName: "message-square",
+    superadminOnly: true,
   },
   {
     key: ADMIN_ROUTE_SEGMENTS.devPersona,
-    label: "App persona",
+    label: "Dev preview",
     iconName: "users",
   },
   {
@@ -71,4 +67,8 @@ export function visibleAdminNavSpec(includeSuperadmin: boolean): readonly AdminN
     return [...ADMIN_NAV_SPEC];
   }
   return ADMIN_NAV_SPEC.filter((row) => !row.superadminOnly);
+}
+
+export function superadminOnlyRouteSegments(): readonly AdminRouteSegment[] {
+  return ADMIN_NAV_SPEC.filter((row) => row.superadminOnly).map((row) => row.key);
 }

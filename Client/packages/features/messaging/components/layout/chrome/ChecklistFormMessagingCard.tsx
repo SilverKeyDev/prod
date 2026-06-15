@@ -1,7 +1,8 @@
 import React from "react";
 
 import type { SharedChecklistFormSnapshot } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import { BodyText, Button } from "@/components/ui";
 import { isChecklistFormMessagingAttachmentUnavailable } from "@/features/messaging/utils/messagingAttachmentAvailability";
@@ -63,8 +64,7 @@ export function ChecklistFormMessagingCard({
         onPress={() => {
           const url = form.download_url;
           if (url) {
-            // eslint-disable-next-line no-restricted-globals
-            window.open(url, "_blank", "noopener,noreferrer");
+            getWindow()?.open?.(url, "_blank", "noopener,noreferrer");
           }
         }}
       >

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { computePersonalizationActiveSectionId } from "packages/features/profile/utils/personalization/personalizationScrollActiveSection";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 /**
  * Keeps active section in sync with scroll position for long personalization pages.

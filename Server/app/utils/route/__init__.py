@@ -8,6 +8,18 @@ from app.utils.route.auth_decorators import (
 )
 from app.utils.route.composite import api_route
 from app.utils.route.exception_decorators import handle_exceptions_with_logging
+from app.utils.route.http_errors import (
+    configuration_unavailable,
+    conflict,
+    external_unavailable,
+    forbidden,
+    invalid_request,
+    not_found,
+    rate_limited,
+    server_error,
+    unauthorized,
+    validation,
+)
 from app.utils.route.openapi_auth import require_validated_agent, require_validated_user
 from app.utils.route.request_decorators import validate_json_request
 from app.utils.route.response_helpers import (
@@ -17,7 +29,17 @@ from app.utils.route.response_helpers import (
 
 __all__ = [
     "api_route",
+    "configuration_unavailable",
+    "conflict",
+    "external_unavailable",
+    "forbidden",
     "handle_exceptions_with_logging",
+    "invalid_request",
+    "not_found",
+    "rate_limited",
+    "server_error",
+    "unauthorized",
+    "validation",
     "require_agent_access",
     "require_brokerage_scope",
     "require_authenticated_user",

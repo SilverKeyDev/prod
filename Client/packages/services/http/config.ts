@@ -3,8 +3,7 @@
    ========================= */
 
 import { getBaseUrl, getDefaultRetries, getDefaultTimeout } from "packages/config";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { getAuthToken } from "packages/utils";
+import { log } from "packages/logger";
 
 import { HttpClient, type HttpClientConfig } from "./client";
 
@@ -19,14 +18,7 @@ import { HttpClient, type HttpClientConfig } from "./client";
    ========================= */
 
 function createAuthTokenProvider(): () => string | null {
-  return () => {
-    try {
-      return getAuthToken();
-    } catch (error: unknown) {
-      log.warn(LOG_CATEGORIES.HTTP, "Failed to get auth token", error);
-      return null;
-    }
-  };
+  return () => null;
 }
 
 /* =========================
@@ -37,7 +29,7 @@ function createAuthErrorHandler() {
   return (error: unknown) => {
     // Use existing handleAuthenticationError - it's already imported in client.ts
     // This handler is only used as a fallback, the main handling is in client.ts
-    log.warn(LOG_CATEGORIES.HTTP, "Auth error handler called as fallback", error);
+    log.warn("HTTP", "Auth error handler called as fallback", error);
   };
 }
 

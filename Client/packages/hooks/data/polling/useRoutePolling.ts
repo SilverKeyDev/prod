@@ -2,13 +2,13 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { useQueryClient } from "@tanstack/react-query";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import type { RouteConfig } from "packages/services/data/dataConfig";
 import { getPollingRoutes } from "packages/services/data/dataConfig";
 import { useAuthStore } from "packages/store";
 import type { UserProfile } from "packages/types";
-import { getDocument } from "packages/utils/platform";
+import { getDocument } from "packages/utils/core/platform";
 
 /**
  * Polling intervals in milliseconds
@@ -61,7 +61,10 @@ export function useRoutePolling() {
       const poll = async () => {
         if (!currentUserRef.current) return;
 
-        if (routeConfig.userType === "agent" && !currentUserRef.current.is_agent) {
+        if (
+          routeConfig.userType === "agent" &&
+          !(currentUserRef.current.roles ?? []).includes("agent")
+        ) {
           return;
         }
 
@@ -84,7 +87,7 @@ export function useRoutePolling() {
             staleTime: 0,
           });
         } catch (error) {
-          log.error(LOG_CATEGORIES.POLLING, `❌ ${routeConfig.key} poll failed`, error);
+          log.error("POLLING", `❌ ${routeConfig.key} poll failed`, error);
         }
       };
 
@@ -117,7 +120,7 @@ export function useRoutePolling() {
   const startPolling = useCallback(
     (userProfile: UserProfile | null, pathname: string): void => {
       if (isPollingRef.current) {
-        log.info(LOG_CATEGORIES.POLLING, "Already polling, skipping start");
+        log.info("POLLING", "Already polling, skipping start");
         return;
       }
 
@@ -127,9 +130,9 @@ export function useRoutePolling() {
 
       const routes = getPollingRoutes(userProfile);
 
-      log.info(LOG_CATEGORIES.POLLING, "🚀 Starting background polling", {
+      log.info("POLLING", "🚀 Starting background polling", {
         userId: userProfile?.id,
-        isAgent: userProfile?.is_agent ?? false,
+        isAgent: (userProfile?.roles ?? []).includes("agent"),
         pathname,
         routeCount: routes.length,
       });

@@ -1,117 +1,53 @@
-## Deadline and Milestone Engine
+> **Status:** Partial  
+> **Last verified:** 2026-05-28  
+> **Code pointers:** `Server/app/services/transactions/calendar_from_checklist.py`, `Server/app/services/documents/forms_service.py`, `Server/app/services/transactions/retrieval.py`, `Client/packages/features/calendar/`
 
-### Problem / goal
+## Deadline and milestone engine
 
-We need a **deterministic rules engine** that converts transaction facts into dated milestones, such as:
-- Inspection contingency window end.
-- Earnest money due date.
-- Financing contingency date.
-- Title objection deadlines.
-- Closing date and related cutoffs.
+Relative checklist scheduling ships; contract-based milestone engine does not.
 
-These milestones must drive:
-- Checklist metadata (e.g. “Due by X”).
-- Calendar events.
-- Notifications and compliance checks.
+### Shipped: relative scheduling
 
-### Data model & invariants
+| Mechanism | Trigger | Output |
+| --------- | ------- | ------ |
+| **Checkoff calendar** | User checks an item with `calendar.hasDates: false` | `CalendarEvent` at checkoff + N days (`calendar_from_checklist.py`) |
+| **Form deadlines** | Agent opens checklist forms with transaction start date | `FormsService.calculate_deadline` from item `calendar.days` |
+| **Agent todos** | Checklist dispatch automation on checkoff | Agent todo with optional due date |
 
-- **Inputs**
-  - Transaction-level fields:
-    - `contract_acceptance_date`
-    - `scheduled_closing_date` (if set)
-    - `is_cash_purchase` vs `loan_type` and `loan_program`
-    - `occupancy_type` (primary, secondary, investment)
-    - `jurisdiction_ruleset_key` (from location enrichment)
-  - Optional:
-    - Contract-specific overrides (if the buyer or agent enters custom timelines).
+Item example (closing): `"calendar": {"hasDates": False, "days": 3, "eventSchedule": [3]}`.
 
-- **Outputs: Milestone**
-  - `id`
-  - `transaction_id`
-  - `type` (e.g. `inspection_window_end`, `earnest_money_due`, `loan_commitment_due`, `title_objection_deadline`, `closing_date`, etc.)
-  - `target_date`
-  - `source` (`rule_engine`, `manual_override`, `integration`)
-  - Optional:
-    - `rule_version` (for auditability).
+Events stored locally (`sync_source="checklist"`); Google Calendar sync is separate connection flow.
 
-Invariants:
-- For a given transaction and ruleset version, the engine is **pure and repeatable**:
-  - Same inputs → same milestone outputs (unless overridden).
+### Shipped: checklist metadata placeholders
 
-### Flows / UX
+`get_series_metadata()` returns null `deadline`, `date_finished`, `state`, `county` for all categories — API shape exists; values not computed.
 
-1. **Initial milestone generation**
-   - When a transaction’s key inputs are known (contract acceptance date, jurisdiction, etc.):
-     - Engine computes baseline milestones.
-   - Buyer/agent can see:
-     - A list of key dates.
-     - How they relate to checklist items and calendar entries.
+Calendar create uses a fixed event-type list (no checklist-driven kind filtering).
 
-2. **Updates and overrides**
-   - If key inputs change (e.g. closing date moves):
-     - Engine recomputes milestones.
-     - System highlights changed dates and surfaces conflicts.
-   - For certain milestones:
-     - Agent or buyer may manually override (e.g. custom inspection period negotiated).
-     - Overrides are stored and flagged as `source = manual_override`.
+### Planned: rules engine
 
-3. **Downstream usage**
-   - Checklists:
-     - Items show “Due by X”, where X is the linked milestone’s `target_date`.
-   - Calendar:
-     - Milestones create calendar events, with links back to transaction and checklists.
-   - Notifications:
-     - Deadline proximity triggers reminder and escalation notifications.
+Inputs (future):
 
-### Existing infrastructure to reuse / extend
+- `contract_acceptance_date`, closing date, cash vs financed, occupancy
+- `jurisdiction_ruleset_key` from location enrichment
 
-- **Date utilities**
-  - `Client/packages/utils/date`:
-    - Utilities like `dateNow`, `dateParseISO`, and `dayjs` helpers.
-    - Already used in `CreateEventModal` to handle date/time inputs and calculations.
+Outputs (future):
 
-- **Scheduling / calendar schemas**
-  - Any existing scheduling-related schemas under:
-    - `Client/packages/schemas/calendar` and `Client/packages/schemas/scheduling` (if present).
-  - Calendar UI and event creation patterns:
-    - `Client/packages/features/calendar/components/view/CreateEventModal.tsx`
-    - `Client/packages/features/calendar/components/view/CalendarHeader.tsx`
+- `Milestone` rows: inspection end, earnest money due, financing contingency, title objection, closing
+- `source`: `rule_engine` | `manual_override` | `integration`
+- APIs: `GET/PUT /api/v1/transactions/:id/milestones`
+- Drive checklist “Due by X”, notifications, synced calendar
 
-- **Checklist metadata**
-  - Current `/api/v1/tasks` metadata fields:
-    - `deadline` and `date_finished` included in responses from `get_task_checklist`.
-  - This shape can be extended to map milestones → per-category metadata.
+Legacy `milestones` table was removed; no replacement table yet.
 
-We should **build the engine as a backend service** and surface milestone results through APIs that existing calendar and checklist UIs can consume.
+### Invariants (target)
 
-### Gaps that require new work
+Same transaction inputs + ruleset version → same computed dates unless manually overridden; overrides audited.
 
-- **Backend rules engine module**
-  - A dedicated module (e.g. `Server/app/services/transactions/deadlines/engine.py`) that:
-    - Accepts transaction facts and a `jurisdiction_ruleset_key`.
-    - Returns a list of milestones.
-  - Rule sets:
-    - Initially codified from internal expertise and brokerage guidance.
-    - Versioned so we can track which rules applied to which transaction.
+### Build path
 
-- **Persistence for milestones**
-  - A `Milestone` table or equivalent:
-    - Allows overrides, audit, and reconciliation with calendar events.
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
 
-- **Jurisdiction rule sets**
-  - Structures that define:
-    - Default inspection windows.
-    - Earnest money timing.
-    - Title and financing-related deadlines.
-    - Business days vs calendar days handling.
-  - Linked to `jurisdiction_ruleset_key` produced by location enrichment.
-
-- **API surface**
-  - Endpoints like:
-    - `GET /api/v1/transactions/<transaction_id>/milestones`
-    - `PUT /api/v1/transactions/<transaction_id>/milestones/<milestone_id>` for overrides.
-  - Shape designed to be consumed by:
-    - Checklists (for deadlines).
-    - Calendar (for events).
-    - Notifications (for upcoming/overdue detection).
+1. Codify jurisdiction rule sets (business days vs calendar days)
+2. Persist milestones + link to checklist items / calendar
+3. Surface through existing checklist metadata and calendar UIs — no parallel calendar module

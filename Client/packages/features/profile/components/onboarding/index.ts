@@ -1,5 +1,6 @@
-export { DemographicsStep } from "./DemographicsStep.native";
-export { HousingStep } from "./HousingStep.native";
-export { LocationStep } from "./LocationStep.native";
-export type { OnboardingScreenNativeProps } from "./OnboardingScreen.native";
-export { OnboardingScreenNative } from "./OnboardingScreen.native";
+/**
+ * Web barrel: onboarding steps render via renderOnboardingStep.web and profile sections.
+ * Native onboarding shell lives in index.native.ts (HousingStep, LocationStep, etc.).
+ */
+export type { RenderOnboardingStepProps } from "./renderOnboardingStep.types";
+export { renderOnboardingStep } from "./renderOnboardingStep.web";

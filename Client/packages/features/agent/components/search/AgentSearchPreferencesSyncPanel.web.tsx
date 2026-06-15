@@ -3,12 +3,12 @@ import React, { useState } from "react";
 import BodyText from "@ui/text/BodyText";
 
 import { useLocalization } from "packages/contexts";
+import type { OnboardingData } from "packages/features/profile";
 import { ClientSelector } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { useAgentClients } from "@/features/agent/hooks/data/clients/useAgentClients";
 import { useSyncAgentPreferencesFromClient } from "@/features/agent/hooks/data/search/useSyncAgentPreferencesFromClient";
-import type { OnboardingData } from "@/features/profile/utils";
 
 export type AgentSearchPreferencesSyncPanelProps = {
   /** When an agent is viewing a client in Search, show copy that edits apply to the agent only. */

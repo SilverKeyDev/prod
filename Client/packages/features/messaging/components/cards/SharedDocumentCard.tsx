@@ -1,5 +1,5 @@
-import DocumentCard from "packages/ui/components/cards/document/DocumentCard";
-import type { DocumentCardProps } from "packages/ui/components/cards/document/types";
+import DocumentCard from "packages/ui/components/surfaces/cards/document/DocumentCard";
+import type { DocumentCardProps } from "packages/ui/components/surfaces/cards/document/types";
 
 type SharedDocumentCardProps = Omit<DocumentCardProps, "showDelete">;
 

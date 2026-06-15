@@ -1,0 +1,89 @@
+# Local prod-parity stack: app + Redis + Celery worker + Beat.
+# Requires Server/.env with DATABASE_URL and other keys from make setup.
+# Docker build args: all Client/.env entries (see compose.sh / make prod-parity-build).
+#
+# Usage (from repo root):
+#   make prod-parity-build && make prod-parity
+#   make prod-parity-smoke
+#   bash scripts/deploy/prod-parity/compose.sh build
+#   bash scripts/deploy/prod-parity/compose.sh up
+#
+# App: http://127.0.0.1:5000/livez
+
+x-backend-build: &backend-build
+  context: ../../..
+  dockerfile: Dockerfile.web
+  target: backend
+
+services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: *backend-build
+    ports:
+      - "5000:5000"
+    env_file:
+      - ../../../Server/.env
+    environment:
+      FLASK_ENV: production
+      REDIS_URL: redis://redis:6379/0
+      CELERY_URL: redis://redis:6379/0
+      WEB_CONCURRENCY: "2"
+      GUNICORN_THREADS: "4"
+      DB_POOL_SIZE: "3"
+      DB_MAX_OVERFLOW: "5"
+      TRUST_PROXY_HEADERS: "false"
+      DEPLOY_IMAGE_TAG: local-prod-parity
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5000/livez"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  worker:
+    build: *backend-build
+    env_file:
+      - ../../../Server/.env
+    environment:
+      FLASK_ENV: production
+      REDIS_URL: redis://redis:6379/0
+      CELERY_URL: redis://redis:6379/0
+      CELERY_CONCURRENCY: "2"
+      CELERY_WORKER_POOL: prefork
+    command:
+      [
+        "celery",
+        "-A",
+        "app.celery.celery_worker:celery",
+        "worker",
+        "--loglevel=info",
+        "-Q",
+        "default,heavy,docusign",
+      ]
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  beat:
+    build: *backend-build
+    env_file:
+      - ../../../Server/.env
+    environment:
+      FLASK_ENV: production
+      REDIS_URL: redis://redis:6379/0
+      CELERY_URL: redis://redis:6379/0
+    command:
+      ["celery", "-A", "app.celery.celery_worker:celery", "beat", "--loglevel=info"]
+    depends_on:
+      redis:
+        condition: service_healthy

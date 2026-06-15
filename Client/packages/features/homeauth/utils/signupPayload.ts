@@ -1,5 +1,5 @@
 import type { SignupFormPayload } from "packages/features/homeauth/types/auth/signupForm";
-import { getSessionStorage } from "packages/utils/storage";
+import { getSessionStorage } from "packages/utils/core/storage";
 
 import type { SignupData } from "@/features/homeauth/api/types";
 

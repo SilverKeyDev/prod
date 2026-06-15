@@ -7,7 +7,9 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from flask import current_app, jsonify
+from flask import jsonify
+
+from logger import log
 
 from ....utils.security.security import security_error_response
 from ...aggregation import get_preferences_dict_for_user
@@ -28,10 +30,16 @@ def map_user_preferences_to_filters(
     budget_min = user_preferences.get("home_budget_min")
     budget_max = user_preferences.get("home_budget_max")
 
-    if budget_max:
-        price_min = int(budget_min) if budget_min else int(budget_max * 0.65)
-        price_max = int(budget_max)
-        filters["listPrice"] = f"{price_min}:{price_max}"
+    if budget_min is not None or budget_max is not None:
+        try:
+            if budget_min is not None and budget_max is not None:
+                filters["listPrice"] = f"{int(budget_min)}:{int(budget_max)}"
+            elif budget_min is not None:
+                filters["listPrice"] = f">={int(budget_min)}"
+            elif budget_max is not None:
+                filters["listPrice"] = f"{int(int(budget_max) * 0.65)}:{int(budget_max)}"
+        except (TypeError, ValueError):
+            pass
 
     beds_min = user_preferences.get("preferred_bedrooms_min")
     if beds_min is not None:
@@ -54,26 +62,34 @@ def map_user_preferences_to_filters(
         "houses": "Single Family Residence",
         "condo": "Condominium",
         "condos": "Condominium",
+        "condos-co-ops": "Condominium",
         "townhouse": "Townhouse",
+        "townhome": "Townhouse",
         "townhomes": "Townhouse",
         "apartment": "Condominium",
         "apartments": "Condominium",
         "multi_family": "Multi-Family",
+        "multi-family": "Multi-Family",
         "multifamily": "Multi-Family",
         "manufactured": "Manufactured Home",
         "mobile": "Manufactured Home",
         "land": "Land",
         "lot": "Land",
         "lots": "Land",
+        "lots-land": "Land",
     }
 
     raw_type = str(
         user_preferences.get("preferred_housing_type", user_preferences.get("housing_type", ""))
     )
     if raw_type:
-        mapped = _SLIPSTREAM_TYPE_MAP.get(raw_type.lower())
-        if mapped:
-            filters["propertyType"] = mapped
+        mapped_values = []
+        for token in raw_type.split(","):
+            mapped = _SLIPSTREAM_TYPE_MAP.get(token.strip().lower())
+            if mapped and mapped not in mapped_values:
+                mapped_values.append(mapped)
+        if mapped_values:
+            filters["propertyType"] = ",".join(mapped_values)
 
     sqft_min = user_preferences.get("preferred_sqft_min")
     sqft_max = user_preferences.get("preferred_sqft_max")
@@ -143,6 +159,14 @@ def map_user_preferences_to_filters(
     return filters
 
 
+def normalize_important_location(location: dict[str, Any]) -> dict[str, Any]:
+    """Normalize a single important location dict from DB or aggregation shapes."""
+    loc = dict(location)
+    if loc.get("commute_tolerance") is None and loc.get("max_commute_minutes") is not None:
+        loc["commute_tolerance"] = loc["max_commute_minutes"]
+    return loc
+
+
 def generate_isochrone_polygon_from_preferences(
     user_preferences: dict[str, Any],
 ) -> list[dict[str, float]] | None:
@@ -162,20 +186,15 @@ def generate_isochrone_polygon_from_preferences(
             try:
                 locations_data = json.loads(locations_data)
             except json.JSONDecodeError:
-                current_app.logger.error("🗺️ ISOCHRONE: ❌ Failed to parse important_locations JSON")
+                log.error("SEARCH", "🗺️ ISOCHRONE: ❌ Failed to parse important_locations JSON")
                 return None
 
         if isinstance(locations_data, list) and locations_data:
-            important_locations = locations_data
+            important_locations = [
+                normalize_important_location(loc) for loc in locations_data if isinstance(loc, dict)
+            ]
 
         if not important_locations:
-            current_app.logger.warning(
-                "🗺️ ISOCHRONE: ⚠️ No important locations found in user preferences"
-            )
-            current_app.logger.warning(
-                f"🗺️ ISOCHRONE: ⚠️ Available user preference keys: {list(user_preferences.keys())}"
-            )
-            current_app.logger.warning(f"🗺️ ISOCHRONE: ⚠️ Important locations data: {locations_data}")
             return None
 
         # Prepare address and commute tolerance pairs for all locations
@@ -184,9 +203,7 @@ def generate_isochrone_polygon_from_preferences(
         for i, location in enumerate(important_locations):
             address = location.get("address")
             if not address:
-                current_app.logger.warning(
-                    f"🗺️ ISOCHRONE: ⚠️ Location {i + 1} has no address, skipping"
-                )
+                log.warn("SEARCH", f"🗺️ ISOCHRONE: ⚠️ Location {i + 1} has no address, skipping")
                 continue
 
             # Get commute tolerance from the location (in minutes)
@@ -195,7 +212,7 @@ def generate_isochrone_polygon_from_preferences(
             addresses_and_minutes.append((address, commute_tolerance))
 
         if not addresses_and_minutes:
-            current_app.logger.error("🗺️ ISOCHRONE: ❌ No valid locations with addresses found")
+            log.error("SEARCH", "🗺️ ISOCHRONE: ❌ No valid locations with addresses found")
             return None
 
         # Generate union isochrone polygon for all locations
@@ -226,13 +243,11 @@ def generate_isochrone_polygon_from_preferences(
             return polygon_points
 
         else:
-            current_app.logger.error(
-                f"🗺️ ISOCHRONE: ❌ Unexpected geometry type: {geometry.get('type')}"
-            )
+            log.error("SEARCH", f"🗺️ ISOCHRONE: ❌ Unexpected geometry type: {geometry.get('type')}")
             return None
 
     except Exception as e:
-        current_app.logger.error(f"🗺️ ISOCHRONE: ❌ Failed to generate isochrone polygon: {e}")
+        log.error("SEARCH", f"🗺️ ISOCHRONE: ❌ Failed to generate isochrone polygon: {e}")
         return None
 
 
@@ -269,7 +284,7 @@ def get_authenticated_user() -> tuple[Any | None, tuple | None]:
         # Handle SecurityException (wraps SecurityError tuples)
         return None, security_error_response(se.error_tuple)
     except Exception as auth_error:
-        current_app.logger.error(f"❌ Authentication error: {str(auth_error)}")
+        log.error("SEARCH", f"❌ Authentication error: {str(auth_error)}")
         return None, (
             jsonify({"success": False, "error": "AUTH_ERROR", "message": "Authentication failed"}),
             401,
@@ -280,13 +295,14 @@ def get_authenticated_user() -> tuple[Any | None, tuple | None]:
 
 def parse_important_locations(
     user_preferences: dict[str, Any],
-) -> tuple[list | None, str | None]:
+) -> tuple[list, str | None]:
     """
     Parse important_locations from user preferences.
 
     Returns:
-        Tuple of (locations_list, error_message)
-        If error_message is not None, there was an error parsing.
+        Tuple of (locations_list, error_message).
+        An empty list means the user has no commute locations configured (expected).
+        error_message is set only for malformed important_locations data.
     """
     locations_data = user_preferences.get("important_locations")
 
@@ -294,10 +310,14 @@ def parse_important_locations(
         try:
             locations_data = json.loads(locations_data)
         except json.JSONDecodeError as e:
-            current_app.logger.error(f"❌ Failed to parse important_locations JSON: {e}")
-            return None, "Invalid important locations data"
+            log.error("SEARCH", f"❌ Failed to parse important_locations JSON: {e}")
+            return [], "Invalid important locations data"
 
     if isinstance(locations_data, list) and locations_data:
-        return locations_data, None
+        normalized = [
+            normalize_important_location(loc) for loc in locations_data if isinstance(loc, dict)
+        ]
+        if normalized:
+            return normalized, None
 
-    return None, "No important locations found in user preferences"
+    return [], None

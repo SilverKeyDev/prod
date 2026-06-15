@@ -15,22 +15,24 @@ import {
 import { PdfModal } from "packages/features/documents/components/pdf/PdfModalBridge";
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
-import DocumentListRow from "packages/ui/components/cards/document/DocumentListRow";
+import { Portal } from "packages/ui/components/structure/portal";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import DocumentListRow from "packages/ui/components/surfaces/cards/document/DocumentListRow";
 import type {
   DocumentCardExternalActionHandlers,
   DocumentData,
-} from "packages/ui/components/cards/document/types";
-import { Portal } from "packages/ui/components/portal";
-import { Box, Text } from "packages/ui/components/primitives";
-import { tryWebShareUrl } from "packages/utils/share";
+} from "packages/ui/components/surfaces/cards/document/types";
+import { tryWebShareUrl } from "packages/utils/comms/share";
 
 type ChecklistStepFormsProps = {
   transactionId: string;
   section: string;
   itemId: number;
   isAgent: boolean;
+  /** When false, skips fetch and renders nothing (e.g. step has no suggested_form_ids). */
+  enabled?: boolean;
 };
 
 export default function ChecklistStepForms({
@@ -38,10 +40,17 @@ export default function ChecklistStepForms({
   section,
   itemId,
   isAgent,
+  enabled = true,
 }: ChecklistStepFormsProps) {
   const { t } = useLocalization();
 
-  const { forms, isLoading, error } = useChecklistForms(transactionId, section, itemId, isAgent);
+  const shouldFetch = isAgent && enabled;
+  const { forms, isLoading, error } = useChecklistForms(
+    transactionId,
+    section,
+    itemId,
+    shouldFetch
+  );
 
   const {
     openPdfModal,
@@ -72,7 +81,7 @@ export default function ChecklistStepForms({
         openPdfModal(form.download_url, documentName, undefined);
         return;
       }
-      log.error(LOG_CATEGORIES.ERRORS, "Form has no view URL", { documentId });
+      log.error("ERRORS", "Form has no view URL", { documentId });
     },
     [openPdfModal, resolveForm]
   );
@@ -81,7 +90,7 @@ export default function ChecklistStepForms({
     async (documentId: string, documentName: string) => {
       const form = resolveForm(documentId);
       if (!form?.download_url) {
-        log.error(LOG_CATEGORIES.ERRORS, "Form has no download URL", { documentId });
+        log.error("ERRORS", "Form has no download URL", { documentId });
         return;
       }
       try {
@@ -97,7 +106,7 @@ export default function ChecklistStepForms({
           .toLowerCase()}.pdf`;
         downloadFile(response.download_url, safeName);
       } catch (err) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to download form", err);
+        log.error("ERRORS", "Failed to download form", err);
         showErrorToast(
           t("checklists.download_form_error", {
             defaultValue: "Could not download the form. Please try again.",
@@ -159,12 +168,12 @@ export default function ChecklistStepForms({
             defaultValue: "Sent for signature.",
           })
         );
-        log.info(LOG_CATEGORIES.API, "Checklist form sent via DocuSign", {
+        log.info("API", "Checklist form sent via DocuSign", {
           formId: form.id,
           agreementId: res.agreement_id,
         });
       } catch (err) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to send checklist form via DocuSign", err);
+        log.error("ERRORS", "Failed to send checklist form via DocuSign", err);
         showErrorToast(
           t("checklists.send_form_docusign_error", {
             defaultValue: "Could not send for signature. Try again.",
@@ -194,20 +203,12 @@ export default function ChecklistStepForms({
     [handleDownloadDocument, handleSendForSignatureDoc, handleShareDocument, handleViewDocument]
   );
 
-  if (!isAgent) {
+  if (!shouldFetch) {
     return null;
   }
 
   if (isLoading) {
-    return (
-      <Box className="mt-3 px-4 pb-3">
-        <Box className="border-border bg-background-base rounded-lg border p-3">
-          <Text className="text-text-secondary text-sm">
-            {t("checklists.loading_forms", { defaultValue: "Loading forms..." })}
-          </Text>
-        </Box>
-      </Box>
-    );
+    return null;
   }
 
   if (error) {

@@ -2,7 +2,7 @@ import {
   TRANSACTION_SHELL_CONFIGS,
   transactionPartyFromWorkspace,
   type TransactionShellConfig,
-} from "packages/utils/workspace";
+} from "packages/utils/product/workspace";
 
 import { useActiveWorkspace } from "./useActiveWorkspace";
 

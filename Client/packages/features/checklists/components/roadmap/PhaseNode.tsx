@@ -4,7 +4,7 @@ import { Icon } from "@ui/icons";
 
 import type { Phase } from "packages/features/checklists/types/roadmapTracker";
 import { getChecklistPhaseIconName } from "packages/features/checklists/utils/roadmap/checklistPhaseIcons";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
 import type { IconName } from "packages/ui/types/icons";
 
 export type PhaseNodeLayout = "mobile" | "desktop";

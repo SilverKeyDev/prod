@@ -2,13 +2,23 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useClientSettings } from "packages/hooks/data/user/useClientSettings";
 import { useMediaQuery } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 import { useUIStore } from "packages/store";
-import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/modals/BaseModalTypes";
+import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/surfaces/modals/BaseModalTypes";
 import { screenUp } from "packages/ui/types/screens";
-import { dateNow, dayjs } from "packages/utils/date";
-import { getDocument } from "packages/utils/platform";
+import {
+  calendarDateToKey,
+  getCalendarDayListHeading,
+} from "packages/utils/comms/calendar/core/calendarDateKeys";
+import {
+  calculateCalendarDateRange,
+  stepFocusedDate,
+} from "packages/utils/comms/calendar/core/date";
+import { formatCalendarToolbarLabel } from "packages/utils/comms/calendar/grid/calendarToolbarLabel";
+import { buildWeekTimedEventResizeGoogleEvent } from "packages/utils/comms/calendar/grid/calendarWeekTimedEventResize";
+import { dateNow, dayjs } from "packages/utils/core/date";
+import { getDocument } from "packages/utils/core/platform";
 
 import { useGoogleCalendarPermissions } from "@/features/calendar/hooks/data/google/useGoogleCalendarPermissions";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
@@ -16,13 +26,6 @@ import { useGoogleCalendarStoreIntegration } from "@/features/calendar/hooks/sto
 import { useCalendarQuickCreateSession } from "@/features/calendar/hooks/ui/useCalendarQuickCreateSession";
 import { useCalendarSwipe } from "@/features/calendar/hooks/ui/useCalendarSwipe";
 import type { CalendarViewType, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
-import {
-  calendarDateToKey,
-  getCalendarDayListHeading,
-} from "@/features/calendar/utils/core/calendarDateKeys";
-import { calculateCalendarDateRange, stepFocusedDate } from "@/features/calendar/utils/core/date";
-import { formatCalendarToolbarLabel } from "@/features/calendar/utils/grid/calendarToolbarLabel";
-import { buildWeekTimedEventResizeGoogleEvent } from "@/features/calendar/utils/grid/calendarWeekTimedEventResize";
 
 import { buildCalendarEventsByDay, buildCalendarMonthDayCells } from "./calendarScreenEventLayout";
 import { useCalendarErrorToasts } from "./useCalendarErrorToasts";
@@ -42,6 +45,7 @@ export function useCalendarScreen({
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
   const {
     isConnected,
+    connectionStatusLoading,
     calendars,
     calendarsLoading,
     calendarsError,
@@ -232,7 +236,7 @@ export function useCalendarScreen({
         await updateEvent(payload.event.id, body, payload.event.calendarId);
         await refetchEvents();
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Week grid time resize failed", error);
+        log.error("ERRORS", "Week grid time resize failed", error);
         enqueueToast({
           type: "error",
           message: "Could not update event time",
@@ -314,13 +318,20 @@ export function useCalendarScreen({
   }, [connectGoogleCalendar]);
 
   const shouldShowConnectionPrompt = useMemo(() => {
-    if (isClientView) return false;
+    if (isClientView || connectionStatusLoading) return false;
     if (!isConnected) return true;
     if (isConnected && permissions !== null) {
       if (!hasRequiredPermissions || isPartiallyEnabled) return true;
     }
     return false;
-  }, [isClientView, isConnected, permissions, hasRequiredPermissions, isPartiallyEnabled]);
+  }, [
+    isClientView,
+    connectionStatusLoading,
+    isConnected,
+    permissions,
+    hasRequiredPermissions,
+    isPartiallyEnabled,
+  ]);
 
   const permissionsReady = isClientView || (!permissionsLoading && permissions !== undefined);
 
@@ -332,6 +343,7 @@ export function useCalendarScreen({
     silverKeyCalendarId,
     defaultCalendarId,
     calendarsLoading,
+    connectionStatusLoading,
     permissionsReady,
     clientEventsQuery,
     shouldShowConnectionPrompt,

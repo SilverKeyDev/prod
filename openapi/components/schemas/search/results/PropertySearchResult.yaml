@@ -9,7 +9,11 @@ required:
 properties:
   id:
     type: string
-    description: Property ID (ZPID or internal)
+    description: Slipstream listing key (ZPID or MLS id)
+  home_id:
+    type: string
+    nullable: true
+    description: Stable PropertyCache UUID for this listing in SilverKey (use for saves, feed, and refresh).
   essentials:
     type: object
     description: Core property characteristics

@@ -47,11 +47,12 @@ vi.mock("packages/logger", () => ({
     MAP_RENDERING: "map_rendering",
   },
 }));
-vi.mock("packages/utils/platform", () => ({
+vi.mock("packages/utils/core/platform", () => ({
   getWindow: vi.fn(() => null),
 }));
-vi.mock("packages/utils/storage/platformStorage", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("packages/utils/storage/platformStorage")>();
+vi.mock("packages/utils/core/storage/platformStorage", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("packages/utils/core/storage/platformStorage")>();
   const memory = () => ({
     getItem: vi.fn(),
     setItem: vi.fn(),

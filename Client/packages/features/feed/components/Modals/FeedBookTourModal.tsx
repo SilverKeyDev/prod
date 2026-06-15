@@ -1,5 +1,5 @@
-import { Transition } from "packages/ui/components/adapters/headless";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Transition } from "packages/ui/components/system/adapters/headless";
 
 import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
 import type { FeedListing } from "@/features/feed/types/feed";

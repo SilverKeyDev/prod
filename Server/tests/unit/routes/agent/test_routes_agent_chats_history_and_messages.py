@@ -4,10 +4,11 @@ from unittest.mock import patch
 
 import jwt as pyjwt
 
-from app.models import User
+from app.models import User, UserRole
+from tests.jwt_test_secret import TEST_JWT_HMAC_SECRET
 
 MOCK_JWT_TOKEN = pyjwt.encode(
-    {"sub": "test-user", "email": "test@example.com"}, "test-secret", algorithm="HS256"
+    {"sub": "test-user", "email": "test@example.com"}, TEST_JWT_HMAC_SECRET, algorithm="HS256"
 )
 
 
@@ -21,12 +22,12 @@ class TestAgentChatsRoutesHistoryAndMessages:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -76,12 +77,12 @@ class TestAgentChatsRoutesHistoryAndMessages:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -120,12 +121,12 @@ class TestAgentChatsRoutesHistoryAndMessages:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -152,12 +153,12 @@ class TestAgentChatsRoutesHistoryAndMessages:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -177,12 +178,12 @@ class TestAgentChatsRoutesHistoryAndMessages:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -207,12 +208,12 @@ class TestAgentChatsRoutesHistoryAndMessages:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:
@@ -248,12 +249,12 @@ class TestAgentChatsRoutesHistoryAndMessages:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             response = client.post(
@@ -271,12 +272,12 @@ class TestAgentChatsRoutesHistoryAndMessages:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             response = client.post(
@@ -290,7 +291,8 @@ class TestAgentChatsRoutesHistoryAndMessages:
 
             assert response.status_code == 400
             data = response.get_json()
-            assert "empty" in data["error"].lower()
+            assert data["success"] is False
+            assert "empty" in (data.get("message") or "").lower()
 
     def test_send_message_with_attachment(self, client, db_session):
         """Test POST /api/v1/agent/chats/message with home attachment"""
@@ -299,12 +301,12 @@ class TestAgentChatsRoutesHistoryAndMessages:
             cognito_id="cognito-agent-1",
             email="agent@example.com",
             name="Test Agent",
-            is_agent=True,
         )
         db_session.session.add(agent)
+        db_session.session.add(UserRole(user_id=agent.id, role="agent"))
         db_session.session.commit()
 
-        with patch("app.routes.agent.handlers.chats.get_current_user") as mock_get_user:
+        with patch("app.services.auth.get_current_user") as mock_get_user:
             mock_get_user.return_value = agent
 
             with patch("app.routes.agent.handlers.chats.get_conversation") as mock_get_conv:

@@ -14,8 +14,8 @@ import {
 import { HomeDetailsGrid } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/info/homeDetails/HomeDetailsGrid";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { buildCategoryBlocks } from "packages/features/propertyDetails/utils/propertyFeaturesHelpers";
-import { Box, Icon, Pressable, Text } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { Box, Icon, Pressable, Text } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 export type PropertyFeaturesProps = PropertyComponentProps & {
   hideListingAgentOnMdUp?: boolean;

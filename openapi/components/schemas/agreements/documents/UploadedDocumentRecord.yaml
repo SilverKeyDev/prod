@@ -23,7 +23,7 @@ properties:
     type: string
   status:
     type: string
-    description: Pipeline state for the stored file (DB allows additional legacy values).
+    description: Pipeline state for the stored file (DB allows additional values).
     enum: [uploaded, processing, processed, error, generating]
   user_id:
     type: string

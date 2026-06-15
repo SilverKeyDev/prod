@@ -27,7 +27,7 @@ vi.mock("@/features/homeauth/api/preferences", () => ({
   },
 }));
 
-vi.mock("@/features/profile/utils", () => ({
+vi.mock("packages/features/profile", () => ({
   userPreferencesToOnboardingData: vi.fn(() => ({ budget: 500000 })),
   formDataToPreferencesPayload: vi.fn(() => ({ budget: 500000 })),
 }));

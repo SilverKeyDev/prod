@@ -1,0 +1,9 @@
+name = "silverkey-bundle-build-optimizer"
+description = """Analyze build/bundle configuration to reduce bundle size and improve tree-shaking and code splitting."""
+sandbox_mode = "read-only"
+developer_instructions = """
+Before work: read and follow `.cursor/agents/silverkey-bundle-build-optimizer.md` (canonical persona).
+Apply always-on rules under `.cursor/rules/shared/` and scoped `.mdc` rules when paths match.
+Engineering gates: `AGENTS.md` — `make check-client`, `make lint`, `make test-be` as appropriate.
+Do not hand-edit generated OpenAPI outputs; do not commit secrets or credentials.
+"""

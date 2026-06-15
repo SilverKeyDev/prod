@@ -1,0 +1,66 @@
+type: object
+required:
+  - success
+  - data
+properties:
+  success:
+    type: boolean
+  data:
+    type: object
+    properties:
+      partner_id:
+        type: string
+      total_clicks:
+        type: integer
+      unique_buyer_clicks:
+        type: integer
+      unique_buyer_step_views:
+        type: integer
+      click_through_rate:
+        type: number
+        nullable: true
+      estimated_revenue:
+        type: number
+      estimated_revenue_label:
+        type: string
+      clicks_over_time:
+        type: object
+        properties:
+          bucket:
+            type: string
+          points:
+            type: array
+            items:
+              type: object
+              properties:
+                date:
+                  type: string
+                count:
+                  type: integer
+      top_agents:
+        type: array
+        items:
+          type: object
+          properties:
+            agent_id:
+              type: string
+            name:
+              type: string
+            clicks:
+              type: integer
+      geo_breakdown:
+        type: array
+        items:
+          type: object
+      device_breakdown:
+        type: array
+        items:
+          type: object
+      referrer_breakdown:
+        type: array
+        items:
+          type: object
+      recent_clicks:
+        type: array
+        items:
+          $ref: "./RevShareRecentClick.yaml"

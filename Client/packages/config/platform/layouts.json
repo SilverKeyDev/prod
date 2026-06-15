@@ -66,8 +66,8 @@
   {
     "id": "use-feed-scroll-container",
     "description": "Feed scroll container hook with platform-specific layout",
-    "webPath": "packages/features/feed/hooks/ui/useFeedScrollContainer.ts",
-    "nativePath": "packages/features/feed/hooks/ui/useFeedScrollContainer.native.ts",
+    "webPath": "packages/features/feed/hooks/ui/scroll/useFeedScrollContainer.ts",
+    "nativePath": "packages/features/feed/hooks/ui/scroll/useFeedScrollContainer.native.ts",
     "reason": "Different scroll container layout patterns between web and native.",
     "category": "layout"
   },
@@ -78,6 +78,14 @@
     "nativePath": "packages/features/homeauth/components/core/AuthPageLayout.native.tsx",
     "reason": "Native uses SafeAreaView; web uses standard layout.",
     "category": "layout"
+  },
+  {
+    "id": "lot-size-home-age-slider-layout",
+    "description": "Lot size and home age slider row layout on profile housing preferences",
+    "webPath": "packages/features/profile/components/layout/lotSizeHomeAgeSliderLayout.web.tsx",
+    "nativePath": "packages/features/profile/components/layout/lotSizeHomeAgeSliderLayout.tsx",
+    "reason": "Web uses AlignedRow for container-aware even columns; native uses a simpler vertical stack layout.",
+    "category": "responsive-layout"
   },
   {
     "id": "static-page-layout",
@@ -288,14 +296,6 @@
     "category": "navigation"
   },
   {
-    "id": "find-agents-screen-layout",
-    "description": "Find agents: dashboard-embedded web page vs native full-screen stack with SafeAreaView",
-    "webPath": "apps/web/pages/misc/FindAgentsPage.tsx",
-    "nativePath": "packages/features/agent/components/agentDiscovery/FindAgentsScreen.native.tsx",
-    "reason": "Web renders discovery inside dashboard content width. Native uses stack navigation, SafeAreaView, and RN Pressable/ScrollView shell around AgentDiscoveryView.native.",
-    "category": "layout"
-  },
-  {
     "id": "agent-profile-in-app-layout",
     "description": "Agent profile: web marketing-style page vs native stack screen",
     "webPath": "apps/web/pages/misc/AgentProfilePage.tsx",
@@ -306,17 +306,73 @@
   {
     "id": "account-privacy-data-section-layout",
     "description": "Privacy & data section: web modal + file download vs native mailto/links",
-    "webPath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.web.tsx",
-    "nativePath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.native.tsx",
+    "webPath": "packages/features/profile/components/profileScreen/tabs/privacy/AccountPrivacyDataSection.web.tsx",
+    "nativePath": "packages/features/profile/components/profileScreen/tabs/privacy/AccountPrivacyDataSection.native.tsx",
     "reason": "Web uses BaseModal and programmatic JSON download. Native uses simpler RN layout and Linking without DOM or download APIs.",
+    "category": "layout"
+  },
+  {
+    "id": "personalization-settings-screen-layout",
+    "description": "Account personalization settings: web-only scroll + sidebar nav (no native account settings screen yet)",
+    "webPath": "packages/features/profile/components/settings/PersonalizationSettingsScreen.web.tsx",
+    "nativePath": null,
+    "reason": "Web account settings uses DOM scroll-spy, dashboard mobile header injection, and web-only profile section components. Native account settings are not implemented; thin apps/web SettingsPage composes this screen.",
     "category": "layout"
   },
   {
     "id": "card-layout",
     "description": "Card component layout",
-    "webPath": "packages/ui/components/layout/Card.web.tsx",
+    "webPath": "packages/ui/components/structure/layout/Card.web.tsx",
     "nativePath": null,
     "reason": "Web-specific card layout.",
+    "category": "layout"
+  },
+  {
+    "id": "admin-workspace-layout",
+    "description": "Admin console workspace shell with sidebar nav and step-up gate",
+    "webPath": "packages/features/admin/components/layout/AdminWorkspaceLayout.web.tsx",
+    "nativePath": null,
+    "reason": "Web-only admin console uses react-router Outlet, DOM window listeners, and desktop sidebar layout; no native admin shell.",
+    "category": "layout"
+  },
+  {
+    "id": "dashboard-shell-route-prefetch-core",
+    "description": "Web-only dashboard shell route chunk prefetch hook",
+    "webPath": "packages/hooks/navigation/useDashboardShellRoutePrefetchCore.web.ts",
+    "nativePath": null,
+    "reason": "Uses React Query prefetch and web lazy route imports; no native dashboard shell prefetch yet.",
+    "category": "navigation"
+  },
+  {
+    "id": "idle-authenticated-route-chunk-prefetch",
+    "description": "Web-only post-login lazy route chunk warm-up via requestAnimationFrame",
+    "webPath": "packages/hooks/navigation/useIdleAuthenticatedRouteChunkPrefetchCore.web.ts",
+    "nativePath": null,
+    "reason": "Uses window.requestAnimationFrame and web lazy route imports; native uses different bundle loading.",
+    "category": "navigation"
+  },
+  {
+    "id": "navigation-outlet",
+    "description": "Web react-router nested route outlet re-export for feature layouts",
+    "webPath": "packages/navigation/router/NavigationOutlet.web.tsx",
+    "nativePath": null,
+    "reason": "Wraps react-router-dom Outlet; native uses React Navigation screen stacks instead of nested outlets.",
+    "category": "navigation"
+  },
+  {
+    "id": "agent-profile-page-content",
+    "description": "Public agent profile marketing page with web SEO meta and JSON-LD",
+    "webPath": "packages/features/profile/components/pages/AgentProfilePageContent.web.tsx",
+    "nativePath": "packages/features/agent/components/agentProfile/AgentProfileScreen.native.tsx",
+    "reason": "Web page applies document meta tags and window.location canonical URLs; native uses stack screen without DOM SEO APIs.",
+    "category": "layout"
+  },
+  {
+    "id": "property-details-page-content",
+    "description": "Property details page with web SEO and modal shell",
+    "webPath": "packages/features/propertyDetails/components/pages/PropertyDetailsPageContent.web.tsx",
+    "nativePath": null,
+    "reason": "Web-only property details route composes modal + document/window SEO helpers; native property flow not yet shared.",
     "category": "layout"
   }
 ]

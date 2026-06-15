@@ -5,7 +5,7 @@
  */
 
 import { getEnv } from "packages/config/env";
-import { getFetchIfAvailable } from "packages/utils/platform";
+import { getFetchIfAvailable } from "packages/utils/core/platform";
 
 export type ClientErrorPayload = {
   message?: string;

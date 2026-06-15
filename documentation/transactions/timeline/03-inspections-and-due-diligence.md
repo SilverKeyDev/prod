@@ -1,85 +1,27 @@
-## Inspections and Due Diligence
+> **Status:** Partial | **Last verified:** 2026-05-28
 
-### Problem / goal
+> **Shipped feature docs:** [checklists.md](../../client/features/checklists.md), [checklists-integrations.md](../../client/features/checklists-integrations.md).
 
-The **inspection and due diligence phase** is critical and heavily deadline-driven. We need to:
-- Model inspection windows, re-inspections, and repair request deadlines.
-- Allow for state- and contract-specific variation.
-- Align checklist content, milestones, and calendar events.
+## Inspections and due diligence
 
-### Data model & invariants
+Inspection guidance is **static checklist content** under the `insurance` category (historical naming). No computed inspection-window milestones.
 
-- Inputs:
-  - `contract_acceptance_date` (or effective date).
-  - Contract default inspection period.
-  - `jurisdiction_ruleset_key`.
+### Shipped
 
-- Milestones:
-  - `inspection_window_start`
-  - `inspection_window_end`
-  - Optional:
-    - `repair_request_deadline`
+- `INSURANCE_ITEMS` templates: hire inspector, review disclosures, specialized inspections, insurance shopping.
+- `InspectionsDueDiligence` subheader renders via shared `CloseLayout` + `useChecklistData`.
+- Optional calendar offsets on specific items when configured in template JSON.
 
-- Checklist items:
-  - Derived from templates such as `INSURANCE_ITEMS` (used for inspection/due diligence tasks).
+### Gaps
 
-Invariants:
-- For transactions with inspection contingencies:
-  - There is at least an `inspection_window_end` milestone.
-  - Checklist items clearly indicate:
-    - Which actions are recommended.
-    - Which actions are time-critical.
+- No `inspection_window_end` or repair-request deadline from contract dates.
+- No jurisdiction-specific contingency lengths.
 
-### Flows / UX
+### Code pointers
 
-1. **Inspection window calculation**
-   - On entering contract details:
-     - Engine computes:
-       - Start/end of inspection window.
-       - Optional repair request cutoff.
-
-2. **Checklist guidance**
-   - Buyer sees:
-     - Steps such as:
-       - Hire a general inspector.
-       - Order specialized inspections as needed.
-       - Review disclosures vs inspection results.
-     - Clear indication of:
-       - How many days remain in the window.
-   - Agent sees:
-     - The same list, plus:
-       - Tools to record negotiations or repair requests.
-
-3. **State-by-state variation**
-   - Some states/contracts:
-     - Define specific lengths and mechanics for inspection contingencies.
-   - `JurisdictionRuleSet`:
-     - Encodes defaults and allows customizing windows and deadlines by jurisdiction.
-
-### Existing infrastructure to reuse / extend
-
-- **Checklist templates**
-  - `INSURANCE_ITEMS` (`Server/app/services/transactions/insurance/items.py`):
-    - Already include inspection and due diligence-oriented tasks.
-
-- **Close checklists UI**
-  - Existing Inspections tab and subcomponents:
-    - `Client/packages/features/checklists/components/subheaders/InspectionsDueDiligence.tsx`.
-
-- **Deadline engine**
-  - Should create milestones for `inspection_window_end` and related deadlines.
-
-### Gaps that require new work
-
-- **Deadline rules per jurisdiction**
-  - Encode inspection period defaults and variants in `JurisdictionRuleSet`.
-
-- **More granular checklist metadata**
-  - Mark which inspection tasks:
-    - Are “must-do” vs “nice-to-have.”
-    - Are time-critical vs informational.
-
-- **Calendar and notifications**
-  - Calendar events and notifications for:
-    - Upcoming inspection window end.
-    - Repair request deadlines.
+| Area | Path |
+| ---- | ---- |
+| Item definitions | `Server/app/services/transactions/insurance/items.py` |
+| UI subheader | `Client/packages/features/checklists/components/subheaders/InspectionsDueDiligence.tsx` |
+| Checklist layout | `Client/packages/features/checklists/components/layout/CloseLayout.tsx` |
+| Active step logic | `Client/packages/features/checklists/utils/presentation/getActiveChecklistItemId.ts` |

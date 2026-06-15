@@ -1,11 +1,11 @@
 import { docusignApi } from "packages/features/documents/api/docusign";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { getWindow } from "packages/utils/platform";
+import { log } from "packages/logger";
+import { getWindow } from "packages/utils/core/platform";
 
 export type SignAgreementNowFlowUser = {
   id?: string;
   email?: string | null;
-  is_agent?: boolean;
+  roles?: readonly string[];
 } | null;
 
 /** In-app signing: embedded recipient session or agent sender URL for an iframe. */
@@ -21,10 +21,10 @@ export async function prepareAgreementSigningSession(
   agreementId: string,
   user: SignAgreementNowFlowUser
 ): Promise<PreparedAgreementSigningSession> {
-  log.info(LOG_CATEGORIES.DOCUSIGN, "Prepare signing session", {
+  log.info("DOCUSIGN", "Prepare signing session", {
     agreementId,
     userId: user?.id ?? null,
-    isAgent: user?.is_agent ?? false,
+    isAgent: (user?.roles ?? []).includes("agent"),
   });
 
   const fetchAgreement = async () => {
@@ -37,7 +37,7 @@ export async function prepareAgreementSigningSession(
   };
 
   const waitForEnvelope = async (maxAttempts = 15, initialDelayMs = 500) => {
-    log.debug(LOG_CATEGORIES.DOCUSIGN, "Waiting for DocuSign envelope to be created", {
+    log.debug("DOCUSIGN", "Waiting for DocuSign envelope to be created", {
       agreementId,
       maxAttempts,
       initialDelayMs,
@@ -46,7 +46,7 @@ export async function prepareAgreementSigningSession(
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
       const agreement = await fetchAgreement();
       if (agreement.docusign_envelope_id) {
-        log.debug(LOG_CATEGORIES.DOCUSIGN, "DocuSign envelope created successfully", {
+        log.debug("DOCUSIGN", "DocuSign envelope created successfully", {
           agreementId,
           envelopeId: agreement.docusign_envelope_id,
           attemptNumber: attempt + 1,
@@ -56,7 +56,7 @@ export async function prepareAgreementSigningSession(
 
       if (attempt < maxAttempts - 1) {
         const delay = Math.min(initialDelayMs * Math.pow(1.5, attempt), 2000);
-        log.debug(LOG_CATEGORIES.DOCUSIGN, "Envelope not ready yet, waiting...", {
+        log.debug("DOCUSIGN", "Envelope not ready yet, waiting...", {
           agreementId,
           attemptNumber: attempt + 1,
           nextDelayMs: delay,
@@ -67,7 +67,7 @@ export async function prepareAgreementSigningSession(
       }
     }
 
-    log.warn(LOG_CATEGORIES.DOCUSIGN, "Envelope creation timeout after max attempts", {
+    log.warn("DOCUSIGN", "Envelope creation timeout after max attempts", {
       agreementId,
       maxAttempts,
       totalWaitTime: "~20 seconds",
@@ -89,7 +89,7 @@ export async function prepareAgreementSigningSession(
     return false;
   });
 
-  if (!participant && user?.is_agent && isAgreementAgent) {
+  if (!participant && (user?.roles ?? []).includes("agent") && isAgreementAgent) {
     if (!agreement.docusign_envelope_id && agreement.status === "draft") {
       const sendResponse = await docusignApi.sendAgreement(agreementId, {
         signing_method: "email",
@@ -109,7 +109,7 @@ export async function prepareAgreementSigningSession(
     if (!senderViewResponse.success || !senderUrl) {
       throw new Error(senderViewResponse.error ?? "Failed to get sender view URL");
     }
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Prepared sender signing session", {
+    log.info("DOCUSIGN", "Prepared sender signing session", {
       agreementId,
     });
     return { type: "sender_iframe", url: senderUrl };
@@ -121,7 +121,7 @@ export async function prepareAgreementSigningSession(
 
   if (!agreement.docusign_envelope_id && agreement.status === "draft") {
     if (isAgreementAgent) {
-      log.info(LOG_CATEGORIES.DOCUSIGN, "Agreement not sent yet, sending to DocuSign...", {
+      log.info("DOCUSIGN", "Agreement not sent yet, sending to DocuSign...", {
         agreementId,
         status: agreement.status,
         participantId: participant.id,
@@ -131,24 +131,22 @@ export async function prepareAgreementSigningSession(
         participant_user_id: participant.user_id,
       });
       if (!sendResponse.success) {
-        log.error(LOG_CATEGORIES.DOCUSIGN, "Failed to send agreement to DocuSign", {
+        log.error("DOCUSIGN", "Failed to send agreement to DocuSign", {
           agreementId,
           error: sendResponse.error,
         });
         throw new Error(sendResponse.error ?? "Failed to send agreement to DocuSign");
       }
-      log.debug(LOG_CATEGORIES.DOCUSIGN, "Agreement sent, waiting for envelope creation...", {
+      log.debug("DOCUSIGN", "Agreement sent, waiting for envelope creation...", {
         agreementId,
       });
       agreement = await waitForEnvelope();
     } else {
       // Send is asynchronous (Celery): agent may have triggered send but DB still
       // shows draft until the worker commits envelope + status. Poll before failing.
-      log.info(
-        LOG_CATEGORIES.DOCUSIGN,
-        "Draft without envelope — polling for async send to finish",
-        { agreementId }
-      );
+      log.info("DOCUSIGN", "Draft without envelope — polling for async send to finish", {
+        agreementId,
+      });
       agreement = await waitForEnvelope();
       if (!agreement.docusign_envelope_id && agreement.status === "draft") {
         throw new Error(
@@ -159,14 +157,14 @@ export async function prepareAgreementSigningSession(
   }
 
   if (!agreement.docusign_envelope_id) {
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Envelope not ready yet, waiting...", {
+    log.info("DOCUSIGN", "Envelope not ready yet, waiting...", {
       agreementId,
       status: agreement.status,
     });
     agreement = await waitForEnvelope();
     if (!agreement.docusign_envelope_id) {
       log.error(
-        LOG_CATEGORIES.DOCUSIGN,
+        "DOCUSIGN",
         "DocuSign envelope creation timeout - envelope not created after waiting",
         {
           agreementId,
@@ -180,7 +178,7 @@ export async function prepareAgreementSigningSession(
     }
   }
 
-  log.info(LOG_CATEGORIES.DOCUSIGN, "Prepared embedded signing session", {
+  log.info("DOCUSIGN", "Prepared embedded signing session", {
     agreementId,
     participantId: participant.id,
   });
@@ -196,10 +194,10 @@ export async function runSignAgreementNowFlow(
   agreementId: string,
   user: SignAgreementNowFlowUser
 ): Promise<void> {
-  log.info(LOG_CATEGORIES.DOCUSIGN, "Sign now flow started (new tab)", {
+  log.info("DOCUSIGN", "Sign now flow started (new tab)", {
     agreementId,
     userId: user?.id ?? null,
-    isAgent: user?.is_agent ?? false,
+    isAgent: (user?.roles ?? []).includes("agent"),
   });
 
   const session = await prepareAgreementSigningSession(agreementId, user);
@@ -209,7 +207,7 @@ export async function runSignAgreementNowFlow(
   }
 
   if (session.type === "sender_iframe") {
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Sign now: opening sender view (agent)", {
+    log.info("DOCUSIGN", "Sign now: opening sender view (agent)", {
       agreementId,
     });
     win.open(session.url, "_blank", "noopener,noreferrer");
@@ -224,7 +222,7 @@ export async function runSignAgreementNowFlow(
     throw new Error(signingUrlResponse.error ?? "Failed to get signing URL");
   }
 
-  log.info(LOG_CATEGORIES.DOCUSIGN, "Sign now: opening embedded signing URL", {
+  log.info("DOCUSIGN", "Sign now: opening embedded signing URL", {
     agreementId,
     participantId: session.participantId,
   });

@@ -6,16 +6,14 @@ import { queryKeys } from "packages/config/query/keys";
 import { useLocalization } from "packages/contexts";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import { isChooseSearchAreaStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
-import LocationSection from "packages/features/profile/components/sections/LocationSection";
-import PreferencesFormContent from "packages/features/profile/components/settings/inputs/PreferencesFormContent.web";
+import type { OnboardingData } from "packages/features/profile";
+import { LocationSection, PreferencesFormContent } from "packages/features/profile";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { useGoogleMaps } from "packages/hooks/data";
 import { showWarningToast } from "packages/hooks/ui/toast/useToast";
-import Card from "packages/ui/components/cards/Card";
-import { Box } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-
-import type { OnboardingData } from "@/features/profile/utils";
+import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 type ChooseAreasSectionProps = {
   onComplete?: () => void;
@@ -35,16 +33,7 @@ export default function ChooseAreasSection({ onComplete }: ChooseAreasSectionPro
   const { isLoaded: googleMapsLoaded } = useGoogleMaps();
 
   if (!googleMapsLoaded) {
-    return (
-      <Card border="dotted" padding="md" className="mb-2">
-        <Box className="gap-4">
-          <BodyText size="sm" className="text-text-secondary">
-            Loading map...
-          </BodyText>
-          <ChecklistStepSubmitFooter disabled onSubmit={() => {}} />
-        </Box>
-      </Card>
-    );
+    return null;
   }
 
   return (

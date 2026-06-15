@@ -1,0 +1,31 @@
+type: object
+required:
+  - success
+  - data
+properties:
+  success:
+    type: boolean
+  data:
+    type: object
+    required:
+      - placements
+    properties:
+      placements:
+        type: array
+        items:
+          type: object
+          required:
+            - partner
+            - link_id
+          properties:
+            partner:
+              $ref: "./Partner.yaml"
+            link_id:
+              type: string
+            destination_url:
+              type: string
+              description: Resolved partner destination URL for outbound open (no /r redirect required)
+            embed_src:
+              type: string
+              nullable: true
+              description: Resolved iframe URL when partner integration_display_mode is iframe_and_link

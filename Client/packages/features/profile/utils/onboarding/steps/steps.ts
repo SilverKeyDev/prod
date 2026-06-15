@@ -1,0 +1,46 @@
+import type { ProfileStep } from "packages/features/profile/types/onboarding/onboarding";
+import type {
+  GetOnboardingStepsOptions,
+  GetPersonalizationStepsOptions,
+} from "packages/features/profile/types/onboarding/stepsOptions";
+import {
+  buildOnboardingFlowFromOptions,
+  buildPersonalizationFlowFromOptions,
+} from "packages/features/profile/utils/onboarding/registry";
+
+export type {
+  GetOnboardingStepsOptions,
+  GetPersonalizationStepsOptions,
+} from "packages/features/profile/types/onboarding/stepsOptions";
+
+/**
+ * Buyer: full onboarding flow (home search + finance).
+ * Seller / integration partner: coming soon on role picker (not selectable).
+ * Agent: role → demographics → brokerage / licensing / territory.
+ */
+export const getOnboardingSteps = (options?: GetOnboardingStepsOptions): ProfileStep[] =>
+  buildOnboardingFlowFromOptions({
+    isAgent: options?.isAgent,
+    primaryRole: options?.primaryRole,
+    excludeFinancial: options?.excludeFinancial,
+    platform: "web",
+  });
+
+/**
+ * Profile / settings: buyers see all preference sections; agents see brokerage, licensing,
+ * territory, and About only (no finance / size / features / location / essentials).
+ */
+export const getPersonalizationSteps = (options?: GetPersonalizationStepsOptions): ProfileStep[] =>
+  buildPersonalizationFlowFromOptions({ isAgent: options?.isAgent });
+
+/**
+ * Onboarding steps for mobile. Financial step included for buyers (same as web).
+ * Pass isAgent: true to include agent steps after demographics.
+ */
+export const getOnboardingStepsMobile = (options?: GetOnboardingStepsOptions): ProfileStep[] =>
+  buildOnboardingFlowFromOptions({
+    isAgent: options?.isAgent,
+    primaryRole: options?.primaryRole,
+    excludeFinancial: options?.excludeFinancial ?? options?.primaryRole !== "buyer",
+    platform: "mobile",
+  });

@@ -1,6 +1,6 @@
 import { Dropdown } from "packages/ui";
-import { Box } from "packages/ui/components/primitives";
-import type { EventScheduleOption } from "packages/utils/scheduling/eventRequestScheduleOptions";
+import { Box } from "packages/ui/components/structure/primitives";
+import type { EventScheduleOption } from "packages/utils/comms/scheduling/eventRequestScheduleOptions";
 
 export type EventRequestDateDropdownProps = {
   minDate: string;

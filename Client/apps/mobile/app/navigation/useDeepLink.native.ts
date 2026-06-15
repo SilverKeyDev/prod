@@ -1,10 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { Linking } from "react-native";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
-import { getPathnameFromUrl, resolveDeepLinkTarget } from "packages/utils/navigation";
+import { getPathnameFromUrl, resolveDeepLinkTarget } from "packages/utils/product/navigation";
 
 import { rootNavigationRef } from "./rootNavigationRef.native";
 
@@ -25,27 +25,31 @@ function navigateToResolvedTarget(pathname: string, isAuthenticated: boolean): v
 }
 
 export function useDeepLink() {
+  const authStatus = useAuthStore((s) => s.authStatus);
+  const authStatusRef = useRef(authStatus);
+  authStatusRef.current = authStatus;
+
   useEffect(() => {
     const handleUrl = (url: string | null) => {
       try {
         const pathname = getPathnameFromUrl(url);
-        const isAuthenticated = useAuthStore.getState().authStatus === "authenticated";
+        const isAuthenticated = authStatusRef.current === "authenticated";
         navigateToResolvedTarget(pathname, isAuthenticated);
       } catch (err) {
-        log.error(LOG_CATEGORIES.ERRORS, "Deep link handleUrl failed", err);
+        log.error("ERRORS", "Deep link handleUrl failed", err);
       }
     };
 
     Linking.getInitialURL()
       .then(handleUrl)
       .catch((err) => {
-        log.error(LOG_CATEGORIES.ERRORS, "Deep link getInitialURL failed", err);
+        log.error("ERRORS", "Deep link getInitialURL failed", err);
       });
     const sub = Linking.addEventListener("url", (e) => {
       try {
         handleUrl(e.url);
       } catch (err) {
-        log.error(LOG_CATEGORIES.ERRORS, "Deep link url event failed", err);
+        log.error("ERRORS", "Deep link url event failed", err);
       }
     });
 

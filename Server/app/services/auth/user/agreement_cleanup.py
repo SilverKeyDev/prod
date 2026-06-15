@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import or_
+from sqlalchemy import delete, or_, select, update
 
 from app import db
 from app.models import (
@@ -24,14 +24,12 @@ def delete_agreements_for_user(user_id: str) -> None:
     created by this user when the parent agreement remains.
     """
     uid = str(user_id).strip()
-    agreements = Agreement.query.filter(
-        or_(Agreement.agent_id == uid, Agreement.buyer_id == uid)
+    agreements = db.session.scalars(
+        select(Agreement).where(or_(Agreement.agent_id == uid, Agreement.buyer_id == uid))
     ).all()
     if agreements:
         aid_list = [a.id for a in agreements]
-        AgreementLink.query.filter(AgreementLink.agreement_id.in_(aid_list)).delete(
-            synchronize_session=False
-        )
+        db.session.execute(delete(AgreementLink).where(AgreementLink.agreement_id.in_(aid_list)))
         for ag in agreements:
             li_id = ag.library_item_id
             db.session.delete(ag)
@@ -40,16 +38,16 @@ def delete_agreements_for_user(user_id: str) -> None:
                 if li:
                     db.session.delete(li)
 
-    AgreementParticipant.query.filter(AgreementParticipant.user_id == uid).update(
-        {AgreementParticipant.user_id: None},
-        synchronize_session=False,
+    db.session.execute(
+        update(AgreementParticipant).where(AgreementParticipant.user_id == uid).values(user_id=None)
     )
-    AgreementEvent.query.filter(AgreementEvent.actor_id == uid).update(
-        {AgreementEvent.actor_id: None},
-        synchronize_session=False,
+    db.session.execute(
+        update(AgreementEvent).where(AgreementEvent.actor_id == uid).values(actor_id=None)
     )
-    for rev in AgreementRevision.query.filter_by(created_by=uid).all():
-        ag = Agreement.query.filter_by(id=rev.agreement_id).one_or_none()
+    for rev in db.session.scalars(
+        select(AgreementRevision).where(AgreementRevision.created_by == uid)
+    ).all():
+        ag = db.session.scalar(select(Agreement).where(Agreement.id == rev.agreement_id))
         if ag is not None:
             rev.created_by = ag.agent_id
         else:

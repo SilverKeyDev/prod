@@ -5,7 +5,7 @@ import type {
   DocumentData,
   SendForSignatureParams,
 } from "packages/features/documents";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 
 type SignatureIntegration = {
@@ -90,7 +90,7 @@ export function useSavedFeatureSignatureFlow(
     }
 
     if (sendForSignatureFormId) {
-      log.info(LOG_CATEGORIES.API, "Sending form for signature", {
+      log.info("API", "Sending form for signature", {
         formId: sendForSignatureFormId,
         title: sendForSignatureTitle,
         recipientClientId: sendForSignatureRecipientClientId,

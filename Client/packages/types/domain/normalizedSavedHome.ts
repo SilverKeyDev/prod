@@ -1,5 +1,5 @@
 /**
- * Normalized saved-home row used in React Query cache and UI (after mapHomeUniversalToSavedHome).
+ * Normalized saved-home row used in React Query cache and UI (after mapSavedHomeWireToSavedHome).
  * Not the API wire shape; that is SavedHomeRecord in savedHome.ts (OpenAPI SavedHome).
  */
 export type NormalizedSavedHome = {

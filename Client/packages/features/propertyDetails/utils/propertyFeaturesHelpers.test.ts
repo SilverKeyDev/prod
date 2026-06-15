@@ -24,9 +24,10 @@ describe("isFeatures", () => {
 
 describe("deduplicateFeatures", () => {
   it("removes duplicates, empty strings, and noise tokens", () => {
-    expect(
-      deduplicateFeatures(["Pool", " pool ", "", "N/A", "Garage", "garage"])
-    ).toEqual(["Pool", "Garage"]);
+    expect(deduplicateFeatures(["Pool", " pool ", "", "N/A", "Garage", "garage"])).toEqual([
+      "Pool",
+      "Garage",
+    ]);
   });
 });
 

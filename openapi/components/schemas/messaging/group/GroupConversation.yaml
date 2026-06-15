@@ -1,0 +1,14 @@
+allOf:
+  - $ref: "../workspace/WorkspaceConversation.yaml"
+  - type: object
+    description: Reserved for group chat — endpoints not implemented
+    properties:
+      participants:
+        type: array
+        items:
+          type: object
+          properties:
+            user_id:
+              type: string
+            participant_role:
+              type: string

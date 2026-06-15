@@ -1,10 +1,15 @@
 import { lazy, type ReactNode, Suspense, useEffect, useRef } from "react";
 
+import { WorkspacePlaceholderPage } from "packages/features/workspace";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { useIsMobile } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES, type LogCategory } from "packages/logger";
-import { Box } from "packages/ui/components/primitives";
-import { shellRouteNavigateStart, traceLazyImport } from "packages/utils/perf/shellRouteLoadTiming";
+import { log, type LogCategory } from "packages/logger";
+import { Box } from "packages/ui/components/structure/primitives";
+import {
+  shellRouteNavigateStart,
+  traceLazyImport,
+} from "packages/utils/core/perf/shellRouteLoadTiming";
+import { isPlaceholderWorkspace } from "packages/utils/product/workspace";
 
 import PageErrorBoundary from "@/app/error/PageErrorBoundary";
 
@@ -15,60 +20,65 @@ import {
 import { type DashboardAreaKey, useDashboardRoute } from "./useDashboardRoute";
 
 const SearchPage = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
-    "lazy:SearchPage",
-    () => import("@/pages/property/SearchPage")
-  )
+  traceLazyImport("ROUTING", "lazy:SearchPage", () => import("@/pages/property/SearchPage"))
 );
 const SavedHomes = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
-    "lazy:LibraryPage",
-    () => import("@/pages/property/LibraryPage")
-  )
+  traceLazyImport("ROUTING", "lazy:LibraryPage", () => import("@/pages/property/LibraryPage"))
 );
 const ProfilePage = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
-    "lazy:ProfilePage",
-    () => import("@/pages/account/ProfilePage")
-  )
+  traceLazyImport("ROUTING", "lazy:ProfilePage", () => import("@/pages/account/ProfilePage"))
 );
 const BrokerageDashboardPage = lazy(
   traceLazyImport(
-    LOG_CATEGORIES.DASHBOARD,
+    "DASHBOARD",
     "lazy:BrokerageDashboardPage",
     () => import("@/pages/workspace/BrokerageDashboardPage")
   )
 );
+const BrokerageAnalyticsPage = lazy(
+  traceLazyImport(
+    "DASHBOARD",
+    "lazy:BrokerageAnalyticsPage",
+    () => import("@/pages/workspace/BrokerageAnalyticsPage")
+  )
+);
+const IntegrationPartnerDashboardPage = lazy(
+  traceLazyImport(
+    "DASHBOARD",
+    "lazy:IntegrationPartnerDashboardPage",
+    () => import("@/pages/workspace/IntegrationPartnerDashboardPage")
+  )
+);
+const SellerDashboardPage = lazy(
+  traceLazyImport(
+    "DASHBOARD",
+    "lazy:SellerDashboardPage",
+    () => import("@/pages/workspace/SellerDashboardPage")
+  )
+);
+const RenterDashboardPage = lazy(
+  traceLazyImport(
+    "DASHBOARD",
+    "lazy:RenterDashboardPage",
+    () => import("@/pages/workspace/RenterDashboardPage")
+  )
+);
 const DashboardPage = lazy(
   traceLazyImport(
-    LOG_CATEGORIES.DASHBOARD,
+    "DASHBOARD",
     "lazy:DashboardPage",
     () => import("@/pages/workspace/DashboardPage")
   )
 );
 const AgreementSigningCompletePage = lazy(
   traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
+    "ROUTING",
     "lazy:AgreementSigningCompletePage",
     () => import("@/pages/workspace/AgreementSigningCompletePage")
   )
 );
-const FindAgentsPage = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.ROUTING,
-    "lazy:FindAgentsPage",
-    () => import("@/pages/misc/FindAgentsPage")
-  )
-);
 const AgentPage = lazy(
-  traceLazyImport(
-    LOG_CATEGORIES.MESSAGES,
-    "lazy:AgentPage",
-    () => import("@/pages/workspace/AgentPage")
-  )
+  traceLazyImport("MESSAGES", "lazy:AgentPage", () => import("@/pages/workspace/AgentPage"))
 );
 
 type DashboardContentProps = {
@@ -91,9 +101,9 @@ function suspenseFallbackVariant(
 }
 
 function logCategoryForSuspenseVariant(variant: DashboardRouteFallbackVariant): LogCategory {
-  if (variant === "messaging") return LOG_CATEGORIES.MESSAGES;
-  if (variant === "dashboard") return LOG_CATEGORIES.DASHBOARD;
-  return LOG_CATEGORIES.ROUTING;
+  if (variant === "messaging") return "MESSAGES";
+  if (variant === "dashboard") return "DASHBOARD";
+  return "ROUTING";
 }
 
 function ReportingSuspenseFallback({ variant }: { variant: DashboardRouteFallbackVariant }) {
@@ -121,13 +131,19 @@ export function DashboardContent({
   const activeWorkspace = useActiveWorkspace();
 
   const { activeKey, isSearch, isMessaging, widthPercent } = route;
-  const contentTopMargin = route.isDashboard || route.isProfile || route.isFindAgents;
+  const placeholderShell = isPlaceholderWorkspace(activeWorkspace);
+  const showPlaceholderForRoute =
+    placeholderShell &&
+    activeKey !== "dashboard" &&
+    activeKey !== "messaging" &&
+    activeKey !== null;
+  const contentTopMargin = route.isDashboard || route.isProfile || route.isAnalytics;
   const contentBottomMargin =
     route.isDashboard ||
     route.isProfile ||
     route.isLibrary ||
-    route.isFindAgents ||
-    route.isAgreementSigningComplete;
+    route.isAgreementSigningComplete ||
+    route.isAnalytics;
 
   const searchHeightClass =
     isSearch && isMobile
@@ -171,50 +187,63 @@ export function DashboardContent({
     shellRouteNavigateStart(routeKey, route.pathname);
   }, [activeKey, route.pathname]);
 
-  const content =
-    activeKey === "search" ? (
-      <PageErrorBoundary key="search" pageLabel="Search">
-        <Suspense fallback={loadingFallback}>
-          <SearchPage setMobileHeaderActions={setMobileHeaderActions} searchRef={searchPageRef} />
-        </Suspense>
-      </PageErrorBoundary>
-    ) : activeKey === "profile" ? (
+  const content = showPlaceholderForRoute ? (
+    <WorkspacePlaceholderPage workspace={activeWorkspace} />
+  ) : activeKey === "search" ? (
+    <PageErrorBoundary key="search" pageLabel="Search">
       <Suspense fallback={loadingFallback}>
-        <ProfilePage setMobileHeaderActions={setMobileHeaderActions} />
+        <SearchPage setMobileHeaderActions={setMobileHeaderActions} searchRef={searchPageRef} />
       </Suspense>
-    ) : activeKey === "library" ? (
-      <PageErrorBoundary key="library" pageLabel="Library">
-        <Suspense fallback={loadingFallback}>
-          <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
-        </Suspense>
-      </PageErrorBoundary>
-    ) : activeKey === "messaging" ? (
+    </PageErrorBoundary>
+  ) : activeKey === "profile" ? (
+    <Suspense fallback={loadingFallback}>
+      <ProfilePage setMobileHeaderActions={setMobileHeaderActions} />
+    </Suspense>
+  ) : activeKey === "library" ? (
+    <PageErrorBoundary key="library" pageLabel="Library">
+      <Suspense fallback={loadingFallback}>
+        <SavedHomes setMobileHeaderActions={setMobileHeaderActions} />
+      </Suspense>
+    </PageErrorBoundary>
+  ) : activeKey === "messaging" ? (
+    placeholderShell ? (
+      <WorkspacePlaceholderPage workspace={activeWorkspace} />
+    ) : (
       <PageErrorBoundary key="messaging" pageLabel="Messaging">
         <Suspense fallback={loadingFallback}>
           <AgentPage setMobileHeaderActions={setMobileHeaderActions} />
         </Suspense>
       </PageErrorBoundary>
-    ) : activeKey === "dashboard" ? (
+    )
+  ) : activeKey === "analytics" ? (
+    activeWorkspace === "brokerage" ? (
       <Suspense fallback={loadingFallback}>
-        {activeWorkspace === "brokerage" ? (
-          <BrokerageDashboardPage />
-        ) : (
-          <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
-        )}
+        <BrokerageAnalyticsPage />
       </Suspense>
-    ) : activeKey === "find_agents" ? (
-      <PageErrorBoundary key="find-agents" pageLabel="Find agents">
-        <Suspense fallback={loadingFallback}>
-          <FindAgentsPage setMobileHeaderActions={setMobileHeaderActions} />
-        </Suspense>
-      </PageErrorBoundary>
-    ) : activeKey === "agreement_signing_complete" ? (
-      <PageErrorBoundary key="agreement-signing-complete" pageLabel="Signing">
-        <Suspense fallback={loadingFallback}>
-          <AgreementSigningCompletePage />
-        </Suspense>
-      </PageErrorBoundary>
-    ) : null;
+    ) : (
+      <WorkspacePlaceholderPage workspace={activeWorkspace} />
+    )
+  ) : activeKey === "dashboard" ? (
+    <Suspense fallback={loadingFallback}>
+      {activeWorkspace === "brokerage" ? (
+        <BrokerageDashboardPage />
+      ) : activeWorkspace === "integration_partner" ? (
+        <IntegrationPartnerDashboardPage />
+      ) : activeWorkspace === "seller" ? (
+        <SellerDashboardPage />
+      ) : activeWorkspace === "renter" ? (
+        <RenterDashboardPage />
+      ) : (
+        <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
+      )}
+    </Suspense>
+  ) : activeKey === "agreement_signing_complete" ? (
+    <PageErrorBoundary key="agreement-signing-complete" pageLabel="Signing">
+      <Suspense fallback={loadingFallback}>
+        <AgreementSigningCompletePage />
+      </Suspense>
+    </PageErrorBoundary>
+  ) : null;
 
   const displayContent = content ?? (
     <DashboardRouteFallback variant={suspenseFallbackVariant(activeKey)} />

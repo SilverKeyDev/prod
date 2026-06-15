@@ -6,9 +6,9 @@ import {
   ViewSignedDocument,
 } from "packages/features/documents";
 import PdfModal from "packages/features/documents/components/pdf/PdfModalBridge";
-import { BaseModal } from "packages/ui/components/modals";
-import { Portal } from "packages/ui/components/portal";
-import { Box } from "packages/ui/components/primitives";
+import { Portal } from "packages/ui/components/structure/portal";
+import { Box } from "packages/ui/components/structure/primitives";
+import { BaseModal } from "packages/ui/components/surfaces/modals";
 
 type AgreementSigningSession =
   | {

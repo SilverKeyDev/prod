@@ -3,5 +3,5 @@ allOf:
   - type: object
     properties:
       config:
-        $ref: './ServerLoggerConfig.yaml'
+        $ref: './DeploymentLoggerConfig.yaml'
         nullable: true

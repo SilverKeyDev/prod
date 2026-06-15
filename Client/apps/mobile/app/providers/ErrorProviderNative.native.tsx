@@ -5,7 +5,7 @@
 
 import type { ReactNode } from "react";
 
-import { reportErrorBoundary } from "packages/utils/errorHandling";
+import { reportErrorBoundary } from "packages/utils/core/errorHandling";
 
 import { ErrorBoundaryNative } from "../error/ErrorBoundaryNative.native";
 

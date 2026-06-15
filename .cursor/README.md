@@ -1,6 +1,9 @@
 # SilverKey `.cursor/` directory
 
-Human-oriented map of **Cursor** configuration: rules, skills, agents, and how to extend them without sprawl.
+Human-oriented map of **Cursor** configuration: rules, skills, agents, and how to extend them without sprawl. This tree is **canonical**; other AI tools use thin adapters:
+
+- **[`.claude/`](../.claude/)** — Claude Code (`@` stubs to `.cursor/`)
+- **[`.codex/`](../.codex/)** (`rules/`, `agents/`) + **[`.agents/skills/`](../.agents/skills/)** — OpenAI Codex (rule stubs, TOML subagents, repo skills → `.cursor/`)
 
 **Audit / inventory:** [documentation/internal/cursor-audit-latest.md](../documentation/internal/cursor-audit-latest.md)
 
@@ -15,23 +18,38 @@ Human-oriented map of **Cursor** configuration: rules, skills, agents, and how t
 | `rules/backend/*.mdc`  | Flask/SQLAlchemy/model constraints                                                 |
 | `skills/*/SKILL.md`    | **Procedures** — multi-step workflows agents follow when invoked                   |
 | `agents/*.md`          | **Subagent personas** — specialized prompts (lint, security, architecture, …)      |
+| `memory/*.md`          | **Session memory bank** — active context + progress (team git); see `agent-memory.mdc` |
 | `settings.json`        | Workspace-level Cursor settings (team-shared)                                      |
-| `mcp.example.json`     | Example MCP server block — **no secrets**; copy pattern to local Cursor MCP config |
+| `mcp.example.json`     | Example MCP server block — **no secrets**; copy pattern to local `.cursor/mcp.json` |
 
 Loose notes under `.cursor/` should be rare. Prefer `documentation/` or `documentation/internal/` for human reference. Do not introduce new repo-root `docs/` for SilverKey prose — that duplicates `documentation/` and confuses agents; see `documentation.mdc` (always applied). **Rule files:** use a single path per concern (e.g. `backend-architecture.mdc` only); do not keep duplicate copies such as `backend-architecture 2.mdc` alongside the canonical name — they are redundant and inflate context.
 
 ---
 
+## Documentation placement
+
+- **Canonical tree:** `documentation/` only for long-form SilverKey prose.
+- **Forbidden:** repo-root `docs/` (CI fails if it exists).
+- **Checks:** `make check-docs` or `./scripts/ci/check-doc-placement.sh` + `./scripts/ci/check-doc-links.sh`.
+- **Skill:** [skills/documentation-placement/SKILL.md](skills/documentation-placement/SKILL.md).
+
+---
+
 ## Always-on vs scoped rules
 
-**Exactly four rules use `alwaysApply: true`:**
+**Seven rules use `alwaysApply: true`:**
 
 1. `rules/shared/security.mdc`
 2. `rules/shared/thin-app-architecture.mdc`
 3. `rules/shared/linting.mdc`
 4. `rules/shared/documentation.mdc` (canonical doc tree is `documentation/`, not repo-root `docs/`)
+5. `rules/shared/silverkey-context.mdc` (company, RESPA reflex, partners; investor language in `pitch-and-fundraising.mdc`)
+6. `rules/shared/code-style.mdc` (stack, Linear commits, verification)
+7. `rules/shared/env-vars-minimal.mdc` (do not add `.env` keys unless a new integration requires it)
 
-Everything else attaches via **`globs`** (path patterns) or **agent-requested** / manual `@`-reference. Do not add new always-on rules without removing or demoting another.
+**Index:** [rules/README.md](rules/README.md) lists all rules and when they attach.
+
+Everything else attaches via **`globs`** (path patterns) or **agent-requested** / manual `@`-reference. New always-on rules should stay short; prefer scoped `globs` for deep detail.
 
 ---
 
@@ -77,7 +95,8 @@ Short body. Link to `documentation/**` for long prose.
 2. **Distinct role** from the default agent (otherwise don’t add).
 3. Keep **&lt; ~500 lines**; link to rules/skills this agent must follow.
 4. Team policy: **commit** shared agents; don’t commit personal experiments (or use a separate branch).
-5. **Post–component-audit fixes:** use the `silverkey-audit-axis*` and `silverkey-audit-architecture-remediation` personas ([`documentation/client/react-component-audit-rubric.md`](../documentation/client/react-component-audit-rubric.md) — *Remediation subagents* table).
+5. **Post–component-audit fixes:** use the `silverkey-audit-axis*` and `silverkey-audit-architecture-remediation` personas ([`documentation/client/patterns/react-component-audit-rubric.md`](../documentation/client/patterns/react-component-audit-rubric.md) — *Remediation subagents* table).
+6. **Docs / reorg hygiene:** use skills [`documentation-placement`](skills/documentation-placement/SKILL.md) and [`post-major-change-sync`](skills/post-major-change-sync/SKILL.md) with [`documentation/internal/post-major-change-checklist.md`](../documentation/internal/post-major-change-checklist.md). Optional checklist: [`frontend-reorganization-audit.md`](../documentation/internal/component-audit/frontend-reorganization-audit.md). Do **not** add per-domain `silverkey-docs-*` or `silverkey-*-reorg-*` fleet agents — they were removed as low-signal context bloat.
 
 ---
 
@@ -119,9 +138,18 @@ flowchart TD
 | File                        | Effect                                                                                                                                                                                                             |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **`.cursorignore`**         | Excludes paths from **indexing and default AI context** (noise, secrets, huge trees). Copy from `.cursorignore.example` → `.cursorignore` locally if you want team defaults without committing personal overrides. |
-| **`.cursorindexingignore`** | Excludes from **automatic index** only — files can still be **`@`-mentioned** when you need them (migrations, generated blobs, large fixtures).                                                                    |
+| **`.cursorindexingignore`** | Excludes from **automatic index** only — files can still be **`@`-mentioned** when you need them (migrations, generated blobs, large fixtures). Includes **`.claude/`**, **`.codex/`**, and **`.agents/`** adapter trees so Cursor does not index duplicate stubs alongside canonical `.cursor/` content. |
 
 Rule of thumb: if the model never needs a path unless you explicitly attach it, prefer **indexing ignore** over full ignore.
+
+---
+
+## MCP profiles and dedupe
+
+- Keep **daily MCP profile** lightweight (`github`, `linear`, `slack`) unless the task needs more.
+- Add optional connectors (AWS, PostHog, Datadog, Mercury, gcloud, cursor-memory) only for scoped sessions.
+- Avoid duplicate connectors across project MCP and plugins (for example, do not enable both plugin Linear and project Linear simultaneously).
+- Keep secrets in local `.cursor/mcp.json` only; never commit real tokens.
 
 ---
 
@@ -133,9 +161,11 @@ Rule of thumb: if the model never needs a path unless you explicitly attach it, 
 | `.cursor/skills/**`                             | Yes                                           |
 | `.cursor/agents/**`                             | Yes (team agents)                             |
 | `.cursor/README.md`                             | Yes                                           |
+| `.cursor/rules/README.md`                       | Yes                                           |
+| `CLAUDE.md` (repo root)                         | Yes                                           |
 | `.cursor/settings.json`                         | Yes                                           |
 | `.cursor/mcp.example.json`                      | Yes                                           |
-| `.cursor/mcp.json`                              | Only if **no secrets** — otherwise local only |
+| `.cursor/mcp.json`, repo-root `mcp.json`        | No — gitignored; copy from `*mcp.example.json` |
 | `.cursorignore.example`                         | Yes                                           |
 | `.cursorindexingignore`                         | Yes                                           |
 | `.cursorignore`                                 | Optional local (often gitignored)             |
@@ -152,7 +182,22 @@ Rule of thumb: if the model never needs a path unless you explicitly attach it, 
 - [ ] Skim `skills/**` — triggers still accurate? unused skills?
 - [ ] `.cursorignore.example` / `.cursorindexingignore` — new build outputs or huge dirs?
 - [ ] MCP servers in use still valid?
-- [ ] Diff `AGENTS.md` Quick start against `Client/package.json` and `./scripts/run-all-linters.sh`
+- [ ] Diff `AGENTS.md` Quick start against `Client/package.json` and `./scripts/ci/run-all-linters.sh`
+
+---
+
+## Agent memory (four layers)
+
+Full setup: [documentation/client/tooling/cursor-agent-memory.md](../documentation/client/tooling/cursor-agent-memory.md).
+
+| Layer | Where |
+| ----- | ----- |
+| Repo bank | `.cursor/memory/` + rule `rules/shared/agent-memory.mdc` |
+| Cursor account | Settings → Memories |
+| Automations | Tools → Memories → **Manage** (Memory Notes); seeds in `.cursor/memory/automations/` |
+| MCP | `cursor-memory` in local `.cursor/mcp.json` (optional add-on; not in default `mcp.example.json`) |
+
+Print paste bundle: `./scripts/print-automation-memory.sh <persona>` (e.g. `engineer-default`, `ci-pr-babysit`).
 
 ---
 

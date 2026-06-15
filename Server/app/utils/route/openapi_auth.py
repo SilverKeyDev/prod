@@ -21,14 +21,14 @@ def require_validated_user(request_schema=None):
         @require_validated_user(LoginData)
         def login(user, data: LoginData):
             # user: authenticated User model
-            # data: validated Pydantic model (or None in gradual mode)
+            # data: validated Pydantic model (or unvalidated model_construct in gradual mode)
             return handle_login(data.model_dump())
 
         # Without validation (existing pattern):
         @user_bp.route('/profile', methods=['GET'])
         @require_validated_user()
         def get_profile(user):
-            return jsonify({"success": True, "user": user.to_dict()})
+            return jsonify({"success": True, "user": UserDTO.to_response(user)})
     """
     from app.utils.validation import validate_request
 
@@ -57,7 +57,7 @@ def require_validated_agent(request_schema=None):
         @require_validated_agent(CreateTodoRequest)
         def create_todo(user, data: CreateTodoRequest):
             # user: authenticated agent User model
-            # data: validated Pydantic model (or None in gradual mode)
+            # data: validated Pydantic model (or unvalidated model_construct in gradual mode)
             return create_agent_todo(user.id, data.model_dump())
     """
     from app.utils.validation import validate_request

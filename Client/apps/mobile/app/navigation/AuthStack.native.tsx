@@ -1,3 +1,6 @@
+import { useRef } from "react";
+import { useRef } from "react";
+
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -11,13 +14,16 @@ import {
   SignupScreenNative,
   TermsOfServiceScreenNative,
   VerificationScreenNative,
-} from "packages/features/homeauth/native";
+} from "packages/features/homeauth";
 import { useAuthStore } from "packages/store";
 
 function OnboardingScreenWrapper() {
+  const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const userRef = useRef(user);
+  userRef.current = user;
   const onSubmitSuccess = () => {
-    const current = useAuthStore.getState().user;
+    const current = userRef.current;
     if (current) setUser({ ...current, has_preferences: true });
   };
   return <OnboardingScreenNative onSubmitSuccess={onSubmitSuccess} />;

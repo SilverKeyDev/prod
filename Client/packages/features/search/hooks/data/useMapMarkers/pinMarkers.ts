@@ -1,7 +1,7 @@
 import { addressForMarkerTitle } from "packages/features/search/types/search/formatters/address";
 import { searchMapOverlayBaseZIndex } from "packages/features/search/types/search/map/mapOverlayLayerOrder";
 import { createScorePinElement } from "packages/features/search/types/search/map/scorePinMarker";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import type { SearchResult } from "packages/types";
 
 import { geocodeAddress } from "./geocode";
@@ -86,7 +86,7 @@ export async function createPinMarkersBatch(
       markersRef.current.push(marker);
     } catch (error) {
       log.error(
-        LOG_CATEGORIES.MAP_RENDERING,
+        "MAP_RENDERING",
         `Error creating score pin marker for property ${result.id}:`,
         error
       );

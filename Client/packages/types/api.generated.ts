@@ -113,10 +113,16 @@ export interface paths {
         put?: never;
         /**
          * Create or update user preferences
-         * @description Persists preference payload for the current user. There is no PUT /api/v1/user/profile; profile-adjacent data is updated here (and closing mode via PUT /api/v1/user/closing-mode, not documented in this core set).
+         * @description Persists preference payload for the current user. There is no PUT /api/v1/user/profile; profile-adjacent data is updated here.
          */
         post: operations["upsertPreferences"];
-        delete?: never;
+        /**
+         * Clear current user preferences
+         * @description Deletes all normalized preference rows for the authenticated user and sets
+         *     `has_preferences` to false. Agents cannot clear a client's preferences via this
+         *     endpoint; it always affects only the signed-in user.
+         */
+        delete: operations["deletePreferences"];
         options?: never;
         head?: never;
         patch?: never;
@@ -325,26 +331,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/user/closing-mode": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update closing mode status
-         * @description Toggle user's closing mode (legacy API compatibility only)
-         */
-        put: operations["updateClosingMode"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/user/client-settings": {
         parameters: {
             query?: never;
@@ -367,78 +353,6 @@ export interface paths {
          * @description Deep-merges partial JSON into stored settings; null removes a top-level key.
          */
         patch: operations["patchUserClientSettings"];
-        trace?: never;
-    };
-    "/api/v1/user/not-interested": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List not-interested homes
-         * @description Retrieve the user's list of not-interested homes
-         */
-        get: operations["getNotInterestedHomes"];
-        put?: never;
-        /**
-         * Mark home as not interested
-         * @description Add a home to the not-interested list
-         */
-        post: operations["addNotInterestedHome"];
-        /**
-         * Remove home from not-interested list
-         * @description Undo not-interested status for a home
-         */
-        delete: operations["removeNotInterestedHome"];
-        options?: never;
-        head?: never;
-        /**
-         * Update not-interested reason
-         * @description Update the reason for a not-interested home
-         */
-        patch: operations["updateNotInterestedHome"];
-        trace?: never;
-    };
-    "/api/v1/viewings/route": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Optimize viewing stop order and compute driving legs
-         * @description Uses Google Distance Matrix (durations) for ordering, then Google Directions for per-leg distance, duration, and encoded polylines. Optional start/end anchors: when `start` is set, only property stops are reordered; `end_mode` chooses whether the tour ends at the last listing, returns to `start`, or ends at a fixed `end` location. When `start` is omitted, legacy behavior optimizes an open tour across property stops only. Requires a server-side Google Maps API key.
-         */
-        post: operations["buildViewingRoute"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/viewings/navigate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Build Google Maps multi-stop navigation URL
-         * @description Returns a maps/dir deep link with origin, destination, and waypoints.
-         */
-        post: operations["buildViewingNavigateLink"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/api/v1/google/me/events": {
@@ -567,6 +481,109 @@ export interface paths {
          * @description Revoke Google Calendar access for the authenticated user
          */
         post: operations["revokeGoogleOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List workspace conversations */
+        get: operations["getWorkspaceConversations"];
+        put?: never;
+        /** Create workspace conversation */
+        post: operations["createWorkspaceConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workspace messaging events (SSE) */
+        get: operations["streamWorkspaceConversationEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/eligible-contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List contacts the user may message */
+        get: operations["getWorkspaceEligibleContacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workspace conversation history */
+        get: operations["getWorkspaceConversationHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send workspace conversation message */
+        post: operations["sendWorkspaceConversationMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark workspace conversation read */
+        post: operations["markWorkspaceConversationRead"];
         delete?: never;
         options?: never;
         head?: never;
@@ -949,40 +966,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/preferences/add": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Set current user as agent */
-        get: operations["setCurrentUserAsAgent"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/preferences/agents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Search agents for preferences UI */
-        get: operations["getPreferencesAgents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/preferences/clients": {
         parameters: {
             query?: never;
@@ -1000,23 +983,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/preferences/remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Remove agent relationship */
-        get: operations["removeAgentRelationship"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/preferences/user/{userId}": {
         parameters: {
             query?: never;
@@ -1026,23 +992,6 @@ export interface paths {
         };
         /** Get preferences by user id (scoped) */
         get: operations["getUserPreferencesById"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/preferences/users_agents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List agents linked to the current user */
-        get: operations["getUserAgents"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1205,40 +1154,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/home-matching/find-matches": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Queue home matching task */
-        post: operations["homeMatchingFindMatches"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/home-matching/task-status/{task_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Home matching Celery task status */
-        get: operations["getHomeMatchingTaskStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/offer/generate-strategy": {
         parameters: {
             query?: never;
@@ -1266,42 +1181,6 @@ export interface paths {
         /** Google Maps JS script URL (key stays server-side) */
         get: operations["getMapsScriptUrl"];
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user/timeline": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get timeline checklist progress */
-        get: operations["getTimelineChecklist"];
-        /** Replace timeline checklist progress */
-        put: operations["putTimelineChecklist"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/user/close": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get close checklist progress */
-        get: operations["getCloseChecklist"];
-        /** Replace close checklist progress */
-        put: operations["putCloseChecklist"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1377,6 +1256,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List deals for the current user
+         * @description Buyers receive their own `transactions` rows. Agents may pass `buyer_id` to list deals for a managed client. Deal scope ids are always `transactions.id` (UUID).
+         */
+        get: operations["listTransactions"];
+        put?: never;
+        /**
+         * Create a new deal row
+         * @description Creates a new `transactions` row. Pilot UI may not expose this; backend supports multi-deal. When `set_active` is true (default), updates the buyer's active deal pointer.
+         */
+        post: operations["createTransaction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the authenticated buyer's active deal
+         * @description Resolves the buyer's active deal (`users.active_transaction_id`, else most recently updated row, else creates the first deal). Returns `transactions.id` for checklist APIs.
+         */
+        get: operations["getMyTransaction"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/me/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the buyer's active deal
+         * @description Updates `users.active_transaction_id` to an owned deal. Post-pilot UI uses this for a deal switcher; pilot may omit the control while the endpoint remains available.
+         */
+        put: operations["setMyActiveTransaction"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transactions/address": {
         parameters: {
             query?: never;
@@ -1395,6 +1338,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/transactions/{transaction_id}/tasks/progress-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Task checklist progress summary for a transaction subject
+         * @description Returns per-category completion counts and overall journey progress for the deal identified by `transactions.id`. Same auth as GET .../tasks.
+         */
+        get: operations["getTransactionTaskChecklistProgressSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/transactions/{transaction_id}/tasks": {
         parameters: {
             query?: never;
@@ -1404,15 +1367,108 @@ export interface paths {
         };
         /**
          * Task checklist for a transaction subject (buyer self or agent client)
-         * @description Returns the same payload as GET /api/v1/tasks for the given transaction_id (buyer user id). Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
+         * @description Returns unified task checklist definitions and progress for the given `transactions.id`. Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
          */
         get: operations["getTransactionTaskChecklist"];
         /**
          * Replace task checklist progress for a transaction subject
-         * @description Same semantics as PUT /api/v1/tasks for the buyer user id given by transaction_id. Buyers may update their own checklist; agents may update a managed client's checklist.
+         * @description Replaces checklist progress for the deal identified by `transactions.id`. Buyers may update their own checklist; agents may update a managed client's checklist.
          */
         put: operations["putTransactionTaskChecklist"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        /** List agreements linked to a checklist item */
+        get: operations["getChecklistItemDocuments"];
+        put?: never;
+        /** Link an agreement or uploaded document to a checklist item */
+        post: operations["linkAgreementToChecklistItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/forms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        /** List forms suggested for a checklist step */
+        get: operations["getChecklistItemForms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/forms/{form_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+                section: string;
+                item_id: string;
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        /** Generate presigned download URL for a checklist form */
+        get: operations["downloadChecklistItemForm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/forms/{form_id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+                section: string;
+                item_id: string;
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a checklist form via messaging, DocuSign, or both */
+        post: operations["sendChecklistItemForm"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1424,7 +1480,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description Hub client user id (same as checklist forms routes). */
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
                 transaction_id: string;
                 /** @description Checklist category (e.g. escrow, financing). */
                 section: string;
@@ -1444,24 +1500,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/tasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Unified task checklist definitions and progress */
-        get: operations["getUnifiedTaskChecklist"];
-        /** Replace unified task checklist progress */
-        put: operations["putUnifiedTaskChecklist"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/client/errors": {
         parameters: {
             query?: never;
@@ -1473,6 +1511,42 @@ export interface paths {
         put?: never;
         /** Report client-side errors (optional auth) */
         post: operations["reportClientError"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/library": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all checklist forms grouped by category */
+        get: operations["listFormsLibrary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/library/{form_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        /** Generate presigned download URL for a library form */
+        get: operations["downloadFormsLibraryForm"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1931,10 +2005,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get server logger configuration */
+        /** Get deployment logger configuration (client + server) */
         get: operations["adminGetLoggerConfig"];
         put?: never;
-        /** Update server logger configuration */
+        /** Update deployment logger configuration (client and/or server) */
         post: operations["adminUpdateLoggerConfig"];
         delete?: never;
         options?: never;
@@ -1953,6 +2027,40 @@ export interface paths {
         put?: never;
         /** Set current user agent flag (admin) */
         post: operations["adminSetCurrentUserAgentStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/current-user-dev-workspace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set current user dev workspace persona (admin) */
+        post: operations["adminSetCurrentUserDevWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/gate-roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List users with SilverKey gate roles (super_admin only) */
+        get: operations["adminListGateRoleUsers"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2356,6 +2464,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/docusign/agreements/{agreement_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get pre-signed download URL for agreement PDF
+         * @description Returns a pre-signed S3 URL for the merged signed document when present, otherwise the latest revision file.
+         */
+        get: operations["docusignGetAgreementDownloadUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/webhooks/docusign/connect": {
         parameters: {
             query?: never;
@@ -2493,6 +2621,144 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/partners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List rev-share partners */
+        get: operations["listAdminPartners"];
+        put?: never;
+        /** Create rev-share partner */
+        post: operations["createAdminPartner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/partners/checklist-steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List checklist steps eligible for partner placement */
+        get: operations["listPartnerChecklistSteps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/partners/{partner_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get partner by id */
+        get: operations["getAdminPartner"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update partner */
+        patch: operations["patchAdminPartner"];
+        trace?: never;
+    };
+    "/api/v1/admin/partners/{partner_id}/provision-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provision rev_share_links for all agents */
+        post: operations["provisionAdminPartnerLinks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/rev-share/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rev-share analytics for a partner */
+        get: operations["getAdminRevShareAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partners/placements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active partner placements for a checklist step */
+        get: operations["getPartnerPlacements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rev-share/step-views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record buyer step view (CTR denominator) */
+        post: operations["postRevShareStepView"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/r/{link_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rev-share click redirect */
+        get: operations["revShareRedirect"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2502,9 +2768,6 @@ export interface components {
             plan?: {
                 [key: string]: unknown;
             } | null;
-        };
-        AddAgentResponse: components["schemas"]["SuccessResponse"] & {
-            agent?: components["schemas"]["User"];
         };
         AddCalendarACLRequest: {
             /**
@@ -2640,6 +2903,7 @@ export interface components {
          *     `profile_picture` is a storage key unless a route explicitly expands to a URL.
          * @example {
          *       "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+         *       "transaction_id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
          *       "name": "Jordan Client",
          *       "email": "jordan.client@example.com",
          *       "phone": "+15551112222",
@@ -2655,6 +2919,11 @@ export interface components {
         AgentClient: {
             /** @description Application user id for the client. */
             id: string;
+            /**
+             * @description Revenue spine id (`transactions.id`) for this client's deal. Use for checklist,
+             *     forms, documents, and rev-share APIs — not the buyer user id.
+             */
+            transaction_id: string;
             /** @description Display name shown in agent UI and shared documents. */
             name: string;
             /**
@@ -2669,10 +2938,10 @@ export interface components {
             /** @description ISO 8601 timestamp when the client relationship or row was created. */
             created_at?: string | null;
             /**
-             * @description Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/investor role is set.
+             * @description Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/renter/investor role is set.
              * @enum {string|null}
              */
-            client_kind?: "buyer" | "seller" | "investor" | "unknown" | null;
+            client_kind?: "buyer" | "seller" | "renter" | "investor" | "unknown" | null;
             /**
              * @description Checklist area with the most recent completed task activity for this client (preview only).
              *     `search` when there are no completed checklist tasks yet or activity cannot be determined.
@@ -2709,6 +2978,105 @@ export interface components {
             other_party_name?: string | null;
             other_party_email?: string | null;
             created_at: string;
+        };
+        EligibleContactsResponse: {
+            success: boolean;
+            contacts: components["schemas"]["EligibleContact"][];
+        };
+        EligibleContact: {
+            contact_id: string;
+            contact_type: string;
+            display_name: string;
+            kind: components["schemas"]["WorkspaceConversationKind"];
+            metadata?: {
+                [key: string]: unknown;
+            };
+        };
+        CreateWorkspaceConversationRequest: {
+            kind: components["schemas"]["WorkspaceConversationKind"];
+            brokerage_org_id?: string | null;
+            partner_id?: string | null;
+            agent_user_id?: string | null;
+            /** @enum {string|null} */
+            support_category?: "brokerage" | "integrator" | null;
+        };
+        CreateWorkspaceConversationResponse: {
+            success: boolean;
+            conversation: components["schemas"]["WorkspaceConversation"];
+        };
+        WorkspaceConversation: {
+            id: string;
+            kind: components["schemas"]["WorkspaceConversationKind"];
+            brokerage_org_id?: string | null;
+            partner_id?: string | null;
+            subject_user_id?: string | null;
+            /** @enum {string|null} */
+            support_category?: "brokerage" | "integrator" | null;
+            agent_user_id?: string | null;
+            title?: string | null;
+            participant_count?: number | null;
+            is_archived?: boolean | null;
+            last_message?: string | null;
+            /** Format: date-time */
+            last_message_at?: string | null;
+            /** Format: date-time */
+            last_read_at?: string | null;
+            unread_count?: number | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        /**
+         * @description Workspace-scoped conversation kind
+         * @enum {string}
+         */
+        WorkspaceConversationKind: "platform_support" | "brokerage_agent" | "integrator_brokerage" | "group";
+        WorkspaceConversationsResponse: {
+            success: boolean;
+            conversations: components["schemas"]["WorkspaceConversation"][];
+        };
+        WorkspaceConversationHistoryResponse: {
+            success: boolean;
+            messages: components["schemas"]["WorkspaceMessage"][];
+        };
+        WorkspaceMessage: {
+            id: string;
+            conversation_id?: string | null;
+            sender_id?: string | null;
+            role: string;
+            message: string;
+            /** Format: date-time */
+            timestamp?: string | null;
+        };
+        SendWorkspaceMessageRequest: {
+            conversation_id: string;
+            message: string;
+        };
+        GroupConversation: components["schemas"]["WorkspaceConversation"] & {
+            participants?: {
+                user_id?: string;
+                participant_role?: string;
+            }[];
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupConversationCreateRequest: {
+            title: string;
+            participant_user_ids: string[];
+            brokerage_org_id?: string | null;
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupConversationUpdateRequest: {
+            title?: string;
+            is_archived?: boolean;
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupParticipantAddRequest: {
+            user_id: string;
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupParticipantRemoveRequest: {
+            user_id: string;
         };
         AgentConversation: {
             id: string;
@@ -2781,8 +3149,7 @@ export interface components {
         /**
          * @description DocuSign-backed agreement between an agent and buyer, including envelope metadata,
          *     participant list, optional revisions/history, and denormalized names for list views.
-         *     `docusign_envelope_id` is the primary correlation key with DocuSign; `envelope_id`
-         *     is legacy and may duplicate or diverge on older rows.
+         *     `docusign_envelope_id` is the primary correlation key with DocuSign.
          * @example {
          *       "id": "agr-1a2b3c4d-5e6f-7890-abcd-ef1234567890",
          *       "agent_id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
@@ -2792,7 +3159,6 @@ export interface components {
          *       "status": "sent",
          *       "property_address": "742 Evergreen Terrace, Springfield, IL 62704",
          *       "description": "Standard BRA for spring 2026 search.",
-         *       "envelope_id": null,
          *       "docusign_envelope_id": "abc123de-4567-89ab-cdef-0123456789ab",
          *       "docusign_status": "sent",
          *       "created_at": "2026-03-01T12:00:00.000Z",
@@ -2816,8 +3182,6 @@ export interface components {
             property_address?: string | null;
             /** @description Free-text summary or internal notes shown on agreement detail. */
             description?: string | null;
-            /** @description Legacy field */
-            envelope_id?: string | null;
             /** @description Current DocuSign envelope UUID used for API callbacks and deep links. */
             docusign_envelope_id?: string | null;
             /** @description When set, envelope is created from this DocuSign template instead of PDF revisions. */
@@ -2888,8 +3252,6 @@ export interface components {
             id: string;
             agreement_id: string;
             version_number: number;
-            /** @description Legacy field */
-            revision_number?: number | null;
             filename: string;
             /** @description Alternative field name */
             file_name?: string | null;
@@ -2989,7 +3351,8 @@ export interface components {
             /** @description Application user id when the row exists; null if not yet linked. */
             id?: string | null;
             phone?: string | null;
-            is_agent: boolean;
+            /** @description Role names from user_roles; empty when user row is not linked yet. */
+            roles: string[];
             /**
              * @description How the session authenticated relative to linked identities on the user row:
              *     - `unknown`: Could not classify (legacy or transitional row)
@@ -2999,21 +3362,6 @@ export interface components {
              * @enum {string}
              */
             auth_method: "unknown" | "cognito" | "google" | "both";
-        };
-        /** @description Request to optimize stop order and compute driving legs. */
-        BuildRouteRequest: {
-            /** @description Property stops; order preserved when optimize_order is false. */
-            stops: components["schemas"]["ViewingStop"][];
-            /** @description Optional starting location (e.g. home or current position). When set, the route begins here and only property stops are reordered. When omitted, legacy behavior optimizes across property stops only (open tour, best first listing). */
-            start?: components["schemas"]["ViewingRouteEndpoint"] | null;
-            /** @description Required when end_mode is fixed; ignored for last_property and return_to_start. */
-            end?: components["schemas"]["ViewingRouteEndpoint"] | null;
-            end_mode?: components["schemas"]["ViewingRouteEndMode"];
-            /**
-             * @description When true, reorder property stops to reduce driving time (subject to start/end_mode). When false, visit properties in request order between anchors.
-             * @default true
-             */
-            optimize_order: boolean;
         };
         BulkUpdateFavoritesRequest: {
             /** @description Replaces the user's favorites; each element is a home object passed to add_or_update_home_basic (same flexible shape as add-favorite). */
@@ -3086,6 +3434,76 @@ export interface components {
          * @enum {string}
          */
         ChecklistDispatchChannel: "messaging" | "docusign" | "both";
+        ChecklistFormSendRequest: {
+            /** @enum {string} */
+            method: "docusign" | "messaging" | "both";
+            conversation_id?: string | null;
+            client_id?: string | null;
+            message?: string | null;
+            participants?: {
+                email?: string;
+                name?: string;
+            }[] | null;
+        };
+        ChecklistFormSendResponse: {
+            success: boolean;
+            /** @description Messaging attachment message id when messaging succeeded. */
+            message_id?: string | null;
+            /** @description DocuSign agreement id when signing flow succeeded. */
+            agreement_id?: string | null;
+            /** @description Per-step failures when method is both and one leg failed. */
+            partial_errors?: components["schemas"]["ChecklistFormPartialStepError"][] | null;
+        };
+        ChecklistFormPartialStepError: {
+            /** @enum {string} */
+            step: "messaging" | "docusign";
+            /** @description Stable error code (e.g. VALIDATION_ERROR, FORBIDDEN). */
+            error: string;
+            /** @description Safe user-facing message for the failed step. */
+            message: string;
+        };
+        ChecklistForm: {
+            id: string;
+            /** @description Stable key (e.g. earnest_money, wire_instructions). */
+            form_key: string;
+            title: string;
+            description?: string | null;
+            /** @description S3 object key for the PDF template. */
+            s3_template_path: string;
+            /** @description Library folder (e.g. escrow, financing). */
+            category?: string | null;
+            created_at?: string | null;
+            updated_at?: string | null;
+        };
+        ChecklistFormWithDownload: components["schemas"]["ChecklistForm"] & {
+            /**
+             * Format: uri
+             * @description Presigned S3 URL; null when URL generation fails.
+             */
+            download_url: string | null;
+            /** @description ISO date deadline derived from checklist step timing when available. */
+            deadline?: string | null;
+        };
+        ChecklistItemDocumentsResponse: {
+            success: boolean;
+            data: {
+                agreements: components["schemas"]["Agreement"][];
+            };
+            error?: string | null;
+        };
+        LinkChecklistDocumentApiResponse: {
+            success: boolean;
+            data: {
+                agreement: components["schemas"]["Agreement"];
+            };
+            error?: string | null;
+        };
+        LinkDocumentToChecklistRequest: {
+            /** @description ID of the document to link to checklist item */
+            document_id?: string | null;
+            /** @description ID of the agreement to link to checklist item */
+            agreement_id?: string | null;
+        };
         /**
          * @description How optional message text is applied per recipient for messaging (and stored on agreement description for DocuSign).
          * @enum {string}
@@ -3178,6 +3596,21 @@ export interface components {
                 preferences?: components["schemas"]["PreferencesResponse"];
             }[] | null;
         };
+        DeletePreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
+            /** @enum {boolean} */
+            has_preferences: false;
+            preferences?: unknown;
+            /** @description Confirmation copy after clearing preferences. */
+            message?: string;
+        };
+        GetPreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
+            preferences?: components["schemas"]["PreferencesResponse"];
+            /** @description True when the user has persisted preference rows. */
+            has_preferences?: boolean;
+        };
+        GetUserPreferencesByIdApiResponse: components["schemas"]["SuccessResponse"] & {
+            preferences?: components["schemas"]["PreferencesResponse"];
+        };
         ClientsResponse: {
             success?: boolean;
             clients?: components["schemas"]["ClientInfo"][] | null;
@@ -3202,8 +3635,6 @@ export interface components {
                  */
                 shell?: "week" | "month";
             };
-            /** @description Saved tour anchors and defaults for multi-stop property viewings. */
-            viewing_tour?: components["schemas"]["ViewingTourClientSettings"] | null;
             /** @description Partial onboarding / profile form payload for refresh recovery. Omitted when empty. */
             onboarding_draft?: {
                 [key: string]: unknown;
@@ -3326,6 +3757,26 @@ export interface components {
         };
         /** @description Create or update user preferences */
         CreatePreferencesRequest: {
+            /** @description Buyer communication preference — text, call, or email (user_communication_prefs) */
+            preferred_contact_method?: string;
+            /** @description Update cadence — as_things_come_up, weekly_check_in, or daily */
+            communication_frequency?: string;
+            /** @description Versioned buyer preference extensions (v1 JSON) */
+            extended_buyer_preferences?: {
+                /** @description SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation */
+                buyer_about_me?: {
+                    [key: string]: unknown;
+                };
+                /** @description SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc. */
+                price_financing?: {
+                    [key: string]: unknown;
+                };
+            } & {
+                [key: string]: unknown;
+            };
+            /** @description Intent attribute — true when buyer pays cash */
+            paying_cash?: boolean;
+        } & {
             [key: string]: unknown;
         };
         CreateRevisionResponse: components["schemas"]["SuccessResponse"] & {
@@ -3380,10 +3831,8 @@ export interface components {
             confirm: true;
         };
         DeleteReportRequest: {
-            /** @description Optional S3 key for the report to delete */
+            /** @description S3 key for the report to delete */
             s3_key?: string | null;
-            /** @description Optional legacy file path (alias of s3_key) */
-            file_path?: string | null;
         };
         DeleteReportResponse: components["schemas"]["SuccessResponse"];
         DeleteUserRequest: {
@@ -3391,17 +3840,19 @@ export interface components {
             user_id: string;
             /** @description Must be true to confirm deletion */
             confirm: boolean;
-            /** @description Legacy confirmation text (optional) */
-            confirmation?: string | null;
         };
         DeleteUserResponse: components["schemas"]["SuccessResponse"] & {
             deleted_user_id?: string | null;
+        };
+        DownloadChecklistFormResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            download_url: string;
         };
         DevUserDataResetRequest: {
             /** @description Must be true to confirm the reset. */
             confirm: boolean;
             /** @description Data domains to clear for the target user. */
-            scopes: ("profile" | "preferences" | "docusign")[];
+            scopes: ("profile" | "preferences" | "docusign" | "transaction_steps" | "s3" | "connections")[];
             /** @description Target user UUID. Omit to reset the signed-in admin. Super_admin only when set to another user. */
             user_id?: string | null;
         };
@@ -3459,6 +3910,8 @@ export interface components {
             document_type?: string | null;
             address?: string | null;
             agreement_type?: string | null;
+            /** @description When this agreement is linked to a checklist step, the key `{checklist_category}.{item_id}` (e.g. `offer.3`, `insurance.2`). */
+            linked_checklist_item_id?: string | null;
             /**
              * @description MLS-style listing event when the library item ties to a feed update:
              *     - `listed`: New listing associated with documents
@@ -3605,12 +4058,32 @@ export interface components {
             /** @description Days between subsequent reminders. */
             reminder_frequency?: number | null;
         };
+        DocusignAgreementDownloadUrlResponse: components["schemas"]["SuccessResponse"] & {
+            /**
+             * Format: uri
+             * @description Pre-signed S3 URL for viewing or downloading the agreement PDF.
+             */
+            download_url: string;
+            /** @description Optional expiration timestamp for the pre-signed URL. Handler currently returns null. */
+            expires_at?: string | null;
+        };
         DocusignCreateTemplateMetadataInput: {
             /** @description Display name for the DocuSign template. */
             name: string;
             description?: string | null;
             /** @description Ordered signer role names (e.g. Agent, Buyer). Must match the number of signers you will assign in DocuSign after opening the template editor. */
             roles: string[];
+        };
+        DocusignCreateTemplateMultipartRequest: {
+            /** @description JSON string for DocusignCreateTemplateMetadataInput (name, description, roles). */
+            metadata: string;
+            /** @description One or more PDF files (document order matches upload order). */
+            files: string[];
+            /**
+             * Format: binary
+             * @description Optional singular alias for a single PDF; backend also accepts file instead of files.
+             */
+            file?: string;
         };
         DocusignCreateTemplateResponse: components["schemas"]["SuccessResponse"] & {
             /** @description SilverKey row id for the cached template record. */
@@ -3651,9 +4124,6 @@ export interface components {
             detail?: {
                 [key: string]: unknown;
             } | null;
-        };
-        DocusignSyncTemplatesResponse: components["schemas"]["SuccessResponse"] & {
-            task_id?: string | null;
         };
         DocusignTemplate: {
             id: string;
@@ -3714,6 +4184,8 @@ export interface components {
             earnest_amount: number;
             escrow_company: string;
         };
+        /** @description Empty JSON body for POST/PUT/PATCH routes with no request fields (cookie auth, path-only, or multipart file handled outside OpenAPI body validation). Client may send {}. */
+        EmptyRequest: Record<string, never>;
         /**
          * @description Standard error envelope for JSON APIs. `success` is always false; `error` is a stable
          *     code for clients, while `message` is safe to show to users. Use `error_id` when
@@ -3734,11 +4206,14 @@ export interface components {
             field_errors?: {
                 [key: string]: string | string[];
             } | null;
-            /** @description Optional alternate validation map when included via secure error additional_info. Values are usually strings or lists of strings (same shape as field_errors); additionalProperties stays open for legacy or nested payloads from some validators. */
+            /**
+             * @deprecated
+             * @description Deprecated — use `field_errors`. Removed from SecureErrorHandler output; retained one release for client backward compatibility.
+             */
             validation_errors?: {
                 [key: string]: unknown;
             } | null;
-            /** @description Additional context as plain text or structured map (e.g. legacy Marshmallow validate_request). */
+            /** @description Additional context as plain text or structured map. */
             details?: string | {
                 [key: string]: unknown;
             } | null;
@@ -3856,22 +4331,6 @@ export interface components {
             hasMore: boolean;
             cursor?: string | null;
         };
-        FindMatchesRequest: {
-            /** @description User preferences and profile data */
-            user_data: {
-                [key: string]: unknown;
-            };
-            /** @description Array of home data objects */
-            homes_data: {
-                [key: string]: unknown;
-            }[];
-            /** @description Number of top matches to return (default 10) */
-            top_k?: number | null;
-            /** @description Include match explanations (default false) */
-            include_explanations?: boolean | null;
-            /** @description Embedding provider to use (default sentence_transformer) */
-            embedding_provider?: string | null;
-        };
         ForgotPasswordData: {
             /**
              * Format: email
@@ -3881,6 +4340,19 @@ export interface components {
         };
         ForgotPasswordResponse: components["schemas"]["SuccessResponse"] & {
             code_delivery?: components["schemas"]["CognitoCodeDeliveryDetails"] | null;
+        };
+        FormsLibraryCategory: {
+            /** @description Category folder name (e.g. escrow). */
+            name: string;
+            forms: components["schemas"]["ChecklistFormWithDownload"][];
+        };
+        FormsLibraryDownloadResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            download_url: string;
+            form: components["schemas"]["ChecklistForm"];
+        };
+        FormsLibraryResponse: components["schemas"]["SuccessResponse"] & {
+            categories?: components["schemas"]["FormsLibraryCategory"][] | null;
         };
         FreebusyRequest: {
             /**
@@ -3928,11 +4400,89 @@ export interface components {
         GetAgreementResponse: components["schemas"]["SuccessResponse"] & {
             agreement?: components["schemas"]["Agreement"];
         };
+        GetChecklistItemFormsResponse: components["schemas"]["SuccessResponse"] & {
+            forms?: components["schemas"]["ChecklistFormWithDownload"][] | null;
+        };
         GetDashboardResponse: components["schemas"]["SuccessResponse"] & {
             user: components["schemas"]["UserProfile"];
         };
         GetLoggerConfigResponse: components["schemas"]["SuccessResponse"] & {
-            config?: components["schemas"]["ServerLoggerConfig"];
+            config?: components["schemas"]["DeploymentLoggerConfig"];
+        };
+        /** @description Resolved frontend logger category toggles with nested API subcategories plus logLevel. */
+        ClientLoggerConfig: {
+            polling: boolean;
+            pages: boolean;
+            hooks: boolean;
+            auth: boolean;
+            http: boolean;
+            api: boolean | components["schemas"]["ClientApiSubcategoryConfig"];
+            errors: boolean;
+            security: boolean;
+            search: boolean;
+            polygonSearch: boolean;
+            mapRendering: boolean;
+            propertyDetails: boolean;
+            negotiation: boolean;
+            checklists: boolean;
+            calendar: boolean;
+            dashboard: boolean;
+            messages: boolean;
+            feed: boolean;
+            routing: boolean;
+            docusign: boolean;
+            documents: boolean;
+            profilePreferences: boolean;
+            /** @enum {string} */
+            logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR";
+        };
+        /** @description Partial frontend logger config for admin updates. All fields optional; server deep-merges into stored deployment overrides. */
+        ClientLoggerConfigPatch: {
+            polling?: boolean;
+            pages?: boolean;
+            hooks?: boolean;
+            auth?: boolean;
+            http?: boolean;
+            api?: boolean | components["schemas"]["ClientApiSubcategoryConfigPatch"];
+            errors?: boolean;
+            security?: boolean;
+            search?: boolean;
+            polygonSearch?: boolean;
+            mapRendering?: boolean;
+            propertyDetails?: boolean;
+            negotiation?: boolean;
+            checklists?: boolean;
+            calendar?: boolean;
+            dashboard?: boolean;
+            messages?: boolean;
+            feed?: boolean;
+            routing?: boolean;
+            docusign?: boolean;
+            documents?: boolean;
+            profilePreferences?: boolean;
+            /** @enum {string} */
+            logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR";
+        };
+        ClientApiSubcategoryConfig: {
+            initialLoad: boolean;
+            polling: boolean;
+            pageMount: boolean;
+            other: boolean;
+        };
+        /** @description Partial API subcategory toggles for admin logger config updates. */
+        ClientApiSubcategoryConfigPatch: {
+            initialLoad?: boolean;
+            polling?: boolean;
+            pageMount?: boolean;
+            other?: boolean;
+        };
+        DeploymentLoggerConfig: {
+            client: components["schemas"]["ClientLoggerConfig"];
+            server: components["schemas"]["ServerLoggerConfig"];
+        };
+        DeploymentLoggerConfigUpdates: {
+            client?: components["schemas"]["ClientLoggerConfigPatch"];
+            server?: components["schemas"]["ServerLoggerConfigPatch"];
         };
         GetSenderViewUrlResponse: components["schemas"]["SuccessResponse"] & {
             /** Format: uri */
@@ -4012,6 +4562,10 @@ export interface components {
             scopes: string;
             last_updated?: string | null;
         };
+        /** @description Optional JSON body on Google Calendar push notifications. Header verification (X-Goog-Channel-Token, etc.) is authoritative; body shape varies by Google. */
+        GoogleCalendarWebhookBody: {
+            [key: string]: unknown;
+        };
         GoogleConferenceData: {
             createRequest?: {
                 requestId?: string;
@@ -4074,12 +4628,12 @@ export interface components {
              */
             hangoutLink?: string | null;
             conferenceData?: components["schemas"]["GoogleConferenceData"];
-            /** @description App-only multi-stop viewing data; stripped before sending to Google Calendar. Persisted in SilverKey DB; used to build calendar description and first-stop location. */
-            itinerary?: components["schemas"]["ViewingItinerary"];
             /** @description Google Calendar event color id (1–11) when set on the event; returned by the Calendar API on list/get. Optional; omitted when the event uses the calendar default color. */
             colorId?: string | null;
             /** @description SilverKey scheduling category from the app database when this event was created in-app (e.g. `property_viewing`, `meeting`, `open_house`). Not sent to Google; attached by the server when listing or getting events. Used for UI coloring when the title no longer matches a known template label. */
             silverKeyEventType?: string | null;
+            /** @description True when this SilverKey-managed event was saved with virtual meeting requested (derived from DB conference_status / meet_url). Omitted for events not in our DB. */
+            silverKeyVirtualMeetingEnabled?: boolean | null;
         };
         GoogleEventAttendee: {
             /** Format: email */
@@ -4196,17 +4750,18 @@ export interface components {
         };
         IsochroneResponse: components["schemas"]["SuccessResponse"] & {
             data?: components["schemas"]["IsochroneData"];
-            /** @description Legacy field */
-            isochrone_data?: {
-                type?: string;
-                coordinates?: number[][][];
-            } | null;
-            /** @description Legacy field */
-            locations?: {
-                address?: string;
-                commute_tolerance?: number | null;
-                name?: string | null;
-            }[] | null;
+        };
+        IsochroneQueryParams: {
+            /** @description Optional user id whose preferences drive the isochrone (agent research scope). */
+            preferences_user_id?: string;
+        };
+        OAuthCallbackQueryParams: {
+            /** @description OAuth authorization code */
+            code?: string;
+            /** @description OAuth CSRF state parameter */
+            state?: string;
+            /** @description OAuth error code when authorization failed */
+            error?: string;
         };
         ListAgreementsResponse: components["schemas"]["SuccessResponse"] & {
             agreements?: components["schemas"]["Agreement"][] | null;
@@ -4285,7 +4840,7 @@ export interface components {
             filename: string;
             generated_at: string;
             generated_for_user: string;
-            property_data?: components["schemas"]["PropertyData"];
+            property_data?: components["schemas"]["PropertyComplete"];
             commute_data?: components["schemas"]["CommuteData"];
             /** @description Property analysis from research endpoint (same structure as in PropertyResponse) */
             property_analysis?: {
@@ -4377,7 +4932,32 @@ export interface components {
         };
         /** @description User search preferences */
         PreferencesResponse: {
+            /** @description Buyer communication preference — text, call, or email */
+            preferred_contact_method?: string;
+            /** @description Update cadence — as_things_come_up, weekly_check_in, or daily */
+            communication_frequency?: string;
+            /** @description Versioned buyer preference extensions (v1 JSON) */
+            extended_buyer_preferences?: {
+                /** @description SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation */
+                buyer_about_me?: {
+                    [key: string]: unknown;
+                };
+                /** @description SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc. */
+                price_financing?: {
+                    [key: string]: unknown;
+                };
+            } & {
+                [key: string]: unknown;
+            };
+            /** @description Intent attribute — true when buyer pays cash */
+            paying_cash?: boolean;
+        } & {
             [key: string]: unknown;
+        };
+        UpsertPreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
+            preferences?: components["schemas"]["PreferencesResponse"];
+            /** @description Confirmation copy (e.g. Preferences saved successfully). */
+            message?: string;
         };
         ProfilePictureResponse: components["schemas"]["SuccessResponse"] & {
             /**
@@ -4394,7 +4974,7 @@ export interface components {
             email: string;
             phone?: string | null;
             mls_id?: string | null;
-            /** @description Legacy brokerage name on the users row. */
+            /** @description Brokerage name from the users row (prefer `brokerage_name` when both are set). */
             brokerage?: string | null;
             /**
              * Format: uri
@@ -4423,7 +5003,7 @@ export interface components {
             social_links?: {
                 [key: string]: string;
             } | null;
-            /** @description Unique slug for the short public profile URL path `/a/{public_profile_slug}`. Omitted or null only for legacy rows before backfill; clients should fall back to the long id-based URL. */
+            /** @description Unique slug for the short public profile URL path `/a/{public_profile_slug}`. Omitted or null before slug backfill; clients should fall back to the long id-based URL. */
             public_profile_slug?: string | null;
         };
         PublicAgentProfileResponse: components["schemas"]["SuccessResponse"] & {
@@ -4446,29 +5026,6 @@ export interface components {
             } | null;
             /** @enum {string} */
             source?: "slipstream_gamls";
-        };
-        /**
-         * @description DEPRECATED: Use PropertyComplete with submodels instead.
-         *     Legacy flat property data structure. Kept for backward compatibility.
-         */
-        PropertyData: {
-            streetAddress?: string | null;
-            city?: string | null;
-            state?: string | null;
-            zipcode?: string | null;
-            price?: number | null;
-            listPrice?: number | null;
-            /** @description Use this field (not beds) */
-            bedrooms?: number | null;
-            /** @description Use this field (not baths) */
-            bathrooms?: number | null;
-            /** @description Living area in sqft (use this field, not sqft) */
-            livingArea?: number | null;
-            /** @description Property type (SINGLE_FAMILY, CONDO, etc.) */
-            homeType?: string | null;
-            lotAreaValue?: number | null;
-            lotAreaUnit?: string | null;
-            listingStatus?: string | null;
         };
         /**
          * @description Agent and brokerage information
@@ -4924,8 +5481,10 @@ export interface components {
          *     }
          */
         PropertySearchResult: {
-            /** @description Property ID (ZPID or internal) */
+            /** @description Slipstream listing key (ZPID or MLS id) */
             id: string;
+            /** @description Stable PropertyCache UUID for this listing in SilverKey (use for saves, feed, and refresh). */
+            home_id?: string | null;
             /** @description Core property characteristics */
             essentials: {
                 bedrooms: number;
@@ -4966,9 +5525,6 @@ export interface components {
             /** @description Position in search results */
             ranking?: number | null;
         };
-        RemoveAgentResponse: components["schemas"]["SuccessResponse"] & {
-            removed?: boolean;
-        };
         RemoveFavoriteRequest: {
             address: string;
             client_id?: string | null;
@@ -4991,8 +5547,6 @@ export interface components {
         ReportDocumentsListResponse: components["schemas"]["SuccessResponse"] & {
             /** @description Rows from GET /api/v1/report/documents */
             documents?: components["schemas"]["UploadedDocumentRecord"][] | null;
-            /** @description Legacy alias for documents (backward compatibility) */
-            reports?: components["schemas"]["UploadedDocumentRecord"][] | null;
             count?: number | null;
             /** @description Total matching rows when paginated */
             total?: number | null;
@@ -5005,7 +5559,7 @@ export interface components {
         };
         ReportsResponse: components["schemas"]["SuccessResponse"] & {
             documents?: components["schemas"]["UploadedDocumentRecord"][] | null;
-            /** @description Property report list entries (GET /api/v1/report/list shape); legacy clients may have conflated this with upload rows. */
+            /** @description Property report list entries (GET /api/v1/report/list shape). */
             reports?: components["schemas"]["ReportListItem"][] | null;
         };
         ResendCodeData: {
@@ -5043,7 +5597,7 @@ export interface components {
             revoked?: boolean;
         };
         /**
-         * @description A single saved or tracked listing row (`HomeUniversal.to_dict()`). Numeric facts (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether the row reflects the latest MLS snapshot the server holds.
+         * @description A single saved or tracked listing row from PropertyCache + UserPropertyLink. Numeric facts (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether the row reflects the latest MLS snapshot the server holds.
          * @example {
          *       "id": "fav-8c2e9b1a-4d3f-5e6a-7b8c-9d0e1f2a3b4c",
          *       "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -5138,8 +5692,32 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
-        SearchAgentsPreferencesResponse: components["schemas"]["SuccessResponse"] & {
-            agents?: components["schemas"]["User"][] | null;
+        AgentSearchQueryParams: {
+            /** @default  */
+            q: string;
+            /** @default 20 */
+            limit: number;
+        };
+        AgentRecommendQueryParams: {
+            zip?: string;
+            state?: string;
+            intent?: string;
+            /** @default 20 */
+            limit: number;
+        };
+        FeedListQueryParams: {
+            /** @default 0 */
+            page: number;
+            /** @default 10 */
+            limit: number;
+        };
+        FeedLikesQueryParams: {
+            /** @description Comma-separated home ids */
+            ids?: string;
+        };
+        ChecklistTypeQueryParams: {
+            /** @default escrow */
+            type: components["schemas"]["ChecklistType"];
         };
         SearchAgentsResponse: components["schemas"]["SuccessResponse"] & {
             agents?: components["schemas"]["AgentSearchResult"][] | null;
@@ -5174,7 +5752,8 @@ export interface components {
          *       "preferences_strict_filter": false,
          *       "perBucketPages": 10,
          *       "forceSearch": false,
-         *       "onlyCached": false
+         *       "onlyCached": false,
+         *       "hydrateListings": false
          *     }
          */
         SearchByPolygonRequest: {
@@ -5193,6 +5772,11 @@ export interface components {
             forceSearch?: boolean | null;
             /** @description When true, return previously materialized results only without hitting upstream MLS. */
             onlyCached?: boolean | null;
+            /**
+             * @description When true with `onlyCached`, refresh listing snapshots (price, status, beds, etc.) from Slipstream
+             *     using each persisted home_id before responding. Does not re-run search or change match scores.
+             */
+            hydrateListings?: boolean | null;
             /**
              * @description Optional subject for preference scoring (agents: must be a linked client id; buyers are always scoped to self).
              *     Resolved server-side via `resolve_preferences_user_id_for_research`.
@@ -5289,7 +5873,10 @@ export interface components {
                     /** Format: double */
                     lng?: number;
                 } | null;
-                /** @description Map zoom level at the time of the last search. */
+                /**
+                 * Format: double
+                 * @description Map zoom level at the time of the last search.
+                 */
                 map_zoom?: number | null;
                 /**
                  * Format: date-time
@@ -5303,6 +5890,11 @@ export interface components {
         SearchDisplayResponse: components["schemas"]["SuccessResponse"] & {
             search_display?: components["schemas"]["SearchDisplayPayload"];
         };
+        /** @description Multipart form fields for POST /api/v1/upload/document (excluding binary `file`, which is validated via file_security). Maps to the `address` part of SecureUploadDocumentRequest. */
+        SecureUploadDocumentForm: {
+            /** @description Optional property address associated with the upload. */
+            address?: string | null;
+        };
         /** @description Nested payload returned by POST /api/v1/upload/document (field `document` on `UploadResponse`). Immediate upload metadata; not the full `UploadedDocumentRecord` (no `user_id` / pipeline status in body). */
         SecureUploadDocumentPayload: {
             id: string;
@@ -5312,6 +5904,36 @@ export interface components {
             type?: string | null;
             hash?: string | null;
             uploaded_at?: string | null;
+        };
+        SecureUploadDocumentRequest: {
+            /**
+             * Format: binary
+             * @description Document file (PDF, DOCX, or allowed image types per handler validation).
+             */
+            file: string;
+            /** @description Optional property address associated with the upload. */
+            address?: string | null;
+        };
+        /** @description Nested payload returned by POST /api/v1/upload/image (field `image` on UploadResponse). */
+        SecureUploadImagePayload: {
+            filename: string;
+            /** @description File size in bytes; may be null after temp file is removed post-S3 upload. */
+            size?: number | null;
+            /** @description Validated MIME type of the uploaded image. */
+            type?: string | null;
+            hash?: string | null;
+            /**
+             * Format: uri
+             * @description S3 URL when configured; otherwise null.
+             */
+            url?: string | null;
+        };
+        SecureUploadImageRequest: {
+            /**
+             * Format: binary
+             * @description Image file (JPEG, PNG, or GIF per handler validation).
+             */
+            file: string;
         };
         SendAgreementRequest: {
             signing_method?: components["schemas"]["SigningMethod"];
@@ -5341,7 +5963,7 @@ export interface components {
         SendMessageResponse: components["schemas"]["SuccessResponse"] & {
             message_id?: string | null;
         };
-        /** @description Logger category toggles (booleans) plus logLevel. additionalProperties allows future category keys to be boolean or string without breaking older clients when the server adds flags. */
+        /** @description Resolved server logger category toggles plus logLevel. */
         ServerLoggerConfig: {
             polling: boolean;
             pages: boolean;
@@ -5351,10 +5973,49 @@ export interface components {
             api: boolean;
             errors: boolean;
             security: boolean;
+            search: boolean;
+            polygonSearch: boolean;
+            mapRendering: boolean;
+            propertyDetails: boolean;
+            negotiation: boolean;
+            checklists: boolean;
+            calendar: boolean;
+            dashboard: boolean;
+            messages: boolean;
+            feed: boolean;
+            routing: boolean;
+            docusign: boolean;
+            documents: boolean;
+            profilePreferences: boolean;
             /** @enum {string} */
             logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR";
-        } & {
-            [key: string]: boolean | string;
+        };
+        /** @description Partial server logger config for admin updates. All fields optional; server deep-merges into stored deployment overrides. */
+        ServerLoggerConfigPatch: {
+            polling?: boolean;
+            pages?: boolean;
+            hooks?: boolean;
+            auth?: boolean;
+            http?: boolean;
+            api?: boolean;
+            errors?: boolean;
+            security?: boolean;
+            search?: boolean;
+            polygonSearch?: boolean;
+            mapRendering?: boolean;
+            propertyDetails?: boolean;
+            negotiation?: boolean;
+            checklists?: boolean;
+            calendar?: boolean;
+            dashboard?: boolean;
+            messages?: boolean;
+            feed?: boolean;
+            routing?: boolean;
+            docusign?: boolean;
+            documents?: boolean;
+            profilePreferences?: boolean;
+            /** @enum {string} */
+            logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR";
         };
         /** @enum {string} */
         SigningMethod: "embedded" | "email";
@@ -5418,6 +6079,8 @@ export interface components {
             /** @description Reserved for symmetry with errors; keep null on success. */
             error?: string | null;
         };
+        /** @description Empty JSON body for POST /api/v1/docusign/templates/sync. Client may send {}. No fields are required or read by the handler. */
+        SyncTemplatesRequest: Record<string, never>;
         SyncTemplatesResponse: components["schemas"]["SuccessResponse"] & {
             task_id?: string | null;
         };
@@ -5467,6 +6130,26 @@ export interface components {
              * @enum {string|null}
              */
             completionType?: "manual" | "signature_based" | "signature_plus_review" | "integration_based" | null;
+        };
+        TaskChecklistProgressSummary: {
+            /** @description Per-category progress keyed by ChecklistType (search, offer, escrow, insurance, financing, closing). */
+            sections: {
+                [key: string]: components["schemas"]["TaskChecklistSectionProgress"];
+            };
+            overall: components["schemas"]["TaskChecklistOverallProgress"];
+        };
+        TaskChecklistProgressSummaryResponse: components["schemas"]["SuccessResponse"] & {
+            data?: components["schemas"]["TaskChecklistProgressSummary"];
+        };
+        TaskChecklistSectionProgress: {
+            completed: number;
+            total: number;
+            isComplete: boolean;
+        };
+        TaskChecklistOverallProgress: {
+            completed: number;
+            total: number;
+            percent: number;
         };
         TaskChecklistResponse: {
             items: components["schemas"]["TaskChecklistItem"][];
@@ -5558,13 +6241,128 @@ export interface components {
         TransactionAddressResponse: components["schemas"]["SuccessResponse"] & {
             data?: components["schemas"]["TransactionAddressData"];
         };
+        /**
+         * @description Revenue spine row for a buyer deal. Path param `transaction_id` on checklist, documents, rev-share, and calendar APIs MUST be `transactions.id` (UUID) — never the buyer's `users.id`.
+         * @example {
+         *       "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *       "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *       "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+         *       "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+         *     }
+         */
+        Transaction: {
+            /** @description Primary key (`transactions.id`); sole deal scope id for downstream APIs. */
+            id: string;
+            /** @description Buyer user id for this deal. */
+            buyer_id: string;
+            /** @description Primary agent user id when linked via agent_conversations. */
+            primary_agent_id?: string | null;
+            /** @description Attribution org for brokerage revenue (not tenant isolation). */
+            brokerage_org_id: string;
+            /** @description Deal lifecycle status (e.g. active, closed). Optional until engine assigns values. */
+            status?: string | null;
+            /** @description Short human label (often address line) for multi-deal lists and switchers. */
+            display_label?: string | null;
+            /**
+             * Format: date-time
+             * @description ISO 8601 timestamp when the deal row was created.
+             */
+            created_at?: string | null;
+            /**
+             * Format: date-time
+             * @description ISO 8601 timestamp when the deal row was last updated.
+             */
+            updated_at?: string | null;
+        };
+        /** @description Active deal for the authenticated buyer plus optional address summary. */
+        TransactionMeData: {
+            transaction: components["schemas"]["Transaction"];
+            /** @description Buyer user's active deal pointer (`users.active_transaction_id`); mirrors `transaction.id` when set. */
+            active_transaction_id?: string | null;
+            /** @description Saved finding-home address for this deal when present. */
+            address?: components["schemas"]["TransactionAddressData"] | null;
+        };
+        /**
+         * @example {
+         *       "success": true,
+         *       "data": {
+         *         "transaction": {
+         *           "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *           "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *           "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+         *           "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+         *         },
+         *         "active_transaction_id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *         "address": null
+         *       }
+         *     }
+         */
+        TransactionMeResponse: {
+            success: boolean;
+            data?: components["schemas"]["TransactionMeData"];
+        };
+        /**
+         * @example {
+         *       "success": true,
+         *       "data": [
+         *         {
+         *           "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *           "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *           "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+         *           "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+         *         }
+         *       ]
+         *     }
+         */
+        TransactionListResponse: {
+            success: boolean;
+            data: components["schemas"]["Transaction"][];
+        };
+        /** @description Create a new deal row (`transactions.id`). Buyer is implicit for self; agents may set `buyer_id` for a managed client. */
+        CreateTransactionRequest: {
+            /** @description Buyer user id. Required when the caller is an agent creating a deal for a client; omit for buyer self-serve. */
+            buyer_id?: string | null;
+            /** @description Optional primary agent override when creating on behalf of a buyer. */
+            primary_agent_id?: string | null;
+            /** @description Attribution org; defaults from agent membership or platform default. */
+            brokerage_org_id?: string | null;
+            /**
+             * @description When true, sets the buyer's `active_transaction_id` to the new deal.
+             * @default true
+             */
+            set_active: boolean;
+        };
+        CreateTransactionResponse: {
+            success: boolean;
+            data: components["schemas"]["Transaction"];
+        };
+        SetActiveTransactionRequest: {
+            /** @description Revenue spine id (`transactions.id`) to set as the buyer's active deal. */
+            transaction_id: string;
+        };
+        SetActiveTransactionResponse: {
+            success: boolean;
+            data: components["schemas"]["Transaction"];
+        };
         UpdateAgentStatusRequest: {
-            /** @description Whether user should be an agent */
-            is_agent: boolean;
+            /** @description When true, ensure the agent role in user_roles; when false, remove it. */
+            agent_role_enabled: boolean;
             /** @description Optional users.brokerage when toggling agent status (if used by client). */
             brokerage?: string | null;
         };
         UpdateAgentStatusResponse: components["schemas"]["SuccessResponse"] & {
+            user?: components["schemas"]["User"];
+        };
+        /**
+         * @description Dev-only workspace persona for admin self-impersonation (local QA).
+         * @enum {string}
+         */
+        DevWorkspacePersona: "buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner";
+        SetCurrentUserDevWorkspaceRequest: {
+            /** @description Exclusive workspace persona to apply to the signed-in user. */
+            workspace: components["schemas"]["DevWorkspacePersona"];
+        };
+        SetCurrentUserDevWorkspaceResponse: components["schemas"]["SuccessResponse"] & {
             user?: components["schemas"]["User"];
         };
         UpdateChecklistDispatchAutomationRequest: {
@@ -5589,14 +6387,6 @@ export interface components {
                 date_finished?: string | null;
             };
         };
-        UpdateClosingModeRequest: {
-            /** @description Toggle closing mode on (true) or off (false) */
-            is_closing_mode: boolean;
-        };
-        UpdateClosingModeResponse: components["schemas"]["SuccessResponse"] & {
-            /** @description Echo of the request value for API compatibility. Not persisted on the users table (column removed); do not treat as stored user profile state. */
-            is_closing_mode?: boolean;
-        };
         UpdateEventRequestStatusRequest: {
             /**
              * @description New status for the event request (pending cannot be set manually)
@@ -5605,10 +6395,7 @@ export interface components {
             status: "accepted" | "cancelled";
         };
         UpdateLoggerConfigRequest: {
-            /** @description Partial logger config updates */
-            updates: {
-                [key: string]: unknown;
-            };
+            updates: components["schemas"]["DeploymentLoggerConfigUpdates"];
         };
         UpdateNotInterestedRequest: {
             address: string;
@@ -5637,6 +6424,20 @@ export interface components {
         UpdateTodoResponse: components["schemas"]["SuccessResponse"] & {
             todo?: components["schemas"]["TodoItem"];
         };
+        AdminGateUser: {
+            /** @description User primary key (UUID). */
+            user_id: string;
+            /** @description User email address. */
+            email: string;
+            /** @description Display name. */
+            name: string;
+            /** @description SilverKey gate roles assigned to this user (`admin`, `super_admin`). */
+            gate_roles: ("admin" | "super_admin")[];
+        };
+        ListAdminGateUsersResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Users with at least one SilverKey gate role (`admin` or `super_admin`). */
+            admins: components["schemas"]["AdminGateUser"][];
+        };
         UpdateUserSystemRolesRequest: {
             /** @description Target user UUID (users.id). */
             user_id: string;
@@ -5662,7 +6463,7 @@ export interface components {
             filename: string;
             file_path: string;
             /**
-             * @description Pipeline state for the stored file (DB allows additional legacy values).
+             * @description Pipeline state for the stored file (DB allows additional values).
              * @enum {string}
              */
             status: "uploaded" | "processing" | "processed" | "error" | "generating";
@@ -5680,9 +6481,10 @@ export interface components {
             file_size?: number | null;
             content_type?: string | null;
             document?: components["schemas"]["SecureUploadDocumentPayload"];
+            image?: components["schemas"]["SecureUploadImagePayload"];
         };
         /**
-         * @description Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Closing mode is not stored on users (column removed); use PUT /user/closing-mode response only.
+         * @description Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Agent identity is determined by the presence of role "agent" in user_roles (exposed as roles).
          * @example {
          *       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
          *       "email": "jane.buyer@example.com",
@@ -5691,7 +6493,6 @@ export interface components {
          *       "phone": "+15551234567",
          *       "cognito_id": "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
          *       "google_id": null,
-         *       "is_agent": false,
          *       "has_preferences": true,
          *       "roles": [
          *         "buyer"
@@ -5721,27 +6522,11 @@ export interface components {
              */
             last_logged_in?: string | null;
             is_active: boolean;
-            is_agent?: boolean | null;
-            /** @description Legacy wire shape: JSON array of client ids or a single comma-separated string. Prefer array in new clients; oneOf is required until all producers normalize. */
-            client_ids?: (string[] | string) | null;
-            /** @description Legacy wire shape: buyer agent id(s) as JSON array or string. Prefer array in new clients. */
-            agent_id?: (string[] | string) | null;
             mls_id?: string | null;
-            /** @description Agent brokerage name on the users row (DB column brokerage). Replaces the legacy column name agency_name from early migrations; API wire name is always brokerage. */
+            /** @description Agent brokerage name on the users row (DB column brokerage). API wire name is always brokerage. */
             brokerage?: string | null;
-            has_subscription?: boolean | null;
-            /** @description Optional payment-provider subscription metadata. Listed properties are common; providers may add extra keys (additionalProperties allowed). */
-            subscription?: ({
-                status?: string | null;
-                plan_id?: string | null;
-                customer_id?: string | null;
-                /** Format: date-time */
-                current_period_end?: string | null;
-            } & {
-                [key: string]: unknown;
-            }) | null;
             has_preferences?: boolean | null;
-            /** @description Legacy preferences version marker on users row. */
+            /** @description Preferences schema version marker on users row (e.g. v1); null when unset. */
             preferences_version?: string | null;
             /** @description S3 object key for the profile image when stored server-side. */
             profile_picture?: string | null;
@@ -5750,13 +6535,10 @@ export interface components {
              * @description Presigned URL when returned by profile/upload handlers.
              */
             profile_picture_url?: string | null;
-            /** @description Role names from user_roles; typically present on GET /user/profile. */
+            /** @description Role names from user_roles (e.g. agent, buyer, seller). Agent UX uses roles includes agent. */
             roles?: string[];
-            /** @description Brokerage organization ids this user may administer under brokerage workspace. Omitted or null until brokerage roster membership is populated server-side. */
+            /** @description Brokerage organization ids from `user_org_memberships` for attribution and admin scope. */
             brokerage_org_ids?: string[] | null;
-        };
-        UserAgentsResponse: components["schemas"]["SuccessResponse"] & {
-            agents?: components["schemas"]["User"][] | null;
         };
         /**
          * @description User identifier (UUID or string)
@@ -5783,7 +6565,6 @@ export interface components {
          *       "email": "alex.agent@example.com",
          *       "name": "Alex Agent",
          *       "is_active": true,
-         *       "is_agent": true,
          *       "mls_id": "MLS-48291",
          *       "brokerage": "Silver Key Realty",
          *       "cognito_id": "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
@@ -5807,7 +6588,6 @@ export interface components {
          *         "email": "jane.buyer@example.com",
          *         "name": "Jane Buyer",
          *         "is_active": true,
-         *         "is_agent": false,
          *         "roles": [
          *           "buyer"
          *         ]
@@ -5832,77 +6612,213 @@ export interface components {
                 [key: string]: unknown;
             };
         };
-        ViewingBuildRouteApiResponse: {
-            success: boolean;
-            data?: components["schemas"]["ViewingItinerary"];
-            error?: string | null;
-        };
-        /** @description Ordered property viewing stops with optional route anchors and computed legs. `stops` are property/showing stops only; `start` and `end` (when used) are logistics anchors and are not duplicated inside `stops`. */
-        ViewingItinerary: {
-            /** @description Property stops only, in visit order after route optimization when `ordered` is true. */
-            stops: components["schemas"]["ViewingStop"][];
+        Partner: {
+            id: string;
+            name: string;
+            slug: string;
+            destination_url_template: string;
+            logo_url?: string | null;
+            description?: string | null;
+            /** @description Deprecated primary step mirror (step_ids[0]) for analytics compatibility */
+            step_id: string;
+            /** @description Checklist step references (section:item_id), e.g. closing:13 */
+            step_ids: string[];
+            /** @description Workspaces that may see this placement */
+            target_roles: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
             /**
-             * @description True when property stop order was optimized via the route service.
-             * @default false
+             * @description Whether payout is attributed per click or per closed transaction
+             * @enum {string}
              */
-            ordered: boolean;
-            /** @description Per-leg metrics and polylines for the full driving path (includes legs from/to anchors). When present and complete, length equals the number of nodes in the expanded path minus one (nodes: optional start, each property stop in order, optional return or fixed end). */
-            legs?: components["schemas"]["ViewingRouteLeg"][] | null;
-            /** @description Optional meet-up / departure anchor (not listed in `stops`). */
-            start?: components["schemas"]["ViewingRouteEndpoint"] | null;
-            /** @description Required when `end_mode` is `fixed`; ignored otherwise. */
-            end?: components["schemas"]["ViewingRouteEndpoint"] | null;
-            /** @description How the tour ends after the last property. Omitted or `last_property` for legacy itineraries. */
-            end_mode?: components["schemas"]["ViewingRouteEndMode"];
-        };
-        ViewingNavigateApiResponse: {
-            success: boolean;
-            data?: components["schemas"]["ViewingNavigateResponse"];
-            error?: string | null;
-        };
-        /** @description Google Maps multi-stop navigation URL. */
-        ViewingNavigateResponse: {
+            payout_type: "on_click" | "on_close";
+            payout_per_conversion: number;
             /**
-             * Format: uri
-             * @description https://www.google.com/maps/dir/... deep link for driving directions.
+             * @description Checklist integration UI — embedded iframe plus new-tab link, or link only
+             * @default iframe_and_link
+             * @enum {string}
              */
-            url: string;
+            integration_display_mode: "iframe_and_link" | "link_only";
+            /** @description Optional URL loaded in the iframe when integration_display_mode is iframe_and_link; defaults to destination_url_template */
+            embed_url_template?: string | null;
+            is_active: boolean;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+            total_clicks?: number | null;
+            click_through_rate?: number | null;
+            unique_buyer_step_views?: number | null;
         };
-        /**
-         * @description How the route finishes after the last property when a start location is set. Ignored when start is omitted (legacy open tour across properties only).
-         * @default last_property
-         * @enum {string}
-         */
-        ViewingRouteEndMode: "last_property" | "return_to_start" | "fixed";
-        /** @description Start or end location for routing. Provide a non-empty address and/or both lat and lng. The server geocodes when an address is present without coordinates. */
-        ViewingRouteEndpoint: {
-            label?: string | null;
-            address?: string | null;
-            lat?: number | null;
-            lng?: number | null;
+        BuyerStepView: {
+            id: string;
+            buyer_id: string;
+            step_id: string;
+            transaction_id: string;
+            /** Format: date-time */
+            viewed_at: string | null;
+            partner_payout_snapshot?: {
+                [key: string]: unknown;
+            }[] | null;
         };
-        /** @description Driving leg between two consecutive ordered stops (from Directions API). */
-        ViewingRouteLeg: {
-            /** @description Travel duration in seconds for this leg. */
-            duration_seconds?: number | null;
-            /** @description Distance in meters for this leg. */
-            distance_meters?: number | null;
-            /** @description Google-encoded polyline for this leg (path for map rendering). */
-            encoded_polyline?: string | null;
+        RevShareRecentClick: {
+            id: string;
+            partner_id: string;
+            link_id: string;
+            agent_id?: string | null;
+            buyer_id?: string | null;
+            transaction_id?: string | null;
+            step_id: string;
+            /** Format: date-time */
+            clicked_at: string | null;
+            payout_per_conversion: number;
+            payout_type: string;
+            utm_source?: string | null;
+            utm_medium?: string | null;
+            utm_campaign?: string | null;
+            geo_city?: string | null;
+            geo_zip?: string | null;
+            geo_region?: string | null;
+            device_class?: string | null;
+            referrer?: string | null;
+            buyer_name?: string | null;
+            agent_name?: string | null;
         };
-        /** @description One stop on a multi-property viewing itinerary. */
-        ViewingStop: {
-            /** @description Short label shown in lists (e.g. street or listing title). */
-            label?: string | null;
-            /** @description Full address string for display and calendar location fallback. */
-            address: string;
-            /** @description Latitude when geocoded or from listing; required for routing. */
-            lat?: number | null;
-            /** @description Longitude when geocoded or from listing; required for routing. */
-            lng?: number | null;
-            notes?: string | null;
-            /** @description Optional listing / property identifier when linked to search results. */
-            listing_id?: string | null;
+        PartnerCreateRequest: {
+            name: string;
+            slug: string;
+            /** @description Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here. */
+            destination_url_template: string;
+            logo_url?: string | null;
+            description?: string | null;
+            /** @description Required when target_roles includes buyer or seller */
+            step_ids?: string[];
+            target_roles: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
+            /** @enum {string} */
+            payout_type: "on_click" | "on_close";
+            payout_per_conversion?: number | null;
+            /**
+             * @default iframe_and_link
+             * @enum {string}
+             */
+            integration_display_mode: "iframe_and_link" | "link_only";
+            /** @description Optional iframe embed URL; when omitted, destination_url_template is used for the iframe src */
+            embed_url_template?: string | null;
+        };
+        PartnerUpdateRequest: {
+            name?: string;
+            slug?: string;
+            /** @description Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here. */
+            destination_url_template?: string;
+            logo_url?: string | null;
+            description?: string | null;
+            step_ids?: string[];
+            target_roles?: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
+            /** @enum {string} */
+            payout_type?: "on_click" | "on_close";
+            payout_per_conversion?: number | null;
+            /** @enum {string} */
+            integration_display_mode?: "iframe_and_link" | "link_only";
+            embed_url_template?: string | null;
+            /** @description Table activate/deactivate only; not set from create/edit form */
+            is_active?: boolean;
+        };
+        PartnerListResponse: {
+            success: boolean;
+            data: {
+                partners: components["schemas"]["Partner"][];
+            };
+        };
+        PartnerResponse: {
+            success: boolean;
+            data: components["schemas"]["Partner"];
+        };
+        PartnerLogoUploadResponse: {
+            success: boolean;
+            /** @description Presigned view URL for the uploaded logo */
+            logo_url?: string;
+            data?: {
+                logo_key?: string;
+                logo_url?: string;
+            };
+        };
+        RevShareStepViewRequest: {
+            step_id: string;
+            transaction_id: string;
+        };
+        RevShareStepViewResponse: {
+            success: boolean;
+            data: components["schemas"]["BuyerStepView"];
+        };
+        PartnerPlacementsQueryParams: {
+            step_id: string;
+            /** @enum {string} */
+            workspace: "buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner";
+            /** @description Optional; used only to fill embed URL placeholders when the partner template includes them */
+            transaction_id?: string;
+        };
+        RevShareAnalyticsQueryParams: {
+            partner_id: string;
+            step_id?: string;
+            /** Format: date-time */
+            date_from?: string;
+            /** Format: date-time */
+            date_to?: string;
+            agent_id?: string;
+            brokerage?: string;
+            /**
+             * @default day
+             * @enum {string}
+             */
+            bucket: "day" | "week";
+        };
+        RevShareRedirectQueryParams: {
+            buyer_id?: string;
+            transaction_id?: string;
+            step_id?: string;
+            session_id?: string;
+            utm_source?: string;
+            utm_medium?: string;
+            utm_campaign?: string;
+        };
+        RevSharePlacementsResponse: {
+            success: boolean;
+            data: {
+                placements: {
+                    partner: components["schemas"]["Partner"];
+                    link_id: string;
+                    /** @description Resolved partner destination URL for outbound open (no /r redirect required) */
+                    destination_url?: string;
+                    /** @description Resolved iframe URL when partner integration_display_mode is iframe_and_link */
+                    embed_src?: string | null;
+                }[];
+            };
+        };
+        RevShareAnalyticsResponse: {
+            success: boolean;
+            data: {
+                partner_id?: string;
+                total_clicks?: number;
+                unique_buyer_clicks?: number;
+                unique_buyer_step_views?: number;
+                click_through_rate?: number | null;
+                estimated_revenue?: number;
+                estimated_revenue_label?: string;
+                clicks_over_time?: {
+                    bucket?: string;
+                    points?: {
+                        date?: string;
+                        count?: number;
+                    }[];
+                };
+                top_agents?: {
+                    agent_id?: string;
+                    name?: string;
+                    clicks?: number;
+                }[];
+                geo_breakdown?: Record<string, never>[];
+                device_breakdown?: Record<string, never>[];
+                referrer_breakdown?: Record<string, never>[];
+                recent_clicks?: components["schemas"]["RevShareRecentClick"][];
+            };
         };
         VerifyData: {
             /**
@@ -5939,19 +6855,14 @@ export interface components {
             /** @description Sort id (allowlist enforced server-side per tab). */
             sort?: string;
         };
-        /** @description Saved viewing-route anchors (e.g. office, home) for quick start selection on property tours. */
-        ViewingTourClientSettings: {
-            /** @description Named locations the user can pick as a tour start (or fixed end). */
-            anchors?: {
-                /** @description Client-generated stable id (e.g. UUID). */
-                id: string;
-                /** @description Display name (e.g. "Midtown office"). */
-                label: string;
-                endpoint: components["schemas"]["ViewingRouteEndpoint"];
-            }[];
-            /** @description When set, new property-viewing events default start to this anchor id. */
-            default_start_anchor_id?: string | null;
-        };
+        /** @description Optional user id whose preferences drive the isochrone (agent research scope). */
+        preferences_user_id: string;
+        /** @description OAuth authorization code */
+        code: string;
+        /** @description OAuth CSRF state parameter */
+        state: string;
+        /** @description OAuth error code when authorization failed */
+        error: string;
     };
     responses: never;
     parameters: never;
@@ -6192,9 +7103,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        preferences?: components["schemas"]["PreferencesResponse"];
-                    };
+                    "application/json": components["schemas"]["GetPreferencesApiResponse"];
                 };
             };
             /** @description Not authenticated */
@@ -6236,10 +7145,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        preferences?: components["schemas"]["PreferencesResponse"];
-                        message?: string;
-                    };
+                    "application/json": components["schemas"]["UpsertPreferencesApiResponse"];
                 };
             };
             /** @description Invalid or empty body */
@@ -6249,6 +7155,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deletePreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Preferences cleared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletePreferencesApiResponse"];
                 };
             };
             /** @description Not authenticated */
@@ -6795,50 +7739,8 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-        };
-    };
-    updateClosingMode: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateClosingModeRequest"];
-            };
-        };
-        responses: {
-            /** @description Closing mode updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UpdateClosingModeResponse"];
-                };
-            };
-            /** @description Invalid request body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Server error */
-            500: {
+            /** @description File storage or signing unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6937,317 +7839,6 @@ export interface operations {
             };
         };
     };
-    getNotInterestedHomes: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Not-interested homes retrieved */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotInterestedHomesResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    addNotInterestedHome: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AddNotInterestedRequest"];
-            };
-        };
-        responses: {
-            /** @description Home marked as not interested */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotInterestedHomesResponse"];
-                };
-            };
-            /** @description Invalid request body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    removeNotInterestedHome: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RemoveNotInterestedRequest"];
-            };
-        };
-        responses: {
-            /** @description Home removed from not-interested list */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotInterestedHomesResponse"];
-                };
-            };
-            /** @description Invalid request body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Home not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    updateNotInterestedHome: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateNotInterestedRequest"];
-            };
-        };
-        responses: {
-            /** @description Not-interested reason updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotInterestedHomesResponse"];
-                };
-            };
-            /** @description Invalid request body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Home not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    buildViewingRoute: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BuildRouteRequest"];
-            };
-        };
-        responses: {
-            /** @description Ordered itinerary with legs when routing succeeds */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ViewingBuildRouteApiResponse"];
-                };
-            };
-            /** @description Invalid stops or missing coordinates */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Routing service error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    buildViewingNavigateLink: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ViewingItinerary"];
-            };
-        };
-        responses: {
-            /** @description Navigation URL */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ViewingNavigateApiResponse"];
-                };
-            };
-            /** @description Invalid itinerary or missing coordinates */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     listGoogleEvents: {
         parameters: {
             query?: {
@@ -7282,6 +7873,15 @@ export interface operations {
             };
             /** @description Server error */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7349,6 +7949,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     getGoogleEvent: {
@@ -7409,6 +8018,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     deleteGoogleEvent: {
@@ -7462,6 +8080,15 @@ export interface operations {
             };
             /** @description Server error */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7540,6 +8167,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     getFreebusyInfo: {
@@ -7591,16 +8227,20 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     startGoogleOAuth: {
         parameters: {
-            query?: {
-                /** @description Request full calendar access (deprecated - all scopes always requested) */
-                full_scope?: boolean;
-                /** @description Request scheduling scopes (deprecated - all scopes always requested) */
-                scheduling?: boolean;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -7625,6 +8265,15 @@ export interface operations {
             };
             /** @description Server error */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7681,6 +8330,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     revokeGoogleOAuth: {
@@ -7717,6 +8375,207 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getWorkspaceConversations: {
+        parameters: {
+            query?: {
+                /** @description Comma-separated WorkspaceConversationKind values */
+                kinds?: string;
+                scope?: "admin";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceConversationsResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createWorkspaceConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWorkspaceConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 201 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateWorkspaceConversationResponse"];
+                };
+            };
+            /** @description Kind not implemented (e.g. group) */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    streamWorkspaceConversationEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description text/event-stream */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getWorkspaceEligibleContacts: {
+        parameters: {
+            query?: {
+                kinds?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EligibleContactsResponse"];
+                };
+            };
+        };
+    };
+    getWorkspaceConversationHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceConversationHistoryResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    sendWorkspaceConversationMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendWorkspaceMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+        };
+    };
+    markWorkspaceConversationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
         };
@@ -7890,6 +8749,15 @@ export interface operations {
                     "application/json": components["schemas"]["AgentChatHistoryResponse"];
                 };
             };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description HTTP 401 */
             401: {
                 headers: {
@@ -8032,6 +8900,24 @@ export interface operations {
             };
             /** @description HTTP 401 */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8260,6 +9146,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConnectionRequestsResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description HTTP 401 */
@@ -8569,6 +9464,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description HTTP 500 */
             500: {
                 headers: {
@@ -8609,6 +9513,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description HTTP 500 */
             500: {
                 headers: {
@@ -8642,7 +9555,7 @@ export interface operations {
                     "application/json": components["schemas"]["ForgotPasswordResponse"];
                 };
             };
-            /** @description HTTP 400 */
+            /** @description Validation or missing fields */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8651,8 +9564,26 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description HTTP 500 */
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream authentication service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8679,8 +9610,17 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description HTTP 500 */
+            /** @description Server error */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description OAuth misconfiguration or service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8735,7 +9675,7 @@ export interface operations {
                     "application/json": components["schemas"]["ResendCodeResponse"];
                 };
             };
-            /** @description HTTP 400 */
+            /** @description Validation or missing fields */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8744,8 +9684,17 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description HTTP 500 */
+            /** @description Server error */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream authentication service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8777,7 +9726,7 @@ export interface operations {
                     "application/json": components["schemas"]["AuthResponse"];
                 };
             };
-            /** @description HTTP 400 */
+            /** @description Invalid or expired verification code, or weak password */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8786,8 +9735,8 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description HTTP 401 */
-            401: {
+            /** @description Server error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8795,8 +9744,8 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description HTTP 500 */
-            500: {
+            /** @description Upstream authentication service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8886,8 +9835,8 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description HTTP 500 */
-            500: {
+            /** @description Agent access required or client not assigned */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8895,28 +9844,8 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-        };
-    };
-    setCurrentUserAsAgent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AddAgentResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
+            /** @description Client or preferences not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8933,37 +9862,8 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-        };
-    };
-    getPreferencesAgents: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchAgentsPreferencesResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
+            /** @description Action plan generation service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9011,44 +9911,6 @@ export interface operations {
             };
         };
     };
-    removeAgentRelationship: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RemoveAgentResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     getUserPreferencesById: {
         parameters: {
             query?: never;
@@ -9066,9 +9928,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessResponse"] & {
-                        preferences?: components["schemas"]["PreferencesResponse"];
-                    };
+                    "application/json": components["schemas"]["GetUserPreferencesByIdApiResponse"];
                 };
             };
             /** @description HTTP 401 */
@@ -9082,44 +9942,6 @@ export interface operations {
             };
             /** @description HTTP 403 */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getUserAgents: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserAgentsResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9258,8 +10080,26 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description HTTP 500 */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream property data service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9299,11 +10139,32 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     getSearchIsochrone: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description See IsochroneQueryParams. */
+                preferences_user_id?: components["schemas"]["preferences_user_id"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -9319,8 +10180,26 @@ export interface operations {
                     "application/json": components["schemas"]["IsochroneResponse"];
                 };
             };
+            /** @description No important locations or no valid addresses (NO_LOCATIONS, NO_VALID_LOCATIONS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description HTTP 401 */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Preferences user id not allowed for caller */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9364,8 +10243,35 @@ export interface operations {
                     "application/json": components["schemas"]["AreaSuggestionsResponse"];
                 };
             };
-            /** @description Upstream API error */
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream area search service unavailable (legacy; prefer 503) */
             502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream area search service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9405,8 +10311,35 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             /** @description Area not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream area boundary service unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9589,106 +10522,6 @@ export interface operations {
             };
         };
     };
-    homeMatchingFindMatches: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FindMatchesRequest"];
-            };
-        };
-        responses: {
-            /** @description HTTP 202 */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskStatusResponse"];
-                };
-            };
-            /** @description HTTP 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getHomeMatchingTaskStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskStatusResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden (task owned by another user) */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     generateNegotiationStrategy: {
         parameters: {
             query?: never;
@@ -9767,150 +10600,8 @@ export interface operations {
                     "application/json": components["schemas"]["MapsScriptResponse"];
                 };
             };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getTimelineChecklist: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChecklistResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    putTimelineChecklist: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateChecklistRequest"];
-            };
-        };
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChecklistResponse"];
-                };
-            };
-            /** @description HTTP 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getCloseChecklist: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChecklistResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    putCloseChecklist: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateChecklistRequest"];
-            };
-        };
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChecklistResponse"];
-                };
-            };
-            /** @description HTTP 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
+            /** @description Maps API key not configured */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10040,6 +10731,24 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Home not found in not-interested list */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     updateNotInterestedHome: {
@@ -10075,6 +10784,205 @@ export interface operations {
             };
             /** @description HTTP 401 */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Home not found in not-interested list */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listTransactions: {
+        parameters: {
+            query?: {
+                /** @description Filter to a buyer user id (agents only; must manage the client). */
+                buyer_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionListResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateTransactionRequest"];
+            };
+        };
+        responses: {
+            /** @description Deal created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateTransactionResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getMyTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionMeResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    setMyActiveTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetActiveTransactionRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetActiveTransactionResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10164,15 +11072,56 @@ export interface operations {
             };
         };
     };
+    getTransactionTaskChecklistProgressSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is returned. */
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskChecklistProgressSummaryResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     getTransactionTaskChecklist: {
         parameters: {
             query?: {
                 /** @description Checklist category (search, offer, escrow, financing, closing, insurance). */
-                type?: string;
+                type?: components["schemas"]["ChecklistType"];
             };
             header?: never;
             path: {
-                /** @description Buyer / hub client user id whose checklist progress is returned. */
+                /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is returned. */
                 transaction_id: string;
             };
             cookie?: never;
@@ -10215,17 +11164,26 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     putTransactionTaskChecklist: {
         parameters: {
             query?: {
                 /** @description Checklist category (search, offer, escrow, financing, closing, insurance). */
-                type?: string;
+                type?: components["schemas"]["ChecklistType"];
             };
             header?: never;
             path: {
-                /** @description Buyer / hub client user id whose checklist progress is updated. */
+                /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is updated. */
                 transaction_id: string;
             };
             cookie?: never;
@@ -10272,6 +11230,316 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getChecklistItemDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistItemDocumentsResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    linkAgreementToChecklistItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkDocumentToChecklistRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkChecklistDocumentApiResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getChecklistItemForms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetChecklistItemFormsResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    downloadChecklistItemForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+                section: string;
+                item_id: string;
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadChecklistFormResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Presigned URL or storage dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    sendChecklistItemForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+                section: string;
+                item_id: string;
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistFormSendRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistFormSendResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description External dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     getChecklistDispatchAutomation: {
@@ -10279,7 +11547,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Hub client user id (same as checklist forms routes). */
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
                 transaction_id: string;
                 /** @description Checklist category (e.g. escrow, financing). */
                 section: string;
@@ -10333,7 +11601,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Hub client user id (same as checklist forms routes). */
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
                 transaction_id: string;
                 /** @description Checklist category (e.g. escrow, financing). */
                 section: string;
@@ -10386,93 +11654,6 @@ export interface operations {
             };
         };
     };
-    getUnifiedTaskChecklist: {
-        parameters: {
-            query?: {
-                type?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        success?: boolean;
-                        data?: components["schemas"]["TaskChecklistResponse"];
-                    };
-                };
-            };
-            /** @description HTTP 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    putUnifiedTaskChecklist: {
-        parameters: {
-            query?: {
-                type?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateTaskChecklistRequest"];
-            };
-        };
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskChecklistApiResponse"];
-                };
-            };
-            /** @description HTTP 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     reportClientError: {
         parameters: {
             query?: never;
@@ -10497,6 +11678,111 @@ export interface operations {
             };
             /** @description HTTP 400 */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listFormsLibrary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormsLibraryResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    downloadFormsLibraryForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormsLibraryDownloadResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Presigned URL or storage dependency unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10762,6 +12048,15 @@ export interface operations {
                     "application/json": components["schemas"]["HealthResponse"];
                 };
             };
+            /** @description Service unhealthy or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     googleCalendarConnectionStatus: {
@@ -10780,6 +12075,24 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConnectionStatusResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -11128,9 +12441,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": {
-                    [key: string]: unknown;
-                };
+                "application/json": components["schemas"]["GoogleCalendarWebhookBody"];
             };
         };
         responses: {
@@ -11237,6 +12548,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description External storage temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     getReportViewUrl: {
@@ -11286,6 +12606,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description External storage temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     viewReportPdf: {
@@ -11328,6 +12657,15 @@ export interface operations {
             };
             /** @description HTTP 500 */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description External storage temporarily unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11535,11 +12873,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
-                    /** Format: binary */
-                    file: string;
-                    address?: string;
-                };
+                "multipart/form-data": components["schemas"]["SecureUploadDocumentRequest"];
             };
         };
         responses: {
@@ -11572,6 +12906,15 @@ export interface operations {
             };
             /** @description HTTP 500 */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description External storage temporarily unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11590,10 +12933,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
-                    /** Format: binary */
-                    file: string;
-                };
+                "multipart/form-data": components["schemas"]["SecureUploadImageRequest"];
             };
         };
         responses: {
@@ -11626,6 +12966,15 @@ export interface operations {
             };
             /** @description HTTP 500 */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description External storage temporarily unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11704,6 +13053,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Unexpected failure persisting logger configuration */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     adminSetCurrentUserAgentStatus: {
@@ -11735,6 +13093,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminSetCurrentUserDevWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetCurrentUserDevWorkspaceResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminListGateRoleUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListAdminGateUsersResponse"];
                 };
             };
             /** @description HTTP 403 */
@@ -11871,6 +13300,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Target user not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     adminResetDevUserData: {
@@ -11922,6 +13360,15 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            /** @description Dev user data reset disabled in this environment */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     docusignOAuthStart: {
@@ -11965,8 +13412,9 @@ export interface operations {
     docusignOAuthCallback: {
         parameters: {
             query?: {
-                code?: string;
-                state?: string;
+                code?: components["schemas"]["code"];
+                state?: components["schemas"]["state"];
+                error?: components["schemas"]["error"];
             };
             header?: never;
             path?: never;
@@ -12040,12 +13488,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": {
-                    /** @description JSON string for DocusignCreateTemplateMetadataInput (name, description, roles). */
-                    metadata: string;
-                    /** @description One or more PDF files (document order matches upload order). */
-                    files: string[];
-                };
+                "multipart/form-data": components["schemas"]["DocusignCreateTemplateMultipartRequest"];
             };
         };
         responses: {
@@ -12078,6 +13521,15 @@ export interface operations {
             };
             /** @description HTTP 500 */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description DocuSign service temporarily unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12244,15 +13696,19 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SyncTemplatesRequest"];
+            };
+        };
         responses: {
-            /** @description HTTP 200 */
-            200: {
+            /** @description Template sync task enqueued */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DocusignSyncTemplatesResponse"];
+                    "application/json": components["schemas"]["SyncTemplatesResponse"];
                 };
             };
             /** @description HTTP 403 */
@@ -12896,6 +14352,65 @@ export interface operations {
             };
         };
     };
+    docusignGetAgreementDownloadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Agreement id */
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pre-signed download URL */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocusignAgreementDownloadUrlResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Agreement not found or document not yet available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     docusignConnectWebhook: {
         parameters: {
             query?: never;
@@ -12914,7 +14429,36 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Invalid webhook payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Webhook verification failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
             };
         };
     };
@@ -13169,6 +14713,282 @@ export interface operations {
             };
             /** @description Server error */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listAdminPartners: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Partner list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerListResponse"];
+                };
+            };
+        };
+    };
+    createAdminPartner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PartnerCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerResponse"];
+                };
+            };
+        };
+    };
+    listPartnerChecklistSteps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Steps */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAdminPartner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                partner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Partner */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerResponse"];
+                };
+            };
+            /** @description Partner not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    patchAdminPartner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                partner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PartnerUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerResponse"];
+                };
+            };
+            /** @description Partner not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    provisionAdminPartnerLinks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                partner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Provisioned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAdminRevShareAnalytics: {
+        parameters: {
+            query: {
+                partner_id: string;
+                step_id?: string;
+                date_from?: string;
+                date_to?: string;
+                agent_id?: string;
+                brokerage?: string;
+                bucket?: "day" | "week";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Analytics payload */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevShareAnalyticsResponse"];
+                };
+            };
+            /** @description Partner not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPartnerPlacements: {
+        parameters: {
+            query: {
+                step_id: string;
+                /** @description Revenue spine id (`transactions.id`) for attribution. */
+                transaction_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Placements */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevSharePlacementsResponse"];
+                };
+            };
+        };
+    };
+    postRevShareStepView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevShareStepViewRequest"];
+            };
+        };
+        responses: {
+            /** @description Recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Transaction not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    revShareRedirect: {
+        parameters: {
+            query?: {
+                buyer_id?: string;
+                transaction_id?: string;
+                step_id?: string;
+                utm_source?: string;
+                utm_medium?: string;
+                utm_campaign?: string;
+            };
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to partner destination */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Rev-share link not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

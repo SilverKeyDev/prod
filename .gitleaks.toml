@@ -13,6 +13,6 @@ paths = [
   '''^Client/apps/web/\.cursor/''',
   '''\.cursor/debug.*\.log$''',
   '''.*\.pem\.example$''',
-  '''^documentation/client/docusign-integration\.md$''',
+  '''^documentation/client/features/docusign-integration\.md$''',
   '''^Server/app/services/docusign/docs/''',
 ]

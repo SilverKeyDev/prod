@@ -2,9 +2,9 @@
 import { useRef } from "react";
 
 import { color, spacing } from "packages/design-tokens";
-import { Box, Text } from "packages/ui/components/primitives";
-import { localYOffsetToRoundedMinutesFromMidnight } from "packages/utils/calendar/calendarQuickCreateSnap";
-import { dateNow, dayjs } from "packages/utils/date";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import { localYOffsetToRoundedMinutesFromMidnight } from "packages/utils/comms/calendar/grid/calendarQuickCreateSnap";
+import { dateNow, dayjs } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";

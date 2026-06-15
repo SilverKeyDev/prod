@@ -1,6 +1,6 @@
 import type { ChecklistForm } from "packages/features/documents/types/forms";
 import { formatDate } from "packages/features/search/types/search/formatters/address";
-import type { DocumentData } from "packages/ui/components/cards/document/types";
+import type { DocumentData } from "packages/ui/components/surfaces/cards/document/types";
 
 /** Maps a library checklist form to `DocumentData` so it can use `DocumentCard`. */
 export function checklistFormToDocumentData(form: ChecklistForm): DocumentData {

@@ -14,9 +14,6 @@ export {
   UserRole,
 } from "packages/config/auth/auth";
 
-// Legacy auth utilities (deprecated - use AuthService instead)
-export { clearAuthTokens, getAuthToken, hasValidAuthToken } from "packages/utils";
-
 // HTTP Services
 export { configureHttpClient, getHttpClientConfig, httpClient } from "./http/config";
 export { getBaseUrl } from "packages/config";
@@ -43,7 +40,6 @@ export {
   scrubPII,
   SENSITIVE_KEYS,
 } from "./security/piiSecurity";
-export { secureLogger } from "./security/secureLogger";
 
 // Type exports for consumers
 export type { ErrorContext, SerializedError } from "./security/errorUtils";

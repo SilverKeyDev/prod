@@ -1,0 +1,67 @@
+---
+description: Tone and accuracy guardrails when working on pitch, deck, investor outreach, or fundraising docs
+globs:
+  - "**/pitch/**"
+  - "**/deck/**"
+  - "**/investor/**"
+  - "**/fundraising/**"
+  - "**/*pitch*.md"
+  - "**/*investor*.md"
+alwaysApply: false
+---
+
+# Pitch and fundraising
+
+Canonical business facts: this rule + [silverkey-context.mdc](./silverkey-context.mdc). Do not contradict these files or invent traction.
+
+## Tagline
+
+Use verbatim unless the user explicitly asks to iterate:
+
+> **The operating system unlocking home transactions.**
+
+## Locked numbers (deck-aligned)
+
+| Metric | Value |
+| ------ | ----- |
+| Pre-seed raise | **$250K** |
+| SAFE cap | **$5M** |
+| First close target | **30 days** (from active raise context) |
+| Blended attach (target) | **~$8,600** per closed transaction (ancillary) |
+| Year-one pilot ARR (projection) | **~$500K** (~200 deals × ~$2.5K avg) |
+
+If updating numbers, update this rule and any linked long-form documentation in the same change.
+
+## Partner facts (do not inflate)
+
+| Partner | Allowed claim |
+| ------- | ---------------- |
+| **Better** | Signed MSA; **$3K + $1,500/user** activating on launch |
+| **eXp** | **Pilot committed** — Rob & Kim's team (top-10 agent team) |
+| **Georgia Tech Ventures** | Backing |
+
+Do not add "signed" or "live" for partners not listed. Mark pipeline partners **TBD** or omit.
+
+## Narrative order
+
+1. **Wedge:** eXp pilot + signed/live partners (Better).
+2. **Model:** Top-down brokerage → marketplace placement → brokerage platform revenue (RESPA-safe framing).
+3. **Vision:** OS for home transactions — only after the wedge is clear.
+
+## Tone
+
+- Confident and **specific** — names, dollars, timelines where known.
+- No jargon-stuffing or generic "AI-powered platform" filler.
+- Short sentences; lead with outcomes and proof points.
+
+## Outreach (Jayce voice)
+
+Default to **short, specific, no templates**:
+
+- One clear ask per email.
+- Reference real pilot/partner facts only.
+- No fabricated intros, metrics, or "we're crushing it" without source.
+
+## Regulatory language in decks
+
+When describing partner revenue, use **placement / platform fee / marketplace access** language — not "referral fees" or "kickbacks." Align with [respa-compliance.mdc](./respa-compliance.mdc).

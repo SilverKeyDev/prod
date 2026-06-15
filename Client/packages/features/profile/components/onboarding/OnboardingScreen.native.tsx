@@ -6,22 +6,12 @@ import { KeyboardAvoidingView, Pressable, StyleSheet, View } from "react-native"
 import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useOnboardingForm } from "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm";
-import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
-import {
-  AgentBrokerageSection,
-  AgentLicensingSection,
-  AgentProfileServiceSection,
-} from "packages/features/profile/components/sections";
 import { isOnboardingStepComplete } from "packages/features/profile/utils";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-import ScrollView from "packages/ui/components/primitives/scroll/ScrollView";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";
 
-import { DemographicsStep } from "./DemographicsStep.native";
-import { HousingStepEssentials } from "./housing/HousingStepEssentials.native";
-import { HousingStepRanges } from "./housing/HousingStepRanges.native";
-import { LocationStep } from "./LocationStep.native";
-import { OnboardingRoleStep } from "./OnboardingRoleStep.native";
+import { renderOnboardingStep } from "./renderOnboardingStep.native";
 
 export type OnboardingScreenNativeProps = {
   /** Called when user completes onboarding successfully (e.g. update store and re-render root). */
@@ -43,6 +33,12 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
     goToStep,
     loading,
     handleSubmit,
+    homePriceLoading,
+    homePriceError,
+    homePriceResult,
+    isAffordabilityCollapsed,
+    setIsAffordabilityCollapsed,
+    resolvedZipCode,
   } = useOnboardingForm({ onSubmitSuccess });
 
   const step = steps[currentStep];
@@ -61,71 +57,18 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
 
   const renderStepContent = () => {
     if (!step) return null;
-    switch (step.id) {
-      case "onboarding_role":
-        return <OnboardingRoleStep formData={formData} updateFormData={updateFormData} />;
-      case "demographics":
-        return <DemographicsStep formData={formData} updateFormData={updateFormData} />;
-      case "agent_brokerage":
-        return (
-          <AgentBrokerageSection
-            formData={formData}
-            isEditMode={true}
-            updateFormData={updateFormData}
-            wrapInCard={false}
-          />
-        );
-      case "agent_licensing":
-        return (
-          <AgentLicensingSection
-            formData={formData}
-            isEditMode={true}
-            updateFormData={updateFormData}
-            wrapInCard={false}
-          />
-        );
-      case "agent_profile":
-        return (
-          <AgentProfileServiceSection
-            formData={formData}
-            isEditMode={true}
-            updateFormData={updateFormData}
-            wrapInCard={false}
-          />
-        );
-      case "housing_essentials":
-        return <HousingStepEssentials formData={formData} updateFormData={updateFormData} />;
-      case "housing_ranges":
-        return <HousingStepRanges formData={formData} updateFormData={updateFormData} />;
-      case "location":
-        return (
-          <LocationStep
-            formData={formData}
-            updateFormData={updateFormData}
-            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
-          />
-        );
-      case "search_property":
-        return (
-          <ProfileSearchPropertySection
-            formData={formData}
-            isEditMode={true}
-            updateField={(field, value) => updateFormData(field, value)}
-            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
-          />
-        );
-      default:
-        return (
-          <Box className="py-6">
-            <Text className="text-text-primary mb-2 text-center text-lg font-semibold">
-              Complete your profile
-            </Text>
-            <Text className="text-text-secondary text-center text-sm">
-              Use the buttons below to continue or go back to another step.
-            </Text>
-          </Box>
-        );
-    }
+    return renderOnboardingStep({
+      stepId: step.id,
+      formData,
+      updateFormData,
+      patchBuyerPreferenceExtensions,
+      homePriceLoading,
+      homePriceError,
+      homePriceResult,
+      isAffordabilityCollapsed,
+      setIsAffordabilityCollapsed,
+      resolvedZipCode,
+    });
   };
 
   return (
@@ -169,6 +112,7 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       </ScrollView>
 
       <View style={styles.footer}>
+        {/* Skip for now — temporarily disabled
         {!isLastStep && step?.id !== "demographics" && step?.id !== "onboarding_role" ? (
           <Pressable
             onPress={handleSubmit}
@@ -185,6 +129,7 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
             </Text>
           </Pressable>
         ) : null}
+        */}
         <View style={styles.footerRow}>
           {currentStep > 0 ? (
             <Pressable onPress={prevStep} style={styles.backButton}>

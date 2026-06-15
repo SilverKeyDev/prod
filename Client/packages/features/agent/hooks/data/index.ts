@@ -5,6 +5,7 @@ export type { UseAgentTodosReturn } from "./clientHub/useAgentTodos";
 export { useAgentTodos } from "./clientHub/useAgentTodos";
 export { useClientHubAgendaTodos } from "./clientHub/useClientHubAgendaTodos";
 export { useClientHubChecklistPrefetch } from "./clientHub/useClientHubChecklistPrefetch";
+export { useClientHubRoute } from "./clientHub/useClientHubRoute";
 export type { UseAgentClientsReturn } from "./clients/useAgentClients";
 export { useAgentClients } from "./clients/useAgentClients";
 export { useAgentDashboardMockData } from "./clients/useAgentDashboardMockData";

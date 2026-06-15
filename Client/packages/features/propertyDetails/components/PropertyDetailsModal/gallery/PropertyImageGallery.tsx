@@ -11,12 +11,12 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 
 import { useLocalization } from "packages/contexts";
 import type { PropertyImageGalleryProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { Button } from "packages/ui";
-import { StyledImage } from "packages/ui/components/cards/base";
-import { Box } from "packages/ui/components/primitives";
-import { getDocument, getWindow } from "packages/utils/platform";
-import { getPropertyImages } from "packages/utils/propertyDetails";
+import { Box } from "packages/ui/components/structure/primitives";
+import { StyledImage } from "packages/ui/components/surfaces/cards/base";
+import { getDocument, getWindow } from "packages/utils/core/platform";
+import { getPropertyImages } from "packages/utils/transaction/propertyDetails";
 
 import {
   PropertyImageGalleryEightGridPage,
@@ -57,7 +57,7 @@ export const PropertyImageGallery: React.FC<PropertyImageGalleryProps> = ({
     const rootRect = root.getBoundingClientRect();
     const gridRect = grid.getBoundingClientRect();
     const win = getWindow();
-    log.debug(LOG_CATEGORIES.PAGES, "[Gallery] Dimension audit", {
+    log.debug("PAGES", "[Gallery] Dimension audit", {
       viewportWidth: win?.innerWidth,
       rootWidth: rootRect.width,
       rootLeft: rootRect.left,

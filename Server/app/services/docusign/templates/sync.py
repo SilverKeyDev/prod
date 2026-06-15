@@ -5,13 +5,13 @@ DocuSign template sync service
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy import select
+
 from app import db
 from app.models import DocusignTemplate
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..core.client import DocusignClient
-
-logger = get_logger()
 
 
 class TemplateSyncService:
@@ -20,13 +20,13 @@ class TemplateSyncService:
     @staticmethod
     def sync_all_templates():
         """Sync all templates from DocuSign"""
-        logger.info(LOG_CATEGORIES["DOCUSIGN"], "Starting DocuSign template sync")
+        log.info("DOCUSIGN", "Starting DocuSign template sync")
 
         client = DocusignClient(auth_type="jwt")
         templates = client.list_templates()
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Templates fetched from DocuSign",
             {"template_count": len(templates)},
         )
@@ -38,14 +38,16 @@ class TemplateSyncService:
         for tmpl in templates:
             try:
                 # Check if exists
-                existing = DocusignTemplate.query.filter_by(
-                    docusign_template_id=tmpl["templateId"]
-                ).first()
+                existing = db.session.scalar(
+                    select(DocusignTemplate).where(
+                        DocusignTemplate.docusign_template_id == tmpl["templateId"]
+                    )
+                )
 
                 if existing:
                     # Update
-                    logger.debug(
-                        LOG_CATEGORIES["DOCUSIGN"],
+                    log.debug(
+                        "DOCUSIGN",
                         "Updating existing template",
                         {"template_id": tmpl["templateId"], "name": tmpl["name"]},
                     )
@@ -55,8 +57,8 @@ class TemplateSyncService:
                     updated_count += 1
                 else:
                     # Create
-                    logger.debug(
-                        LOG_CATEGORIES["DOCUSIGN"],
+                    log.debug(
+                        "DOCUSIGN",
                         "Creating new template",
                         {"template_id": tmpl["templateId"], "name": tmpl["name"]},
                     )
@@ -72,16 +74,16 @@ class TemplateSyncService:
                 synced_count += 1
 
             except Exception as e:
-                logger.error(
-                    LOG_CATEGORIES["ERRORS"],
+                log.error(
+                    "ERRORS",
                     "Failed to sync template",
                     {"template_id": tmpl.get("templateId"), "error": str(e)},
                 )
 
         db.session.commit()
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Template sync completed successfully",
             {
                 "total_synced": synced_count,

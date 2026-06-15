@@ -13,7 +13,7 @@ vi.mock("packages/config/env", async (importOriginal) => {
   };
 });
 
-vi.mock("packages/hooks/data/admin/useResetDevUserDataMutation", () => ({
+vi.mock("packages/features/admin/hooks/data/useResetDevUserDataMutation", () => ({
   useResetDevUserDataMutation: () => ({
     mutateAsync,
     isPending: false,
@@ -27,7 +27,9 @@ vi.mock("packages/contexts", () => ({
         "admin.dev_reset.scope_profile": "Profile",
         "admin.dev_reset.scope_preferences": "Preferences",
         "admin.dev_reset.scope_docusign": "DocuSign",
-        "admin.dev_reset.ack_label": "Acknowledge",
+        "admin.dev_reset.scope_transaction_steps": "Transaction steps",
+        "admin.dev_reset.scope_s3": "S3 uploads",
+        "admin.dev_reset.scope_connections": "Connections",
         "admin.dev_reset.reset_button": "Reset selected data",
         "admin.dev_reset.success": "Reset {scopes} for user {userId}.",
         "admin.dev_reset.title": "Reset test data",
@@ -66,7 +68,6 @@ describe("AdminDevDataResetSection", () => {
   it("resets self without user_id when not superadmin", async () => {
     render(<AdminDevDataResetSection />);
     fireEvent.click(screen.getByLabelText("Preferences"));
-    fireEvent.click(screen.getByLabelText("Acknowledge"));
     fireEvent.click(screen.getByRole("button", { name: "Reset selected data" }));
 
     await waitFor(() => {
@@ -86,13 +87,30 @@ describe("AdminDevDataResetSection", () => {
       target: { value: "other-uuid" },
     });
     fireEvent.click(screen.getByLabelText("Profile"));
-    fireEvent.click(screen.getByLabelText("Acknowledge"));
     fireEvent.click(screen.getByRole("button", { name: "Reset selected data" }));
 
     await waitFor(() => {
       expect(mutateAsync).toHaveBeenCalledWith({
         scopes: ["profile"],
         userId: "other-uuid",
+      });
+    });
+  });
+
+  it("shows new scope checkboxes and submits multiple scopes", async () => {
+    render(<AdminDevDataResetSection />);
+    expect(screen.getByLabelText("Transaction steps")).toBeTruthy();
+    expect(screen.getByLabelText("S3 uploads")).toBeTruthy();
+    expect(screen.getByLabelText("Connections")).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText("Transaction steps"));
+    fireEvent.click(screen.getByLabelText("Connections"));
+    fireEvent.click(screen.getByRole("button", { name: "Reset selected data" }));
+
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledWith({
+        scopes: ["transaction_steps", "connections"],
+        userId: undefined,
       });
     });
   });

@@ -3,7 +3,7 @@ import React from "react";
 
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import { useGoogleMaps } from "packages/hooks/data";
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import {
   type PreciseStreetAddressPayload,

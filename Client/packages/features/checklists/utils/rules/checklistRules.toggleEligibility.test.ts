@@ -148,7 +148,7 @@ describe("getChecklistItemToggleEligibility", () => {
     expect(checked.canMarkChecked).toBe(true);
   });
 
-  it("agent viewer cannot manually toggle signature-based steps", () => {
+  it("agent viewer may manually toggle signature-based steps", () => {
     const sig: TaskChecklistItem[] = [
       item({
         id: 6,
@@ -158,10 +158,10 @@ describe("getChecklistItemToggleEligibility", () => {
         completionType: "signature_based",
       }),
     ];
-    const e = getChecklistItemToggleEligibility(sig, [], 6, true, { isAgentViewer: true });
-    expect(e.canCheck).toBe(false);
-    expect(e.canUncheck).toBe(false);
-    expect(e.canMarkChecked).toBe(false);
+    const unchecked = getChecklistItemToggleEligibility(sig, [], 6, true, { isAgentViewer: true });
+    expect(unchecked.canCheck).toBe(true);
+    expect(unchecked.canUncheck).toBe(false);
+    expect(unchecked.canMarkChecked).toBe(true);
   });
 
   it("submit-gated steps cannot be manually unchecked when checked", () => {

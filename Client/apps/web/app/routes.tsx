@@ -10,14 +10,15 @@ import { authUtils } from "packages/config/auth/auth";
 import { useResumePendingAgentPublicConnect } from "packages/features/agent/hooks/data/connections/useResumePendingAgentPublicConnect";
 import { useDataInitialization } from "packages/hooks/data/polling/useDataInitialization";
 import { useDataPolling } from "packages/hooks/data/polling/useDataPolling";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { useGlobalOrganizationJsonLd, useShellSeo } from "packages/hooks/seo/useShellSeo.web";
+import { log } from "packages/logger";
 import { ROUTES } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives";
-import { getActiveDashboardKey } from "packages/utils/layout/dashboardLayoutConfig";
+import { Box } from "packages/ui/components/structure/primitives";
+import { getActiveDashboardKey } from "packages/utils/core/layout/dashboardLayoutConfig";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
-import { useIdleAuthenticatedRouteChunkPrefetch } from "@/app/layouts/dashboard/useIdleAuthenticatedRouteChunkPrefetch";
-import { useGlobalOrganizationJsonLd, useShellSeo } from "@/app/seo/useShellSeo";
+import { useIdleAuthenticatedRouteChunkPrefetch } from "@/app/navigation/useIdleAuthenticatedRouteChunkPrefetch.web";
 import type { UserProfile } from "@/features/homeauth/types";
 import NotFoundPage from "@/pages/misc/NotFoundPage";
 
@@ -102,7 +103,7 @@ function AppLayout() {
     }
     if (isFullHeightRoute(location.pathname)) return;
     const id = requestAnimationFrame(() => {
-      document.getElementById(MAIN_CONTENT_ID)?.focus({ preventScroll: true });
+      getDocument()?.getElementById(MAIN_CONTENT_ID)?.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(id);
   }, [location.pathname, location.key]);
@@ -110,7 +111,7 @@ function AppLayout() {
   useEffect(() => {
     if (isFullHeightRoute(location.pathname)) return;
     const id = requestAnimationFrame(() => {
-      window.scrollTo(0, 0);
+      getWindow()?.scrollTo(0, 0);
     });
     return () => cancelAnimationFrame(id);
   }, [location.pathname, location.key]);
@@ -124,17 +125,13 @@ function AppLayout() {
       return;
     }
     if (prevOutletKeyRef.current !== outletKey) {
-      log.info(
-        LOG_CATEGORIES.ROUTING,
-        "[APP_LAYOUT] outlet remount key changed (full subtree remount)",
-        {
-          from: prevOutletKeyRef.current,
-          to: outletKey,
-          pathname: location.pathname,
-          search: location.search ?? "",
-          routerKey: location.key,
-        }
-      );
+      log.info("ROUTING", "[APP_LAYOUT] outlet remount key changed (full subtree remount)", {
+        from: prevOutletKeyRef.current,
+        to: outletKey,
+        pathname: location.pathname,
+        search: location.search ?? "",
+        routerKey: location.key,
+      });
       prevOutletKeyRef.current = outletKey;
     }
   }, [outletKey, location.pathname, location.search, location.key]);
@@ -169,14 +166,16 @@ function useBrowserLocationOverride(routerLocation: Location) {
   useEffect(() => {
     if (!isFullHeightRoute(routerLocation.pathname)) return;
     const interval = setInterval(() => {
-      const winPath = window.location.pathname;
-      const winSearch = window.location.search;
+      const win = getWindow();
+      if (!win) return;
+      const winPath = win.location.pathname;
+      const winSearch = win.location.search;
       const routerPath = routerLocation.pathname;
       const routerSearch = routerLocation.search ?? "";
       if (winPath !== routerPath || winSearch !== routerSearch) {
         setOverride((prev) => {
           if (prev && prev.pathname === winPath && prev.search === winSearch) return prev;
-          log.debug(LOG_CATEGORIES.ROUTING, "[NAV] Router URL sync: using browser location", {
+          log.debug("ROUTING", "[NAV] Router URL sync: using browser location", {
             routerPath,
             browserPath: winPath,
           });
@@ -193,10 +192,12 @@ function useBrowserLocationOverride(routerLocation: Location) {
 
   // Clear override when router context catches up to the browser.
   useEffect(() => {
+    const win = getWindow();
     if (
       override &&
-      routerLocation.pathname === window.location.pathname &&
-      (routerLocation.search ?? "") === window.location.search
+      win &&
+      routerLocation.pathname === win.location.pathname &&
+      (routerLocation.search ?? "") === win.location.search
     ) {
       setOverride(null);
     }
@@ -218,7 +219,7 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
     : location;
 
   useEffect(() => {
-    log.debug(LOG_CATEGORIES.ROUTING, "[NAV] AppRoutes location changed", {
+    log.debug("ROUTING", "[NAV] AppRoutes location changed", {
       pathname: effectiveLocation.pathname,
       search: effectiveLocation.search || undefined,
       isFullHeightRoute: isFullHeightRoute(effectiveLocation.pathname),
@@ -241,8 +242,11 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
               {/* Protected Routes */}
               {DynamicRoutes({ user, handleLogout })}
 
-              {/* Legacy redirect */}
-              <Route path={ROUTES.APP} element={<Navigate to={ROUTES.SEARCH} replace />} />
+              {/* Canonical shortcut: /app → dashboard */}
+              <Route
+                path={ROUTES.APP}
+                element={<Navigate to={ROUTES.DASHBOARD.replace(/\/\*$/, "")} replace />}
+              />
 
               {/* 404 catch-all */}
               <Route path="*" element={<NotFoundPage />} />

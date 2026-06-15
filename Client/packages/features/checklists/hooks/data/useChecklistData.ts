@@ -5,12 +5,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalization } from "packages/contexts";
 import {
   type ChecklistType,
-  getTaskChecklist,
   getTaskChecklistForSubject,
   type TaskChecklistResponse,
-  updateTaskChecklist,
   updateTaskChecklistForSubject,
 } from "packages/features/checklists/api/checklists";
+import { useResolvedTransactionId } from "packages/features/checklists/hooks/data/useResolvedTransactionId";
 import { getActiveChecklistItemIds } from "packages/features/checklists/utils/presentation/getActiveChecklistItemId";
 import { mergeTaskChecklistCheckedIds } from "packages/features/checklists/utils/rules/checklistRules";
 import { showWarningToast } from "packages/hooks/ui";
@@ -20,15 +19,17 @@ export type { ChecklistType };
 
 export type UseChecklistDataOptions = {
   /**
-   * Buyer user id whose checklist is read/written (`/transactions/:id/tasks`).
-   * Omit for the authenticated user (`/api/v1/tasks`).
+   * Revenue spine id (`transactions.id`) for `/transactions/:id/tasks`.
+   * When omitted, resolves via GET /transactions/me (buyer) or agent client list.
    */
-  checklistSubjectUserId?: string | null;
+  transactionId?: string | null;
   /**
    * Agent managing a client checklist: bypass submit-gated pruning on optimistic PUT merge
    * (server applies the same when actor_user_id != subject_user_id).
    */
   isAgentViewer?: boolean;
+  /** When false, skips the React Query fetch (e.g. summary-only progress views). */
+  enabled?: boolean;
 };
 
 export type UseChecklistDataReturn = {
@@ -59,18 +60,25 @@ export function useChecklistData(
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const authReady = useAuthStore((s) => s.authReady);
-  const checklistSubjectUserId = options?.checklistSubjectUserId;
   const isAgentViewer = options?.isAgentViewer === true;
+
+  const explicitTransactionId = options?.transactionId;
+  const shouldResolveTransaction = explicitTransactionId == null;
+  const { transactionId: resolvedTransactionId, isLoading: transactionIdLoading } =
+    useResolvedTransactionId(undefined, { enabled: shouldResolveTransaction });
+  const effectiveTransactionId = explicitTransactionId ?? resolvedTransactionId;
 
   const shouldLoadData = useMemo(() => authReady && isAuthenticated, [authReady, isAuthenticated]);
 
-  const subjectCacheKey = checklistSubjectUserId ?? "self";
   const queryEnabled =
-    shouldLoadData && (checklistSubjectUserId == null || checklistSubjectUserId.length > 0);
+    shouldLoadData &&
+    options?.enabled !== false &&
+    Boolean(effectiveTransactionId) &&
+    (!shouldResolveTransaction || !transactionIdLoading);
 
   const queryKey = useMemo(
-    () => ["checklists", type, subjectCacheKey] as const,
-    [type, subjectCacheKey]
+    () => ["checklists", type, effectiveTransactionId ?? "pending"] as const,
+    [type, effectiveTransactionId]
   );
 
   const {
@@ -80,10 +88,7 @@ export function useChecklistData(
     refetch: refetchChecklist,
   } = useQuery({
     queryKey,
-    queryFn: () =>
-      checklistSubjectUserId
-        ? getTaskChecklistForSubject(checklistSubjectUserId, type)
-        : getTaskChecklist(type),
+    queryFn: () => getTaskChecklistForSubject(effectiveTransactionId!, type),
     enabled: queryEnabled,
     placeholderData: (previousValue) => {
       const cached = queryClient.getQueryData<TaskChecklistResponse>(queryKey);
@@ -96,9 +101,7 @@ export function useChecklistData(
 
   const updateChecklistMutation = useMutation({
     mutationFn: async (ids: number[]) =>
-      checklistSubjectUserId
-        ? updateTaskChecklistForSubject(checklistSubjectUserId, type, ids)
-        : updateTaskChecklist(type, ids),
+      updateTaskChecklistForSubject(effectiveTransactionId!, type, ids),
     onMutate: async (ids: number[]) => {
       const previous = queryClient.getQueryData<TaskChecklistResponse>(queryKey);
       queryClient.setQueryData(queryKey, (old: TaskChecklistResponse | undefined) =>
@@ -120,7 +123,7 @@ export function useChecklistData(
 
   const toggleItem = useCallback(
     async (id: number) => {
-      if (updateChecklistMutation.isPending) {
+      if (updateChecklistMutation.isPending || !effectiveTransactionId) {
         return;
       }
       const items = checklistData?.items ?? [];
@@ -143,7 +146,14 @@ export function useChecklistData(
         );
       }
     },
-    [checklistData?.checkedIds, checklistData?.items, isAgentViewer, t, updateChecklistMutation]
+    [
+      checklistData?.checkedIds,
+      checklistData?.items,
+      effectiveTransactionId,
+      isAgentViewer,
+      t,
+      updateChecklistMutation,
+    ]
   );
 
   const refreshChecklist = useCallback(async () => {
@@ -158,12 +168,15 @@ export function useChecklistData(
 
   const activeItemId = useMemo(() => activeItemIds[0] ?? null, [activeItemIds]);
 
+  const combinedLoading =
+    isLoading || (shouldResolveTransaction && transactionIdLoading && !effectiveTransactionId);
+
   return {
     items: checklistData?.items ?? [],
     checkedIds: checklistData?.checkedIds ?? [],
     activeItemId,
     activeItemIds,
-    isLoading,
+    isLoading: combinedLoading,
     isChecklistUpdatePending: updateChecklistMutation.isPending,
     error: error?.message ?? null,
     toggleItem,

@@ -5,7 +5,13 @@ Exposes state, auth URL, token exchange, and credential loading.
 
 from typing import Any
 
-from ..oauth import build_auth_url, exchange_code_for_tokens, generate_state, validate_state
+from ..oauth import (
+    build_auth_url,
+    exchange_code_for_tokens,
+    generate_state,
+    validate_state,
+    validate_state_and_get_user_id,
+)
 from .credentials import load_credentials
 
 
@@ -38,11 +44,13 @@ class CalendarOAuthFacade:
         """Validate OAuth state parameter."""
         return validate_state(state, session_state)
 
+    def validate_state_and_get_user_id(self, state: str) -> str | None:
+        """Validate OAuth state parameter and return the flow owner."""
+        return validate_state_and_get_user_id(state)
+
     def build_auth_url(
         self,
         user_id: str,
-        request_full_scope: bool = False,
-        use_scheduling_scopes: bool = False,
         request_additional_scopes: list[str] | None = None,
     ) -> tuple[str, str]:
         """Build Google OAuth authorization URL."""
@@ -53,8 +61,6 @@ class CalendarOAuthFacade:
             self.auth_endpoint,
             self.scopes,
             user_id,
-            request_full_scope,
-            use_scheduling_scopes,
             request_additional_scopes,
         )
 

@@ -1,16 +1,6 @@
-/**
- * MIGRATION SHIM (DO NOT ADD NEW TYPES HERE)
- *
- * This module re-exports types from the generated API contract (api.generated.ts).
- * To add/modify API types: edit openapi, then run `pnpm generate:api-types` in Client.
- *
- * Google Calendar OAuth and connection status.
- * Web-only: uses platform window/document for redirects and cookie checks; no-op when adapter not set (e.g. RN).
- */
-
-import { apiGet, apiPost } from "packages/services/http/compatibility";
+import { apiGet, apiPost } from "packages/services/http";
 import type { components } from "packages/types/api.generated";
-import { getDocument, getWindow } from "packages/utils/platform";
+import { getDocument, getWindow } from "packages/utils/core/platform";
 
 export type RevokeResponse = components["schemas"]["RevokeResponse"];
 export type ConnectionStatusResponse = components["schemas"]["ConnectionStatusResponse"];
@@ -33,11 +23,6 @@ export async function revokeAccess(): Promise<RevokeResponse> {
       error: error instanceof Error ? error.message : "Failed to revoke access",
     };
   }
-}
-
-export async function startOAuthWithFullScope(): Promise<void> {
-  const win = getWindow();
-  if (win) win.location.href = "/api/v1/google/oauth/start?full_scope=true";
 }
 
 export async function isConnected(): Promise<boolean> {

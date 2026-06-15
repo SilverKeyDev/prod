@@ -7,8 +7,9 @@ import { queryKeys } from "packages/config/query/keys";
 import { reportApi } from "packages/features/documents/api/report";
 import { useAuthStore } from "packages/store";
 import type { CompareReport, Report } from "packages/types";
-import { dateNow, dayjs } from "packages/utils/date";
-import { getWindow } from "packages/utils/platform";
+import { dateNow, dayjs } from "packages/utils/core/date";
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
+import { getWindow } from "packages/utils/core/platform";
 
 // Simple deserialization functions
 const deserializeReport = (r: unknown): Report => {
@@ -145,7 +146,7 @@ export const useReportsData = () => {
     mutationFn: async ({ reportId, s3Key }: { reportId: string; s3Key?: string }) => {
       const response = await reportApi.delete(reportId, s3Key);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to delete report");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to delete report"));
       }
       return response;
     },
@@ -191,7 +192,7 @@ export const useReportsData = () => {
         s3Keys,
       });
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to compare reports");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to compare reports"));
       }
       return response;
     },
@@ -202,7 +203,7 @@ export const useReportsData = () => {
     mutationFn: async (reportId: string) => {
       const response = await reportApi.getDownloadUrl(reportId);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to get download URL");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to get download URL"));
       }
       return response;
     },
@@ -213,7 +214,7 @@ export const useReportsData = () => {
     mutationFn: async (reportId: string) => {
       const response = await reportApi.getViewUrl(reportId);
       if (!response.success) {
-        throw new Error(response.error ?? "Failed to get view URL");
+        throw new Error(resolveApiResultErrorMessage(response, "Failed to get view URL"));
       }
       return response;
     },

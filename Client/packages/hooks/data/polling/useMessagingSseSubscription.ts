@@ -4,10 +4,10 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { getEnv } from "packages/config/env";
 import { queryKeys } from "packages/config/query/keys";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
-import { getFetch } from "packages/utils/platform";
+import { getFetch } from "packages/utils/core/platform";
 
 function parseSseBlocks(buffer: string): { events: unknown[]; rest: string } {
   const parts = buffer.split("\n\n");
@@ -106,7 +106,7 @@ export function useMessagingSseSubscription(): void {
           }
         } catch (e) {
           if (cancelled || ac.signal.aborted || runId !== runIdRef.current) break;
-          log.warn(LOG_CATEGORIES.POLLING, "Messaging SSE reconnecting", { error: String(e) });
+          log.warn("POLLING", "Messaging SSE reconnecting", { error: String(e) });
           await new Promise((r) => setTimeout(r, retryMs));
           retryMs = Math.min(retryMs * 2, 60000);
           continue;

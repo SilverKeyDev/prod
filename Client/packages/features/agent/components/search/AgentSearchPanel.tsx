@@ -1,6 +1,6 @@
 import { forwardRef, type ReactNode } from "react";
 
-import { Box } from "packages/ui/components/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { Title } from "@/components/ui";
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";

@@ -1,255 +1,36 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React from "react";
 
-/// <reference types="google.maps" />
 import { AccountLogoutAction } from "packages/features/homeauth/components/account/AccountLogoutAction";
-import PersonalizationMobileHeader from "packages/features/profile/components/account/MobileHeader";
-import {
-  convertStepsToNavItems,
-  getPersonalizationStepsUi,
-} from "packages/features/profile/components/profilePicture/profileStepsUi";
-import { useGoogleMapsPlacesReady } from "packages/features/profile/hooks/useGoogleMapsPlacesReady";
-import { usePersonalizationScrollActiveSection } from "packages/features/profile/hooks/usePersonalizationScrollActiveSection";
-import { useProfileDocSignOAuthReturn } from "packages/features/profile/hooks/useProfileDocSignOAuthReturn";
-import { scrollToPersonalizationSection } from "packages/features/profile/utils/personalization/personalizationScrollActiveSection";
-import { usePreferencesSubmit } from "packages/hooks/data/auth/usePreferencesSubmit";
-import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
-import { useIsAgent } from "packages/hooks/store/useIsAgent";
-import { useResponsive } from "packages/hooks/ui";
-import { showErrorToast } from "packages/hooks/ui/toast/useToast";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import { useNavigation } from "packages/navigation/hooks/useNavigation";
-import { useAuthStore } from "packages/store";
-import { Loading } from "packages/ui/components/asset/loading/Loading";
-import { Box, Text } from "packages/ui/components/primitives";
-import SettingsSidebar from "packages/ui/components/sidebar/SettingsSidebar";
+import { convertStepsToNavItems } from "packages/features/profile/components/profilePicture/profileStepsUi";
+import { ProfileFeatureSectionPanels } from "packages/features/profile/components/settings/inputs/ProfileFeatureSectionPanels";
+import type { ProfileFeatureProps } from "packages/features/profile/components/settings/inputs/profileFeatureTypes";
+import { useProfileFeatureShell } from "packages/features/profile/hooks";
+import { Loading } from "packages/ui/components/media/asset/loading/Loading";
+import { Box, Text } from "packages/ui/components/structure/primitives";
+import SettingsSidebar from "packages/ui/components/structure/sidebar/SettingsSidebar";
 
-import {
-  handleSubmit as handleSubmitUtil,
-  isAgentIdentityForProfileUi,
-  nextPreferencesVersion,
-  type OnboardingData,
-  resolveAgentPublicProfileShare,
-  userPreferencesToOnboardingData,
-} from "@/features/profile/utils";
+export default function ProfileFeature(props: ProfileFeatureProps) {
+  const shell = useProfileFeatureShell(props);
 
-import { ProfileFeatureSectionPanels } from "./ProfileFeatureSectionPanels";
-import type { ProfileFeatureProps } from "./profileFeatureTypes";
-
-const noopSetMobileHeader: React.Dispatch<React.SetStateAction<React.ReactNode | null>> = () => {};
-
-export default function ProfileFeature({
-  setMobileHeaderActions: setMobileHeaderActionsProp,
-  agentSubject = null,
-}: ProfileFeatureProps) {
-  const setMobileHeaderActions = setMobileHeaderActionsProp ?? noopSetMobileHeader;
-  const navigation = useNavigation();
-  useProfileDocSignOAuthReturn(navigation);
-  const { userProfile } = useUserData();
-  const { userPreferences, preferencesLoading, preferencesError } = useUserPreferences(
-    agentSubject != null ? { preferencesSubjectUserId: agentSubject.userId } : undefined
-  );
-  const submitPreferences = usePreferencesSubmit();
-  const isAgent = useIsAgent();
-  const authUser = useAuthStore((s) => s.user);
-
-  const profileForSync = useMemo(
-    () => (agentSubject != null ? { name: agentSubject.displayName } : (userProfile ?? undefined)),
-    [agentSubject, userProfile]
-  );
-
-  const isAgentForProfileUi = useMemo(
-    () =>
-      agentSubject != null
-        ? isAgentIdentityForProfileUi(false, { is_agent: false })
-        : isAgentIdentityForProfileUi(isAgent, userProfile),
-    [agentSubject, isAgent, userProfile]
-  );
-  const {
-    show: showAgentPublicProfileShare,
-    agentId: agentPublicProfileUserId,
-    displayName: agentPublicProfileDisplayName,
-  } = useMemo(
-    () =>
-      agentSubject != null
-        ? { show: false, agentId: "", displayName: null as string | null }
-        : resolveAgentPublicProfileShare({
-            storeIsAgent: isAgent,
-            authUser,
-            userProfile,
-          }),
-    [agentSubject, isAgent, authUser, userProfile]
-  );
-  const STEPS = useMemo(() => {
-    const base = getPersonalizationStepsUi(isAgentForProfileUi);
-    if (agentSubject != null) {
-      return base.filter((s) => s.id !== "privacy_data");
-    }
-    return base;
-  }, [isAgentForProfileUi, agentSubject]);
-  const sectionIds = useMemo(() => STEPS.map((s) => s.id), [STEPS]);
-  const [formData, setFormData] = useState<OnboardingData>({});
-  const [originalData, setOriginalData] = useState<OnboardingData>({});
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState(STEPS[0]?.id ?? "");
-  const { scriptsReady, loadError } = useGoogleMapsPlacesReady();
-  const hasInitializedFormRef = useRef(false);
-
-  usePersonalizationScrollActiveSection(sectionIds, setActiveSection);
-
-  useEffect(() => {
-    hasInitializedFormRef.current = false;
-  }, [agentSubject?.userId]);
-
-  useEffect(() => {
-    return () => {
-      setMobileHeaderActions(null);
-    };
-  }, [setMobileHeaderActions]);
-
-  useEffect(() => {
-    if (preferencesLoading) return;
-    if (hasInitializedFormRef.current) return;
-    hasInitializedFormRef.current = true;
-    const normalized = userPreferencesToOnboardingData(
-      userPreferences ? (userPreferences as Record<string, unknown>) : null,
-      profileForSync
-    );
-    setFormData(normalized);
-    setOriginalData(normalized);
-  }, [preferencesLoading, userPreferences, profileForSync]);
-
-  useEffect(() => {
-    if (agentSubject != null) return;
-    if (!hasInitializedFormRef.current) return;
-    const nameFromProfile =
-      userProfile != null && typeof userProfile.name === "string" && userProfile.name.trim() !== ""
-        ? userProfile.name.trim()
-        : undefined;
-    if (!nameFromProfile) return;
-    setFormData((prev) => (prev.name ? prev : { ...prev, name: nameFromProfile }));
-    setOriginalData((prev) => (prev.name ? prev : { ...prev, name: nameFromProfile }));
-  }, [agentSubject, userProfile]);
-
-  useEffect(() => {
-    if (STEPS.length > 0 && !STEPS.some((s) => s.id === activeSection)) {
-      setActiveSection(STEPS[0]?.id ?? "");
-    }
-  }, [STEPS, activeSection]);
-
-  const updateFormData = useCallback((field: keyof OnboardingData, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
-
-  const patchBuyerPreferenceExtensions = useCallback(
-    (
-      fn: (
-        prev: OnboardingData["buyerPreferenceExtensions"]
-      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>
-    ) => {
-      setFormData((prev) => ({
-        ...prev,
-        buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
-      }));
-    },
-    []
-  );
-
-  const handleSaveChanges = useCallback(async () => {
-    const newVersion = nextPreferencesVersion(formData.preferences_version);
-
-    const dataToSave = {
-      ...formData,
-      preferences_version: newVersion,
-    };
-
-    await handleSubmitUtil({
-      formData: dataToSave,
-      submitPreferences,
-      setLoading: setIsSaving,
-      skipValidation: true,
-      onShowError: showErrorToast,
-      onSuccess: () => {
-        const updatedFormData = {
-          ...formData,
-          preferences_version: newVersion,
-        };
-        setFormData(updatedFormData);
-        setOriginalData(updatedFormData);
-        setIsEditMode(false);
-        log.info(LOG_CATEGORIES.API, "Preferences saved successfully");
-      },
-      onError: (error) => {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to update preferences", error);
-        showErrorToast("Failed to update preferences. Please try again.");
-      },
-    });
-  }, [formData, submitPreferences]);
-
-  const handleCancel = useCallback(() => {
-    setFormData(originalData);
-    setIsEditMode(false);
-  }, [originalData]);
-
-  const { isMdDown } = useResponsive();
-  const isMobile = isMdDown;
-  const isUltraSmallScreen = isMdDown;
-
-  useEffect(() => {
-    if (agentSubject != null) {
-      setMobileHeaderActions(null);
-      return;
-    }
-    if (isMobile) {
-      setMobileHeaderActions(
-        <PersonalizationMobileHeader
-          isEditMode={isEditMode}
-          isSaving={isSaving}
-          onEdit={() => setIsEditMode(true)}
-          onCancel={handleCancel}
-          onSave={handleSaveChanges}
-        />
-      );
-    } else {
-      setMobileHeaderActions(null);
-    }
-  }, [
-    agentSubject,
-    isMobile,
-    isEditMode,
-    isSaving,
-    setMobileHeaderActions,
-    handleCancel,
-    handleSaveChanges,
-  ]);
-
-  const scrollToSection = (sectionId: string) => {
-    setActiveSection(sectionId);
-    scrollToPersonalizationSection(sectionId);
-  };
-
-  if (preferencesError) {
+  if (shell.preferencesError) {
     return (
       <Box
         className={
-          agentSubject != null
+          shell.agentSubject != null
             ? "flex flex-1 items-center justify-center p-6"
             : "bg-background-base flex min-h-screen items-center justify-center p-6"
         }
       >
-        <Text className="text-text-secondary text-sm">{preferencesError}</Text>
+        <Text className="text-text-secondary text-sm">{shell.preferencesError}</Text>
       </Box>
     );
   }
 
-  const showPrefsLoading =
-    agentSubject != null ? preferencesLoading : preferencesLoading && userPreferences === undefined;
-
-  if (showPrefsLoading) {
+  if (shell.showPrefsLoading) {
     return (
       <Box
         className={
-          agentSubject != null
+          shell.agentSubject != null
             ? "flex flex-1 items-center justify-center"
             : "bg-background-base flex min-h-screen items-center justify-center"
         }
@@ -261,24 +42,24 @@ export default function ProfileFeature({
 
   const sectionPanels = (
     <ProfileFeatureSectionPanels
-      agentSubject={agentSubject}
-      isUltraSmallScreen={isUltraSmallScreen}
-      showAgentPublicProfileShare={showAgentPublicProfileShare}
-      agentPublicProfileUserId={agentPublicProfileUserId}
-      agentPublicProfileDisplayName={agentPublicProfileDisplayName}
-      agentPublicProfileSlug={formData.public_profile_slug}
-      steps={STEPS}
-      formData={formData}
-      isEditMode={isEditMode}
-      updateFormData={updateFormData}
-      patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
-      scriptsReady={scriptsReady}
-      loadError={loadError}
-      showAvailabilityEditor={isAgentForProfileUi && agentSubject == null}
+      agentSubject={shell.agentSubject}
+      isUltraSmallScreen={shell.isUltraSmallScreen}
+      showAgentPublicProfileShare={shell.showAgentPublicProfileShare}
+      agentPublicProfileUserId={shell.agentPublicProfileUserId}
+      agentPublicProfileDisplayName={shell.agentPublicProfileDisplayName}
+      agentPublicProfileSlug={shell.formData.public_profile_slug}
+      steps={shell.STEPS}
+      formData={shell.formData}
+      isEditMode={shell.isEditMode}
+      updateFormData={shell.updateFormData}
+      patchBuyerPreferenceExtensions={shell.patchBuyerPreferenceExtensions}
+      scriptsReady={shell.scriptsReady}
+      loadError={shell.loadError}
+      showAvailabilityEditor={shell.isAgentForProfileUi && shell.agentSubject == null}
     />
   );
 
-  if (agentSubject != null) {
+  if (shell.agentSubject != null) {
     return <Box className="bg-background-base w-full min-w-0 flex-1">{sectionPanels}</Box>;
   }
 
@@ -287,18 +68,18 @@ export default function ProfileFeature({
       <Box className="mx-auto max-w-7xl pb-1 sm:px-6 lg:px-8">
         <Box className="flex flex-row gap-6 lg:gap-8">
           <SettingsSidebar
-            items={convertStepsToNavItems(STEPS)}
-            activeSection={activeSection}
-            isEditMode={isEditMode}
-            isSaving={isSaving}
-            onEdit={() => setIsEditMode(true)}
-            onSave={handleSaveChanges}
-            onCancel={handleCancel}
-            onScrollToSection={scrollToSection}
+            items={convertStepsToNavItems(shell.STEPS)}
+            activeSection={shell.activeSection}
+            isEditMode={shell.isEditMode}
+            isSaving={shell.isSaving}
+            onEdit={() => shell.setIsEditMode(true)}
+            onSave={shell.handleSaveChanges}
+            onCancel={shell.handleCancel}
+            onScrollToSection={shell.scrollToSection}
           />
           <Box className="min-w-0 flex-1">
             {sectionPanels}
-            {isMdDown ? <AccountLogoutAction variant="profile" placement="footer" /> : null}
+            {shell.isMdDown ? <AccountLogoutAction variant="profile" placement="footer" /> : null}
           </Box>
         </Box>
       </Box>

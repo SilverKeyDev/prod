@@ -1,4 +1,4 @@
-import { STATIC_LEGAL_CONTACT } from "packages/features/homeauth/utils/staticLegalContact";
+import { STATIC_LEGAL_CONTACT } from "packages/utils/transaction/legal/staticLegalContact";
 
 import type { ContactUsLayoutPrimitives } from "./types";
 

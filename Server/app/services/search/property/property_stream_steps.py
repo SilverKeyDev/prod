@@ -3,6 +3,8 @@ Pure step functions for property stream: fetch data, build commute/features, per
 Used by property_stream_internal._generate_property_stream_internal to avoid duplication.
 """
 
+from sqlalchemy import select
+
 from app import db
 from app.models import UserPropertyLink
 from app.services.aggregation import get_preferences_dict_optional
@@ -212,7 +214,11 @@ def persist_to_property_cache(
     if not prop_record or not user_id:
         return
     try:
-        link = UserPropertyLink.query.filter_by(user_id=user_id, property_id=prop_record.id).first()
+        link = db.session.scalar(
+            select(UserPropertyLink).where(
+                UserPropertyLink.user_id == user_id, UserPropertyLink.property_id == prop_record.id
+            )
+        )
         if not link:
             link = UserPropertyLink(
                 user_id=user_id,

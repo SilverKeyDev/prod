@@ -1,5 +1,6 @@
 import { color, spacing } from "packages/design-tokens";
-import { Box, Pressable, Text } from "packages/ui/components/primitives";
+import { Pressable, Text } from "packages/ui/components/structure/primitives";
+import Region from "packages/ui/components/system/accessibility/Region";
 
 import type { CalendarViewType } from "@/features/calendar/types/calendar";
 
@@ -28,13 +29,7 @@ export function CalendarViewModeToggle({
   onViewModeChange,
 }: CalendarViewModeToggleProps) {
   return (
-    <Box
-      style={toggleStyles.segmentedTrack}
-      accessibilityRole="tablist"
-      // Tablist group name — Box has no unified `label` prop in primitives.
-      // eslint-disable-next-line silverkey/no-direct-accessibility-props -- tablist container
-      accessibilityLabel="Calendar view"
-    >
+    <Region label="Calendar view" accessibilityRole="tablist" style={toggleStyles.segmentedTrack}>
       {VIEW_MODES.map((mode) => {
         const selected = mode === viewMode;
         return (
@@ -57,7 +52,7 @@ export function CalendarViewModeToggle({
           </Pressable>
         );
       })}
-    </Box>
+    </Region>
   );
 }
 

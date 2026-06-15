@@ -1,23 +1,14 @@
+import { isOnboardingStepComplete } from "packages/features/profile";
 import { PersonalizationSectionLayoutProvider } from "packages/features/profile/components/layout";
+import { renderOnboardingStep } from "packages/features/profile/components/onboarding/renderOnboardingStep.web";
+import type { ProfileStepId } from "packages/features/profile/types/onboarding/profileStepIds";
 import { useOnboardingForm } from "packages/hooks/data/auth/onboarding/useOnboardingForm";
-import { LOGO } from "packages/ui/components/asset";
-import { Box, Image } from "packages/ui/components/primitives";
+import { LOGO } from "packages/ui/components/media/asset";
+import { Box, Image } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
-import { BodyText, NavigationButtons, SkipButton, Title } from "@/components/ui";
-import OnboardingHeader from "@/features/profile/components/onboarding/Header.web";
-import OnboardingRoleStep from "@/features/profile/components/onboarding/OnboardingRoleStep.web";
-import { ProfileHousingEssentialsSection } from "@/features/profile/components/profileScreen/sections/housing/ProfileHousingEssentialsSection";
-import { ProfileHousingRangesSection } from "@/features/profile/components/profileScreen/sections/housing/ProfileHousingRangesSection";
-import { ProfileSearchPropertySection } from "@/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
-import {
-  AgentBrokerageSection,
-  AgentLicensingSection,
-  AgentProfileServiceSection,
-  DemographicsSection,
-  LocationSection,
-} from "@/features/profile/components/sections/index.web";
-import { isOnboardingStepComplete } from "@/features/profile/utils";
+import { NavigationButtons } from "@/components/ui";
+import OnboardingHeader from "@/features/profile/components/onboarding/header/Header.web";
 
 export function OnboardingFeature() {
   const {
@@ -33,9 +24,15 @@ export function OnboardingFeature() {
     scriptsReady,
     loadError,
     handleSubmit,
+    homePriceLoading,
+    homePriceError,
+    homePriceResult,
+    isAffordabilityCollapsed,
+    setIsAffordabilityCollapsed,
+    resolvedZipCode,
   } = useOnboardingForm();
 
-  const currentStepId = steps[currentStep]?.id ?? "";
+  const currentStepId = (steps[currentStep]?.id ?? "") as ProfileStepId;
   const isRoleIntroPage = currentStepId === "onboarding_role";
   const progressStepEntries = steps
     .map((step, index) => ({ step, index }))
@@ -45,116 +42,8 @@ export function OnboardingFeature() {
     0,
     progressStepEntries.findIndex(({ index }) => index === currentStep)
   );
-  const showSkipForNow = currentStep < steps.length - 1 && currentStepId !== "";
-
   const roleStepNeedsSelection =
     currentStepId === "onboarding_role" && !isOnboardingStepComplete(formData, "onboarding_role");
-
-  const renderStepContent = () => {
-    const step = steps[currentStep];
-
-    switch (step?.id ?? "") {
-      case "onboarding_role":
-        return <OnboardingRoleStep formData={formData} updateFormData={updateFormData} />;
-
-      case "demographics":
-        return (
-          <DemographicsSection
-            formData={formData}
-            isEditMode={true}
-            updateFormData={updateFormData}
-            wrapInCard={false}
-            hideProfilePictureWhenOnboarding={true}
-            hideNameWhenOnboarding={true}
-            showAgentChoice={false}
-            showWhyJoiningQuestion={false}
-          />
-        );
-
-      case "agent_brokerage":
-        return (
-          <AgentBrokerageSection
-            formData={formData}
-            isEditMode={true}
-            updateFormData={updateFormData}
-            wrapInCard={false}
-          />
-        );
-
-      case "agent_licensing":
-        return (
-          <AgentLicensingSection
-            formData={formData}
-            isEditMode={true}
-            updateFormData={updateFormData}
-            wrapInCard={false}
-          />
-        );
-
-      case "agent_profile":
-        return (
-          <AgentProfileServiceSection
-            formData={formData}
-            isEditMode={true}
-            updateFormData={updateFormData}
-            wrapInCard={false}
-          />
-        );
-
-      case "housing_essentials":
-        return (
-          <ProfileHousingEssentialsSection
-            formData={formData}
-            isEditMode={true}
-            updateField={(field, value) => updateFormData(field, value)}
-          />
-        );
-
-      case "housing_ranges":
-        return (
-          <ProfileHousingRangesSection
-            formData={formData}
-            isEditMode={true}
-            updateField={(field, value) => updateFormData(field, value)}
-          />
-        );
-
-      case "location":
-        return (
-          <LocationSection
-            formData={formData}
-            isEditMode={true}
-            updateFormData={updateFormData}
-            scriptsReady={scriptsReady}
-            loadError={loadError}
-            wrapInCard={false}
-            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
-          />
-        );
-
-      case "search_property":
-        return (
-          <ProfileSearchPropertySection
-            formData={formData}
-            isEditMode={true}
-            updateField={(field, value) => updateFormData(field, value)}
-            patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
-          />
-        );
-
-      default:
-        return (
-          <Box className="py-8 text-center">
-            <Title as="h2" size="md" className="text-text-primary mb-2">
-              Complete your profile
-            </Title>
-            <BodyText size="sm" muted className="mx-auto max-w-md">
-              Use the buttons below to continue or go back to another step.
-            </BodyText>
-          </Box>
-        );
-    }
-  };
 
   return (
     <Box className="bg-background-base min-h-screen">
@@ -164,6 +53,7 @@ export function OnboardingFeature() {
           <Box className="flex items-center">
             <Image src={LOGO} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
           </Box>
+          {/* Skip for now — temporarily disabled
           <Box className="flex items-center gap-4">
             {showSkipForNow ? (
               <SkipButton
@@ -174,6 +64,7 @@ export function OnboardingFeature() {
               />
             ) : null}
           </Box>
+          */}
         </Box>
 
         {/* Role intro is a standalone first page outside normal onboarding progress. */}
@@ -193,7 +84,20 @@ export function OnboardingFeature() {
         <Box className="bg-background-surface mt-4 rounded-2xl shadow-sm">
           <Card border="light" className="pb-8 sm:pb-12">
             <PersonalizationSectionLayoutProvider profileUiSurface="onboarding">
-              {renderStepContent()}
+              {renderOnboardingStep({
+                stepId: currentStepId,
+                formData,
+                updateFormData,
+                patchBuyerPreferenceExtensions,
+                scriptsReady,
+                loadError,
+                homePriceLoading,
+                homePriceError,
+                homePriceResult,
+                isAffordabilityCollapsed,
+                setIsAffordabilityCollapsed,
+                resolvedZipCode,
+              })}
             </PersonalizationSectionLayoutProvider>
 
             {/* Navigation Buttons */}
@@ -209,6 +113,7 @@ export function OnboardingFeature() {
                 layout="centered"
                 size="md"
               />
+              {/* Skip for now — temporarily disabled
               {showSkipForNow ? (
                 <Box className="mt-6 flex justify-center">
                   <SkipButton
@@ -219,6 +124,7 @@ export function OnboardingFeature() {
                   />
                 </Box>
               ) : null}
+              */}
             </Box>
           </Card>
         </Box>

@@ -5,7 +5,7 @@ Provides business logic for document management operations.
 
 from flask import current_app
 
-from app.utils.security.app_logging import get_logger
+from logger import log
 
 from .s3_helpers import (
     get_bucket_name,
@@ -13,8 +13,6 @@ from .s3_helpers import (
     list_s3_objects,
 )
 from .s3_service import s3_service
-
-logger = get_logger()
 
 
 class DocumentService:
@@ -32,12 +30,12 @@ class DocumentService:
             List of report objects from S3
         """
         if not s3_service.s3_client:
-            logger.warning("S3 client not initialized, cannot list reports")
+            log.warn("DOCUMENTS", "S3 client not initialized, cannot list reports")
             return []
 
         bucket_name = get_bucket_name()
         if not bucket_name:
-            logger.error("S3 bucket name not configured")
+            log.error("DOCUMENTS", "S3 bucket name not configured")
             return []
 
         user_prefix = f"{user_id}/reports/"
@@ -66,7 +64,11 @@ class DocumentService:
             if s3_service.file_exists(json_key):
                 result["json_deleted"] = s3_service.delete_pdf(json_key)
             else:
-                logger.info(f"JSON file not found at {json_key}, skipping deletion")
+                log.info(
+                    "DOCUMENTS",
+                    "JSON file not found, skipping deletion",
+                    {"json_key": json_key},
+                )
                 result["json_deleted"] = True  # Consider it successful if it doesn't exist
 
         return result

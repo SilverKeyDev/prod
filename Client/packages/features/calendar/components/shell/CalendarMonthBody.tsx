@@ -1,4 +1,4 @@
-import { Box, Text } from "packages/ui/components/primitives";
+import { Box, Text } from "packages/ui/components/structure/primitives";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { CalendarMonthGridStyles } from "@/features/calendar/components/shell/calendarMonthGridStyles";

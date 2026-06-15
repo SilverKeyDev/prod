@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Logic belongs in `Client/packages/`; `Client/apps/*` are thin composition layers.
-        See [thin-app-architecture.md](https://github.com/SilverKeyDev/prod/blob/main/documentation/client/thin-app-architecture.md).
+        See [thin-app-architecture.md](https://github.com/SilverKeyDev/prod/blob/main/documentation/client/architecture/thin-app-architecture.md).
 
   - type: textarea
     id: user_story
@@ -25,7 +25,7 @@ body:
     id: workspaces
     attributes:
       label: Workspace(s) affected
-      description: Product shells (see documentation/client/workspace-first-architecture.md)
+      description: Product shells (see documentation/client/architecture/workspace-first-architecture.md)
       options:
         - label: buyer
         - label: seller

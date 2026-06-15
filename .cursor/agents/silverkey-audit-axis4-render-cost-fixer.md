@@ -36,5 +36,5 @@ You are the **SilverKey Audit Axis 4 (Render cost) Fixer**.
 
 ## References
 
-- [`documentation/client/react-component-audit-rubric.md`](../../documentation/client/react-component-audit-rubric.md)
+- [`documentation/client/patterns/react-component-audit-rubric.md`](../../documentation/client/patterns/react-component-audit-rubric.md)
 - `silverkey-performance-regression-analyzer` for discovery-only passes

@@ -5,6 +5,7 @@ Tests for authentication signup flow
 from unittest.mock import patch
 
 from flask import Flask
+from sqlalchemy import select
 
 
 class TestSignupFlow:
@@ -95,6 +96,7 @@ class TestSignupFlow:
 
     def test_signup_creates_database_user(self, app: Flask, mock_cognito_service, db_session):
         """Test signup creates user in database"""
+        from app import db
         from app.models import User
         from app.services.auth.flows.signup import handle_signup
 
@@ -109,7 +111,7 @@ class TestSignupFlow:
 
             assert status_code == 201
             # Verify user created in database
-            user = User.query.filter_by(email=data["email"]).first()
+            user = db.session.scalar(select(User).where(User.email == data["email"]))
             assert user is not None
             assert user.email == data["email"]
             assert user.name == data["name"]

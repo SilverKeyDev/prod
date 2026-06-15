@@ -3,10 +3,10 @@ import React, { useState } from "react";
 import { useLocalization } from "packages/contexts";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { Button } from "packages/ui";
-import Card from "packages/ui/components/cards/Card";
-import { Box, Icon } from "packages/ui/components/primitives";
-import BodyText from "packages/ui/components/text/BodyText";
-import Title from "packages/ui/components/text/Title";
+import { Box, Icon } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
+import Title from "packages/ui/components/structure/text/Title";
+import Card from "packages/ui/components/surfaces/cards/Card";
 
 const COLLAPSED_LINE_CLAMP = 4;
 

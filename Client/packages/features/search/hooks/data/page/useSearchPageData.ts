@@ -3,18 +3,17 @@ import { useCallback, useEffect, useMemo } from "react";
 import { getEnv } from "packages/config";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { useUserPreferences } from "packages/hooks/data/user/useUserData";
-import { useActiveWorkspace } from "packages/hooks/store";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import {
   useAgentDashboardStore,
+  useConsolidatedSearchStore,
   useFiltersStore,
   useSearchContextStore,
   useUIStore,
 } from "packages/store";
-import type { IsochroneData } from "packages/types/domain/api";
 import { simpleHash } from "packages/utils";
-import { formatPropertySearchListingPrice } from "packages/utils/search/pricing/formatPropertySearchListingPrice";
-import { sortSearchResults } from "packages/utils/search/sort/sortSearchResults";
+import { formatPropertySearchListingPrice } from "packages/utils/product/search/pricing/formatPropertySearchListingPrice";
+import { sortSearchResults } from "packages/utils/product/search/sort/sortSearchResults";
 
 import { useIsochroneData } from "@/features/search/hooks/data/isochrone/useIsochroneData";
 import { usePropertyDetails } from "@/features/search/hooks/data/property/usePropertyDetails";
@@ -25,19 +24,17 @@ import type { SearchResult } from "@/features/search/types";
 import type { SavedHome } from "@/features/search/types/domain/property";
 
 export function useSearchPageData() {
-  const isAgentWorkspace = useActiveWorkspace() === "agent";
   const {
     searchResults,
     setSearchResults,
     isLoading: isLoadingSearchResults,
-    clearSearchResults,
-  } = useSearchResultsData({ skipInitialFetch: isAgentWorkspace });
-  const isSearching = useFiltersStore((s) => s.isSearching);
-  const setIsSearching = useFiltersStore((s) => s.setIsSearching);
-  const searchStage = useFiltersStore((s) => s.searchStage);
-  const setSearchStage = useFiltersStore((s) => s.setSearchStage);
-  const hasSearched = useFiltersStore((s) => s.hasSearched);
-  const setHasSearched = useFiltersStore((s) => s.setHasSearched);
+  } = useSearchResultsData();
+  const isSearching = useConsolidatedSearchStore((s) => s.isSearching);
+  const setIsSearching = useConsolidatedSearchStore((s) => s.setIsSearching);
+  const searchStage = useConsolidatedSearchStore((s) => s.searchStage);
+  const setSearchStage = useConsolidatedSearchStore((s) => s.setSearchStage);
+  const hasSearched = useConsolidatedSearchStore((s) => s.hasSearched);
+  const setHasSearched = useConsolidatedSearchStore((s) => s.setHasSearched);
   const {
     isLoading: isLoadingPropertyDetails,
     selectedProperty,
@@ -45,51 +42,29 @@ export function useSearchPageData() {
     clearSelectedProperty,
   } = usePropertyDetails();
   const agentViewClientId = useAgentDashboardStore((s) => s.selectedClientId);
+  const { userPreferences } = useUserPreferences({
+    preferencesSubjectUserId: agentViewClientId,
+  });
+  const hasImportantLocations =
+    Array.isArray(userPreferences?.important_locations) &&
+    (userPreferences?.important_locations?.length ?? 0) > 0;
   const {
     isochroneData,
     isLoading: isLoadingIsochrone,
     fetchIsochrone,
-    clearIsochroneData,
   } = useIsochroneData({
     preferencesSubjectUserId: agentViewClientId,
-    skipInitialFetch: isAgentWorkspace,
+    hasImportantLocations,
   });
-  const { displayIsochroneData: rawDisplayIsochroneData } = useSearchMapOverlayData(
-    isochroneData ?? null
-  );
-  const clearLocationPlaceSearchArea = useSearchContextStore((s) => s.clearLocationPlaceSearchArea);
-
-  useEffect(() => {
-    if (!isAgentWorkspace) {
-      return;
-    }
-    setHasSearched(false);
-    clearSearchResults();
-    clearIsochroneData();
-    clearLocationPlaceSearchArea();
-  }, [
-    isAgentWorkspace,
-    agentViewClientId,
-    setHasSearched,
-    clearSearchResults,
-    clearIsochroneData,
-    clearLocationPlaceSearchArea,
-  ]);
-
-  const displayIsochroneData = useMemo((): IsochroneData | null => {
-    if (isAgentWorkspace && !hasSearched) {
-      return null;
-    }
-    return rawDisplayIsochroneData;
-  }, [hasSearched, isAgentWorkspace, rawDisplayIsochroneData]);
-  const currentPage = useFiltersStore((s) => s.currentPage);
-  const setCurrentPage = useFiltersStore((s) => s.setCurrentPage);
+  const { displayIsochroneData } = useSearchMapOverlayData(isochroneData ?? null);
+  const currentPage = useConsolidatedSearchStore((s) => s.currentPage);
+  const setCurrentPage = useConsolidatedSearchStore((s) => s.setCurrentPage);
   const showPropertyModals = useUIStore((s) => s.showPropertyModals);
   const setShowPropertyModals = useUIStore((s) => s.setShowPropertyModals);
   const isCarouselCollapsed = useUIStore((s) => s.isCarouselCollapsed);
   const setIsCarouselCollapsed = useUIStore((s) => s.setCarouselCollapsed);
-  const activeTab = useFiltersStore((s) => s.activeTab);
-  const setActiveTab = useFiltersStore((s) => s.setActiveTab);
+  const activeTab = useConsolidatedSearchStore((s) => s.activeTab);
+  const setActiveTab = useConsolidatedSearchStore((s) => s.setActiveTab);
   const setFiltersHash = useSearchContextStore((s) => s.setFiltersHash);
   const searchAnchor = useSearchContextStore((s) => s.anchor);
   const resultsOrderBy = useFiltersStore((s) => s.resultsOrderBy);
@@ -97,9 +72,6 @@ export function useSearchPageData() {
   const userGeolocation = useFiltersStore((s) => s.userGeolocation);
   const mapHomeCardsCount = useFiltersStore((s) => s.mapHomeCardsCount);
   const clearDismissedMapPreviews = useFiltersStore((s) => s.clearDismissedMapPreviews);
-  const { userPreferences } = useUserPreferences({
-    preferencesSubjectUserId: agentViewClientId,
-  });
 
   const clientIdForSavedHomes = agentViewClientId ?? undefined;
   const {
@@ -112,7 +84,7 @@ export function useSearchPageData() {
 
   const convertSavedHomeToSearchResult = useCallback((savedHome: SavedHome): SearchResult => {
     const isDev = getEnv().isDevelopment;
-    log.debug(LOG_CATEGORIES.MAP_RENDERING, "Converting SavedHome to SearchResult for map", {
+    log.debug("MAP_RENDERING", "Converting SavedHome to SearchResult for map", {
       environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
       homeId: savedHome.home_id,
       address: savedHome.address,
@@ -194,7 +166,7 @@ export function useSearchPageData() {
 
   useEffect(() => {
     const hidden = searchResults.length - notInterestedFiltered.length;
-    log.info(LOG_CATEGORIES.SEARCH, "Search UI pipeline: results vs not-interested filter", {
+    log.info("SEARCH", "Search UI pipeline: results vs not-interested filter", {
       searchResultsCount: searchResults.length,
       filteredSearchResultsCount: filteredSearchResults.length,
       hiddenByNotInterested: hidden,
@@ -236,7 +208,7 @@ export function useSearchPageData() {
   const savedHomes = useMemo(() => {
     const converted = savedHomesRaw.map(convertSavedHomeToSearchResult);
     const isDev = getEnv().isDevelopment;
-    log.info(LOG_CATEGORIES.MAP_RENDERING, "Saved homes converted for map rendering", {
+    log.info("MAP_RENDERING", "Saved homes converted for map rendering", {
       environment: isDev ? "DEVELOPMENT" : "PRODUCTION",
       rawCount: savedHomesRaw.length,
       convertedCount: converted.length,

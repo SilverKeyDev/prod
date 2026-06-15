@@ -8,7 +8,7 @@ import { useCallback } from "react";
 
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { pathFor } from "packages/navigation/router/paths";
 import type {
   CurrentRoute,
@@ -61,7 +61,7 @@ export function useNavigation(): NavigationApi {
 
   const navigateToPath = useCallback(
     (path: string, options?: NavigateOptions) => {
-      log.info(LOG_CATEGORIES.ROUTING, "[NAV] useNavigation navigateToPath", {
+      log.info("ROUTING", "[NAV] useNavigation navigateToPath", {
         path,
         replace: options?.replace,
         currentPathname: location.pathname,

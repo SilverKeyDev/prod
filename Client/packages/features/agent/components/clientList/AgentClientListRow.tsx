@@ -2,9 +2,9 @@ import React from "react";
 
 import type { AgentClient, AgentConversation } from "packages/api";
 import { ProfileAvatar } from "packages/ui/components";
-import NotificationBadge from "packages/ui/components/badge/NotificationBadge";
-import { Box } from "packages/ui/components/primitives";
-import { SIDEBAR_AVATAR_WRAP } from "packages/ui/components/sidebar/sidebarTheme";
+import { Box } from "packages/ui/components/structure/primitives";
+import { SIDEBAR_AVATAR_WRAP } from "packages/ui/components/structure/sidebar/sidebarTheme";
+import NotificationBadge from "packages/ui/components/surfaces/badge/NotificationBadge";
 
 import { BodyText, Title } from "@/components/ui";
 import {
@@ -34,7 +34,7 @@ export type AgentClientListRowProps = {
 
 function avatarWrapClass(variant: "card" | "sidebar"): string {
   if (variant === "card") {
-    return "h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100 sm:h-12 sm:w-12";
+    return "h-9 w-9 flex-shrink-0 overflow-hidden rounded-full bg-neutral-100 sm:h-10 sm:w-10";
   }
   return SIDEBAR_AVATAR_WRAP;
 }
@@ -65,11 +65,7 @@ export default function AgentClientListRow({
 
   const inner = (
     <Box
-      className={
-        variant === "card"
-          ? "flex flex-col gap-4 sm:flex-row sm:items-center"
-          : "flex items-start gap-3"
-      }
+      className={variant === "card" ? "flex flex-row items-center gap-3" : "flex items-start gap-3"}
     >
       <Box className="relative flex-shrink-0">
         <Box className={avatarWrapClass(variant)}>
@@ -87,12 +83,15 @@ export default function AgentClientListRow({
       <Box className="min-w-0 flex-1">
         <Title
           as="h3"
-          size={variant === "card" ? "md" : "sm"}
-          className={`text-text-primary truncate font-medium ${variant === "card" ? "font-semibold" : "mb-1"}`}
+          size="sm"
+          className={`text-text-primary truncate font-medium ${variant === "card" ? "font-semibold leading-tight" : "mb-1"}`}
         >
           {client.name}
         </Title>
-        <AgentClientListRowSubtitle client={client} className="mb-0.5" />
+        <AgentClientListRowSubtitle
+          client={client}
+          className={variant === "card" ? "mb-0" : "mb-0.5"}
+        />
         {detailLine ? (
           <BodyText as="p" size="xs" className="text-text-secondary truncate text-xs">
             {detailLine}

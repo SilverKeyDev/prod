@@ -4,14 +4,9 @@ from .google_oauth import google_oauth_callback, google_oauth_start
 from .login import login
 from .password import forgot_password, reset_password
 from .preferences.preferences_action_plan import generate_client_action_plan
-from .preferences.preferences_agents import (
-    get_agents,
-    get_user_agents,
-    remove_agent_relationship,
-    set_as_agent,
-)
 from .preferences.preferences_preferences import (
     create_or_update_preferences,
+    delete_preferences,
     get_clients_preferences,
     get_preferences,
     get_user_preferences_by_id,
@@ -31,13 +26,7 @@ from .saved_properties.user_not_interested import (
 from .search_display import get_search_display, patch_search_display
 from .session import logout, refresh_token
 from .signup_verify import resend_code, signup, verify
-from .user_checklists import (
-    get_close_checklist,
-    get_timeline_checklist,
-    put_close_checklist,
-    put_timeline_checklist,
-)
-from .user_profile import get_user_profile, update_closing_mode, upload_profile_picture
+from .user_profile import get_user_profile, upload_profile_picture
 
 __all__ = [
     "signup",
@@ -51,23 +40,15 @@ __all__ = [
     "google_oauth_start",
     "google_oauth_callback",
     "create_or_update_preferences",
+    "delete_preferences",
     "get_preferences",
     "get_user_preferences_by_id",
     "get_clients_preferences",
-    "get_agents",
-    "set_as_agent",
-    "get_user_agents",
-    "remove_agent_relationship",
     "generate_client_action_plan",
     "get_search_display",
     "patch_search_display",
     "get_user_profile",
-    "update_closing_mode",
     "upload_profile_picture",
-    "get_timeline_checklist",
-    "put_timeline_checklist",
-    "get_close_checklist",
-    "put_close_checklist",
     "get_favorite_homes",
     "post_favorite_homes",
     "add_favorite_home",

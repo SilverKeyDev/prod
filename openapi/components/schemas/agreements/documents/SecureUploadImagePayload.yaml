@@ -1,0 +1,26 @@
+type: object
+description: >
+  Nested payload returned by POST /api/v1/upload/image (field `image` on UploadResponse).
+required:
+  - filename
+properties:
+  filename:
+    type: string
+  size:
+    type: integer
+    nullable: true
+    x-unverified: true
+    description: File size in bytes; may be null after temp file is removed post-S3 upload.
+  type:
+    type: string
+    nullable: true
+    description: Validated MIME type of the uploaded image.
+  hash:
+    type: string
+    nullable: true
+  url:
+    type: string
+    format: uri
+    nullable: true
+    x-unverified: true
+    description: S3 URL when configured; otherwise null.

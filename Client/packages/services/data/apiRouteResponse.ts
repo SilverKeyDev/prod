@@ -2,16 +2,16 @@
  * Shared guards for config/http API wrappers used by React Query data routes.
  */
 
+import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
+
 export type ApiResultBase = {
   success: boolean;
   error?: string | null;
+  message?: string | null;
 };
 
 function resolveApiErrorMessage(response: ApiResultBase, fallbackMessage: string): string {
-  if (typeof response.error === "string" && response.error.length > 0) {
-    return response.error;
-  }
-  return fallbackMessage;
+  return resolveApiResultErrorMessage(response, fallbackMessage);
 }
 
 /**
@@ -30,8 +30,11 @@ export function requireApiSuccessData<T>(
   response: ApiResultBase & { data?: T | null },
   fallbackMessage: string
 ): T {
-  if (!response.success || response.data == null) {
+  if (!response.success) {
     throw new Error(resolveApiErrorMessage(response, fallbackMessage));
+  }
+  if (response.data == null) {
+    throw new Error(fallbackMessage);
   }
   return response.data;
 }

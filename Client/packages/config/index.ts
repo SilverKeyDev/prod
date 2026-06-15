@@ -5,9 +5,6 @@
 // Environment configuration
 export * from "./env";
 
-// Authentication configuration (moved to services/auth)
-// export * from './auth'; // Removed - auth config now in services/auth
-
 // HTTP configuration
 export * from "./http/http";
 

@@ -9,6 +9,7 @@ import {
   type LotSizeHomeAgeSearchOverridesPatch,
   MUST_HAVE_OPTIONS,
 } from "packages/features/profile";
+import { SearchStrictPreferencesControlNative } from "packages/features/search/components/filters/SearchStrictPreferencesControl.native";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import {
   ARCHITECTURAL_STYLE_OPTIONS,
@@ -18,11 +19,11 @@ import {
 } from "packages/features/search/types/otherFilterOptions";
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
 import { ClientSelector } from "packages/ui";
-import { ScrollView } from "packages/ui/components/primitives";
-import { Box } from "packages/ui/components/primitives";
-import { Text } from "packages/ui/components/primitives";
-import { Pressable } from "packages/ui/components/primitives";
-import Title from "packages/ui/components/text/Title";
+import { ScrollView } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 
 import { FilterChipRow } from "./FilterChipRow";
 
@@ -284,6 +285,7 @@ export function SearchFiltersContent({
             formData={formData}
             updateFormData={(field, value) => update(field as keyof SearchFiltersFormData, value)}
             onSearchFilterOverridesPatch={onSearchFilterOverridesPatch}
+            layout="responsive-row"
           />
         </Box>
         <FilterChipRow
@@ -312,6 +314,8 @@ export function SearchFiltersContent({
           className="mb-4"
         />
       </Box>
+
+      <SearchStrictPreferencesControlNative />
 
       {trailingSlot ? (
         <Box className="border-border mt-4 border-t pt-6">

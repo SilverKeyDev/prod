@@ -8,12 +8,10 @@ import os
 
 from app.config import DOCUSIGN_SENDER_VIEW_PATH, DOCUSIGN_SIGNING_COMPLETE_PATH, Config
 from app.models import Agreement, AgreementParticipant
-from logger import LOG_CATEGORIES, get_logger
+from logger import log
 
 from ..core.client import DocusignClient
 from ..errors import AgreementStateError
-
-logger = get_logger()
 
 
 def _docusign_return_url_base() -> str:
@@ -45,8 +43,8 @@ class SigningService:
         Returns:
             Signing URL
         """
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Getting signing URL for participant",
             {
                 "agreement_id": agreement.id,
@@ -57,16 +55,16 @@ class SigningService:
         )
 
         if not agreement.docusign_envelope_id:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Cannot get signing URL - no envelope ID",
                 {"agreement_id": agreement.id},
             )
             raise AgreementStateError("Agreement not sent to DocuSign")
 
         if agreement.status not in ("sent", "delivered", "signed"):
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Cannot get signing URL - invalid status",
                 {"agreement_id": agreement.id, "status": agreement.status},
             )
@@ -75,8 +73,8 @@ class SigningService:
         # Return URL must be publicly reachable HTTPS in dev (Chrome PNA) — see _docusign_return_url_base
         return_url = f"{_docusign_return_url_base()}{DOCUSIGN_SIGNING_COMPLETE_PATH.format(agreement_id=agreement.id)}"
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Building recipient data for signing",
             {
                 "agreement_id": agreement.id,
@@ -94,8 +92,8 @@ class SigningService:
         }
 
         # Create client and get signing URL
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Calling DocuSign to create recipient view",
             {
                 "agreement_id": agreement.id,
@@ -109,8 +107,8 @@ class SigningService:
             envelope_id=agreement.docusign_envelope_id, recipient=recipient, return_url=return_url
         )
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Signing URL generated successfully",
             {
                 "agreement_id": agreement.id,
@@ -132,15 +130,15 @@ class SigningService:
         Returns:
             Sender view URL
         """
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Getting sender view URL",
             {"agreement_id": agreement.id, "envelope_id": agreement.docusign_envelope_id},
         )
 
         if not agreement.docusign_envelope_id:
-            logger.warn(
-                LOG_CATEGORIES["DOCUSIGN"],
+            log.warn(
+                "DOCUSIGN",
                 "Cannot get sender view URL - no envelope ID",
                 {"agreement_id": agreement.id},
             )
@@ -148,8 +146,8 @@ class SigningService:
 
         return_url = f"{_docusign_return_url_base()}{DOCUSIGN_SENDER_VIEW_PATH.format(agreement_id=agreement.id)}"
 
-        logger.debug(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.debug(
+            "DOCUSIGN",
             "Calling DocuSign to create sender view",
             {
                 "agreement_id": agreement.id,
@@ -164,8 +162,8 @@ class SigningService:
             envelope_id=agreement.docusign_envelope_id, return_url=return_url
         )
 
-        logger.info(
-            LOG_CATEGORIES["DOCUSIGN"],
+        log.info(
+            "DOCUSIGN",
             "Sender view URL generated successfully",
             {"agreement_id": agreement.id, "envelope_id": agreement.docusign_envelope_id},
         )

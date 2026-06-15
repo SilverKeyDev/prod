@@ -1,5 +1,7 @@
+# pyright: reportUndefinedVariable=false
 from ..extensions import db
 from .agent import AgentConnectionRequest, AgentConnections, ChatHistory, Todo
+from .brokerage import BrokerageOrg, UserOrgMembership
 from .calendar import CalendarEvent, CalendarShare
 from .documents import (
     Agreement,
@@ -14,21 +16,26 @@ from .documents import (
     DocusignOAuthToken,
     DocusignTemplate,
 )
+from .messaging import (
+    BrokeragePartnerAdoption,
+    PartnerOperator,
+    WorkspaceConversation,
+    WorkspaceConversationParticipant,
+)
+from .partners import BuyerStepView, Partner, RevShareLink, RevShareLinkClick
 from .property import (
     HomeComment,
-    HomeLikes,
     HomeNotInterested,
-    HomeUniversal,
     PropertyAnalysisSection,
     PropertyCache,
     ReelLike,
     ScoringResultsTracker,
-    Search,
     UserPropertyCommute,
     UserPropertyHighlights,
     UserPropertyLink,
     UserScoreWeights,
 )
+from .system import DeploymentLoggerConfig
 from .transactions import (
     ChecklistItemDispatchSetting,
     Transaction,
@@ -48,7 +55,6 @@ from .user import (
     UserDemographics,
     UserFinancials,
     UserImportantLocation,
-    UserIntegration,
     UserIntentAttribute,
     UserRole,
     UserSearchDisplaySettings,
@@ -62,11 +68,22 @@ def init_db():
 
 
 __all__ = [
+    "BrokerageOrg",
+    "UserOrgMembership",
+    "BrokeragePartnerAdoption",
+    "PartnerOperator",
+    "WorkspaceConversation",
+    "WorkspaceConversationParticipant",
+    "Partner",
+    "RevShareLink",
+    "RevShareLinkClick",
+    "BuyerStepView",
     "User",
     "ChecklistItemDispatchSetting",
     "Transaction",
     "TransactionAddress",
     "TransactionTask",
+    "DeploymentLoggerConfig",
     "Document",
     "DocumentLibraryItem",
     "ChecklistForm",
@@ -84,16 +101,12 @@ __all__ = [
     "UserIntentAttribute",
     "UserImportantLocation",
     "UserCommunicationPrefs",
-    "UserCalendarConnection",
     "UserAgentProfile",
     "HomeComment",
-    "HomeUniversal",
-    "HomeLikes",
     "HomeNotInterested",
     "PropertyAnalysisSection",
     "PropertyCache",
     "ReelLike",
-    "Search",
     "ScoringResultsTracker",
     "UserPropertyCommute",
     "UserPropertyHighlights",
@@ -106,8 +119,8 @@ __all__ = [
     "CalendarEvent",
     "CalendarShare",
     "GoogleOAuthToken",
+    "UserCalendarConnection",
     "OAuthState",
-    "UserIntegration",
     "DocusignConnectEvent",
     "DocusignOAuthToken",
     "DocusignTemplate",

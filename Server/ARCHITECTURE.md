@@ -10,11 +10,19 @@ The SilverKey backend is a **Flask-based REST API** following a service-oriented
 Server/
 ├── app/
 │   ├── routes/                   # Flask blueprints (routing only)
-│   │   ├── auth/                 # Authentication routes
-│   │   ├── search/               # Property search routes
-│   │   ├── user/                 # User profile routes
-│   │   ├── documents/            # Document and DocuSign routes
-│   │   ├── calendar/             # Calendar and scheduling routes
+│   │   ├── auth/                 # Auth, signup, preferences, user profile (`user_bp`)
+│   │   ├── search/               # Property search, maps, home matching
+│   │   ├── documents/            # DocuSign, secure upload, reports
+│   │   ├── calendar/             # Google Calendar, events, viewings
+│   │   ├── agent/                # Agent clients, chats, connection requests
+│   │   ├── transactions/         # Transactions and checklists
+│   │   ├── feed/                 # Feed and reels
+│   │   ├── research/             # Research compare streams
+│   │   ├── negotiation/          # Offers
+│   │   ├── admin/                # Super-admin and dev persona
+│   │   ├── rev_share/            # Partner placements and redirects
+│   │   ├── chat/                 # Address chatbot routes
+│   │   ├── telemetry/            # Client error reporting
 │   │   └── ...
 │   ├── services/                 # Business logic and orchestration
 │   │   ├── search/               # Search algorithms (polygon, isochrone)
@@ -37,25 +45,26 @@ Server/
 │   │   ├── security/             # Security, admin role checks (admin_roles.py)
 │   │   └── ...
 │   └── __init__.py               # Flask app factory
-├── config/                       # Configuration files
-│   └── .env.example              # Environment variable template
+├── app/config/                   # Flask config (Config, URLs, constants)
 ├── migrations/                   # Alembic database migrations
 │   └── versions/                 # Migration scripts (DO NOT EDIT)
 ├── requirements/                 # Pinned Python deps (runtime, ci, dev, test, codegen)
-└── app.py                        # Application entry point
+├── .env.example                  # Environment variable template (validated at startup)
+├── run.py                        # Development entry point
+└── logger/                       # Centralized logging package
 ```
 
 ## Flask Application Factory
 
-**Entry point:** `Server/app.py`
+**Entry point:** [`Server/run.py`](run.py)
 
 ```python
 from app import create_app
 
 app = create_app()
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
 ```
 
 **Factory:** `Server/app/__init__.py`
@@ -115,19 +124,13 @@ def create_app():
 Each feature gets a blueprint:
 
 ```python
-# app/routes/user/handlers.py
-from flask import Blueprint, request, jsonify
+# app/routes/auth/user.py — user profile blueprint (registered in create_app)
+from flask import Blueprint
+from app.routes.auth.handlers import get_user_profile
 from app.utils.common_patterns import require_authenticated_user
-from app.dtos.user import UserDTO
 
-user_bp = Blueprint('user', __name__, url_prefix='/api/v1/user')
-
-@user_bp.route('/profile', methods=['GET'])
-@require_authenticated_user
-def get_profile(user):
-    """Get authenticated user's profile"""
-    profile = UserDTO.to_response(user, include_roles=True)
-    return jsonify({'success': True, 'data': profile})
+user_bp = Blueprint("user", __name__, url_prefix="/api/v1/user")
+user_bp.route("/profile", methods=["GET"])(get_user_profile)
 ```
 
 ### Auth Decorators
@@ -178,27 +181,37 @@ Services contain business logic and orchestration:
 
 ```python
 # app/services/example/profile_service.py
+from sqlalchemy import select
+
 from app import db
+from app.dtos.user import UserDTO
 from app.models import User, UserDemographics, UserFinancials
 
 class ProfileService:
     def get_profile(self, user_id: str) -> dict:
         """Get user profile with all related data"""
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             raise ValueError("User not found")
 
-        demographics = UserDemographics.query.filter_by(user_id=user_id).first()
-        financials = UserFinancials.query.filter_by(user_id=user_id).first()
+        demographics = db.session.scalar(
+            select(UserDemographics).where(UserDemographics.user_id == user_id)
+        )
+        financials = db.session.scalar(
+            select(UserFinancials).where(UserFinancials.user_id == user_id)
+        )
 
         return {
-            'user': user.to_dict(),
-            'demographics': demographics.to_dict() if demographics else None,
-            'financials': financials.to_dict() if financials else None,
+            "user": UserDTO.to_response(user, include_roles=True),
+            # Use domain DTOs or explicit dict builders for related tables — not model.to_dict()
+            "demographics": demographics,  # map via DTO when exposing over HTTP
+            "financials": financials,
         }
 
 profile_service = ProfileService()  # Singleton instance
 ```
+
+HTTP responses should use DTOs under `app/dtos/` (validated against `app.schemas.generated`). See `app/dtos/README.md`.
 
 ### Service Patterns
 
@@ -213,64 +226,103 @@ See: `.cursor/rules/backend/backend-patterns.mdc`
 
 ### Model Definition
 
+SQLAlchemy 2.0 style: typed columns with `Mapped[]` + `mapped_column`, typed relationships, no `to_dict()` on ORM classes.
+
 ```python
-# app/models/user/user.py
-from app import db
-from datetime import datetime
+# app/models/user/user.py (excerpt)
+from __future__ import annotations
+
 import uuid
+from datetime import datetime, timezone
+
+from sqlalchemy.orm import DynamicMapped, Mapped, mapped_column, relationship
+
+from app import db
+
 
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    name = db.Column(db.String(100), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id: Mapped[str] = mapped_column(
+        db.String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    email: Mapped[str] = mapped_column(db.String(120), unique=True)
+    name: Mapped[str] = mapped_column(db.String(100))
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
-    # Relationships
-    demographics = db.relationship('UserDemographics', back_populates='user', uselist=False)
-    financials = db.relationship('UserFinancials', back_populates='user', uselist=False)
+    user_demographics: Mapped["UserDemographics | None"] = relationship(
+        "UserDemographics",
+        back_populates="user",
+        uselist=False,
+    )
+    org_memberships: DynamicMapped["UserOrgMembership"] = relationship(
+        "UserOrgMembership",
+        back_populates="user",
+        lazy="dynamic",
+    )
+```
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'email': self.email,
-            'name': self.name,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-        }
+**Forbidden in `app/models/`:** `db.Column`, `backref=`, and `to_dict()` — CI enforces the first two via `Server/scripts/lint/lint_sqlalchemy_legacy_models.py`.
+
+### API serialization (DTOs)
+
+Routes and services return JSON built from `app/dtos/*`, not ORM helpers:
+
+```python
+from app.dtos.user import UserDTO
+
+profile = UserDTO.to_response(user, include_roles=True, presign_profile_pic=True)
 ```
 
 ### Relationships
 
-Use `back_populates` (preferred) instead of `backref`:
+Use `back_populates` with explicit `Mapped` / `DynamicMapped` types. Do not use `backref`:
 
 ```python
-# Parent
+# Parent (one-to-one)
 class User(db.Model):
-    demographics = db.relationship('UserDemographics', back_populates='user', uselist=False)
+    user_demographics: Mapped["UserDemographics | None"] = relationship(
+        "UserDemographics", back_populates="user", uselist=False
+    )
 
 # Child
 class UserDemographics(db.Model):
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), unique=True, nullable=False)
-    user = db.relationship('User', back_populates='demographics')
+    user_id: Mapped[str] = mapped_column(
+        db.String(36), db.ForeignKey("users.id"), unique=True, nullable=False
+    )
+    user: Mapped["User"] = relationship("User", back_populates="user_demographics")
 ```
 
 ### Query Patterns
 
+Use SQLAlchemy 2.0 style (`select()` + session helpers). Legacy `Model.query` and `db.session.query()` are blocked in CI via `Server/scripts/lint/lint_legacy_orm_query.py`.
+
 ```python
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+
+from app import db
+from app.models import Property, User
+
 # Simple query
-user = User.query.filter_by(email='user@example.com').first()
+user = db.session.scalar(select(User).where(User.email == "user@example.com"))
 
 # Eager loading (avoid N+1)
-from sqlalchemy.orm import joinedload
-users = User.query.options(joinedload(User.demographics)).all()
+users = db.session.scalars(
+    select(User).options(joinedload(User.user_demographics))
+).all()
 
 # Filtering
-properties = Property.query.filter(
-    Property.price >= min_price,
-    Property.price <= max_price,
-    Property.bedrooms >= min_beds
+properties = db.session.scalars(
+    select(Property).where(
+        Property.price >= min_price,
+        Property.price <= max_price,
+        Property.bedrooms >= min_beds,
+    )
 ).all()
 ```
 
@@ -395,7 +447,7 @@ See: `.cursor/rules/shared/user-preferences-schema.mdc`
 **Allowed:**
 - ✅ Edit model definitions in `Server/app/models/` (when explicitly requested)
 - ✅ Add new models (without migration)
-- ✅ Change model methods (e.g., `to_dict()`)
+- ✅ Add or change DTOs in `Server/app/dtos/` for API shape changes
 
 See: `.cursor/rules/backend/database.mdc`
 
@@ -464,7 +516,7 @@ See: `.cursor/rules/shared/aws-resource-naming.mdc`
 
 ### Environment Variables
 
-**Required** (see `Server/.env.example` and `Server/config/.env.example`):
+**Required** (see [`Server/.env.example`](.env.example); Flask config in `app/config/`):
 
 ```bash
 # Database
@@ -489,7 +541,7 @@ PLAID_SECRET=<secret>
 
 ### Flask Config
 
-**Location:** `Server/config/config.py`
+**Location:** `Server/app/config/` (`Config` in `_config.py`)
 
 Loads environment variables and sets Flask/SQLAlchemy configuration.
 
@@ -500,16 +552,12 @@ Loads environment variables and sets Flask/SQLAlchemy configuration.
 **Location:** `Server/logger/`
 
 ```python
-from logger import log, LOG_CATEGORIES
+from logger import log
 
-# Debug logging
-log.debug(LOG_CATEGORIES["API"], "API request started", {"endpoint": "/api/users"})
-
-# Error logging
-log.error(LOG_CATEGORIES["ERRORS"], "Failed to fetch data", exception)
-
-# Security logging (always logs)
-log.security(LOG_CATEGORIES["SECURITY"], "Unauthorized access attempt", {"ip": "1.2.3.4"})
+# Dot-notation LogPath (preferred; see .cursor/rules/shared/logging.mdc)
+log.debug("API", "API request started", {"endpoint": "/api/users"})
+log.error("ERRORS", "Failed to fetch data", exception)
+log.security("SECURITY", "Unauthorized access attempt", {"ip": "1.2.3.4"})
 ```
 
 **Features:**
@@ -576,7 +624,7 @@ See: `.cursor/rules/shared/code-organization.mdc`
 
 - **Logging:** Automatic PII scrubbing via `Server/logger/pii.py`
 - **Error responses:** Use `SecureErrorHandler` to avoid leaking sensitive data
-- **Database:** Mask sensitive fields in `to_dict()` methods where appropriate
+- **API payloads:** Mask or omit sensitive fields in DTOs (`app/dtos/`) before `jsonify`
 
 ### Access Control
 
@@ -590,37 +638,33 @@ See: `.cursor/rules/shared/security.mdc`
 
 ### Local Setup
 
+From repo root, prefer `make setup` then `make dev-backend` (Redis + Flask + Celery) or `make dev` (adds Vite web). See [setup.md](../setup.md) and [documentation/server/ops/postgres.md](../documentation/server/ops/postgres.md).
+
+Manual Server-only setup:
+
 ```bash
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # or `.venv\Scripts\activate` on Windows
-
-# Install dependencies
-pip install -r requirements/runtime.txt
-
-# Set up environment
-cp config/.env.example .env
-# Edit .env with your configuration
-
-# Run development server
-flask run
-# Or: python app.py
+cd Server
+bash scripts/bootstrap-venv.sh   # recommended — on Linux, pre-installs CPU torch before runtime.txt
+source .venv/bin/activate
+# Manual venv: on Linux/WSL, install CPU torch before runtime.txt (PyPI default is CUDA):
+#   pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements/runtime.txt && pip install -r requirements/dev.txt
+cp .env.example .env             # or: make secrets from repo root
+python run.py
 ```
 
 ### Common Commands
 
 ```bash
-# Run server
-flask run
+# Repo root
+make dev-backend    # Redis + Flask + Celery
+make test-be        # pytest with TESTING=true
+make lint-server    # ruff + pyright + Server lint scripts
 
-# Run tests
-pytest
-
-# Check linting
+# From Server/ with venv active
+python run.py
+TESTING=true pytest
 python -m ruff check .
-
-# Format code
-python -m black .
 ```
 
 ## Documentation
@@ -645,5 +689,7 @@ python -m black .
 
 - **Root Architecture:** `/ARCHITECTURE.md`
 - **Client Architecture:** `/Client/ARCHITECTURE.md`
-- **Documentation Index:** `documentation/README.md`
+- **Server docs index:** [documentation/server/README.md](../documentation/server/README.md)
+- **Ops runbooks:** [documentation/server/ops/postgres.md](../documentation/server/ops/postgres.md), [redis-celery.md](../documentation/server/ops/redis-celery.md), [deployment.md](../documentation/server/deployment.md), [scripts-guide.md](../documentation/server/ops/scripts-guide.md)
+- **Documentation tree:** [documentation/README.md](../documentation/README.md)
 - **Backend Rules:** `.cursor/rules/backend/`

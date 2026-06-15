@@ -1,7 +1,10 @@
+# pyright: reportUndefinedVariable=false
+from __future__ import annotations
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app import db
 
@@ -29,31 +32,21 @@ class AgentConnectionRequest(db.Model):
     )
     responded_at: Mapped[datetime | None] = mapped_column(db.DateTime)
 
-    # Relationships
-    agent = db.relationship(
-        "User", foreign_keys=[agent_id], backref=db.backref("sent_agent_requests", lazy=True)
+    agent: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[agent_id],
+        back_populates="sent_agent_requests",
     )
-    client = db.relationship(
-        "User", foreign_keys=[client_id], backref=db.backref("received_agent_requests", lazy=True)
+    client: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[client_id],
+        back_populates="received_agent_requests",
     )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if not self.id:
             self.id = str(uuid.uuid4())
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "agent_id": self.agent_id,
-            "client_id": self.client_id,
-            "requested_by_agent": self.requested_by_agent,
-            "status": self.status,
-            "message": self.message,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "responded_at": self.responded_at.isoformat() if self.responded_at else None,
-        }
 
     def __repr__(self):
         return f"<AgentConnectionRequest {self.id} - Agent: {self.agent_id}, Client: {self.client_id}, Status: {self.status}>"

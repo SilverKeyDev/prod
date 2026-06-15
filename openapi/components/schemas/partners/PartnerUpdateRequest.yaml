@@ -1,0 +1,49 @@
+type: object
+properties:
+  name:
+    type: string
+  slug:
+    type: string
+  destination_url_template:
+    type: string
+    description: Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here.
+  logo_url:
+    type: string
+    nullable: true
+  description:
+    type: string
+    nullable: true
+  step_ids:
+    type: array
+    items:
+      type: string
+  target_roles:
+    type: array
+    items:
+      type: string
+      enum:
+        - buyer
+        - seller
+        - renter
+        - agent
+        - brokerage
+        - integration_partner
+  payout_type:
+    type: string
+    enum:
+      - on_click
+      - on_close
+  payout_per_conversion:
+    type: number
+    nullable: true
+  integration_display_mode:
+    type: string
+    enum:
+      - iframe_and_link
+      - link_only
+  embed_url_template:
+    type: string
+    nullable: true
+  is_active:
+    type: boolean
+    description: Table activate/deactivate only; not set from create/edit form

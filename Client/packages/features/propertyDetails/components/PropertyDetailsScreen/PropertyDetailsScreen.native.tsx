@@ -9,8 +9,8 @@ import { PropertyDetailsBody } from "packages/features/propertyDetails/component
 import { PropertyHeader } from "packages/features/propertyDetails/components/PropertyDetailsModal/header/PropertyHeader";
 import { usePropertyDetails } from "packages/hooks/data";
 import type { PropertyDetailsStreamProperty } from "packages/types";
-import { ScrollView } from "packages/ui/components/primitives";
-import { setToStorage } from "packages/utils/storage";
+import { ScrollView } from "packages/ui/components/structure/primitives";
+import { setToStorage } from "packages/utils/core/storage";
 
 export type PropertyDetailsScreenParams = {
   address: string;

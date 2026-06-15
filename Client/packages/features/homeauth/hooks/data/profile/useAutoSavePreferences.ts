@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useLocalization } from "packages/contexts";
+import { formDataToPreferencesPayload, type OnboardingData } from "packages/features/profile";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 
 import { preferencesApi } from "@/features/homeauth/api/preferences";
-import { formDataToPreferencesPayload, type OnboardingData } from "@/features/profile/utils";
 
 type SaveStatus = "idle" | "saving" | "saved";
 
@@ -28,6 +28,8 @@ type UseAutoSavePreferencesReturn = {
   saveStatus: SaveStatus;
   isSaving: boolean;
   autoSave: (data: Partial<OnboardingData>) => void;
+  /** Drop debounced pending saves without persisting (e.g. before clear preferences). */
+  cancelPendingSave: () => void;
   /**
    * Await any in-flight save, then persist `data` once (serialized with the auto-save chain).
    * Clears debounced pending saves. Use after Apply so search runs against server state.
@@ -69,7 +71,7 @@ export function useAutoSavePreferences({
         const payload = formDataToPreferencesPayload(data as OnboardingData);
         const formIl = data.important_locations;
         const payloadIl = payload.important_locations;
-        log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "autoSave.performSave.payload", {
+        log.info("PROFILE_PREFERENCES", "autoSave.performSave.payload", {
           formHasImportantLocationsKey: Object.prototype.hasOwnProperty.call(
             data,
             "important_locations"
@@ -84,7 +86,7 @@ export function useAutoSavePreferences({
         const saveResponse = await preferencesApi.createOrUpdate(payload);
         const prefs = saveResponse.preferences as { important_locations?: unknown } | undefined;
         const savedIl = prefs?.important_locations;
-        log.info(LOG_CATEGORIES.PROFILE_PREFERENCES, "autoSave.performSave.apiResponse", {
+        log.info("PROFILE_PREFERENCES", "autoSave.performSave.apiResponse", {
           responseSuccess:
             typeof (saveResponse as { success?: boolean }).success === "boolean"
               ? (saveResponse as { success: boolean }).success
@@ -112,7 +114,7 @@ export function useAutoSavePreferences({
           setSaveStatus((s) => (s === "saved" ? "idle" : s));
         }, 2000);
       } catch (error) {
-        log.error(LOG_CATEGORIES.ERRORS, "Failed to save preferences", error);
+        log.error("ERRORS", "Failed to save preferences", error);
         setSaveStatus("idle");
         setIsSaving(false);
 
@@ -175,13 +177,17 @@ export function useAutoSavePreferences({
     [debounceMs, performSave]
   );
 
+  const cancelPendingSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    pendingDebouncedRef.current = null;
+  }, []);
+
   const flushSave = useCallback(
     async (data: Partial<OnboardingData>) => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = null;
-      }
-      pendingDebouncedRef.current = null;
+      cancelPendingSave();
       saveChainRef.current = saveChainRef.current
         .catch(() => {
           /* keep the chain alive after a failed save */
@@ -189,7 +195,7 @@ export function useAutoSavePreferences({
         .then(() => performSave(data));
       await saveChainRef.current;
     },
-    [performSave]
+    [cancelPendingSave, performSave]
   );
 
   const updateFormData = useCallback(
@@ -226,6 +232,7 @@ export function useAutoSavePreferences({
     saveStatus,
     isSaving,
     autoSave,
+    cancelPendingSave,
     flushSave,
     updateFormData,
   };

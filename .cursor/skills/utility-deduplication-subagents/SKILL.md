@@ -11,7 +11,7 @@ Use this skill when scanning for reimplemented helpers, cross-feature `packages/
 
 - **Shared pure helpers:** `Client/packages/utils/` (framework-agnostic; see [AGENTS.md](../../../AGENTS.md)).
 - **Feature-local helpers:** `Client/packages/features/<name>/utils/` only when not shared.
-- **Docs:** [Features README](../../../Client/packages/features/README.md) discourages feature-to-feature imports; [shared-packages.md](../../../documentation/client/shared-packages.md) describes package layers.
+- **Docs:** [cross-feature-composition.md](../../../documentation/client/architecture/cross-feature-composition.md) is the source of truth (barrels and orchestrators OK; lift duplicated pure logic to `packages/utils`). [Features README](../../../Client/packages/features/README.md) summarizes tiers; [shared-packages.md](../../../documentation/client/architecture/shared-packages.md) describes package layers.
 - **After moves:** Update every import site; follow [folder-decomposition.mdc](../../rules/shared/folder-decomposition.mdc).
 
 ## Phase 1 — Launch 2–4 `explore` subagents (readonly)
@@ -54,10 +54,13 @@ Run agents **in parallel**. Each returns: paths, import lines, one-line rational
 
 ## Phase 2 — Triage
 
-1. Pure + multi-consumer → `packages/utils/<domain>/`.
+Use [cross-feature-composition.md](../../../documentation/client/architecture/cross-feature-composition.md) decision tree: barrel/subpath vs lift vs orchestrator composition.
+
+1. Pure + **3+ features** → `packages/utils/<domain>/`.
 2. Shared domain types → `packages/schemas/` or `packages/types/` per shared-packages.md.
-3. Orchestration / UI coupling → keep in owning feature; expose via feature barrel or app composition.
+3. Orchestration / UI coupling → keep in owning feature; **Tier 2** hub may import provider barrels; do not mass-move to `packages/hooks` unless shared data orchestration is the real need.
 4. True duplicate → delete duplicate after switching imports; re-grep old path.
+5. Cross-feature **`utils/`** value import → ESLint warn; consolidate (Tier 3), not necessarily ban the consumer→provider edge.
 
 **Do not** move React hooks, components, or fat orchestration into `packages/utils`.
 

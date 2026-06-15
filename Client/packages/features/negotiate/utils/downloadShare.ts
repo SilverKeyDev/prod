@@ -2,11 +2,11 @@
  * Download, share, and clipboard helpers for negotiation strategy
  */
 
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { secureClipboardCopy } from "packages/services/security/clipboardSecurity";
 import { isObject } from "packages/utils";
-import { createBlob, createFile, getDocument, getNavigator } from "packages/utils/platform";
-import { tryWebShare } from "packages/utils/share";
+import { tryWebShare } from "packages/utils/comms/share";
+import { createBlob, createFile, getDocument, getNavigator } from "packages/utils/core/platform";
 
 function getAddressForFilename(selectedHome: unknown): string {
   if (isObject(selectedHome)) {
@@ -22,7 +22,7 @@ function getAddressForFilename(selectedHome: unknown): string {
 
 export function downloadStrategyJson(strategyData: unknown, selectedHome: unknown): void {
   if (!strategyData) {
-    log.warn(LOG_CATEGORIES.NEGOTIATION, "No strategy data to download");
+    log.warn("NEGOTIATION", "No strategy data to download");
     return;
   }
 
@@ -47,9 +47,9 @@ export function downloadStrategyJson(strategyData: unknown, selectedHome: unknow
     doc.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy JSON downloaded successfully");
+    log.info("NEGOTIATION", "Strategy JSON downloaded successfully");
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.ERRORS, "Failed to download strategy JSON", error);
+    log.error("ERRORS", "Failed to download strategy JSON", error);
   }
 }
 
@@ -58,7 +58,7 @@ export async function shareStrategyJson(
   selectedHome: unknown
 ): Promise<void> {
   if (!strategyData) {
-    log.warn(LOG_CATEGORIES.NEGOTIATION, "No strategy data to share");
+    log.warn("NEGOTIATION", "No strategy data to share");
     return;
   }
 
@@ -80,16 +80,13 @@ export async function shareStrategyJson(
     if (nav?.share && typeof nav.canShare === "function" && nav.canShare(fileShareData)) {
       const fileResult = await tryWebShare(fileShareData);
       if (fileResult === "shared") {
-        log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy shared successfully via Web Share API");
+        log.info("NEGOTIATION", "Strategy shared successfully via Web Share API");
         return;
       }
       if (fileResult === "aborted") {
         return;
       }
-      log.warn(
-        LOG_CATEGORIES.NEGOTIATION,
-        "Web Share API file share failed or unavailable, trying text share"
-      );
+      log.warn("NEGOTIATION", "Web Share API file share failed or unavailable, trying text share");
     }
 
     const textShareData: ShareData = {
@@ -98,24 +95,21 @@ export async function shareStrategyJson(
     };
     const textResult = await tryWebShare(textShareData);
     if (textResult === "shared") {
-      log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy shared as text via Web Share API");
+      log.info("NEGOTIATION", "Strategy shared as text via Web Share API");
       return;
     }
     if (textResult === "aborted") {
       return;
     }
-    log.warn(
-      LOG_CATEGORIES.NEGOTIATION,
-      "Text Web Share unavailable or failed, falling back to clipboard"
-    );
+    log.warn("NEGOTIATION", "Text Web Share unavailable or failed, falling back to clipboard");
 
     const copied = await secureClipboardCopy(dataStr);
     if (copied) {
-      log.info(LOG_CATEGORIES.NEGOTIATION, "Strategy copied to clipboard as fallback");
+      log.info("NEGOTIATION", "Strategy copied to clipboard as fallback");
     } else {
-      log.warn(LOG_CATEGORIES.NEGOTIATION, "Strategy share fallback: clipboard copy unsuccessful");
+      log.warn("NEGOTIATION", "Strategy share fallback: clipboard copy unsuccessful");
     }
   } catch (error: unknown) {
-    log.error(LOG_CATEGORIES.ERRORS, "Failed to share strategy", error);
+    log.error("ERRORS", "Failed to share strategy", error);
   }
 }

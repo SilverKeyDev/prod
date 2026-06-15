@@ -6,9 +6,9 @@ from app.services.search.helpers.home_age_preference_filter import (
     home_age_years_for_property,
     property_kept_for_home_age_range,
 )
-from logger import LOG_CATEGORIES, log
+from logger import log
 
-_POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
+_POLY = "POLYGON_SEARCH"
 
 
 def apply_home_age_filter(

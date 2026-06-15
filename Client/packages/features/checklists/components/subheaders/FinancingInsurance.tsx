@@ -23,7 +23,7 @@ export default function FinancingInsurance({ setClosePageHeaderData }: Financing
       title={CHECKLIST_TITLES.financing}
       subtitle={CHECKLIST_SUBTITLES.financing}
       sectionTitle="Loan & Insurance Tasks"
-      apiEndpoint="/api/v1/tasks?type=financing"
+      checklistType="financing"
       showMinLoadingText={true}
       setClosePageHeaderData={setClosePageHeaderData}
     />

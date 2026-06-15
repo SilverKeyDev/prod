@@ -1,0 +1,14 @@
+type: object
+required:
+  - completed
+  - total
+  - isComplete
+properties:
+  completed:
+    type: integer
+    minimum: 0
+  total:
+    type: integer
+    minimum: 0
+  isComplete:
+    type: boolean

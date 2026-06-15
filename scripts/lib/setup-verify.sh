@@ -1,5 +1,9 @@
-# Post-setup smoke checks. Source from setup-local.sh.
+# Post-setup smoke checks. Source from scripts/setup/setup-local.sh and setup-dev.sh.
 # shellcheck shell=bash
+
+_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=secrets-database-url.sh
+source "${_LIB_DIR}/secrets-database-url.sh"
 
 setup_verify_fail() {
   echo "setup-verify: FAIL — $*" >&2
@@ -10,8 +14,28 @@ setup_verify_ok() {
   echo "setup-verify: OK — $*"
 }
 
+setup_verify_warn() {
+  echo "setup-verify: WARN — $*" >&2
+}
+
+setup_verify_env_value() {
+  local key="$1" file="$2" line val
+  line="$(grep -E "^${key}=" "$file" | tail -1 || true)"
+  [[ -n "$line" ]] || return 0
+  val="${line#*=}"
+  val="${val%\"}"
+  val="${val#\"}"
+  printf '%s' "$val"
+}
+
+setup_verify_is_local_database_url() {
+  local url="$1"
+  secrets_is_local_database_url "$url"
+}
+
 setup_verify_env_file() {
-  local root="$1" env_file="${root}/Server/.env"
+  local root="$1"
+  local env_file="${root}/Server/.env"
   [[ -f "$env_file" ]] || { setup_verify_fail "Server/.env missing (secrets step did not run?)"; return 1; }
 
   local key line val
@@ -23,7 +47,14 @@ setup_verify_env_file() {
     val="${val#\"}"
     [[ -n "$val" ]] || { setup_verify_fail "${key} is empty in Server/.env"; return 1; }
   done
-  setup_verify_ok "Server/.env has DATABASE_URL and JWT_SIGNING_SECRET"
+
+  local database_url
+  database_url="$(setup_verify_env_value DATABASE_URL "$env_file")"
+  if setup_verify_is_local_database_url "$database_url"; then
+    setup_verify_ok "Server/.env has local DATABASE_URL and JWT_SIGNING_SECRET"
+  else
+    setup_verify_ok "Server/.env has remote DATABASE_URL (Secrets Manager) and JWT_SIGNING_SECRET"
+  fi
 }
 
 setup_verify_server_venv() {
@@ -61,12 +92,20 @@ setup_verify_redis() {
     setup_verify_ok "Redis responds to ping (localhost:6379)"
     return 0
   fi
-  if command -v redis-server >/dev/null 2>&1; then
-    setup_verify_fail "Redis installed but not running — brew services start redis  OR  redis-server --daemonize yes"
-  else
-    setup_verify_fail "redis-server not found — see setup.md (brew install redis / apt install redis-server)"
+  if [[ "${SETUP_REQUIRE_REDIS:-0}" == "1" ]]; then
+    if command -v redis-server >/dev/null 2>&1 && command -v redis-cli >/dev/null 2>&1; then
+      if declare -F deps_try_start_redis >/dev/null 2>&1 && deps_try_start_redis; then
+        setup_verify_ok "Redis started (localhost:6379, redis-cli ping → PONG)"
+        return 0
+      fi
+      setup_verify_fail "Redis installed but not running — brew services start redis  OR  redis-server --daemonize yes"
+    else
+      setup_verify_fail "redis-server not found — see setup.md (brew install redis / apt install redis-server)"
+    fi
+    return 1
   fi
-  return 1
+  setup_verify_warn "Redis not reachable — skipped (backend-only; set SETUP_REQUIRE_REDIS=1 to enforce)"
+  return 0
 }
 
 setup_verify_aws() {
@@ -85,21 +124,47 @@ setup_verify_aws() {
   setup_verify_ok "AWS session (account ${acct})"
 }
 
-setup_verify_all() {
-  local root="$1" skip_aws="${2:-false}"
+setup_verify_core() {
+  local root="$1"
   local failed=false
-  echo "==> Verifying setup"
+  echo "==> Verifying core setup"
 
   setup_verify_client "$root" || failed=true
   setup_verify_server_venv "$root" || failed=true
   setup_verify_libmagic "$root" || failed=true
   setup_verify_redis || failed=true
-  if [[ "$skip_aws" != true ]]; then
-    setup_verify_env_file "$root" || failed=true
-    setup_verify_aws "$root" || failed=true
-  else
-    setup_verify_ok "skipped Server/.env and AWS checks (--skip-secrets)"
+
+  if [[ "$failed" == true ]]; then
+    echo "setup-verify: one or more core checks failed — see messages above" >&2
+    return 1
   fi
+  echo "setup-verify: core checks passed — try: make dev-web  (full stack: make setup-dev then make dev)"
+  return 0
+}
+
+setup_verify_backend() {
+  local root="$1"
+  local failed=false
+  echo "==> Verifying backend setup"
+
+  setup_verify_env_file "$root" || failed=true
+  setup_verify_aws "$root" || failed=true
+  setup_verify_redis || failed=true
+
+  if [[ "$failed" == true ]]; then
+    echo "setup-verify: one or more backend checks failed — see messages above" >&2
+    return 1
+  fi
+  echo "setup-verify: backend checks passed — try: make dev"
+  return 0
+}
+
+setup_verify_all() {
+  local root="$1"
+  local failed=false
+
+  setup_verify_core "$root" || failed=true
+  setup_verify_backend "$root" || failed=true
 
   if [[ "$failed" == true ]]; then
     echo "setup-verify: one or more checks failed — see messages above" >&2

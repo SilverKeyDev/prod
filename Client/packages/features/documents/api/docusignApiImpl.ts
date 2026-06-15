@@ -30,14 +30,8 @@ import type {
   VoidAgreementRequest,
   VoidAgreementResponse,
 } from "packages/features/documents/types/docusign";
-import { log, LOG_CATEGORIES } from "packages/logger";
-import {
-  apiDelete,
-  apiGet,
-  apiPost,
-  apiPut,
-  apiUpload,
-} from "packages/services/http/compatibility";
+import { log } from "packages/logger";
+import { apiDelete, apiGet, apiPost, apiPut, apiUpload } from "packages/services/http";
 
 function resolveRevisionUploadFileName(fileName?: string): string {
   const name = fileName?.trim();
@@ -49,7 +43,7 @@ function resolveRevisionUploadFileName(fileName?: string): string {
 
 export const docusignApi = {
   createAgreement: (data: CreateAgreementRequest): Promise<CreateAgreementResponse> => {
-    log.debug(LOG_CATEGORIES.DOCUSIGN, "Creating DocuSign agreement", {
+    log.debug("DOCUSIGN", "Creating DocuSign agreement", {
       title: data.title,
       agreement_type: data.agreement_type,
       buyer_id: data.buyer_id,
@@ -59,14 +53,14 @@ export const docusignApi = {
   },
 
   getAgreement: (agreementId: string): Promise<GetAgreementResponse> => {
-    log.debug(LOG_CATEGORIES.DOCUSIGN, "Fetching DocuSign agreement", {
+    log.debug("DOCUSIGN", "Fetching DocuSign agreement", {
       agreementId,
     });
     return apiGet<GetAgreementResponse>(`/api/v1/docusign/agreements/${agreementId}`);
   },
 
   listAgreements: (): Promise<ListAgreementsResponse> => {
-    log.debug(LOG_CATEGORIES.DOCUSIGN, "Fetching DocuSign agreements list");
+    log.debug("DOCUSIGN", "Fetching DocuSign agreements list");
     return apiGet<ListAgreementsResponse>("/api/v1/docusign/agreements");
   },
 
@@ -77,7 +71,7 @@ export const docusignApi = {
     uploadFileName?: string
   ): Promise<CreateRevisionResponse> => {
     const uploadName = resolveRevisionUploadFileName(uploadFileName);
-    log.debug(LOG_CATEGORIES.DOCUSIGN, "Creating DocuSign revision", {
+    log.debug("DOCUSIGN", "Creating DocuSign revision", {
       agreementId,
       fileName: uploadName,
       fileSize: file.size,
@@ -113,7 +107,7 @@ export const docusignApi = {
         : {}),
     };
 
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Sending DocuSign agreement for signature", {
+    log.info("DOCUSIGN", "Sending DocuSign agreement for signature", {
       agreementId,
       signingMethod: requestData.signing_method,
       participantUserId: requestData.participant_user_id,
@@ -132,7 +126,7 @@ export const docusignApi = {
     agreementId: string,
     body: DocusignResendRecipientRequest
   ): Promise<DocusignResendRecipientResponse> => {
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Resending DocuSign recipient email", {
+    log.info("DOCUSIGN", "Resending DocuSign recipient email", {
       agreementId,
       participantId: body.participant_id,
       hasNote: Boolean(body.note?.trim()),
@@ -147,7 +141,7 @@ export const docusignApi = {
     agreementId: string,
     body: DocusignUpdateEnvelopeNotificationRequest
   ): Promise<DocusignUpdateEnvelopeNotificationResponse> => {
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Updating DocuSign envelope notification settings", {
+    log.info("DOCUSIGN", "Updating DocuSign envelope notification settings", {
       agreementId,
     });
     return apiPut<DocusignUpdateEnvelopeNotificationResponse>(
@@ -160,7 +154,7 @@ export const docusignApi = {
     agreementId: string,
     data?: VoidAgreementRequest
   ): Promise<VoidAgreementResponse> => {
-    log.warn(LOG_CATEGORIES.DOCUSIGN, "Voiding DocuSign agreement", {
+    log.warn("DOCUSIGN", "Voiding DocuSign agreement", {
       agreementId,
       reason: data?.reason ?? "No reason provided",
     });
@@ -174,7 +168,7 @@ export const docusignApi = {
     agreementId: string,
     data?: VoidAgreementRequest
   ): Promise<VoidAgreementResponse> => {
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Discarding DocuSign agreement from Saved", {
+    log.info("DOCUSIGN", "Discarding DocuSign agreement from Saved", {
       agreementId,
       reason: data?.reason ?? "No reason provided",
     });
@@ -188,7 +182,7 @@ export const docusignApi = {
     agreementId: string,
     data: GetSigningUrlRequest
   ): Promise<GetSigningUrlResponse> => {
-    log.debug(LOG_CATEGORIES.DOCUSIGN, "Getting DocuSign signing URL", {
+    log.debug("DOCUSIGN", "Getting DocuSign signing URL", {
       agreementId,
       participantId: data.participant_id,
     });
@@ -199,7 +193,7 @@ export const docusignApi = {
   },
 
   getSenderViewUrl: (agreementId: string): Promise<GetSenderViewUrlResponse> => {
-    log.debug(LOG_CATEGORIES.DOCUSIGN, "Getting DocuSign sender view URL", {
+    log.debug("DOCUSIGN", "Getting DocuSign sender view URL", {
       agreementId,
     });
     return apiGet<GetSenderViewUrlResponse>(
@@ -208,7 +202,7 @@ export const docusignApi = {
   },
 
   listTemplates: (): Promise<ListTemplatesResponse> => {
-    log.debug(LOG_CATEGORIES.DOCUSIGN, "Fetching DocuSign templates");
+    log.debug("DOCUSIGN", "Fetching DocuSign templates");
     return apiGet<ListTemplatesResponse>("/api/v1/docusign/templates");
   },
 
@@ -250,17 +244,17 @@ export const docusignApi = {
   },
 
   syncTemplates: (): Promise<SyncTemplatesResponse> => {
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Syncing DocuSign templates from DocuSign account");
+    log.info("DOCUSIGN", "Syncing DocuSign templates from DocuSign account");
     return apiPost<SyncTemplatesResponse>("/api/v1/docusign/templates/sync", {});
   },
 
   startOAuth: (): Promise<OAuthStartResponse> => {
-    log.info(LOG_CATEGORIES.DOCUSIGN, "Starting DocuSign OAuth connection flow");
+    log.info("DOCUSIGN", "Starting DocuSign OAuth connection flow");
     return apiGet<OAuthStartResponse>("/api/v1/docusign/oauth/start");
   },
 
   getDownloadUrl: (agreementId: string): Promise<{ download_url: string }> => {
-    log.debug(LOG_CATEGORIES.DOCUSIGN, "Getting signed document download URL", {
+    log.debug("DOCUSIGN", "Getting signed document download URL", {
       agreementId,
     });
     return apiGet<{ download_url: string }>(`/api/v1/docusign/agreements/${agreementId}/download`);

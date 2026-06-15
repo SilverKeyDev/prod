@@ -1,8 +1,8 @@
 """Beds and baths post-filter for polygon search."""
 
-from logger import LOG_CATEGORIES, log
+from logger import log
 
-_POLY = LOG_CATEGORIES["POLYGON_SEARCH"]
+_POLY = "POLYGON_SEARCH"
 
 
 def _get_beds(p):

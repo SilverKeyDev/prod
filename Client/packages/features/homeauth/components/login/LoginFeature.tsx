@@ -4,17 +4,18 @@ import { Icon } from "@ui/icons";
 
 import { AgentConnectBanner } from "packages/features/agent";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
+import { AuthTermsDisclaimer } from "packages/features/homeauth/components/core/AuthTermsDisclaimer";
 import AuthDivider from "packages/features/homeauth/components/core/Divider";
 import AuthLink from "packages/features/homeauth/components/core/Link";
 import AuthPageLayout from "packages/features/homeauth/components/core/PageLayout";
 import { useSecureAuth } from "packages/features/homeauth/hooks/data/useSecureAuth";
 import { applyLoginResult } from "packages/features/homeauth/utils/applyLoginResult";
-import { log, LOG_CATEGORIES } from "packages/logger";
+import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { ROUTES } from "packages/navigation";
-import { Box } from "packages/ui/components/primitives";
+import { getPostAuthDestination } from "packages/navigation/postAuthDestination";
+import { Box } from "packages/ui/components/structure/primitives";
 
-import { BodyText, Button, Input } from "@/components/ui";
+import { Button, Input } from "@/components/ui";
 export function LoginFeature() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,31 +30,23 @@ export function LoginFeature() {
     clearError();
     const result = await login(email, password);
     if (!result.success && !result.needsVerification) {
-      log.error(LOG_CATEGORIES.AUTH, "Login failed, not navigating");
+      log.error("AUTH", "Login failed, not navigating");
       return;
     }
-    const from =
-      (
-        route.state as {
-          from?: {
-            pathname?: string;
-          };
-        } | null
-      )?.from?.pathname ?? "/dashboard";
-    const safe =
-      typeof from === "string" && from.startsWith("/") && !from.startsWith("/login")
-        ? from
-        : "/dashboard";
+    const returnPath = (route.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+    const destination = getPostAuthDestination({ flow: "login", returnPath });
     applyLoginResult(result, {
       email,
       password,
       onSuccess: () => {
-        if (route.pathname !== safe) {
-          navigateToPath(safe, { replace: true });
+        if (route.pathname !== destination) {
+          navigateToPath(destination, { replace: true });
         }
       },
       onNeedsVerification: () =>
-        navigate("VERIFICATION", undefined, { state: { email, fromLogin: true } }),
+        navigate("VERIFICATION", undefined, {
+          state: { email, fromLogin: true, returnPath },
+        }),
     });
   };
   return (
@@ -110,17 +103,7 @@ export function LoginFeature() {
         <AuthDivider />
 
         <GoogleSignInButton text="Sign in with Google" />
-        <BodyText as="p" size="xs" className="text-text-secondary/90 text-center leading-relaxed">
-          By signing in (including with Google), you agree to our{" "}
-          <AuthLink to={ROUTES.TERMS} variant="inline" className="text-text-secondary">
-            Terms of Service
-          </AuthLink>{" "}
-          and{" "}
-          <AuthLink to={ROUTES.PRIVACY} variant="inline" className="text-text-secondary">
-            Privacy Policy
-          </AuthLink>
-          .
-        </BodyText>
+        <AuthTermsDisclaimer flow="login" />
 
         <Box className="gap-responsive-md text-responsive-sm flex items-center justify-center">
           <AuthLink to="/signup" variant="inline">

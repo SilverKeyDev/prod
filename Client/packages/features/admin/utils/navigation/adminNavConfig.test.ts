@@ -5,13 +5,26 @@ import {
   ADMIN_NAV_SPEC,
   ADMIN_ROUTE_SEGMENTS,
   segmentFromPath,
+  superadminOnlyRouteSegments,
   visibleAdminNavSpec,
 } from "./adminNavConfig";
 
 describe("adminNavConfig", () => {
   it("ADMIN_ROUTE_SEGMENTS uses kebab-case segments", () => {
+    expect(ADMIN_ROUTE_SEGMENTS.logging).toBe("logging");
+    expect(ADMIN_ROUTE_SEGMENTS.partners).toBe("partners");
     expect(ADMIN_ROUTE_SEGMENTS.devPersona).toBe("dev-persona");
     expect(ADMIN_ROUTE_SEGMENTS.superadmin).toBe("superadmin");
+  });
+
+  it("superadminOnlyRouteSegments includes partners, support messaging, and superadmin", () => {
+    expect(superadminOnlyRouteSegments()).toEqual(
+      expect.arrayContaining([
+        ADMIN_ROUTE_SEGMENTS.partners,
+        ADMIN_ROUTE_SEGMENTS.supportMessaging,
+        ADMIN_ROUTE_SEGMENTS.superadmin,
+      ])
+    );
   });
 
   it("segmentFromPath returns null outside /admin", () => {
@@ -28,16 +41,24 @@ describe("adminNavConfig", () => {
     expect(segmentFromPath(`${ADMIN_BASE_PATH}/unknown-tab`)).toBeNull();
   });
 
-  it("visibleAdminNavSpec hides superadmin row when false", () => {
+  it("visibleAdminNavSpec hides superadmin-only rows when false", () => {
     const without = visibleAdminNavSpec(false);
-    expect(without.some((r) => r.key === ADMIN_ROUTE_SEGMENTS.superadmin)).toBe(false);
+    for (const key of superadminOnlyRouteSegments()) {
+      expect(without.some((r) => r.key === key)).toBe(false);
+    }
     const withSuper = visibleAdminNavSpec(true);
-    expect(withSuper.some((r) => r.key === ADMIN_ROUTE_SEGMENTS.superadmin)).toBe(true);
+    for (const key of superadminOnlyRouteSegments()) {
+      expect(withSuper.some((r) => r.key === key)).toBe(true);
+    }
   });
 
-  it("ADMIN_NAV_SPEC includes dev persona and unique keys", () => {
+  it("ADMIN_NAV_SPEC includes logging, dev persona, and unique keys", () => {
     const keys = ADMIN_NAV_SPEC.map((r) => r.key);
     expect(new Set(keys).size).toBe(keys.length);
+    expect(keys).toContain(ADMIN_ROUTE_SEGMENTS.logging);
+    expect(keys).not.toContain("operations");
     expect(keys).toContain(ADMIN_ROUTE_SEGMENTS.devPersona);
+    expect(keys).not.toContain("notifications");
+    expect(keys).not.toContain("platform-health");
   });
 });
