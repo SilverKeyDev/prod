@@ -688,6 +688,8 @@ components:
       $ref: "./components/schemas/admin/SetCurrentUserDevWorkspaceResponse.yaml"
     ExchangeDevAccountSessionRequest:
       $ref: "./components/schemas/admin/ExchangeDevAccountSessionRequest.yaml"
+    MintDevAccountSessionResponse:
+      $ref: "./components/schemas/admin/MintDevAccountSessionResponse.yaml"
     UpdateChecklistDispatchAutomationRequest:
       $ref: "./components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml"
     UpdateChecklistRequest:
@@ -5816,7 +5818,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
+                $ref: "#/components/schemas/MintDevAccountSessionResponse"
         "400":
           description: HTTP 400
           content:
@@ -5846,7 +5848,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
+                $ref: "#/components/schemas/AuthResponse"
         "400":
           description: HTTP 400
           content:

@@ -37,6 +37,7 @@ export const AGENT_TRANSLATIONS: Record<string, string> = {
     "Add a ZIP or search location, or complete your home preferences, to see better matches.",
   "agent.discovery_connect": "Connect",
   "agent.discovery_view_profile": "View profile",
+  "agent.discovery_browse_full": "Browse all agents",
   "agent.connection_status.accepted": "Accepted",
   "agent.connection_status.waiting": "Waiting",
   "agent.connection_status.declined": "Declined",

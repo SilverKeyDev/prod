@@ -31,6 +31,7 @@ export const ROUTES = {
   MESSAGING: "/messaging",
   /** Client: discover / connect with agents (recommendations + search). */
   FIND_AGENTS: "/find-agents",
+  ANALYTICS: "/analytics",
   SEARCH: "/search",
   PROPERTY_DETAILS: "/property-details",
   PROPERTY: "/property/:zpid/:slug?",

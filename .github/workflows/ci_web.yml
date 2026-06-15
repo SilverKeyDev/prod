@@ -188,8 +188,8 @@ jobs:
           ACCOUNT_ID="${ACCOUNT_ID:?}"
           IMAGE_TAG="${IMAGE_TAG:?}"
           IMAGE_REF="${ACCOUNT_ID}.dkr.ecr.${{ env.REGION }}.amazonaws.com/${{ env.REPO }}:${IMAGE_TAG}"
-          CMD="$(docker buildx imagetools inspect "$IMAGE_REF" --format '{{json .Config.Cmd}}')"
-          ENTRYPOINT="$(docker buildx imagetools inspect "$IMAGE_REF" --format '{{json .Config.Entrypoint}}')"
+          CMD="$(docker buildx imagetools inspect "$IMAGE_REF" --format '{{json .Image.Config.Cmd}}')"
+          ENTRYPOINT="$(docker buildx imagetools inspect "$IMAGE_REF" --format '{{json .Image.Config.Entrypoint}}')"
           echo "Image CMD: $CMD"
           echo "Image Entrypoint: $ENTRYPOINT"
           if ! echo "$CMD" | grep -qE 'gunicorn|gunicorn-entrypoint'; then

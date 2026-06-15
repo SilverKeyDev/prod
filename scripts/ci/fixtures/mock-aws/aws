@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Mock AWS CLI for secrets retrieval tests (no SSO, no network).
+# Place scripts/ci/fixtures/mock-aws first on PATH.
+set -euo pipefail
+
+die() {
+  echo "mock-aws: $*" >&2
+  exit 99
+}
+
+if [[ "${1:-}" != "sts" && "${1:-}" != "secretsmanager" ]]; then
+  die "unexpected aws invocation: $*"
+fi
+
+if [[ "${1:-}" == "sts" ]]; then
+  if [[ "${2:-}" == "get-caller-identity" ]]; then
+  echo '{"Account":"123456789012","Arn":"arn:aws:sts::123456789012:assumed-role/mock"}'
+    exit 0
+  fi
+  die "unexpected sts subcommand: $*"
+fi
+
+if [[ "${2:-}" == "list-secrets" ]]; then
+  names="${MOCK_AWS_SECRET_NAMES:-db_url silverkey/prod/db cognito}"
+  json_names=""
+  for name in $names; do
+  if [[ -n "$json_names" ]]; then
+    json_names="${json_names},"
+  fi
+  json_names="${json_names}{\"Name\":\"${name}\"}"
+  done
+  printf '{"SecretList":[%s]}\n' "$json_names"
+  exit 0
+fi
+
+if [[ "${2:-}" == "get-secret-value" ]]; then
+  secret_id=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --secret-id)
+        secret_id="$2"
+        shift 2
+        ;;
+      --region|--profile|--output)
+        shift 2
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+  [[ -n "$secret_id" ]] || die "get-secret-value missing --secret-id"
+
+  case "$secret_id" in
+    db_url|silverkey/prod/db)
+      printf '%s\n' '{"SecretString":"{\"DATABASE_URL\":\"postgresql://postgres:mockpass@prod-mock.rds.amazonaws.com:5432/postgres\"}"}'
+      exit 0
+      ;;
+    cognito)
+      printf '%s\n' '{"SecretString":"{\"AWS_COGNITO_USER_POOL_ID\":\"us-east-2_mock\",\"AWS_COGNITO_CLIENT_ID\":\"mock-client-id\",\"JWT_SIGNING_SECRET\":\"mock-jwt-signing-secret-for-tests\"}"}'
+      exit 0
+      ;;
+    dotenv_test)
+      printf '%s\n' '{"SecretString":"DOTENV_FOO=bar\nDOTENV_BAZ=\"quoted\"}"}'
+      exit 0
+      ;;
+    duplicate_keys)
+      printf '%s\n' '{"SecretString":"{\"JWT_SIGNING_SECRET\":\"duplicate-secret-value\"}"}'
+      exit 0
+      ;;
+    gmaps)
+      printf '%s\n' '{"SecretString":"{\"EXPO_PUBLIC_POSTHOG_KEY\":\"ph_mock_test_key\",\"GOOGLE_MAPS_SERVER_KEY\":\"server-only-not-client\"}"}'
+      exit 0
+      ;;
+    *)
+      die "unexpected secret-id: $secret_id"
+      ;;
+  esac
+fi
+
+die "unexpected secretsmanager subcommand: $*"

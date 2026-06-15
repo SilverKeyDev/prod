@@ -1,8 +1,8 @@
 import { Icon } from "@ui/icons";
 
 import { Box } from "packages/ui/components/structure/primitives";
-import BodyText from "packages/ui/components/structure/text/BodyText";
-import Subtitle from "packages/ui/components/structure/text/Subtitle";
+
+import { BodyText, Title } from "@/components/ui";
 
 import { AGREEMENT_CONTEXTUAL_STATUS_BADGE } from "./agreementContextualStatusBadge";
 import type { ContextualAgreementStatus } from "./types";
@@ -47,16 +47,16 @@ export default function AgreementCardHeader({
           <Icon name="file-signature" size={24} />
         </Box>
         <Box className="h-[2.75rem] min-w-0 flex-1 overflow-hidden">
-          <Subtitle size="sm" className="line-clamp-2">
+          <Title as="h3" size="sm" className="line-clamp-2">
             {title}
-          </Subtitle>
+          </Title>
         </Box>
       </Box>
 
       {/* Progress indicator */}
       {totalSigners > 0 && (
         <Box className="mb-2 min-h-5">
-          <BodyText size="xs" className="font-medium text-gray-600">
+          <BodyText size="xs" muted className="font-medium">
             {signedCount} of {totalSigners} signed
           </BodyText>
         </Box>

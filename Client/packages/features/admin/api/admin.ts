@@ -36,31 +36,13 @@ export type SetCurrentUserDevWorkspaceRequest =
   components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
 export type SetCurrentUserDevWorkspaceResponse =
   components["schemas"]["SetCurrentUserDevWorkspaceResponse"];
-
 export type DevAccountSessionRole = components["schemas"]["DevWorkspacePersona"];
+export type DevAccountSessionMintResponse = components["schemas"]["MintDevAccountSessionResponse"];
+export type DevAccountSessionExchangeResponse = components["schemas"]["AuthResponse"];
 
-type MintDevAccountSessionResponse = components["schemas"]["SuccessResponse"] & {
-  token?: string;
-  role?: string;
-  user?: components["schemas"]["User"];
-};
-
-type ExchangeDevAccountSessionResponse = components["schemas"]["SuccessResponse"] & {
-  access_token?: string;
-  id_token?: string;
-  user_sub?: string;
-  user?: components["schemas"]["User"] & {
-    auth_user_kind?: string;
-    auth_method?: string;
-  };
-  verification_complete?: boolean;
-};
-
-export type MintDevAccountSessionResult = {
-  token: string;
-  role: string;
-  user: components["schemas"]["User"];
-};
+export type MintDevAccountSessionResult = Required<
+  Pick<DevAccountSessionMintResponse, "token" | "role" | "user">
+>;
 
 export type DevUserDataResetRequest = components["schemas"]["DevUserDataResetRequest"];
 export type DevUserDataResetResponse = components["schemas"]["DevUserDataResetResponse"];
@@ -178,6 +160,33 @@ export const adminApi = {
     return response.user;
   },
 
+  /** Admin/dev only — mint a one-time login token for a per-role dev test account. */
+  mintDevAccountSession: async (
+    body: SetCurrentUserDevWorkspaceRequest
+  ): Promise<MintDevAccountSessionResult> => {
+    const response = await apiPost<
+      DevAccountSessionMintResponse,
+      SetCurrentUserDevWorkspaceRequest
+    >("/api/v1/admin/dev-accounts/session", body);
+    if (!response.success || !response.token || !response.role || !response.user) {
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to create dev session"));
+    }
+    return { token: response.token, role: response.role, user: response.user };
+  },
+
+  /** Dev session landing page — exchange a one-time token for this tab's bearer session. */
+  exchangeDevAccountSession: async (token: string): Promise<DevAccountSessionExchangeResponse> => {
+    const response = await apiPost<DevAccountSessionExchangeResponse, { token: string }>(
+      "/api/v1/admin/dev-accounts/session/exchange",
+      { token },
+      { includeAuth: false, includeCredentials: false }
+    );
+    if (!response.success || !response.user || !response.access_token) {
+      throw new Error(resolveApiResultErrorMessage(response, "Failed to open dev session"));
+    }
+    return response;
+  },
+
   /**
    * Admin only — reset scoped dev/test data (profile, preferences, DocuSign).
    * Super_admin may pass userId to target another user.
@@ -207,38 +216,6 @@ export const adminApi = {
       throw new Error(resolveApiResultErrorMessage(response, "Failed to reset dev user data"));
     }
     return { target_user_id: response.target_user_id, cleared: response.cleared };
-  },
-
-  /**
-   * Admin only — mint a one-time token for opening a tab-scoped dev account session.
-   */
-  mintDevAccountSession: async (
-    body: SetCurrentUserDevWorkspaceRequest
-  ): Promise<MintDevAccountSessionResult> => {
-    const response = await apiPost<
-      MintDevAccountSessionResponse,
-      SetCurrentUserDevWorkspaceRequest
-    >("/api/v1/admin/dev-accounts/session", body);
-    if (
-      !response.success ||
-      typeof response.token !== "string" ||
-      typeof response.role !== "string" ||
-      !response.user
-    ) {
-      throw new Error(resolveApiResultErrorMessage(response, "Failed to mint dev account session"));
-    }
-    return { token: response.token, role: response.role, user: response.user };
-  },
-
-  /**
-   * Exchange a one-time dev session token for a tab-scoped bearer session (no existing auth).
-   */
-  exchangeDevAccountSession: async (token: string): Promise<ExchangeDevAccountSessionResponse> => {
-    return apiPost<ExchangeDevAccountSessionResponse, { token: string }>(
-      "/api/v1/admin/dev-accounts/session/exchange",
-      { token },
-      { includeAuth: false, includeCredentials: false }
-    );
   },
 
   /** Admin only — OpenAPI validation stats snapshot for the rolling window. */

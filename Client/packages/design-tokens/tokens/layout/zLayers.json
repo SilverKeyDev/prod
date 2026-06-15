@@ -1,0 +1,12 @@
+{
+  "header": 100,
+  "sidebar": 200,
+  "dock": 300,
+  "dropdown": 5000,
+  "toast": 8000,
+  "overlay": 9000,
+  "modal": 10000,
+  "modal-popover-underlay": 10015,
+  "modal-popover": 10020,
+  "skip": 10050
+}

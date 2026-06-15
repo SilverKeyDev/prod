@@ -6383,6 +6383,12 @@ export interface components {
             /** @description One-time dev session token minted by an admin for a target dev test account. */
             token: string;
         };
+        MintDevAccountSessionResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description One-time token for tab-scoped dev account session exchange. */
+            token: string;
+            role: components["schemas"]["DevWorkspacePersona"];
+            user: components["schemas"]["User"];
+        };
         UpdateChecklistDispatchAutomationRequest: {
             enabled: boolean;
             channel: components["schemas"]["ChecklistDispatchChannel"];
@@ -13185,7 +13191,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessResponse"];
+                    "application/json": components["schemas"]["MintDevAccountSessionResponse"];
                 };
             };
             /** @description HTTP 400 */
@@ -13227,7 +13233,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessResponse"];
+                    "application/json": components["schemas"]["AuthResponse"];
                 };
             };
             /** @description HTTP 400 */

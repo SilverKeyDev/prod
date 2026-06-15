@@ -35,7 +35,7 @@ require_file() {
   fi
 }
 
-require_file "$SERVER_ENV" "run make setup"
+require_file "$SERVER_ENV" "run make setup-dev"
 require_file "$CLIENT_ENV" "run make secrets or copy Client/.env.example"
 
 set -a

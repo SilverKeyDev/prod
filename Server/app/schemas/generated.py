@@ -4384,6 +4384,14 @@ class SetCurrentUserDevWorkspaceResponse(SuccessResponse):
     user: UserModel | None = None
 
 
+class MintDevAccountSessionResponse(SuccessResponse):
+    token: str = Field(
+        ..., description="One-time token for tab-scoped dev account session exchange."
+    )
+    role: DevWorkspacePersona
+    user: UserModel
+
+
 class Checklist(BaseModel):
     """
     Checklist data with items and checkedIds
