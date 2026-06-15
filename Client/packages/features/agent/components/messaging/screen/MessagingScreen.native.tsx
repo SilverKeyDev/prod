@@ -1,10 +1,8 @@
 import React from "react";
 
-import { CommonActions, useNavigation } from "@react-navigation/native";
 import Loading from "@ui/asset/loading/Loading";
 import { KeyboardAvoidingView, Platform, View } from "react-native";
 
-import { useLocalization } from "packages/contexts";
 import { messagingScreenNativeStyles } from "packages/features/agent/components/messaging/screenNative/MessagingScreen.native.styles";
 import { MessagingScreenNativeComposer } from "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeComposer.native";
 import { MessagingScreenNativeHeader } from "packages/features/agent/components/messaging/screenNative/MessagingScreenNativeHeader.native";
@@ -18,8 +16,6 @@ import { MessagingClientEmptyState } from "./MessagingClientEmptyState.native";
 const styles = messagingScreenNativeStyles;
 
 export function MessagingScreenNative() {
-  const navigation = useNavigation();
-  const { t } = useLocalization();
   const c = useMessagingScreenNativeController();
 
   if (!c.authReady) {
@@ -53,10 +49,6 @@ export function MessagingScreenNative() {
         message={c.config.emptyStates.noAgent.message}
         actionLabel={c.config.emptyStates.noAgent.actionLabel}
         onAction={() => c.setShowSearchModal(true)}
-        secondaryActionLabel={t("agent.discovery_browse_full")}
-        onSecondaryAction={() =>
-          navigation.dispatch(CommonActions.navigate({ name: "FindAgents" }))
-        }
         centeredStyle={styles.centered}
       />
     );

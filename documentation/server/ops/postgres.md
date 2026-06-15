@@ -4,14 +4,11 @@ Brief ops reference for local and deployed PostgreSQL. Schema detail lives in SQ
 
 ## Local setup
 
-- Default local development uses Docker Postgres from the repo root `docker-compose.yml`.
-- First-time setup (`make setup`) resets the local Docker Postgres volume, fetches non-database secrets, and runs migrations.
-- Repeat the same local reset/init workflow with `make dev-db-init`.
-- Start the isolated local database without resetting it with `make db-up`.
-- `make secrets` writes `DATABASE_URL=postgresql://silverkey:silverkey@localhost:5432/silverkey_dev` unless an existing local URL is already present.
-- Check readiness with `make db-health`.
-- Run migrations explicitly with `make migrate` only when you own that workflow.
-- To intentionally fetch a shared database secret for an operator workflow, run `ALLOW_SHARED_DATABASE_URL=1 make secrets`.
+- Default: `make secrets` / `make setup-dev` fetch `DATABASE_URL` from AWS Secrets Manager (e.g. `db_url` → prod RDS). Local Flask/Celery writes hit that database.
+- **Local Docker (opt-in):** `USE_LOCAL_DATABASE=1 make secrets` or `make dev-db-init` (resets Docker volume, injects `postgresql://silverkey:silverkey@localhost:5432/silverkey_dev`, runs migrations).
+- Start isolated local Postgres without resetting: `make db-up` (only needed for local Docker path).
+- Check local Postgres readiness: `make db-health`.
+- Run migrations explicitly with `make migrate` only when you own that workflow (local Docker path uses `make dev-db-init`).
 - Deploy and CI database secrets stay in `.github/scripts/*`; local DB reset must not be wired into deploy scripts or Flask startup.
 
 ## Schema source of truth
@@ -23,18 +20,19 @@ Brief ops reference for local and deployed PostgreSQL. Schema detail lives in SQ
 
 | Task | Command / location |
 |------|-------------------|
-| First-time local DB init | `make setup` |
-| Repeat local DB reset/init | `make dev-db-init` |
+| Backend env + prod `DATABASE_URL` | `make setup-dev` or `make secrets` |
+| Local Docker DB reset/init (opt-in) | `make dev-db-init` |
+| Local `DATABASE_URL` without Docker reset | `USE_LOCAL_DATABASE=1 make secrets` |
 | Start isolated local Postgres | `make db-up` |
 | Check local Postgres readiness | `make db-health` |
 | Reset local Postgres data only | `make db-reset` |
-| Post-pull reset with refreshed secrets | `make refresh ARGS='--secrets --reset-db'` |
-| Apply schema to local DB | `make migrate` (operator/developer-owned workflow only) |
+| Post-pull secrets refresh | `make refresh ARGS='--secrets'` |
+| Post-pull local Docker reset (opt-in) | `make refresh ARGS='--secrets --reset-db'` |
+| Apply schema to local Docker DB | `make dev-db-init` or `make migrate` (operator-owned only) |
 | Run API with DB | `make dev-backend` or `cd Server && source .venv/bin/activate && python run.py` |
 | Server tests (repo root) | `make test-be` — sets `TESTING=true` and runs pytest in `Server/` |
 | Server tests (from `Server/`) | `TESTING=true pytest` |
-| Refresh non-DB secrets into `Server/.env` | `make secrets` (repo root; see [scripts-guide.md](./scripts-guide.md)) |
-| Connection issues | Verify `Server/.env` uses localhost; run `make db-health` |
+| Connection issues (local Docker) | `USE_LOCAL_DATABASE=1 make secrets`; `make db-up`; `make db-health` |
 
 ## Related docs
 
