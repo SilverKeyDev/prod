@@ -28,7 +28,7 @@ export default function Subtitle({
   muted = false,
 }: SubtitleProps) {
   const baseClasses = "font-normal";
-  const colorClass = muted ? "text-text-tertiary" : "text-black";
+  const colorClass = muted ? "text-text-tertiary" : "text-text-secondary";
   const sizeClass = sizeClasses[size];
   const combinedClasses = [baseClasses, colorClass, sizeClass, className].filter(Boolean).join(" ");
 

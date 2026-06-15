@@ -1,0 +1,114 @@
+---
+description: QA flow probing — read committed per-role test accounts (SIL-145), sign in programmatically, exercise surfaces; never guess credentials.
+globs:
+  - "documentation/client/qa/**"
+alwaysApply: false
+---
+
+# QA test accounts (SIL-145) — agent sign-in and flow probing
+
+## Prerequisite
+
+**SIL-145 / SIL-126 step 1** must be complete: committed credentials at:
+
+`documentation/client/qa/test-accounts.json`
+
+- **Do not guess** emails, passwords, or OTP inboxes.
+- If the file is missing, `sharedPassword` is empty/placeholder, or accounts are not provisioned (login fails / `needs_verification`), **stop** and point to [PROVISION_TEST_ACCOUNTS.md](../../../documentation/client/qa/PROVISION_TEST_ACCOUNTS.md).
+- Schema template: [test-accounts.example.json](../../../documentation/client/qa/test-accounts.example.json)
+
+## Credential discovery
+
+1. Read `documentation/client/qa/test-accounts.json` at task start.
+2. Use `env` + `baseUrls.web` / `baseUrls.api` for the active environment (default in file: production).
+3. Password: `sharedPassword` (or `test-accounts.local.json` if team moved password out of git).
+4. Map flow → role(s) using `accounts[]` entries: `buyer` | `seller` | `agent` | `brokerage` | `integration_partner`.
+
+| `role` | `workspace` (expected) | Primary surfaces to exercise |
+| ------ | ---------------------- | ---------------------------- |
+| `buyer` | `buyer` | Search `/search`, Library `/library`, Dashboard `/dashboard`, buyer messaging |
+| `seller` | `seller` | Seller shell routes under `/dashboard` (seller workspace) |
+| `agent` | `agent` | Client hub `/dashboard/client/:id`, agent messaging, `ClientSelector`, client checklists |
+| `brokerage` | `brokerage` | Brokerage dashboard (`activeWorkspace === "brokerage"`), roster with linked agents |
+| `integration_partner` | `integration_partner` | Partner/integration surfaces once role is granted |
+
+Workspace behavior: [documentation/client/workspace-first-architecture.md](../../../documentation/client/workspace-first-architecture.md). After login, `useActiveWorkspace()` should match the account’s `workspace`; do **not** use SIL-123 dev persona switcher for cross-role QA — use **separate logins** per role.
+
+### API base URL fallback
+
+If `baseUrls.api` (`https://api.usesilverkey.com`) does not resolve, use `https://usesilverkey.com` (current production client default in `Client/packages/config/env.ts`).
+
+## Local dev overrides
+
+For `localhost` testing, override URLs in chat or env — file defaults target production per SIL-145:
+
+| Surface | Local default |
+| ------- | ------------- |
+| Desktop web | `http://localhost:5173` |
+| API | `http://localhost:5000` |
+| Mobile Expo | `http://localhost:8081` |
+
+## Sign-in (mandatory path)
+
+**Preferred for agents:** API login, then UI with session.
+
+```bash
+# Read email + sharedPassword from test-accounts.json
+curl -s -X POST "${API_BASE}/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"<accounts[].email>","password":"<sharedPassword>"}'
+```
+
+**Do not print** access/refresh tokens from login responses in chat logs.
+
+**UI path (when driving a browser):**
+
+1. Open `{baseUrls.web}/login`.
+2. Submit `accounts[].email` + `sharedPassword`.
+3. On success → `/dashboard` (or `from` redirect). On `needs_verification` → `/verification`.
+
+**Do not use** Google OAuth for automation (`signIn.avoidGoogleOAuthForAutomation`). Tokens live in **memory + sessionStorage** only — not `localStorage` (see `security.mdc`).
+
+### Email / OTP verification
+
+If login returns `needs_verification` or UI routes to `/verification`:
+
+1. Read `emailOtp` + `inbox` from `test-accounts.json` (Gmail plus-addressing: all aliases → one inbox).
+2. Open the shared inbox; use the 6-digit code from the latest SilverKey email for that alias.
+3. Complete `/verification`.
+4. Re-login if needed.
+
+Disposable signup aliases: `disposableSignupPattern` (`silverkeyqa+signup{N}@gmail.com`).
+
+## Flow-probing mandate
+
+When asked to test a flow (e.g. “agent → buyer offer”):
+
+1. **Identify roles** required (often `agent` + `buyer`).
+2. **Sign in as each role** using committed credentials — separate sessions; log out between roles or use isolated browser profiles.
+3. **Reach the target screen** via documented routes (no credential paste in chat).
+4. **Probe for bugs:** broken empty/error states, console errors, failed network calls (4xx/5xx), wrong workspace nav, agent-only APIs called as buyer, **RESPA-style leaks**.
+5. **Record evidence:** route, role, repro steps, request IDs from logs if available.
+
+Verify logins (pass/fail only): `./scripts/qa/verify-qa-test-accounts.sh` from repo root.
+
+## SIL-123 alignment (dev persona — not for this workflow)
+
+`/admin/dev-persona` toggles **one** logged-in user’s shell. **Cross-role QA** must use **SIL-145 discrete accounts**, not persona switcher.
+
+## Examples
+
+```text
+# ✅ DO — flow test "agent client hub checklists"
+Read test-accounts.json → accounts where role=agent
+POST /api/v1/auth/login → open /dashboard/client/<id> as agent
+
+# ❌ DON'T — guess or ask human for password in chat
+"Log in as agent@company.com with password ???"
+```
+
+## Related
+
+- [PROVISION_TEST_ACCOUNTS.md](../../../documentation/client/qa/PROVISION_TEST_ACCOUNTS.md)
+- [END_TO_END_QA_RUNBOOK.md](../../../documentation/client/qa/END_TO_END_QA_RUNBOOK.md)
+- [FLOW_SIGNUP_AND_VERIFICATION.md](../../../documentation/client/qa/FLOW_SIGNUP_AND_VERIFICATION.md)
