@@ -1,6 +1,6 @@
-import { adminSupportMessagingPersona } from "packages/features/admin";
-import { brokerageMessagingPersona } from "packages/features/brokerage";
-import { integratorMessagingPersona } from "packages/features/integrationPartner";
+import { adminSupportMessagingPersona } from "packages/features/admin/utils/messaging/adminSupportMessagingPersona";
+import { brokerageMessagingPersona } from "packages/features/brokerage/utils/messaging/brokerageMessagingPersona";
+import { integratorMessagingPersona } from "packages/features/integrationPartner/utils/messaging/integratorMessagingPersona";
 import type {
   WorkspaceMessagingPersonaConfig,
   WorkspaceMessagingPersonaId,

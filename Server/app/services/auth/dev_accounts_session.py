@@ -19,7 +19,7 @@ from app import db
 from app.models import User, UserDemographics, UserRole
 from app.schemas.generated import DevWorkspacePersona
 from app.services.auth.utils.token_creation import create_minimal_tokens
-from logger import LOG_CATEGORIES, log
+from logger import log
 
 DevAccountRole = Literal["buyer", "seller", "agent", "brokerage", "integration_partner"]
 
@@ -114,8 +114,6 @@ def _ensure_dev_account(actor: User, role: DevAccountRole) -> User:
 
     _ensure_role(user, _DEV_TEST_ACCOUNT_ROLE)
     _ensure_role(user, _role_for_dev_account(role))
-    if role == "agent":
-        user.is_agent = True
     _ensure_demographics(user, role)
     return user
 
@@ -158,7 +156,7 @@ def mint_dev_session_token(actor: User, role: DevWorkspacePersona) -> tuple[str,
     )
 
     log.security(
-        LOG_CATEGORIES["SECURITY"],
+        "SECURITY",
         "Dev account session token minted",
         {
             "actor_user_id": str(actor.id),
@@ -199,7 +197,7 @@ def exchange_dev_session_token(token: str) -> tuple[User, str, str]:
         raise RuntimeError("dev_session_token_create_failed")
 
     log.security(
-        LOG_CATEGORIES["SECURITY"],
+        "SECURITY",
         "Dev account session token exchanged",
         {
             "actor_user_id": grant.minted_by_user_id,

@@ -7,7 +7,7 @@ import type {
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import type { OnboardingData } from "packages/features/profile/utils";
 import { userPreferencesToOnboardingData } from "packages/features/profile/utils";
-import { useGoogleMaps } from "packages/hooks/data";
+import { useGoogleMaps } from "packages/features/search/hooks/data/map/useGoogleMaps";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
 import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { log } from "packages/logger";

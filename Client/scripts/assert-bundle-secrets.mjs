@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Pre-Docker-build: assert required bundle env vars are non-empty (AWS SM primary; GitHub fallback in ci_web).
+ * Pre-Docker-build: assert required bundle env vars are non-empty (AWS SM only in ci_web).
  * Reads Client/config/required-bundle-env.json — logs lengths only, never secret values.
  */
 import path from "path";

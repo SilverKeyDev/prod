@@ -33,13 +33,19 @@ def _role_names_for_user_id(user_id: str) -> list[str]:
 
 
 def _hydrate_legacy_user_fields(user: User) -> None:
-    """Prevent lazy SELECT of dropped legacy columns; derive flags from user_roles."""
+    """Prevent lazy SELECT of dropped legacy columns; derive flags from user_roles when mapped."""
+    mapper_attrs = User.__mapper__.attrs
     roles = _role_names_for_user_id(str(user.id))
     role_set = {r.strip().lower() for r in roles if isinstance(r, str)}
-    attributes.set_committed_value(user, "is_agent", "agent" in role_set)
-    attributes.set_committed_value(user, "client_ids", None)
-    attributes.set_committed_value(user, "agent_id", None)
-    attributes.set_committed_value(user, "brokerage", None)
+    legacy_values = {
+        "is_agent": "agent" in role_set,
+        "client_ids": None,
+        "agent_id": None,
+        "brokerage": None,
+    }
+    for attr, value in legacy_values.items():
+        if attr in mapper_attrs:
+            attributes.set_committed_value(user, attr, value)
 
 
 def _load_only_options():

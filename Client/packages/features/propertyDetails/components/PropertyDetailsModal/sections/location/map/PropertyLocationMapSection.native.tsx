@@ -3,11 +3,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Linking, StyleSheet, View } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE, type Region } from "react-native-maps";
 
-import { useFeature, useLocalization } from "packages/contexts";
+import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { SectionTintWrapper } from "packages/features/propertyDetails/components/PropertyDetailsModal/sections/layout/SectionTintWrapper";
 import type { PropertyComponentProps } from "packages/features/propertyDetails/components/PropertyDetailsModal/types";
 import { PropertySectionHeader } from "packages/features/propertyDetails/components/visualizations";
+import { useFeature } from "packages/hooks/store/featureFlags/useFeature";
 import { log } from "packages/logger";
 import { Button } from "packages/ui";
 import { Box, Loading } from "packages/ui/components/structure/primitives";

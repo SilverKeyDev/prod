@@ -16,6 +16,5 @@ export {
   useAllowedWorkspaces,
   useSetActiveWorkspace,
 } from "./useActiveWorkspace";
-export { useAppDevClientPersona } from "./useAppDevClientPersona";
 export { useIsAgent } from "./useIsAgent";
 export { useTransactionShellConfig } from "./useTransactionShellConfig";

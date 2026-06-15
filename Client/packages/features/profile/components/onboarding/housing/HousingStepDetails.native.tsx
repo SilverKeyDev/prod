@@ -6,7 +6,7 @@ import {
   FIELD_LABELS,
   INTENDED_USE_OPTIONS,
   type OnboardingData,
-  RENOVATION_OPTIONS,
+  RENOVATION_PREFERENCE_OPTIONS,
   SECTION_TITLES,
   WALKABILITY_OPTIONS,
 } from "packages/features/profile/utils";
@@ -31,7 +31,7 @@ export function HousingStepDetails({ formData, updateFormData }: Props) {
           {FIELD_LABELS.RENOVATION_PREFERENCE}
         </Text>
         <Box className="flex flex-row flex-wrap gap-2">
-          {RENOVATION_OPTIONS.map((option) => {
+          {RENOVATION_PREFERENCE_OPTIONS.map((option) => {
             const selected = formData.renovation_preference === option.value;
             return (
               <Pressable

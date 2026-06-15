@@ -4,14 +4,12 @@ import Loading from "@ui/asset/loading/Loading";
 
 import type { AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
-import {
-  type DocumentData,
-  useDocumentActions,
-  useDocumentsDataIntegration,
-  useFormsLibrary,
-} from "packages/features/documents";
+import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
+import type { DocumentData } from "packages/features/documents/hooks/data/useDocumentsData";
+import { useFormsLibrary } from "packages/features/documents/hooks/data/useFormsLibrary";
+import { useDocumentsDataIntegration } from "packages/features/documents/hooks/store/integration/useDocumentsDataIntegration";
 import { UnifiedMessageThreadRow } from "packages/features/messaging/components/layout/threadRow/UnifiedMessageThreadRow";
-import type { SearchResult } from "packages/features/search";
+import type { SearchResult } from "packages/features/search/types/domain/result";
 import { useSavedHomesData } from "packages/hooks/data/saved/useSavedHomesData";
 import { showErrorToast } from "packages/hooks/ui";
 import { useNavigation } from "packages/navigation";

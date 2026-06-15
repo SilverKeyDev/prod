@@ -21,19 +21,23 @@ import {
 } from "./useOpenDevAccountSessionMutation";
 
 function wrapper({ children }: { children: ReactNode }) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
 
 describe("useOpenDevAccountSessionMutation", () => {
+  const openMock = vi.fn();
+
   beforeEach(() => {
     mocks.mint.mockReset();
-    window.open = vi.fn();
+    openMock.mockReset();
     setPlatformGlobals({
-      window,
-      document,
-      navigator,
-      fetch,
+      window: { open: openMock } as Window,
+      document: globalThis.document,
+      navigator: globalThis.navigator,
+      fetch: globalThis.fetch,
     });
   });
 
@@ -49,7 +53,9 @@ describe("useOpenDevAccountSessionMutation", () => {
       role: "buyer",
       user: { id: "u1" },
     });
-    const { result } = renderHook(() => useOpenDevAccountSessionMutation(), { wrapper });
+    const { result } = renderHook(() => useOpenDevAccountSessionMutation(), {
+      wrapper,
+    });
 
     await act(async () => {
       await result.current.mutateAsync("buyer");
@@ -57,7 +63,7 @@ describe("useOpenDevAccountSessionMutation", () => {
 
     await waitFor(() => {
       expect(mocks.mint).toHaveBeenCalledWith({ workspace: "buyer" });
-      expect(window.open).toHaveBeenCalledWith(
+      expect(openMock).toHaveBeenCalledWith(
         "/dev/session?t=one-time-token",
         "_blank",
         "noopener,noreferrer"

@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { DEFAULT_AVATAR_IMAGE } from "packages/features/feed";
+import { DEFAULT_AVATAR_IMAGE } from "packages/features/feed/utils/placeholderAssets";
 import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePictureUpload";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
 import { FormFieldLabel as Label } from "packages/ui";
+import Button from "packages/ui/components/actions/button/Button";
 import { Image } from "packages/ui/components/structure/primitives";
 import { Box } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
-import { BodyText, Button } from "@/components/ui";
 import { FEED_AVATAR_IMAGE_CLASS } from "@/features/feed/components/Overlay/FeedActionButton";
 const ACCEPTED_TYPES = "image/jpeg,image/png,image/gif";
 const MAX_SIZE_MB = 15;

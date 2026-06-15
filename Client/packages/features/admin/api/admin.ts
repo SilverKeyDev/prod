@@ -37,12 +37,12 @@ export type SetCurrentUserDevWorkspaceRequest =
 export type SetCurrentUserDevWorkspaceResponse =
   components["schemas"]["SetCurrentUserDevWorkspaceResponse"];
 export type DevAccountSessionRole = components["schemas"]["DevWorkspacePersona"];
-export type DevAccountSessionMintResponse = components["schemas"]["SuccessResponse"] & {
-  token?: string;
-  role?: DevAccountSessionRole;
-  user?: components["schemas"]["User"];
-};
+export type DevAccountSessionMintResponse = components["schemas"]["MintDevAccountSessionResponse"];
 export type DevAccountSessionExchangeResponse = components["schemas"]["AuthResponse"];
+
+export type MintDevAccountSessionResult = Required<
+  Pick<DevAccountSessionMintResponse, "token" | "role" | "user">
+>;
 
 export type DevUserDataResetRequest = components["schemas"]["DevUserDataResetRequest"];
 export type DevUserDataResetResponse = components["schemas"]["DevUserDataResetResponse"];
@@ -161,12 +161,12 @@ export const adminApi = {
   },
 
   /** Admin/dev only — mint a one-time login token for a per-role dev test account. */
-  mintDevAccountSession: async (body: {
-    workspace: DevAccountSessionRole;
-  }): Promise<Required<Pick<DevAccountSessionMintResponse, "token" | "role" | "user">>> => {
+  mintDevAccountSession: async (
+    body: SetCurrentUserDevWorkspaceRequest
+  ): Promise<MintDevAccountSessionResult> => {
     const response = await apiPost<
       DevAccountSessionMintResponse,
-      { workspace: DevAccountSessionRole }
+      SetCurrentUserDevWorkspaceRequest
     >("/api/v1/admin/dev-accounts/session", body);
     if (!response.success || !response.token || !response.role || !response.user) {
       throw new Error(resolveApiResultErrorMessage(response, "Failed to create dev session"));

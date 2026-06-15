@@ -104,6 +104,8 @@
   "PATCH /api/v1/user/client-settings",
   "POST /api/v1/admin/current-user-agent-status",
   "POST /api/v1/admin/current-user-dev-workspace",
+  "POST /api/v1/admin/dev-accounts/session",
+  "POST /api/v1/admin/dev-accounts/session/exchange",
   "POST /api/v1/admin/logger-config",
   "POST /api/v1/admin/partners",
   "POST /api/v1/admin/partners/{partner_id}/logo",

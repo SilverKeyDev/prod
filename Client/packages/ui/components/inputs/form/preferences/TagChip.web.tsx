@@ -2,9 +2,9 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import IconButton from "packages/ui/components/actions/button/IconButton";
 import { Box } from "packages/ui/components/structure/primitives";
-
-import { BodyText, IconButton } from "@/components/ui";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 export type TagChipProps = {
   label: string;

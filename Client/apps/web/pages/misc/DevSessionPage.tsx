@@ -1,21 +1,19 @@
 import { useEffect, useState } from "react";
 
-import { useNavigate, useSearchParams } from "react-router-dom";
-
 import { adminApi } from "packages/features/admin/api/admin";
 import {
   mapAuthResponseToUserProfile,
   toUserStoreProfile,
 } from "packages/features/homeauth/hooks/data/utils/userMapping";
 import { log } from "packages/logger";
+import { useNavigation } from "packages/navigation";
 import { ROUTES } from "packages/navigation/types/routes";
 import { storeDevSessionAccessToken } from "packages/services/http/authToken";
 import { useAuthStore, useUserStore } from "packages/store";
 import { Box, Text } from "packages/ui/components/structure/primitives";
 
 export default function DevSessionPage() {
-  const [params] = useSearchParams();
-  const navigate = useNavigate();
+  const { getSearchParams, navigateToPath } = useNavigation();
   const [message, setMessage] = useState("Opening dev session...");
   const setAuthUser = useAuthStore((s) => s.setUser);
   const setIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
@@ -24,7 +22,7 @@ export default function DevSessionPage() {
   const setUserProfile = useUserStore((s) => s.setUserProfile);
 
   useEffect(() => {
-    const token = params.get("t");
+    const token = getSearchParams().get("t");
     if (!token) {
       setMessage("Missing dev session token.");
       return;
@@ -52,7 +50,7 @@ export default function DevSessionPage() {
           userId: user.id,
           role: user.roles?.join(","),
         });
-        void navigate(ROUTES.SEARCH, { replace: true });
+        void navigateToPath(ROUTES.SEARCH, { replace: true });
       } catch (error) {
         if (cancelled) return;
         setMessage(error instanceof Error ? error.message : "Failed to open dev session.");
@@ -65,8 +63,8 @@ export default function DevSessionPage() {
       cancelled = true;
     };
   }, [
-    navigate,
-    params,
+    getSearchParams,
+    navigateToPath,
     setAuthReady,
     setAuthStatus,
     setAuthUser,

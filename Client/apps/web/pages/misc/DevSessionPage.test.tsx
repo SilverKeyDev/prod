@@ -1,5 +1,7 @@
 import { render, waitFor } from "@testing-library/react";
+/* eslint-disable no-restricted-imports -- page test harness needs MemoryRouter for /dev/session routing */
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+/* eslint-enable no-restricted-imports */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({

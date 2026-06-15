@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
 
-import { useSearchRefresh } from "packages/contexts";
 import { useAgentSyncPreferencesWhenClientSelected } from "packages/features/agent/hooks/data/search/useAgentSyncPreferencesWhenClientSelected";
 import { FEED_ACTION_INTERACTION_CLASS } from "packages/features/feed";
 import {
@@ -14,6 +13,7 @@ import { useSearchPageHandlers } from "packages/features/search/hooks/data/page/
 import type { Property } from "packages/features/search/hooks/data/property/usePropertyDetails";
 import { useSearchDisplaySettings } from "packages/features/search/hooks/data/useSearchDisplaySettings";
 import { useSearchRefreshIntegration } from "packages/features/search/hooks/data/useSearchRefreshIntegration";
+import { useSearchRefresh } from "packages/features/search/hooks/searchRefresh/useSearchRefresh";
 import { useSearchViewIntegration } from "packages/features/search/hooks/store/useSearchViewIntegration";
 import { useAgentSearchShareSelection } from "packages/features/search/hooks/ui/screen/useAgentSearchShareSelection";
 import { useSearchMobileHeaderActions } from "packages/features/search/hooks/ui/screen/useSearchMobileHeaderActions";

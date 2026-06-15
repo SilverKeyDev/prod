@@ -3399,6 +3399,13 @@ class SetCurrentUserDevWorkspaceRequest(BaseModel):
     )
 
 
+class ExchangeDevAccountSessionRequest(BaseModel):
+    token: constr(min_length=1) = Field(
+        ...,
+        description="One-time dev session token minted by an admin for a target dev test account.",
+    )
+
+
 class UpdateChecklistDispatchAutomationRequest(BaseModel):
     enabled: bool
     channel: ChecklistDispatchChannel
@@ -4375,6 +4382,14 @@ class UpdateAgentStatusResponse(SuccessResponse):
 
 class SetCurrentUserDevWorkspaceResponse(SuccessResponse):
     user: UserModel | None = None
+
+
+class MintDevAccountSessionResponse(SuccessResponse):
+    token: str = Field(
+        ..., description="One-time token for tab-scoped dev account session exchange."
+    )
+    role: DevWorkspacePersona
+    user: UserModel
 
 
 class Checklist(BaseModel):

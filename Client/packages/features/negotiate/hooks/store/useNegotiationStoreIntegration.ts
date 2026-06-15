@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { negotiationService } from "packages/features/negotiate";
+import { negotiationService } from "packages/features/negotiate/utils/instance";
 import { useAuthStore, useNegotiationStore } from "packages/store";
 
 /**

@@ -29,6 +29,8 @@ export const ROUTES = {
   /** DocuSign embedded signing return URL (see Server DOCUSIGN_SIGNING_COMPLETE_PATH). */
   AGREEMENT_SIGNING_COMPLETE: "/agreements/:agreementId/complete",
   MESSAGING: "/messaging",
+  /** Client: discover / connect with agents (recommendations + search). */
+  FIND_AGENTS: "/find-agents",
   ANALYTICS: "/analytics",
   SEARCH: "/search",
   PROPERTY_DETAILS: "/property-details",
