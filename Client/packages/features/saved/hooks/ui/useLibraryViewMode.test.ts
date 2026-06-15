@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockPatch = vi.fn();
 let mockServerLayout: "grid" | "list" | undefined;
+let mockClientSettingsLoading = false;
 
 vi.mock("packages/hooks/data/user/useClientSettings", () => ({
   useClientSettings: () => ({
@@ -12,6 +13,7 @@ vi.mock("packages/hooks/data/user/useClientSettings", () => ({
       mockServerLayout === "list" || mockServerLayout === "grid"
         ? { library: { documents: { layout: mockServerLayout, sort: "date_desc" } } }
         : null,
+    clientSettingsQuery: { isLoading: mockClientSettingsLoading },
     patchClientSettings: mockPatch,
   }),
 }));
@@ -33,6 +35,7 @@ describe("useLibraryViewMode", () => {
   beforeEach(() => {
     mockPatch.mockClear();
     mockServerLayout = "grid";
+    mockClientSettingsLoading = false;
   });
 
   it("reflects local toggles immediately even when server layout is still stale", () => {
@@ -57,11 +60,13 @@ describe("useLibraryViewMode", () => {
 
   it("hydrates from server once when settings arrive", () => {
     mockServerLayout = undefined;
+    mockClientSettingsLoading = true;
 
     const { result, rerender } = renderHook(() => useLibraryViewMode("documents"));
     expect(result.current.value).toBe("grid");
 
     mockServerLayout = "list";
+    mockClientSettingsLoading = false;
     rerender();
 
     expect(result.current.value).toBe("list");
