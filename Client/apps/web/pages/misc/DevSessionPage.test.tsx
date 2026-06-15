@@ -24,7 +24,7 @@ vi.mock("packages/logger", () => ({
 }));
 
 import { useAuthStore, useUserStore } from "packages/store";
-import { setPlatformStorage } from "packages/utils/storage";
+import { setPlatformStorage } from "packages/utils/core/storage";
 
 import DevSessionPage from "./DevSessionPage";
 
