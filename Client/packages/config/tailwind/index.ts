@@ -1,10 +1,8 @@
 // Relative path required: PostCSS/jiti loads this file in Node where "packages/design-tokens" alias is not resolved.
-/* eslint-disable silverkey/no-relative-parent-imports -- Node context, no Vite alias */
+ 
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-
-import { breakpoints, fontFamily, fontSize, spacingMap, Z_LAYERS } from "../../design-tokens";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -15,6 +13,22 @@ const features = require(path.resolve(__dirname, "../../design-tokens/tokens/col
 const colors = { ...foundation, ...features };
 const motionTheme = require(
   path.resolve(__dirname, "../../design-tokens/tokens/motion/motion.theme.json")
+);
+// Direct requires: PostCSS/jiti cannot resolve barrel re-exports from design-tokens/index.ts.
+const { breakpoints } = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/layout/breakpoints.ts")
+);
+const { Z_LAYERS } = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/layout/zLayers.ts")
+);
+const fontSize = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/typography/fontSize.json")
+);
+const { fontFamily } = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/typography/fontFamily.ts")
+);
+const { spacing: spacingMap } = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/layout/spacing.ts")
 );
 
 /**

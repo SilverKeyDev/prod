@@ -1,7 +1,7 @@
 import { useLocalization } from "packages/contexts";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
 import { Box } from "packages/ui/components/structure/primitives";
-import { isNative } from "packages/utils/platform";
+import { isNative } from "packages/utils/core/platform";
 
 import { Button } from "@/components/ui";
 

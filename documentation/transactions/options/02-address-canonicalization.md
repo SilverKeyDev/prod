@@ -34,4 +34,4 @@ Collect a property address when starting checklist-driven work: canonical geo da
 > **Shipped feature docs:** [search.md](../../client/features/search.md).
 
 - **Option B** — may return as explicit fallback flow, not default.
-- **Option C** — Dotloop/Skyslope address sync is out of scope until brokerage integrations land (`Transaction.skyslope_file_id` is a hook only).
+- **Option C** — Dotloop/Skyslope address sync is out of scope until brokerage integrations land.

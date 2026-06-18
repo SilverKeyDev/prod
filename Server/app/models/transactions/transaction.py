@@ -13,7 +13,7 @@ from app import db
 
 
 class Transaction(db.Model):
-    """Transaction - tracks buyer, agent, brokerage attribution, and external file linkage."""
+    """Transaction - tracks buyer, agent, and brokerage attribution."""
 
     __tablename__ = "transactions"
     __table_args__ = (Index("ix_transactions_buyer_id_updated_at", "buyer_id", "updated_at"),)
@@ -26,7 +26,6 @@ class Transaction(db.Model):
     brokerage_org_id: Mapped[str] = mapped_column(
         db.ForeignKey("brokerage_orgs.id"), nullable=False, index=True
     )
-    skyslope_file_id: Mapped[str | None] = mapped_column(db.String(100))
     status: Mapped[str | None] = mapped_column(db.String(32))
     display_label: Mapped[str | None] = mapped_column(db.String(500))
     created_at: Mapped[datetime] = mapped_column(
