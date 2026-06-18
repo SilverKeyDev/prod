@@ -1,5 +1,12 @@
 from flask import Blueprint
 
+from .handlers.brokerage_skyslope_credentials import (
+    create_brokerage_skyslope_credential,
+    delete_brokerage_skyslope_credential,
+    get_brokerage_skyslope_credential,
+    test_brokerage_skyslope_connection,
+    update_brokerage_skyslope_credential,
+)
 from .handlers.current_user_agent import set_current_user_agent_status
 from .handlers.current_user_dev_workspace import set_current_user_dev_workspace
 from .handlers.delete_user import delete_user_account
@@ -26,3 +33,23 @@ admin_bp.route("/users/gate-roles", methods=["GET"])(list_admin_gate_users)
 admin_bp.route("/users/reset-dev-data", methods=["POST"])(reset_dev_user_data_route)
 admin_bp.route("/users/roles", methods=["POST"])(update_user_system_roles)
 admin_bp.route("/validation-stats", methods=["GET"])(get_validation_stats)
+admin_bp.route(
+    "/brokerages/<brokerage_id>/integrations/skyslope",
+    methods=["GET"],
+)(get_brokerage_skyslope_credential)
+admin_bp.route(
+    "/brokerages/<brokerage_id>/integrations/skyslope",
+    methods=["POST"],
+)(create_brokerage_skyslope_credential)
+admin_bp.route(
+    "/brokerages/<brokerage_id>/integrations/skyslope",
+    methods=["PUT"],
+)(update_brokerage_skyslope_credential)
+admin_bp.route(
+    "/brokerages/<brokerage_id>/integrations/skyslope",
+    methods=["DELETE"],
+)(delete_brokerage_skyslope_credential)
+admin_bp.route(
+    "/brokerages/<brokerage_id>/integrations/skyslope/test-connection",
+    methods=["POST"],
+)(test_brokerage_skyslope_connection)

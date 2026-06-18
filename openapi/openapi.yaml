@@ -158,6 +158,18 @@ components:
       $ref: "./components/schemas/shared/core/AuthSessionUser.yaml"
     BulkUpdateFavoritesRequest:
       $ref: "./components/schemas/auth/BulkUpdateFavoritesRequest.yaml"
+    BrokerageSkySlopeCredential:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredential.yaml"
+    BrokerageSkySlopeCredentialCreateRequest:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialCreateRequest.yaml"
+    BrokerageSkySlopeCredentialUpdateRequest:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialUpdateRequest.yaml"
+    BrokerageSkySlopeCredentialResponse:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialResponse.yaml"
+    BrokerageSkySlopeCredentialStatus:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialStatus.yaml"
+    BrokerageSkySlopeCredentialTestResponse:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialTestResponse.yaml"
     ChatbotHistoryMessage:
       $ref: "./components/schemas/shared/chatbot/ChatbotHistoryMessage.yaml"
     ChatbotHistoryResponse:
@@ -7248,6 +7260,161 @@ paths:
                 $ref: "#/components/schemas/RevShareAnalyticsResponse"
         "404":
           description: Partner not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope:
+    get:
+      tags:
+        - Admin
+      summary: Get SkySlope integration metadata for a brokerage (admin only)
+      operationId: getAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Credential metadata (no secret values)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialResponse"
+        "404":
+          description: Credential or brokerage not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Admin
+      summary: Store encrypted SkySlope API key for a brokerage (admin only)
+      operationId: createAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrokerageSkySlopeCredentialCreateRequest"
+      responses:
+        "201":
+          description: Credential stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialResponse"
+        "404":
+          description: Brokerage not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Credential already exists for this brokerage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - Admin
+      summary: Update SkySlope integration credentials for a brokerage (admin only)
+      operationId: updateAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrokerageSkySlopeCredentialUpdateRequest"
+      responses:
+        "200":
+          description: Credential updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialResponse"
+        "404":
+          description: Credential or brokerage not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Admin
+      summary: Delete SkySlope integration credentials for a brokerage (admin only)
+      operationId: deleteAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Credential deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Credential not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope/test-connection:
+    post:
+      tags:
+        - Admin
+      summary: Verify stored SkySlope credentials decrypt successfully (admin only)
+      operationId: testAdminBrokerageSkySlopeConnection
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Connection test result (safe message only)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialTestResponse"
+        "404":
+          description: Credential not found
           content:
             application/json:
               schema:

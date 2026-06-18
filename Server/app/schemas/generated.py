@@ -637,6 +637,45 @@ class BulkUpdateFavoritesRequest(BaseModel):
     )
 
 
+class Provider(Enum):
+    """
+    Integration provider identifier
+    """
+
+    skyslope = "skyslope"
+
+
+class BrokerageSkySlopeCredentialStatus(Enum):
+    """
+    SkySlope integration credential health status
+    """
+
+    active = "active"
+    invalid = "invalid"
+    pending = "pending"
+
+
+class BrokerageSkySlopeCredentialCreateRequest(BaseModel):
+    api_key: str = Field(
+        ...,
+        description="Per-brokerage SkySlope API key (write-only; never returned by GET)",
+    )
+    skyslope_org_id: str | None = Field(
+        None, description="Optional SkySlope organization identifier"
+    )
+
+
+class BrokerageSkySlopeCredentialUpdateRequest(BaseModel):
+    api_key: str | None = Field(None, description="Replacement SkySlope API key (write-only)")
+    skyslope_org_id: str | None = None
+    status: BrokerageSkySlopeCredentialStatus | None = None
+
+
+class BrokerageSkySlopeCredentialTestResponse(BaseModel):
+    success: bool
+    message: str = Field(..., description="Safe, non-secret connection test result")
+
+
 class Role2(Enum):
     user = "user"
     assistant = "assistant"
@@ -3935,6 +3974,28 @@ class CognitoCodeDeliveryDetails(BaseModel):
         None, description="Masked destination (e.g., 'j***@example.com' or '+1***1234')"
     )
     AttributeName: str | None = Field(None, description="Attribute being verified (e.g., 'email')")
+
+
+class BrokerageSkySlopeCredential(BaseModel):
+    brokerage_id: str = Field(..., description="Brokerage org id (brokerage_orgs.id)")
+    provider: Provider = Field(..., description="Integration provider identifier")
+    key_last4: str | None = Field(
+        None, description="Last four characters of the API key (masked display only)"
+    )
+    skyslope_org_id: str | None = Field(
+        None, description="Optional SkySlope organization identifier"
+    )
+    status: BrokerageSkySlopeCredentialStatus
+    last_verified_at: AwareDatetime | None = Field(
+        None, description="When connection was last verified successfully"
+    )
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
+
+
+class BrokerageSkySlopeCredentialResponse(BaseModel):
+    success: bool
+    data: BrokerageSkySlopeCredential
 
 
 class TaskChecklistItem(BaseModel):

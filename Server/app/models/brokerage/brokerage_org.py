@@ -33,6 +33,11 @@ class BrokerageOrg(db.Model):
         back_populates="brokerage_org",
         lazy="dynamic",
     )
+    integration_credentials: Mapped[list["BrokerageIntegrationCredential"]] = relationship(
+        "BrokerageIntegrationCredential",
+        back_populates="brokerage_org",
+        cascade="all, delete-orphan",
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -17,6 +17,7 @@ TEST_ENV_STUBS: dict[str, str] = {
     "SLIPSTREAM_PRIVATE": "pytest-stub-slipstream-private-not-for-production",
     "SLIPSTREAM_PUBLIC": "pytest-stub-slipstream-public-not-for-production",
     "POSTHOG_PROJECT_TOKEN": "pytest-stub-posthog-not-for-production",
+    "CREDENTIAL_ENCRYPTION_KEY": "pytest-stub-credential-encryption-key-not-for-production",
 }
 
 
