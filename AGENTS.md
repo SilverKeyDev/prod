@@ -35,6 +35,7 @@ Run `make help`. Common targets:
 | `make lint` | `./scripts/ci/run-all-linters.sh all` |
 | `make lint-client` / `make lint-server` | Scoped linters |
 | `make typecheck` / `make check-client` | Client typecheck / full `pnpm check` |
+| `make does-it-run` | CI smoke gate locally (frontend + backend-light; `DOES_IT_RUN_MODE=docker` for full Docker) |
 | `make test` / `make test-fe` / `make test-be` | Vitest + pytest |
 | `make openapi` / `make openapi-verify` | Regenerate types; PR drift gate |
 | `make check-docs` | Doc placement + link checks |

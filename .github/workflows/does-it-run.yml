@@ -1,0 +1,15 @@
+# Manual re-run of does-it-run smoke without the full Test & Coverage suite.
+name: Does it run (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  does-it-run:
+    uses: ./.github/workflows/does-it-run-callable.yml
+    with:
+      base_sha: ${{ github.event.before }}
+      head_sha: ${{ github.sha }}

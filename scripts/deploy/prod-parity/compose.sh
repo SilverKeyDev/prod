@@ -1,19 +1,30 @@
 #!/usr/bin/env bash
 # docker compose wrapper: loads Client/.env for interpolation; on `build`, passes
 # bundle keys as BuildKit --secret mounts (via export-client-env-docker-build-args.mjs).
+# Optional: CLIENT_ENV_FILE, SERVER_ENV_FILE, COMPOSE_FILE_EXTRA (overlay), COMPOSE_PROJECT_NAME
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 COMPOSE_FILE="$ROOT/scripts/deploy/prod-parity/docker-compose.yml"
-CLIENT_ENV="$ROOT/Client/.env"
+CLIENT_ENV="${CLIENT_ENV_FILE:-$ROOT/Client/.env}"
+
+compose_files=(-f "$COMPOSE_FILE")
+if [[ -n "${COMPOSE_FILE_EXTRA:-}" ]]; then
+  compose_files+=(-f "$COMPOSE_FILE_EXTRA")
+fi
+
+if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
+  export COMPOSE_PROJECT_NAME
+fi
 
 compose() {
-  docker compose --env-file "$CLIENT_ENV" -f "$COMPOSE_FILE" "$@"
+  # shellcheck disable=SC2086
+  docker compose --env-file "$CLIENT_ENV" "${compose_files[@]}" "$@"
 }
 
 if [[ "${1:-}" == "build" ]]; then
   if [[ ! -f "$CLIENT_ENV" ]]; then
-    echo "prod-parity compose: ${CLIENT_ENV} missing (run make secrets)" >&2
+    echo "prod-parity compose: ${CLIENT_ENV} missing (run make secrets or set CLIENT_ENV_FILE)" >&2
     exit 1
   fi
   shift

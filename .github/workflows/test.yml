@@ -9,5 +9,12 @@ permissions:
   contents: read
 
 jobs:
+  does-it-run:
+    uses: ./.github/workflows/does-it-run-callable.yml
+    with:
+      base_sha: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+      head_sha: ${{ github.sha }}
+
   tests:
+    needs: does-it-run
     uses: ./.github/workflows/test-callable.yml
