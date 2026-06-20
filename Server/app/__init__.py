@@ -227,6 +227,7 @@ def create_app(config=None):
     from .routes.auth.auth import auth_bp
     from .routes.auth.preferences import preferences_bp
     from .routes.auth.user import user_bp
+    from .routes.brokerage_analytics import brokerage_analytics_bp
     from .routes.calendar.google_calendar import google_calendar_bp
     from .routes.chat.chatbot import chatbot_bp
     from .routes.conversations import conversations_bp
@@ -245,6 +246,7 @@ def create_app(config=None):
     from .routes.transactions import transactions_bp
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(brokerage_analytics_bp)
     app.register_blueprint(public_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(preferences_bp)

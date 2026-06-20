@@ -6,6 +6,7 @@ import { DonutChart, VerticalBarChart } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
+import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
 
 function KpiCard({
   label,
@@ -191,6 +192,16 @@ export function BrokerageAnalyticsShell() {
           </table>
         </Box>
       </SectionCard>
+      {/* Ancillary Capture Leakage — SIL-277 */}
+<Box className="border-border bg-background-surface rounded-xl border p-5">
+  <Title size="sm" as="h3" className="mb-1">
+    Ancillary Capture Leakage
+  </Title>
+  <BodyText size="xs" muted className="mb-4">
+    Revenue leaking to outside title, lending, escrow, and home warranty vendors
+  </BodyText>
+  <AncillaryInsightPanel />
+</Box>
     </Box>
   );
 }

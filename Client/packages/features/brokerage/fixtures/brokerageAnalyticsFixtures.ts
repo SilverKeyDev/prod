@@ -103,3 +103,93 @@ export const BROKERAGE_ANALYTICS_FIXTURE = {
 
 export type BrokerageAnalyticsFixture = typeof BROKERAGE_ANALYTICS_FIXTURE;
 export type BrokerageAgentFixture = (typeof BROKERAGE_AGENTS_FIXTURE)[number];
+
+export const BROKERAGE_ANCILLARY_FIXTURE = {
+  success: true,
+  brokerage_org_id: "demo-brokerage-org-id",
+  date_from: "2026-01-01T00:00:00+00:00",
+  date_to: "2026-06-30T00:00:00+00:00",
+  total_transactions: 72,
+  summary: {
+    total_leakage_dollars: 156400,
+    avg_attach_rate_percent: 54.2,
+  },
+  by_service: [
+    {
+      service: "title",
+      in_house_count: 45,
+      outside_count: 27,
+      attach_rate_percent: 62.5,
+      leakage_dollars: 13500,
+      fee_assumption: 500,
+    },
+    {
+      service: "lending",
+      in_house_count: 28,
+      outside_count: 44,
+      attach_rate_percent: 38.9,
+      leakage_dollars: 44000,
+      fee_assumption: 1000,
+    },
+    {
+      service: "escrow",
+      in_house_count: 38,
+      outside_count: 34,
+      attach_rate_percent: 52.8,
+      leakage_dollars: 13600,
+      fee_assumption: 400,
+    },
+    {
+      service: "home_warranty",
+      in_house_count: 31,
+      outside_count: 41,
+      attach_rate_percent: 43.1,
+      leakage_dollars: 6150,
+      fee_assumption: 150,
+    },
+  ],
+  by_agent: [
+    {
+      agent_id: "agent-1",
+      name: "Sarah Johnson",
+      transactions: 12,
+      title_attach: 75.0,
+      lending_attach: 50.0,
+      total_leakage_dollars: 8500,
+    },
+    {
+      agent_id: "agent-2",
+      name: "Marcus Williams",
+      transactions: 8,
+      title_attach: 37.5,
+      lending_attach: 25.0,
+      total_leakage_dollars: 14200,
+    },
+    {
+      agent_id: "agent-3",
+      name: "James Chen",
+      transactions: 6,
+      title_attach: 16.7,
+      lending_attach: 16.7,
+      total_leakage_dollars: 18900,
+    },
+    {
+      agent_id: "agent-4",
+      name: "Priya Patel",
+      transactions: 11,
+      title_attach: 81.8,
+      lending_attach: 63.6,
+      total_leakage_dollars: 4200,
+    },
+    {
+      agent_id: "agent-5",
+      name: "David Kim",
+      transactions: 9,
+      title_attach: 44.4,
+      lending_attach: 33.3,
+      total_leakage_dollars: 11800,
+    },
+  ],
+};
+
+export type BrokerageAncillaryFixture = typeof BROKERAGE_ANCILLARY_FIXTURE;
