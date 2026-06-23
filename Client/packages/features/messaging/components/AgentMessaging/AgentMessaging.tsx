@@ -14,6 +14,7 @@ import MessagingModals from "packages/features/messaging/components/layout/chrom
 import UnifiedMessageInput from "packages/features/messaging/components/layout/input/UnifiedMessageInput";
 import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
 import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
+import { useAgentChatsSse } from "packages/features/messaging/hooks/data/useAgentChatsSse";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useMessagingComposerStoreIntegration } from "packages/features/messaging/hooks/store/useMessagingComposerStoreIntegration";
 import { useMessagingComposerStore } from "packages/features/messaging/store";
@@ -42,6 +43,8 @@ type AgentMessagingProps = {
 export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagingProps) {
   useMessagingComposerStoreIntegration();
   useFirstRenderCommitTimer("MESSAGES", "AgentMessaging");
+  // SIL-180: Subscribe to agent SSE stream so new messages appear without refresh
+  useAgentChatsSse(true);
 
   const { clients, isLoading: isLoadingClients } = useAgentClients();
   const agentChats = useAgentChats();
@@ -197,8 +200,6 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
   useEffect(() => {
     if (!setMobileHeaderActions) return;
 
-    // When sidebar is expanded on mobile, the sidebar's own internal header takes over.
-    // Clear the mobile shell header to avoid duplicate controls.
     if (isSidebarExpanded) {
       headerContentKeyRef.current = null;
       setMobileHeaderActions(null);
