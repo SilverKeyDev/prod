@@ -8,6 +8,7 @@ from app.services.skyslope.credentials import (
     test_skyslope_credential,
     update_skyslope_credential,
 )
+from app.services.skyslope.sync import sync_brokerage_transactions
 
 __all__ = [
     "create_skyslope_credential",
@@ -16,4 +17,5 @@ __all__ = [
     "get_decrypted_skyslope_api_key",
     "test_skyslope_credential",
     "update_skyslope_credential",
+    "sync_brokerage_transactions",
 ]

@@ -5,6 +5,7 @@ from .handlers.brokerage_skyslope_credentials import (
     delete_brokerage_skyslope_credential,
     get_brokerage_skyslope_credential,
     test_brokerage_skyslope_connection,
+    trigger_brokerage_skyslope_sync,
     update_brokerage_skyslope_credential,
 )
 from .handlers.current_user_agent import set_current_user_agent_status
@@ -53,3 +54,9 @@ admin_bp.route(
     "/brokerages/<brokerage_id>/integrations/skyslope/test-connection",
     methods=["POST"],
 )(test_brokerage_skyslope_connection)
+
+admin_bp.add_url_rule(
+    "/brokerages/<brokerage_id>/integrations/skyslope/sync",
+    view_func=trigger_brokerage_skyslope_sync,
+    methods=["POST"],
+)

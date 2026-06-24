@@ -105,6 +105,7 @@
   "PATCH /api/v1/search-display",
   "PATCH /api/v1/user/client-settings",
   "POST /api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope",
+  "POST /api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope/sync",
   "POST /api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope/test-connection",
   "POST /api/v1/admin/current-user-agent-status",
   "POST /api/v1/admin/current-user-dev-workspace",

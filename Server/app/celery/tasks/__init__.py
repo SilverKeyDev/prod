@@ -15,6 +15,10 @@ from .docusign import (
     sync_templates_task,
 )
 from .property_research import compare_property_task, research_property_task
+from .skyslope import (
+    sync_all_brokerages_incremental_task,
+    sync_brokerage_transactions_task,
+)
 from .weight_training import train_all_eligible_users_task, train_user_weights_task
 
 __all__ = [
@@ -26,4 +30,6 @@ __all__ = [
     "process_webhook_task",
     "fetch_completed_documents_task",
     "sync_templates_task",
+    "sync_brokerage_transactions_task",
+    "sync_all_brokerages_incremental_task",
 ]
