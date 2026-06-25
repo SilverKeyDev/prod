@@ -7,6 +7,7 @@ from app.schemas import (
     BrokerageSkySlopeCredentialResponse,
     BrokerageSkySlopeCredentialTestResponse,
     BrokerageSkySlopeCredentialUpdateRequest,
+    EmptyRequest,
 )
 from app.services.skyslope.credentials import (
     create_skyslope_credential,
@@ -168,8 +169,9 @@ def delete_brokerage_skyslope_credential(user, brokerage_id: str):
 
 @handle_exceptions_with_logging
 @require_authenticated_user
+@validate_request(EmptyRequest)
 @validate_response(BrokerageSkySlopeCredentialTestResponse)
-def test_brokerage_skyslope_connection(user, brokerage_id: str):
+def test_brokerage_skyslope_connection(user, brokerage_id: str, data: EmptyRequest | None = None):
     denied = _require_admin(user)
     if denied:
         return denied
@@ -183,7 +185,8 @@ def test_brokerage_skyslope_connection(user, brokerage_id: str):
 
 @handle_exceptions_with_logging
 @require_authenticated_user
-def trigger_brokerage_skyslope_sync(user, brokerage_id: str):
+@validate_request(EmptyRequest)
+def trigger_brokerage_skyslope_sync(user, brokerage_id: str, data: EmptyRequest | None = None):
     denied = _require_admin(user)
     if denied:
         return denied
