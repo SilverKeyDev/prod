@@ -3,11 +3,13 @@
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-
-import { breakpoints, fontFamily, fontSize, spacingMap, Z_LAYERS } from "../../design-tokens";
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
+const breakpoints = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/breakpoints.json"));
+const Z_LAYERS = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/zLayers.json"));
+const spacingMap = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/spacing.json"));
+const fontSize = require(path.resolve(__dirname, "../../design-tokens/tokens/typography/fontSize.json"));
+const fontFamily = { serif: ["Playfair Display", "serif"], sans: ["Inter", "sans-serif"] };
 const foundation = require(
   path.resolve(__dirname, "../../design-tokens/tokens/color/foundation.json")
 );
@@ -24,11 +26,11 @@ const motionTheme = require(
 /** @type {import('tailwindcss').Config} */
 const sharedTailwindPreset = {
   theme: {
-    screens: breakpoints,
+    screens: breakpoints ?? {},
     extend: {
       colors,
-      fontFamily,
-      fontSize,
+      fontFamily: fontFamily ?? {},
+      fontSize: fontSize ?? {},
       ...motionTheme,
       animation: {
         "fade-in": "fadeIn 0.5s ease-out",
@@ -50,7 +52,7 @@ const sharedTailwindPreset = {
           "100%": { transform: "scale(1)" },
         },
       },
-      spacing: spacingMap,
+      spacing: spacingMap ?? {},
       minHeight: {
         touch: "44px",
         "touch-lg": "48px",
@@ -73,7 +75,7 @@ const sharedTailwindPreset = {
       // Derived from Z_LAYERS in packages/design-tokens — single source of truth.
       // Tailwind requires string values; native code imports Z_LAYERS directly for numbers.
       zIndex: Object.fromEntries(
-        Object.entries(Z_LAYERS).map(([key, value]) => [key, String(value)])
+        Object.entries(Z_LAYERS ?? {}).map(([key, value]) => [key, String(value)])
       ),
     },
   },
