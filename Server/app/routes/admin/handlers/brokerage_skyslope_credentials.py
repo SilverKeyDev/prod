@@ -7,6 +7,7 @@ from app.schemas import (
     BrokerageSkySlopeCredentialResponse,
     BrokerageSkySlopeCredentialTestResponse,
     BrokerageSkySlopeCredentialUpdateRequest,
+    EmptyRequest,
 )
 from app.services.skyslope.credentials import (
     create_skyslope_credential,
@@ -50,6 +51,13 @@ def _audit(actor_id: str | None, brokerage_id: str, action: str) -> None:
             "provider": "skyslope",
         },
     )
+
+
+def _enqueue_skyslope_full_sync(brokerage_id: str) -> None:
+    """Fire-and-forget bulk import after credentials are stored."""
+    from app.celery.tasks.skyslope import sync_brokerage_transactions_task
+
+    sync_brokerage_transactions_task.delay(brokerage_id, full=True)
 
 
 @handle_exceptions_with_logging
@@ -102,6 +110,7 @@ def create_brokerage_skyslope_credential(
             error_code="configuration_unavailable",
         )
     _audit(getattr(user, "id", None), brokerage_id, "created")
+    _enqueue_skyslope_full_sync(brokerage_id)
     return standardize_success_response({"data": row}, status_code=201)
 
 
@@ -160,8 +169,9 @@ def delete_brokerage_skyslope_credential(user, brokerage_id: str):
 
 @handle_exceptions_with_logging
 @require_authenticated_user
+@validate_request(EmptyRequest)
 @validate_response(BrokerageSkySlopeCredentialTestResponse)
-def test_brokerage_skyslope_connection(user, brokerage_id: str):
+def test_brokerage_skyslope_connection(user, brokerage_id: str, data: EmptyRequest | None = None):
     denied = _require_admin(user)
     if denied:
         return denied
@@ -171,3 +181,21 @@ def test_brokerage_skyslope_connection(user, brokerage_id: str):
     if success:
         _audit(getattr(user, "id", None), brokerage_id, "test_connection_succeeded")
     return standardize_success_response({"success": success, "message": message})
+
+
+@handle_exceptions_with_logging
+@require_authenticated_user
+@validate_request(EmptyRequest)
+def trigger_brokerage_skyslope_sync(user, brokerage_id: str, data: EmptyRequest | None = None):
+    denied = _require_admin(user)
+    if denied:
+        return denied
+    if not get_credential_metadata(brokerage_id):
+        return not_found()
+
+    _enqueue_skyslope_full_sync(brokerage_id)
+    _audit(getattr(user, "id", None), brokerage_id, "sync_enqueued")
+    return standardize_success_response(
+        {"message": "SkySlope sync enqueued", "brokerage_id": brokerage_id},
+        status_code=202,
+    )

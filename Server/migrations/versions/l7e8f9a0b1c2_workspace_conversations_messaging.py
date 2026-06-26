@@ -20,7 +20,7 @@ branch_labels = None
 depends_on = None
 
 _FK_CHAT_HISTORY_WORKSPACE_CONV = "fk_chat_history_workspace_conversation_id"
-_IX_CHAT_HISTORY_WORKSPACE_CONV = op.f("ix_chat_history_workspace_conversation_id")
+_IX_CHAT_HISTORY_WORKSPACE_CONV = "ix_chat_history_workspace_conversation_id"
 
 
 def _column_names(insp, table: str) -> set[str]:

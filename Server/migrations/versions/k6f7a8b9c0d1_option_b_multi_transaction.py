@@ -20,7 +20,7 @@ depends_on = None
 _UQ_TRANSACTIONS_BUYER_ID = "uq_transactions_buyer_id"
 _IX_TRANSACTIONS_BUYER_UPDATED = "ix_transactions_buyer_id_updated_at"
 _FK_USERS_ACTIVE_TRANSACTION_ID = "fk_users_active_transaction_id_transactions"
-_IX_DISPATCH_TRANSACTION_ID = op.f("ix_checklist_item_dispatch_settings_transaction_id")
+_IX_DISPATCH_TRANSACTION_ID = "ix_checklist_item_dispatch_settings_transaction_id"
 _FK_DISPATCH_TRANSACTION_ID = "fk_checklist_dispatch_settings_transaction_id"
 
 

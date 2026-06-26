@@ -22,9 +22,9 @@ DEFAULT_ORG_ID = "a0000000-0000-4000-8000-000000000001"
 DEFAULT_ORG_SLUG = "silverkey-default"
 DEFAULT_ORG_NAME = "SilverKey Default"
 
-_IX_BROKERAGE_ORGS_SLUG = op.f("ix_brokerage_orgs_slug")
-_IX_USER_ORG_MEMBERSHIPS_USER_ID = op.f("ix_user_org_memberships_user_id")
-_IX_USER_ORG_MEMBERSHIPS_BROKERAGE_ORG_ID = op.f("ix_user_org_memberships_brokerage_org_id")
+_IX_BROKERAGE_ORGS_SLUG = "ix_brokerage_orgs_slug"
+_IX_USER_ORG_MEMBERSHIPS_USER_ID = "ix_user_org_memberships_user_id"
+_IX_USER_ORG_MEMBERSHIPS_BROKERAGE_ORG_ID = "ix_user_org_memberships_brokerage_org_id"
 _FK_TRANSACTIONS_BROKERAGE_ORG_ID = "fk_transactions_brokerage_org_id"
 _UQ_TRANSACTIONS_BUYER_ID = "uq_transactions_buyer_id"
 _FK_USER_TASKS_TRANSACTION_ID = "fk_user_tasks_transaction_id"

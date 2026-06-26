@@ -39,6 +39,7 @@ from .property import (
     UserPropertyLink,
     UserScoreWeights,
 )
+from .skyslope import SkySlopeSyncState, SkySlopeTransaction
 from .system import DeploymentLoggerConfig
 from .transactions import (
     ChecklistItemDispatchSetting,
@@ -130,4 +131,6 @@ __all__ = [
     "DocusignOAuthToken",
     "DocusignTemplate",
     "db",
+    "SkySlopeSyncState",
+    "SkySlopeTransaction",
 ]

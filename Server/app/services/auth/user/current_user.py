@@ -6,9 +6,7 @@ import time
 
 from flask import current_app, request
 from jose.exceptions import ExpiredSignatureError, JWTClaimsError
-from sqlalchemy import select
 
-from app import db
 from app.models import User
 from app.utils.security import SecurityError
 from app.utils.security.security import log_security_event

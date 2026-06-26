@@ -5,6 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import pytest
 from sqlalchemy import select
 
 from app import db
@@ -20,6 +21,15 @@ _NON_ADMIN = SimpleNamespace(
     id="user-1",
     user_roles=[SimpleNamespace(role="buyer")],
 )
+
+
+@pytest.fixture(autouse=True)
+def _mock_skyslope_sync_enqueue():
+    """Credential create/sync enqueue must not require Redis in unit tests."""
+    with patch(
+        "app.routes.admin.handlers.brokerage_skyslope_credentials._enqueue_skyslope_full_sync"
+    ) as mock_enqueue:
+        yield mock_enqueue
 
 
 def test_encrypt_decrypt_round_trip():
