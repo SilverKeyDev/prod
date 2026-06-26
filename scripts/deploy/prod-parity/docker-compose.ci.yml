@@ -14,8 +14,8 @@ services:
       start_period: 5s
 
   app:
-    env_file:
-      - ${DOES_IT_RUN_SERVER_ENV:-../../../Server/.env}
+    env_file: !reset
+      - ${DOES_IT_RUN_SERVER_ENV:?DOES_IT_RUN_SERVER_ENV is required for CI}
     environment:
       DATABASE_URL: postgresql://silverkey:silverkey@postgres:5432/silverkey_ci
     depends_on:
@@ -25,8 +25,8 @@ services:
         condition: service_healthy
 
   worker:
-    env_file:
-      - ${DOES_IT_RUN_SERVER_ENV:-../../../Server/.env}
+    env_file: !reset
+      - ${DOES_IT_RUN_SERVER_ENV:?DOES_IT_RUN_SERVER_ENV is required for CI}
     environment:
       DATABASE_URL: postgresql://silverkey:silverkey@postgres:5432/silverkey_ci
     depends_on:
@@ -36,8 +36,8 @@ services:
         condition: service_healthy
 
   beat:
-    env_file:
-      - ${DOES_IT_RUN_SERVER_ENV:-../../../Server/.env}
+    env_file: !reset
+      - ${DOES_IT_RUN_SERVER_ENV:?DOES_IT_RUN_SERVER_ENV is required for CI}
     environment:
       DATABASE_URL: postgresql://silverkey:silverkey@postgres:5432/silverkey_ci
     depends_on:
