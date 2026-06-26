@@ -34,8 +34,26 @@ if [[ "${1:-}" == "build" ]]; then
   set +o allexport
   export DOCKER_BUILDKIT=1
   BUILD_SECRETS="$(node "$ROOT/Client/scripts/export-client-env-docker-build-args.mjs" "$CLIENT_ENV")"
-  # shellcheck disable=SC2086
-  compose build "$@" $BUILD_SECRETS
+  if [[ -n "${BUILD_SECRETS// /}" ]]; then
+    # docker compose build does not accept BuildKit --secret flags; build the shared
+    # backend image once with buildx, tag for app/worker/beat, then skip compose rebuild.
+    project="${COMPOSE_PROJECT_NAME:-silverkey-prod-parity}"
+    primary_image="${project}-app"
+    echo "prod-parity compose: building ${primary_image} with buildx (bundle secrets)..."
+    # shellcheck disable=SC2086
+    docker buildx build $BUILD_SECRETS \
+      -f "$ROOT/Dockerfile.web" \
+      --target backend \
+      --load \
+      -t "$primary_image" \
+      "$ROOT" "$@"
+    for svc in worker beat; do
+      docker tag "$primary_image" "${project}-${svc}"
+    done
+  else
+    # shellcheck disable=SC2086
+    compose build "$@" $BUILD_SECRETS
+  fi
 else
   compose "$@"
 fi

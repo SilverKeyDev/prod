@@ -1,9 +1,8 @@
 # SilverKey `.cursor/` directory
 
-Human-oriented map of **Cursor** configuration: rules, skills, agents, and how to extend them without sprawl. This tree is **canonical**; other AI tools use thin adapters:
+Human-oriented map of **Cursor** configuration: rules, skills, agents, and how to extend them without sprawl. This tree is **canonical**; Claude Code uses thin adapters:
 
 - **[`.claude/`](../.claude/)** — Claude Code (`@` stubs to `.cursor/`)
-- **[`.codex/`](../.codex/)** (`rules/`, `agents/`) + **[`.agents/skills/`](../.agents/skills/)** — OpenAI Codex (rule stubs, TOML subagents, repo skills → `.cursor/`)
 
 **Audit / inventory:** [documentation/internal/cursor-audit-latest.md](../documentation/internal/cursor-audit-latest.md)
 
@@ -138,7 +137,7 @@ flowchart TD
 | File                        | Effect                                                                                                                                                                                                             |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **`.cursorignore`**         | Excludes paths from **indexing and default AI context** (noise, secrets, huge trees). Copy from `.cursorignore.example` → `.cursorignore` locally if you want team defaults without committing personal overrides. |
-| **`.cursorindexingignore`** | Excludes from **automatic index** only — files can still be **`@`-mentioned** when you need them (migrations, generated blobs, large fixtures). Includes **`.claude/`**, **`.codex/`**, and **`.agents/`** adapter trees so Cursor does not index duplicate stubs alongside canonical `.cursor/` content. |
+| **`.cursorindexingignore`** | Excludes from **automatic index** only — files can still be **`@`-mentioned** when you need them (migrations, generated blobs, large fixtures). Includes **`.claude/`** adapter stubs so Cursor does not index duplicate content alongside canonical `.cursor/` files. |
 
 Rule of thumb: if the model never needs a path unless you explicitly attach it, prefer **indexing ignore** over full ignore.
 

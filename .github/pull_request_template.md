@@ -16,8 +16,8 @@
 
 <!-- Check if applicable -->
 
-- [ ] I did **not** touch `.cursor/**`, `.claude/**`, `.codex/**`, `.agents/**`, `.cursorrules`, `AGENTS.md`, `CODEX.md`, `.cursorignore*`, or MCP config — **or**
-- [ ] I **did** update AI/agent docs and the change is intentional (rules, `.codex/rules/` / `.claude/rules/` adapters when `.mdc` changed, skills, adapters, `AGENTS.md` / `CLAUDE.md` / `CODEX.md` quickstart, ignore patterns, audit table in `documentation/internal/cursor-audit-latest.md`, and for cross-cutting work the checklist in `documentation/internal/post-major-change-checklist.md`)
+- [ ] I did **not** touch `.cursor/**`, `.claude/**`, `.cursorrules`, `AGENTS.md`, `CLAUDE.md`, `.cursorignore*`, or MCP config — **or**
+- [ ] I **did** update AI/agent docs and the change is intentional (rules, `.claude/rules/` adapters when `.mdc` changed, skills, adapters, `AGENTS.md` / `CLAUDE.md` quickstart, ignore patterns, audit table in `documentation/internal/cursor-audit-latest.md`, and for cross-cutting work the checklist in `documentation/internal/post-major-change-checklist.md`)
 
 ## Documentation
 

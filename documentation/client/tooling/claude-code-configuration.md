@@ -175,10 +175,8 @@ Follow [post-major-change-checklist.md](../../internal/post-major-change-checkli
 1. Edit `.cursor/rules/`, `.cursor/skills/`, or `.cursor/agents/`.
 2. Add/update matching stubs in `.claude/rules/`, `.claude/agents/`, `.claude/skills/` (scoped only — use `alwaysApply: false` + CSV `paths:`).
 3. If always-on policy changes, update `CLAUDE.md` `@` includes only (not pathless stubs).
-4. Mirror changes in `.codex/rules/`.
-5. Mirror changes in `.codex/rules/`.
-6. If Claude session hygiene or file exclusion changes, update [`.claude/settings.json`](../../../.claude/settings.json) and [claude-optimization.mdc](../../../.cursor/rules/shared/claude-optimization.mdc).
-7. Bump [cursor-audit-latest.md](../../internal/cursor-audit-latest.md).
+4. If Claude session hygiene or file exclusion changes, update [`.claude/settings.json`](../../../.claude/settings.json) and [claude-optimization.mdc](../../../.cursor/rules/shared/claude-optimization.mdc).
+5. Bump [cursor-audit-latest.md](../../internal/cursor-audit-latest.md).
 
 ---
 

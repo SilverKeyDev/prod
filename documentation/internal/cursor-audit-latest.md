@@ -19,7 +19,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | Item                    | Status                                                                                                      |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `.cursor/mcp.json`      | Not committed; use [.cursor/mcp.example.json](../../.cursor/mcp.example.json) and local Cursor MCP settings |
-| `.cursorindexingignore` | Excludes `@mention`-only paths; **`.claude/`**, **`.codex/`**, **`.agents/`** adapter trees (canonical content in `.cursor/`) |
+| `.cursorindexingignore` | Excludes `@mention`-only paths; **`.claude/`** adapter stubs (canonical content in `.cursor/`) |
 | `.cursorignore`         | Team template: [.cursorignore.example](../../.cursorignore.example) (copy to `.cursorignore` locally)       |
 
 ## Tracked `.cursor/` files (lines, last commit date, audit status)
@@ -117,21 +117,9 @@ Canonical content stays in `.cursor/`. Claude Code loads `@` stubs from `.claude
 | `.claude/skills/*/SKILL.md` | 14 | keep | `@` stub → `.cursor/skills/<name>/SKILL.md` (parity with `.cursor/skills/`) |
 | `CLAUDE.md` (repo root) | 1 | keep | Claude Code quickstart; `@AGENTS.md` + 7 always-on rules + `projectbrief` only (no `techContext`, no duplicate body) |
 
-## Codex adapter (`.codex/` + `.agents/skills/`)
+## Codex adapter (removed 2026-06-26)
 
-Canonical content stays in `.cursor/`. Codex loads project config when the repo is **trusted**.
-
-| Path | Count | Status | Notes |
-| ---- | ----- | ------ | ----- |
-| `.codex/README.md` | 1 | keep | Adapter map; edit `.cursor/` first |
-| `.codex/config.toml` | 1 | keep | `file_opener`, `project_doc_max_bytes`, `[agents]` |
-| `.codex/rules/*.md` | 38 | keep | `@` stub → `.cursor/rules/**/*.mdc`; mirrors `.claude/rules/` |
-| `.codex/rules/README.md` | 1 | keep | Adapter index |
-| `.codex/agents/*.toml` | 19 | keep | `developer_instructions` → `.cursor/agents/<name>.md` |
-| `.agents/skills/*/SKILL.md` | 14 | keep | `@` stub → `.cursor/skills/<name>/SKILL.md` |
-| `CODEX.md` (repo root) | 1 | keep | Codex quickstart; `@AGENTS.md` |
-
-See [`.codex/README.md`](../../.codex/README.md) and [CODEX.md](../../CODEX.md).
+OpenAI Codex adapters (`.codex/`, `.agents/skills/` repo stubs) were removed. Use [`.cursor/`](../../.cursor/), [`.claude/`](../../.claude/), [CLAUDE.md](../../CLAUDE.md), and [CODEX.md](../../CODEX.md) (deprecation pointer) instead.
 
 ## Claude context hygiene (2026-06-26)
 
@@ -142,13 +130,13 @@ See [`.codex/README.md`](../../.codex/README.md) and [CODEX.md](../../CODEX.md).
 | `CLAUDE.md` duplicated `AGENTS.md` stack/commands | Removed redundant sections; dropped `techContext` from every-session load |
 | YAML-list `paths:` without `alwaysApply: false` | Migrated all scoped stubs to CSV `paths:` + `alwaysApply: false` |
 | Empty `.claude/settings.json` `permissions.deny` | Added team deny list for `.env*`, `mcp.json`, coverage, dist, Pods; `respectGitignore` + `autoCompactEnabled` |
-| No Claude-specific session hygiene rule | Added `claude-optimization.mdc` + `.claude`/`.codex` stubs |
+| No Claude-specific session hygiene rule | Added `claude-optimization.mdc` + `.claude` stubs |
 
 Verify in Claude Code: `/doctor` (settings parse); `/memory` shows seven always-on rules once; denied paths (e.g. `Server/.env`) blocked.
 
 ## Removed fleet agents (2026-06-04)
 
-Deleted from `.cursor/agents/` (+ matching `.claude/agents/`, `.codex/agents/`) and skills:
+Deleted from `.cursor/agents/` (+ matching `.claude/agents/`) and skills:
 
 - **Docs audit:** `silverkey-docs-*` (9) + skill `documentation-full-stack-audit`
 - **Frontend reorg:** `silverkey-frontend-reorg-*` (8) + skill `frontend-reorganization`
@@ -171,9 +159,8 @@ OpenAPI adoption and forms implementation journals were **moved** to [documentat
 
 - [x] `alwaysApply: true` count = **7** (security, thin-app, linting, documentation, silverkey-context, code-style, env-vars-minimal) — see [.cursor/README.md](../../.cursor/README.md)
 - [x] [CLAUDE.md](../../CLAUDE.md) — Claude Code quickstart (always-on rules + stable memory via `@` includes)
+- [x] [CODEX.md](../../CODEX.md) — deprecation pointer (Codex adapters removed)
 - [x] `.claude/README.md` — Claude adapter map (2026-06-26)
-- [x] [CODEX.md](../../CODEX.md) — Codex quickstart at repo root
-- [x] `.codex/` + `.agents/skills/` — Codex adapters (2026-06-02)
 - [x] [.cursor/rules/README.md](../../.cursor/rules/README.md) — rules index
 - [x] `.cursor/README.md` meta-doc
 - [x] `documentation/internal/cursor-audit-latest.md` (this file)

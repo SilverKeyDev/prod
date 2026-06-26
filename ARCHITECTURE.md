@@ -65,7 +65,7 @@ Monorepo map and pointers to canonical docs. **Do not duplicate** long guides he
 
 ## AI assistants
 
-- Engineering quickstart: [`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md), [`CODEX.md`](CODEX.md)
+- Engineering quickstart: [`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md)
 - Cursor map: [`.cursor/README.md`](.cursor/README.md)
 - Docs + Cursor sync: [`.cursor/skills/post-major-change-sync/SKILL.md`](.cursor/skills/post-major-change-sync/SKILL.md)
 - Rules inventory: [`documentation/internal/cursor-audit-latest.md`](documentation/internal/cursor-audit-latest.md)
