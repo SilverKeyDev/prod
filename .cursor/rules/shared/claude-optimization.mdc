@@ -1,0 +1,46 @@
+---
+description: Claude Code usage guidance for context hygiene, file exclusion, MCP scope, and low-noise sessions
+globs:
+  - ".claude/**"
+  - "documentation/client/tooling/**"
+  - "CLAUDE.md"
+alwaysApply: false
+---
+
+# Claude Code optimization
+
+Keep this as a short operations guide. Put long tutorials in `documentation/client/tooling/`.
+
+## Session context hygiene
+
+- Start a **fresh Claude Code session** for each distinct, unrelated task.
+- Prefer precise `@` references to relevant files over broad repo prompts.
+- Use **progressive disclosure**: scoped `.claude/rules/` stubs and skills load on demand; do not paste long guides into prompts.
+- Run **`/compact`** when a session grows long; team default `autoCompactEnabled: true` in `.claude/settings.json` is a safety net.
+- Run **`/context`** to inspect top token consumers; add `permissions.deny` entries if noisy paths appear.
+- Do **not** re-run **`/init`** over hand-curated `CLAUDE.md` — it duplicates canonical config.
+
+## File exclusion (not `.cloudignore`)
+
+Claude Code does **not** use `.cloudignore` or `.claudeignore`. SilverKey uses:
+
+1. **`permissions.deny`** in [`.claude/settings.json`](../../../.claude/settings.json) — blocks Read, Glob, and Grep on secrets and heavy artifacts.
+2. **`.gitignore`** — respected when `respectGitignore: true` (default in team settings).
+
+## MCP usage
+
+- Daily default: `github`, `linear`, `slack` from [`mcp.example.json`](../../../mcp.example.json) → gitignored `mcp.json`.
+- Enable high-footprint servers (AWS suites, analytics) only when the task explicitly needs them.
+- Avoid duplicate connector sources (project `mcp.json` + plugin for the same service).
+- Semantic search MCPs (Code Graph, Cartographer) are optional — scoped rules + GitHub MCP cover most SilverKey work.
+
+## Verification feedback loop
+
+- Use project scripts (`make lint`, `pnpm check`, targeted `pytest`) after edits.
+- Fix newly introduced errors before expanding scope.
+
+## References
+
+- Full guide: [claude-code-configuration.md](../../../documentation/client/tooling/claude-code-configuration.md)
+- Entrypoint: [CLAUDE.md](../../../CLAUDE.md)
+- Adapter map: [.claude/README.md](../../../.claude/README.md)

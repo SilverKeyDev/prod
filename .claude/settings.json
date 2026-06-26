@@ -1,6 +1,21 @@
 {
+  "respectGitignore": true,
+  "autoCompactEnabled": true,
   "permissions": {
     "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./Server/.env)",
+      "Read(./Server/.env.*)",
+      "Read(./**/mcp.json)",
+      "Read(./.mcp.json)",
+      "Read(./**/*.pem)",
+      "Read(./key.pem)",
+      "Read(./documentation/client/qa/test-accounts.local.json)",
+      "Read(./Client/coverage/**)",
+      "Read(./Client/dist/**)",
+      "Read(./htmlcov/**)",
+      "Read(./Client/apps/mobile/ios/Pods/**)"
     ]
   }
 }

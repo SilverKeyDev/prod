@@ -14,6 +14,8 @@ import { log } from "packages/logger";
 import { useAuthStore } from "packages/store";
 import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
+import { isGoogleReconnectRequiredError } from "@/features/calendar/utils/core/googleCalendarReconnect";
+
 import { buildEventsListQueryFn } from "./useGoogleEventsHelpers";
 
 const EMPTY_GOOGLE_EVENTS: GoogleEvent[] = [];
@@ -22,6 +24,7 @@ export type UseGoogleEventsReturn = {
   events: GoogleEvent[];
   eventsLoading: boolean;
   eventsError: string | null;
+  eventsNeedsReconnect: boolean;
   refreshEvents: () => Promise<void>;
   createEvent: (event: GoogleCalendarEventCreateBody) => Promise<GoogleEventCreateResponse>;
   isCreatingEvent: boolean;
@@ -82,6 +85,7 @@ function useGoogleEventsCore(
         ? eventsQuery.error.message
         : String(eventsQuery.error)
       : null,
+    eventsNeedsReconnect: isGoogleReconnectRequiredError(eventsQuery.error),
     refreshEvents,
   };
 }

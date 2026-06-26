@@ -2,7 +2,7 @@
 
 **Purpose:** Single inventory for `.cursor/` decisions (`keep` / `merge` / `delete` / `move`). Update this file when rules, skills, or agents materially change. After cross-cutting architecture or feature work, also follow [post-major-change-checklist.md](./post-major-change-checklist.md) so docs and this inventory stay aligned.
 
-**Last regenerated:** 2026-06-07 (Added scoped `shared/local-dev-database.mdc` rule and Claude/Codex adapters for local DB reset/secrets/deploy boundaries. **19** agents, **14** skills remain.)
+**Last regenerated:** 2026-06-26 (Claude setup optimization: `permissions.deny` + `autoCompactEnabled` in `.claude/settings.json`; added `claude-optimization.mdc` + adapter stubs; session/file-exclusion docs in `claude-code-configuration.md`. **38** scoped rule stubs per adapter, **19** agents, **14** skills.)
 
 ## AGENTS.md vs repo commands (verified)
 
@@ -109,10 +109,13 @@ Canonical content stays in `.cursor/`. Claude Code loads `@` stubs from `.claude
 
 | Path | Count | Status | Notes |
 | ---- | ----- | ------ | ----- |
-| `.claude/settings.json` | 1 | keep | Adapter permissions config |
-| `.claude/rules/*.md` | 43 | keep | `@` stub → `.cursor/rules/**/*.mdc` |
+| `.claude/README.md` | 1 | keep | Adapter map; edit `.cursor/` first |
+| `.claude/settings.json` | 1 | keep | Team permissions: `respectGitignore`, `autoCompactEnabled`, `permissions.deny` for secrets/artifacts |
+| `.claude/rules/*.md` | 38 | keep | Scoped lazy-load stubs only (`alwaysApply: false` + CSV `paths:`); no pathless always-on duplicates |
+| `.claude/rules/README.md` | 1 | keep | Adapter index |
 | `.claude/agents/*.md` | 19 | keep | `@` stub → `.cursor/agents/<name>.md` |
 | `.claude/skills/*/SKILL.md` | 14 | keep | `@` stub → `.cursor/skills/<name>/SKILL.md` (parity with `.cursor/skills/`) |
+| `CLAUDE.md` (repo root) | 1 | keep | Claude Code quickstart; `@AGENTS.md` + 7 always-on rules + `projectbrief` only (no `techContext`, no duplicate body) |
 
 ## Codex adapter (`.codex/` + `.agents/skills/`)
 
@@ -122,13 +125,26 @@ Canonical content stays in `.cursor/`. Codex loads project config when the repo 
 | ---- | ----- | ------ | ----- |
 | `.codex/README.md` | 1 | keep | Adapter map; edit `.cursor/` first |
 | `.codex/config.toml` | 1 | keep | `file_opener`, `project_doc_max_bytes`, `[agents]` |
-| `.codex/rules/*.md` | 43 | keep | `@` stub → `.cursor/rules/**/*.mdc`; mirrors `.claude/rules/` |
+| `.codex/rules/*.md` | 38 | keep | `@` stub → `.cursor/rules/**/*.mdc`; mirrors `.claude/rules/` |
 | `.codex/rules/README.md` | 1 | keep | Adapter index |
 | `.codex/agents/*.toml` | 19 | keep | `developer_instructions` → `.cursor/agents/<name>.md` |
 | `.agents/skills/*/SKILL.md` | 14 | keep | `@` stub → `.cursor/skills/<name>/SKILL.md` |
 | `CODEX.md` (repo root) | 1 | keep | Codex quickstart; `@AGENTS.md` |
 
 See [`.codex/README.md`](../../.codex/README.md) and [CODEX.md](../../CODEX.md).
+
+## Claude context hygiene (2026-06-26)
+
+| Issue | Fix |
+| ----- | --- |
+| Pathless always-on stubs in `.claude/rules/` duplicated `CLAUDE.md` `@` includes | Deleted 7 stubs; always-on rules load only via `CLAUDE.md` |
+| `**/*` scoped stubs (`cursor-optimization`, `monorepo`, `agent-memory`) | Narrowed paths; added `alwaysApply: false` |
+| `CLAUDE.md` duplicated `AGENTS.md` stack/commands | Removed redundant sections; dropped `techContext` from every-session load |
+| YAML-list `paths:` without `alwaysApply: false` | Migrated all scoped stubs to CSV `paths:` + `alwaysApply: false` |
+| Empty `.claude/settings.json` `permissions.deny` | Added team deny list for `.env*`, `mcp.json`, coverage, dist, Pods; `respectGitignore` + `autoCompactEnabled` |
+| No Claude-specific session hygiene rule | Added `claude-optimization.mdc` + `.claude`/`.codex` stubs |
+
+Verify in Claude Code: `/doctor` (settings parse); `/memory` shows seven always-on rules once; denied paths (e.g. `Server/.env`) blocked.
 
 ## Removed fleet agents (2026-06-04)
 
@@ -154,7 +170,8 @@ OpenAPI adoption and forms implementation journals were **moved** to [documentat
 ## Definition-of-done checklist
 
 - [x] `alwaysApply: true` count = **7** (security, thin-app, linting, documentation, silverkey-context, code-style, env-vars-minimal) — see [.cursor/README.md](../../.cursor/README.md)
-- [x] [CLAUDE.md](../../CLAUDE.md) — Claude Code quickstart at repo root
+- [x] [CLAUDE.md](../../CLAUDE.md) — Claude Code quickstart (always-on rules + stable memory via `@` includes)
+- [x] `.claude/README.md` — Claude adapter map (2026-06-26)
 - [x] [CODEX.md](../../CODEX.md) — Codex quickstart at repo root
 - [x] `.codex/` + `.agents/skills/` — Codex adapters (2026-06-02)
 - [x] [.cursor/rules/README.md](../../.cursor/rules/README.md) — rules index

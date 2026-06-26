@@ -67,7 +67,7 @@ describe("HttpClient 401 session recovery", () => {
 
   it("recovers a non-auth 401 and retries the original request once", async () => {
     fetchMock
-      .mockResolvedValueOnce(jsonResponse({ error: "ACCESS_TOKEN_EXPIRED" }, 401))
+      .mockResolvedValueOnce(jsonResponse({ error: "TOKEN_EXPIRED" }, 401))
       .mockResolvedValueOnce(jsonResponse({ success: true, value: "recovered" }));
 
     const client = new HttpClient({ baseUrl: "http://api.test", retries: 0 });
@@ -86,7 +86,7 @@ describe("HttpClient 401 session recovery", () => {
   it("does not retry when 401 recovery fails", async () => {
     recoverSessionAfter401Mock.mockResolvedValue(false);
     fetchMock.mockResolvedValueOnce(
-      jsonResponse({ error: "ACCESS_TOKEN_EXPIRED", message: "Session expired" }, 401)
+      jsonResponse({ error: "TOKEN_EXPIRED", message: "Session expired" }, 401)
     );
 
     const client = new HttpClient({ baseUrl: "http://api.test", retries: 0 });
@@ -114,11 +114,33 @@ describe("HttpClient 401 session recovery", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("does not recover or retry when 401 is a non-session integration error", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        {
+          success: false,
+          error: "GOOGLE_RECONNECT_REQUIRED",
+          message: "Google Calendar reconnection required.",
+        },
+        401
+      )
+    );
+
+    const client = new HttpClient({ baseUrl: "http://api.test", retries: 0 });
+
+    await expect(client.get("/api/v1/google/me/silverkey-calendar")).rejects.toMatchObject({
+      name: "HttpError",
+      status: 401,
+    });
+    expect(recoverSessionAfter401Mock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("does not recover or retry when the request signal is already aborted", async () => {
     const controller = new AbortController();
     controller.abort();
     fetchMock.mockResolvedValueOnce(
-      jsonResponse({ error: "ACCESS_TOKEN_EXPIRED", message: "Session expired" }, 401)
+      jsonResponse({ error: "TOKEN_EXPIRED", message: "Session expired" }, 401)
     );
 
     const client = new HttpClient({ baseUrl: "http://api.test", retries: 0 });

@@ -12,6 +12,6 @@
 
 ## Rules
 
-Always-on and scoped constraints live in [`.cursor/rules/`](.cursor/rules/). Codex adapters: [`.codex/rules/`](.codex/rules/) (42 stubs, same names as [`.claude/rules/`](.claude/rules/)) — read the matching `.mdc` or `@`-reference a stub before editing.
+Always-on and scoped constraints live in [`.cursor/rules/`](.cursor/rules/). Codex adapters: [`.codex/rules/`](.codex/rules/) (38 scoped stubs, same names as [`.claude/rules/`](.claude/rules/)) — read the matching `.mdc` or `@`-reference a stub before editing. Always-on rules load via `CLAUDE.md` only, not pathless stubs.
 
 Also: [`.claude/`](.claude/) mirrors `.cursor/` for Claude Code. Long-form docs: [`documentation/`](documentation/).
