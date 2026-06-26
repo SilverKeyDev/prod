@@ -19,6 +19,13 @@ export DOES_IT_RUN_SERVER_ENV="$SERVER_ENV_FILE"
 export COMPOSE_FILE_EXTRA="$CI_COMPOSE"
 export COMPOSE_PROJECT_NAME
 
+SERVER_ENV_FOR_COMPOSE="$ROOT/Server/.env"
+SERVER_ENV_COPIED=false
+if [[ ! -f "$SERVER_ENV_FOR_COMPOSE" ]]; then
+  cp "$SERVER_ENV_FILE" "$SERVER_ENV_FOR_COMPOSE"
+  SERVER_ENV_COPIED=true
+fi
+
 set -a
 # shellcheck disable=SC1090
 source "$CLIENT_ENV_FILE"
@@ -30,6 +37,9 @@ compose() {
 }
 
 cleanup() {
+  if [[ "$SERVER_ENV_COPIED" == true ]]; then
+    rm -f "$SERVER_ENV_FOR_COMPOSE"
+  fi
   compose down --remove-orphans >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
