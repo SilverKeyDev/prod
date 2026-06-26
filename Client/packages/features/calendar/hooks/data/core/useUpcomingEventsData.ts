@@ -57,6 +57,8 @@ export function useUpcomingEventsData({
     calendars,
     calendarsLoading,
     connectGoogleCalendar,
+    needsGoogleReconnect,
+    connectionPromptVariant,
   } = useGoogleCalendarStoreIntegration();
 
   const scopedCalendars = useMemo(() => calendars ?? [], [calendars]);
@@ -194,6 +196,9 @@ export function useUpcomingEventsData({
     if (isClientAgendaMode || connectionStatusLoading) {
       return false;
     }
+    if (needsGoogleReconnect) {
+      return true;
+    }
     if (!isConnected) {
       return true;
     }
@@ -206,6 +211,7 @@ export function useUpcomingEventsData({
   }, [
     isClientAgendaMode,
     connectionStatusLoading,
+    needsGoogleReconnect,
     isConnected,
     permissions,
     hasRequiredPermissions,
@@ -298,6 +304,7 @@ export function useUpcomingEventsData({
     permissionsReady,
     connectionStatusLoading,
     shouldShowConnectionPrompt,
+    connectionPromptVariant,
     useAgendaList,
     showDisplayAll,
     allAgendaEventsModalOpen,

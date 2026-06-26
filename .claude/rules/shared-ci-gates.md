@@ -1,6 +1,5 @@
 ---
-paths:
-  - ".github/workflows/**"
-  - "Client/**/*"
+alwaysApply: false
+paths: .github/workflows/**, Client/**/*
 ---
 @../../.cursor/rules/shared/ci-gates.mdc

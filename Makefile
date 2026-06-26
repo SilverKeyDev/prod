@@ -24,7 +24,7 @@ PYTEST_ARGS ?=
 	format-client format-check mobile \
 	routes-extract endpoints-check-dead routes-extract-verify endpoints-sync-posthog \
 	log-contracts log-contracts-migrate log-contracts-migrate-check log-contracts-lint log-contracts-verify \
-	prod-parity prod-parity-build prod-parity-smoke
+	prod-parity prod-parity-build prod-parity-smoke does-it-run
 
 help:
 	@echo "SilverKey Makefile (see also ./scripts/setup/setup-local.sh and ./scripts/setup/refresh.sh)"
@@ -75,6 +75,7 @@ help:
 	@echo "  make prod-parity-build    Build local prod-parity Docker stack (app + Redis + Celery)"
 	@echo "  make prod-parity          Run local prod-parity stack (requires Server/.env + Client/.env)"
 	@echo "  make prod-parity-smoke    Build, boot, curl /livez+/readyz, tear down (pre-merge Docker check)"
+	@echo "  make does-it-run          CI smoke gate locally (frontend + backend-light; DOES_IT_RUN_MODE=docker for full Docker)"
 
 setup:
 	bash "$(ROOT)/scripts/setup/setup-local.sh" $(ARGS)
@@ -233,3 +234,7 @@ prod-parity:
 
 prod-parity-smoke:
 	bash "$(ROOT)/scripts/deploy/prod-parity/smoke.sh"
+
+does-it-run:
+	@MODE="$${DOES_IT_RUN_MODE:-all-light}"; \
+	bash "$(ROOT)/scripts/ci/does-it-run.sh" --mode "$$MODE"

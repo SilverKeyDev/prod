@@ -31,6 +31,7 @@ export function useGoogleCalendarStoreIntegration() {
     calendars,
     calendarsLoading,
     calendarsError,
+    needsGoogleReconnect: calendarsNeedReconnect,
   } = useGoogleCalendarConnectionState(shouldLoadData);
 
   const revokeMutation = useMutation({
@@ -78,11 +79,18 @@ export function useGoogleCalendarStoreIntegration() {
     };
   }, []);
 
-  const { events, eventsLoading, eventsError, refreshEvents, createEvent, isCreatingEvent } =
-    useGoogleEvents({
-      ...eventParams,
-      enabled: isConnected,
-    });
+  const {
+    events,
+    eventsLoading,
+    eventsError,
+    eventsNeedsReconnect,
+    refreshEvents,
+    createEvent,
+    isCreatingEvent,
+  } = useGoogleEvents({
+    ...eventParams,
+    enabled: isConnected,
+  });
 
   const setIsConnected = useGoogleCalendarStore((s) => s.setIsConnected);
   const setCalendars = useGoogleCalendarStore((s) => s.setCalendars);
@@ -124,12 +132,19 @@ export function useGoogleCalendarStoreIntegration() {
     calendarStoreSyncSetters
   );
 
+  const needsGoogleReconnect = calendarsNeedReconnect || eventsNeedsReconnect;
+  const connectionPromptVariant = needsGoogleReconnect
+    ? ("reconnect" as const)
+    : ("connect" as const);
+
   return {
     isConnected,
     connectionStatusLoading,
     calendars,
     calendarsLoading,
     calendarsError,
+    needsGoogleReconnect,
+    connectionPromptVariant,
     refreshCalendars,
     events,
     eventsLoading,

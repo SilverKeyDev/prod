@@ -1,0 +1,27 @@
+# Ephemeral Postgres + Redis for does-it-run backend-light (local/CI).
+# Usage: docker compose -f scripts/ci/does-it-run-services-compose.yml up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: silverkey_ci
+      POSTGRES_USER: silverkey
+      POSTGRES_PASSWORD: silverkey
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U silverkey -d silverkey_ci"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

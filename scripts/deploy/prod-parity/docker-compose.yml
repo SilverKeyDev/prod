@@ -29,7 +29,10 @@ services:
     ports:
       - "5000:5000"
     env_file:
-      - ../../../Server/.env
+      # Optional so the does-it-run stub smoke (which supplies a generated server env
+      # via the CI overlay's DOES_IT_RUN_SERVER_ENV) boots without a real AWS .env.
+      - path: ../../../Server/.env
+        required: false
     environment:
       FLASK_ENV: production
       REDIS_URL: redis://redis:6379/0
@@ -53,7 +56,10 @@ services:
   worker:
     build: *backend-build
     env_file:
-      - ../../../Server/.env
+      # Optional so the does-it-run stub smoke (which supplies a generated server env
+      # via the CI overlay's DOES_IT_RUN_SERVER_ENV) boots without a real AWS .env.
+      - path: ../../../Server/.env
+        required: false
     environment:
       FLASK_ENV: production
       REDIS_URL: redis://redis:6379/0
@@ -77,7 +83,10 @@ services:
   beat:
     build: *backend-build
     env_file:
-      - ../../../Server/.env
+      # Optional so the does-it-run stub smoke (which supplies a generated server env
+      # via the CI overlay's DOES_IT_RUN_SERVER_ENV) boots without a real AWS .env.
+      - path: ../../../Server/.env
+        required: false
     environment:
       FLASK_ENV: production
       REDIS_URL: redis://redis:6379/0

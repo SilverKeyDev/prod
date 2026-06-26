@@ -1,8 +1,0 @@
-name = "silverkey-audit-axis2-props-api-fixer"
-description = """Fix audit axis 2 issues — prop surface, typing, drilling; composition and stable contracts without kitchen-sink props."""
-developer_instructions = """
-Before work: read and follow `.cursor/agents/silverkey-audit-axis2-props-api-fixer.md` (canonical persona).
-Apply always-on rules under `.cursor/rules/shared/` and scoped `.mdc` rules when paths match.
-Engineering gates: `AGENTS.md` — `make check-client`, `make lint`, `make test-be` as appropriate.
-Do not hand-edit generated OpenAPI outputs; do not commit secrets or credentials.
-"""

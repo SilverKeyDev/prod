@@ -35,6 +35,7 @@ Run `make help`. Common targets:
 | `make lint` | `./scripts/ci/run-all-linters.sh all` |
 | `make lint-client` / `make lint-server` | Scoped linters |
 | `make typecheck` / `make check-client` | Client typecheck / full `pnpm check` |
+| `make does-it-run` | CI smoke gate locally (frontend + backend-light; `DOES_IT_RUN_MODE=docker` for full Docker) |
 | `make test` / `make test-fe` / `make test-be` | Vitest + pytest |
 | `make openapi` / `make openapi-verify` | Regenerate types; PR drift gate |
 | `make check-docs` | Doc placement + link checks |
@@ -93,7 +94,7 @@ Run `make help`. Common targets:
 | **Always-on rules** | `.cursor/rules/shared/` (security, thin-app, linting, documentation, context, code-style, env-vars-minimal) |
 | **Company context** | [CLAUDE.md](CLAUDE.md), [silverkey-context.mdc](.cursor/rules/shared/silverkey-context.mdc), [pitch-and-fundraising.mdc](.cursor/rules/shared/pitch-and-fundraising.mdc) |
 | **Skills / subagents** | `.cursor/skills/` (workflows), `.cursor/agents/` (specialized personas — lint, security, component-audit axes, architecture boundary, dead code). Default: `silverkey-engineer`. Docs/reorg: skills `documentation-placement`, `post-major-change-sync`, `make check-docs` — not multi-agent fleets. |
-| **Codex / Claude** | [CODEX.md](CODEX.md), [`.codex/`](.codex/), [`.claude/`](.claude/) → `.cursor/` |
+| **Claude** | [CLAUDE.md](CLAUDE.md), [`.claude/`](.claude/) → `.cursor/`; guide: [claude-code-configuration.md](documentation/client/tooling/claude-code-configuration.md) |
 | **Memory** | [.cursor/memory/](.cursor/memory/), [cursor-agent-memory.md](documentation/client/tooling/cursor-agent-memory.md) |
 | **MCP** | [mcp.example.json](.cursor/mcp.example.json), `make setup-mcp` — daily: GitHub, Linear, Slack; see [cursor-configuration-optimization.md](documentation/client/tooling/cursor-configuration-optimization.md) |
 | **Inventory** | [cursor-audit-latest.md](documentation/internal/cursor-audit-latest.md) |

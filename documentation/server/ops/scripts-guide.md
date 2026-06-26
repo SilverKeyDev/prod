@@ -122,7 +122,9 @@ Install with: `git config core.hooksPath scripts/githooks`
 |------|---------|-----------|
 | `deploy/prod-parity/compose.sh` | Prod-parity compose wrapper; `build` passes all `Client/.env` keys as `--build-arg` | `make prod-parity-build` |
 | `deploy/prod-parity/docker-compose.yml` | Local prod-parity stack: app, Redis, Celery worker, Beat | `make prod-parity` via `compose.sh` |
-| `deploy/prod-parity/smoke.sh` | Build, boot, `/livez` + `/readyz`, tear down | `make prod-parity-smoke` (before Docker/deploy PRs) |
+| `deploy/prod-parity/smoke.sh` | Build, boot, `/livez` + `/readyz`, tear down | `make prod-parity-smoke`; `ci/does-it-run-docker.sh` (CI overlay) |
+| `deploy/prod-parity/docker-compose.ci.yml` | Ephemeral Postgres overlay for CI does-it-run | `does-it-run-docker.sh` |
+| `ci/does-it-run.sh` | PR smoke gate (frontend + backend-light; docker when deploy paths change) | `make does-it-run`; `.github/workflows/does-it-run-callable.yml` |
 
 Canonical production deploy lives in `.github/scripts/ec2-deploy.sh`, invoked by `.github/workflows/ci_web.yml` via SSH.
 

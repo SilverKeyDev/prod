@@ -1,6 +1,5 @@
 ---
-paths:
-  - "Client/**/*.{ts,tsx,js,jsx}"
-  - "Server/tests/**/*.{py,pyi}"
+alwaysApply: false
+paths: Client/**/*.{ts,tsx,js,jsx}, Server/tests/**/*.{py,pyi}
 ---
 @../../.cursor/rules/shared/testing-tiers.mdc

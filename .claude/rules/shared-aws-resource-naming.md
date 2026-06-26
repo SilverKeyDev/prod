@@ -1,7 +1,5 @@
 ---
-paths:
-  - "Server/**/*.py"
-  - "**/*.{yml,yaml,tf,json}"
-  - "documentation/**/*.md"
+alwaysApply: false
+paths: Server/**/*.py, **/*.{yml,yaml,tf,json}, documentation/**/*.md
 ---
 @../../.cursor/rules/shared/aws-resource-naming.mdc
