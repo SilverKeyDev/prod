@@ -29,6 +29,7 @@ from ...services.brokerage.analytics import (
     get_agent_analytics,
     get_ancillary_analytics,
     get_brokerage_analytics_overview,
+    get_deal_failure_forensics,
     get_funnel_analytics,
     get_location_analytics,
     get_price_analytics,
@@ -248,3 +249,20 @@ def get_analytics_agents(user):
     if err:
         return err
     return _handle_result(get_agent_analytics(filters))
+
+
+@brokerage_analytics_bp.route("/deal-failure", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_analytics_deal_failure(user):
+    """
+    GET /api/v1/brokerage/analytics/deal-failure
+    Deal fall-through and cancellation forensics — SIL-281.
+    Breaks down failure rates by agent, lender, price band, and stage
+    so brokerages can make informed vendor and coaching decisions.
+    """
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    filters, err = _build_filters(brokerage_org_id)
+    if err:
+        return err
+    return _handle_result(get_deal_failure_forensics(filters))

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import { color } from "packages/design-tokens";
 import { useBrokerageAnalytics } from "packages/features/brokerage/hooks/useBrokerageAnalytics";
+import { useDealFailureForensics } from "packages/features/brokerage/hooks/useDealFailureForensics";
 import { DonutChart, VerticalBarChart } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
@@ -46,6 +47,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 /** Brokerage analytics shell — populated with demo fixtures (SIL-202 will swap to real API). */
 export function BrokerageAnalyticsShell() {
   const { data, agents, isLoading } = useBrokerageAnalytics();
+  const { data: failureData } = useDealFailureForensics();
 
   const funnelBars = useMemo(
     () =>
@@ -78,6 +80,26 @@ export function BrokerageAnalyticsShell() {
         color: s.color,
       })),
     [data]
+  );
+
+  const failureTrendBars = useMemo(
+    () =>
+      failureData.trend.map((t) => ({
+        label: t.month,
+        value: t.cancelled,
+        displayValue: String(t.cancelled),
+      })),
+    [failureData]
+  );
+
+  const failureStageBars = useMemo(
+    () =>
+      failureData.by_stage.map((s) => ({
+        label: s.stage,
+        value: s.count,
+        displayValue: String(s.count),
+      })),
+    [failureData]
   );
 
   if (isLoading) {
@@ -192,16 +214,170 @@ export function BrokerageAnalyticsShell() {
           </table>
         </Box>
       </SectionCard>
+
       {/* Ancillary Capture Leakage — SIL-277 */}
-<Box className="border-border bg-background-surface rounded-xl border p-5">
-  <Title size="sm" as="h3" className="mb-1">
-    Ancillary Capture Leakage
-  </Title>
-  <BodyText size="xs" muted className="mb-4">
-    Revenue leaking to outside title, lending, escrow, and home warranty vendors
-  </BodyText>
-  <AncillaryInsightPanel />
-</Box>
+      <Box className="border-border bg-background-surface rounded-xl border p-5">
+        <Title size="sm" as="h3" className="mb-1">
+          Ancillary Capture Leakage
+        </Title>
+        <BodyText size="xs" muted className="mb-4">
+          Revenue leaking to outside title, lending, escrow, and home warranty vendors
+        </BodyText>
+        <AncillaryInsightPanel />
+      </Box>
+
+      {/* Deal Failure Forensics — SIL-281 */}
+      <Box className="border-border bg-background-surface rounded-xl border p-5">
+        <Title size="sm" as="h3" className="mb-1">
+          Deal Failure Forensics
+        </Title>
+        <BodyText size="xs" muted className="mb-4">
+          Fall-through rate:{" "}
+          <span className="font-medium text-red-500">
+            {failureData.summary.fall_through_rate_percent}%
+          </span>{" "}
+          · {failureData.summary.total_cancelled} cancelled of{" "}
+          {failureData.summary.total_transactions} transactions · avg{" "}
+          {failureData.summary.avg_days_to_cancellation} days to cancellation
+        </BodyText>
+
+        {/* Trend + Stage charts */}
+        <Box className="mb-6 grid gap-4 lg:grid-cols-2">
+          <Box>
+            <BodyText size="xs" muted className="mb-2">
+              Cancellations by Month
+            </BodyText>
+            <VerticalBarChart data={failureTrendBars} />
+          </Box>
+          <Box>
+            <BodyText size="xs" muted className="mb-2">
+              Failure Stage Breakdown
+            </BodyText>
+            <VerticalBarChart data={failureStageBars} />
+          </Box>
+        </Box>
+
+        {/* Agent leaderboard */}
+        <BodyText size="xs" muted className="mb-2">
+          Agent Fall-Through Rates
+        </BodyText>
+        <Box className="mb-6 overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-border border-b">
+                <th className="py-2 pr-4">Agent</th>
+                <th className="py-2 pr-4">Total Deals</th>
+                <th className="py-2 pr-4">Cancelled</th>
+                <th className="py-2">Fall-Through Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...failureData.by_agent]
+                .sort((a, b) => b.fall_through_rate_percent - a.fall_through_rate_percent)
+                .map((agent) => (
+                  <tr key={agent.agent_id} className="border-border/60 border-b">
+                    <td className="py-2 pr-4 font-medium">{agent.name}</td>
+                    <td className="py-2 pr-4">{agent.total_deals}</td>
+                    <td className="py-2 pr-4">{agent.cancelled}</td>
+                    <td className="py-2">
+                      <span
+                        className={
+                          agent.fall_through_rate_percent >= 30
+                            ? "font-medium text-red-500"
+                            : agent.fall_through_rate_percent >= 15
+                              ? "font-medium text-yellow-500"
+                              : "font-medium text-green-600"
+                        }
+                      >
+                        {agent.fall_through_rate_percent}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </Box>
+
+        {/* Lender leaderboard */}
+        <BodyText size="xs" muted className="mb-2">
+          Lender Fall-Through Rates
+        </BodyText>
+        <Box className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-border border-b">
+                <th className="py-2 pr-4">Lender</th>
+                <th className="py-2 pr-4">Total Deals</th>
+                <th className="py-2 pr-4">Cancelled</th>
+                <th className="py-2">Fall-Through Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...failureData.by_lender]
+                .sort((a, b) => b.fall_through_rate_percent - a.fall_through_rate_percent)
+                .map((lender) => (
+                  <tr key={lender.lender_name} className="border-border/60 border-b">
+                    <td className="py-2 pr-4 font-medium">{lender.lender_name}</td>
+                    <td className="py-2 pr-4">{lender.total_deals}</td>
+                    <td className="py-2 pr-4">{lender.cancelled}</td>
+                    <td className="py-2">
+                      <span
+                        className={
+                          lender.fall_through_rate_percent >= 25
+                            ? "font-medium text-red-500"
+                            : lender.fall_through_rate_percent >= 15
+                              ? "font-medium text-yellow-500"
+                              : "font-medium text-green-600"
+                        }
+                      >
+                        {lender.fall_through_rate_percent}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </Box>
+
+        {/* Price band table */}
+        <BodyText size="xs" muted className="mb-2 mt-6">
+          Fall-Through Rates by Price Band
+        </BodyText>
+        <Box className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-border border-b">
+                <th className="py-2 pr-4">Price Band</th>
+                <th className="py-2 pr-4">Total Deals</th>
+                <th className="py-2 pr-4">Cancelled</th>
+                <th className="py-2">Fall-Through Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {failureData.by_price_band.map((band) => (
+                <tr key={band.band} className="border-border/60 border-b">
+                  <td className="py-2 pr-4 font-medium">{band.band}</td>
+                  <td className="py-2 pr-4">{band.total_deals}</td>
+                  <td className="py-2 pr-4">{band.cancelled}</td>
+                  <td className="py-2">
+                    <span
+                      className={
+                        band.fall_through_rate_percent >= 25
+                          ? "font-medium text-red-500"
+                          : band.fall_through_rate_percent >= 15
+                            ? "font-medium text-yellow-500"
+                            : "font-medium text-green-600"
+                      }
+                    >
+                      {band.fall_through_rate_percent}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Box>
+      </Box>
     </Box>
   );
 }

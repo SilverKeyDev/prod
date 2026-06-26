@@ -193,3 +193,51 @@ export const BROKERAGE_ANCILLARY_FIXTURE = {
 };
 
 export type BrokerageAncillaryFixture = typeof BROKERAGE_ANCILLARY_FIXTURE;
+
+export const BROKERAGE_DEAL_FAILURE_FIXTURE = {
+  success: true,
+  brokerage_org_id: "demo-brokerage-org-id",
+  date_from: "2026-01-01T00:00:00+00:00",
+  date_to: "2026-06-30T00:00:00+00:00",
+  summary: {
+    total_transactions: 72,
+    total_cancelled: 11,
+    fall_through_rate_percent: 15.3,
+    avg_days_to_cancellation: 18,
+  },
+  trend: [
+    { month: "Jan", total: 8,  cancelled: 1 },
+    { month: "Feb", total: 11, cancelled: 2 },
+    { month: "Mar", total: 9,  cancelled: 1 },
+    { month: "Apr", total: 14, cancelled: 3 },
+    { month: "May", total: 12, cancelled: 2 },
+    { month: "Jun", total: 18, cancelled: 2 },
+  ],
+  by_stage: [
+    { stage: "Inspection", count: 4 },
+    { stage: "Financing",  count: 3 },
+    { stage: "Appraisal",  count: 2 },
+    { stage: "Title",      count: 1 },
+    { stage: "Unknown",    count: 1 },
+  ],
+  by_agent: [
+    { agent_id: "agent-1", name: "Sarah Johnson",   total_deals: 12, cancelled: 1, fall_through_rate_percent: 8.3  },
+    { agent_id: "agent-2", name: "Marcus Williams",  total_deals: 8,  cancelled: 3, fall_through_rate_percent: 37.5 },
+    { agent_id: "agent-3", name: "Priya Patel",      total_deals: 10, cancelled: 1, fall_through_rate_percent: 10.0 },
+    { agent_id: "agent-4", name: "James Carter",     total_deals: 9,  cancelled: 4, fall_through_rate_percent: 44.4 },
+  ],
+  by_lender: [
+    { lender_name: "Wells Fargo",     total_deals: 18, cancelled: 5, fall_through_rate_percent: 27.8 },
+    { lender_name: "Chase",           total_deals: 22, cancelled: 2, fall_through_rate_percent: 9.1  },
+    { lender_name: "Rocket Mortgage", total_deals: 14, cancelled: 3, fall_through_rate_percent: 21.4 },
+    { lender_name: "Unknown / Cash",  total_deals: 18, cancelled: 1, fall_through_rate_percent: 5.6  },
+  ],
+  by_price_band: [
+    { band: "Under $300K", total_deals: 14, cancelled: 4, fall_through_rate_percent: 28.6 },
+    { band: "$300K–$500K", total_deals: 28, cancelled: 4, fall_through_rate_percent: 14.3 },
+    { band: "$500K–$1M",   total_deals: 22, cancelled: 2, fall_through_rate_percent: 9.1  },
+    { band: "$1M+",        total_deals: 8,  cancelled: 1, fall_through_rate_percent: 12.5 },
+  ],
+};
+
+export type BrokerageDealhFailureFixture = typeof BROKERAGE_DEAL_FAILURE_FIXTURE;

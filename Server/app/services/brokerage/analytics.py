@@ -227,9 +227,9 @@ def get_volume_analytics(filters: BrokerageAnalyticsFilters) -> dict:
         "date_from": date_from.isoformat(),
         "date_to": date_to.isoformat(),
         "volume": [
-            {"month": "2026-01", "total": 8, "cancelled": 1, "cancellation_rate": 12.5},
+            {"month": "2026-01", "total": 8,  "cancelled": 1, "cancellation_rate": 12.5},
             {"month": "2026-02", "total": 11, "cancelled": 0, "cancellation_rate": 0.0},
-            {"month": "2026-03", "total": 9, "cancelled": 2, "cancellation_rate": 22.2},
+            {"month": "2026-03", "total": 9,  "cancelled": 2, "cancellation_rate": 22.2},
             {"month": "2026-04", "total": 14, "cancelled": 1, "cancellation_rate": 7.1},
             {"month": "2026-05", "total": 12, "cancelled": 0, "cancellation_rate": 0.0},
             {"month": "2026-06", "total": 18, "cancelled": 1, "cancellation_rate": 5.6},
@@ -295,10 +295,10 @@ def get_location_analytics(filters: BrokerageAnalyticsFilters) -> dict:
         "date_to": date_to.isoformat(),
         "locations": [
             {"lat": 33.749, "lng": -84.388, "count": 12, "label": "Atlanta, GA"},
-            {"lat": 33.830, "lng": -84.320, "count": 8, "label": "Brookhaven, GA"},
-            {"lat": 33.680, "lng": -84.430, "count": 6, "label": "East Point, GA"},
-            {"lat": 33.900, "lng": -84.210, "count": 5, "label": "Tucker, GA"},
-            {"lat": 33.770, "lng": -84.290, "count": 9, "label": "Decatur, GA"},
+            {"lat": 33.830, "lng": -84.320, "count": 8,  "label": "Brookhaven, GA"},
+            {"lat": 33.680, "lng": -84.430, "count": 6,  "label": "East Point, GA"},
+            {"lat": 33.900, "lng": -84.210, "count": 5,  "label": "Tucker, GA"},
+            {"lat": 33.770, "lng": -84.290, "count": 9,  "label": "Decatur, GA"},
         ],
     }
 
@@ -549,4 +549,134 @@ def get_agent_analytics(filters: BrokerageAnalyticsFilters) -> dict:
         "date_from": date_from.isoformat(),
         "date_to": date_to.isoformat(),
         "agents": agent_performance,
+    }
+
+
+def get_deal_failure_forensics(filters: BrokerageAnalyticsFilters) -> dict:
+    """
+    Aggregate deal fall-through and cancellation forensics for the brokerage.
+    Breaks down failure rates by agent, lender, price band, property type,
+    and transaction stage so brokerages can make vendor and coaching decisions.
+
+    Powers GET /api/v1/brokerage/analytics/deal-failure (SIL-281)
+    TODO SIL-272: Replace stub returns with real SkySlope cancelled transaction queries.
+                  Key SkySlope fields needed: cancellation_reason, stage_at_cancellation,
+                  lender_name, sale_price, property_type, primary_agent_id.
+    """
+    date_from = filters.date_from
+    date_to = filters.date_to
+    if not date_from or not date_to:
+        date_from, date_to = _default_range()
+
+    # TODO SIL-272: Query Transaction where status == 'cancelled'
+    # scoped by brokerage_org_id and date range, then group by dimensions below.
+
+    return {
+        "success": True,
+        "brokerage_org_id": filters.brokerage_org_id,
+        "date_from": date_from.isoformat(),
+        "date_to": date_to.isoformat(),
+        "summary": {
+            "total_transactions": 72,
+            "total_cancelled": 11,
+            "fall_through_rate_percent": 15.3,
+            "avg_days_to_cancellation": 18,
+        },
+        "trend": [
+            {"month": "2026-01", "total": 8,  "cancelled": 1},
+            {"month": "2026-02", "total": 11, "cancelled": 2},
+            {"month": "2026-03", "total": 9,  "cancelled": 1},
+            {"month": "2026-04", "total": 14, "cancelled": 3},
+            {"month": "2026-05", "total": 12, "cancelled": 2},
+            {"month": "2026-06", "total": 18, "cancelled": 2},
+        ],
+        "by_stage": [
+            {"stage": "Inspection", "count": 4},
+            {"stage": "Financing",  "count": 3},
+            {"stage": "Appraisal",  "count": 2},
+            {"stage": "Title",      "count": 1},
+            {"stage": "Unknown",    "count": 1},
+        ],
+        "by_agent": [
+            {
+                "agent_id": "stub-agent-1",
+                "name": "Sarah Johnson",
+                "total_deals": 12,
+                "cancelled": 1,
+                "fall_through_rate_percent": 8.3,
+            },
+            {
+                "agent_id": "stub-agent-2",
+                "name": "Marcus Williams",
+                "total_deals": 8,
+                "cancelled": 3,
+                "fall_through_rate_percent": 37.5,
+            },
+            {
+                "agent_id": "stub-agent-3",
+                "name": "Priya Patel",
+                "total_deals": 10,
+                "cancelled": 1,
+                "fall_through_rate_percent": 10.0,
+            },
+            {
+                "agent_id": "stub-agent-4",
+                "name": "James Carter",
+                "total_deals": 9,
+                "cancelled": 4,
+                "fall_through_rate_percent": 44.4,
+            },
+        ],
+        "by_lender": [
+            {
+                "lender_name": "Wells Fargo",
+                "total_deals": 18,
+                "cancelled": 5,
+                "fall_through_rate_percent": 27.8,
+            },
+            {
+                "lender_name": "Chase",
+                "total_deals": 22,
+                "cancelled": 2,
+                "fall_through_rate_percent": 9.1,
+            },
+            {
+                "lender_name": "Rocket Mortgage",
+                "total_deals": 14,
+                "cancelled": 3,
+                "fall_through_rate_percent": 21.4,
+            },
+            {
+                "lender_name": "Unknown / Cash",
+                "total_deals": 18,
+                "cancelled": 1,
+                "fall_through_rate_percent": 5.6,
+            },
+        ],
+        "by_price_band": [
+            {
+                "band": "Under $300K",
+                "total_deals": 14,
+                "cancelled": 4,
+                "fall_through_rate_percent": 28.6,
+            },
+            {
+                "band": "$300K–$500K",
+                "total_deals": 28,
+                "cancelled": 4,
+                "fall_through_rate_percent": 14.3,
+            },
+            {
+                "band": "$500K–$1M",
+                "total_deals": 22,
+                "cancelled": 2,
+                "fall_through_rate_percent": 9.1,
+            },
+            {
+                "band": "$1M+",
+                "total_deals": 8,
+                "cancelled": 1,
+                "fall_through_rate_percent": 12.5,
+            },
+        ],
     }
