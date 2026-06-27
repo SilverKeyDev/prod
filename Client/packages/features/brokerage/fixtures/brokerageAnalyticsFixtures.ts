@@ -240,4 +240,98 @@ export const BROKERAGE_DEAL_FAILURE_FIXTURE = {
   ],
 };
 
-export type BrokerageDealhFailureFixture = typeof BROKERAGE_DEAL_FAILURE_FIXTURE;
+export type BrokerageDealFailureFixture = typeof BROKERAGE_DEAL_FAILURE_FIXTURE;
+
+export const BROKERAGE_TARGETED_ENGAGEMENT_FIXTURE = {
+  success: true,
+  brokerage_org_id: "demo-brokerage-org-id",
+  date_from: "2026-01-01T00:00:00+00:00",
+  date_to: "2026-06-30T00:00:00+00:00",
+  summary: {
+    total_agents_analyzed: 8,
+    agents_flagged: 4,
+    estimated_recoverable_dollars: 48600,
+  },
+  flagged_agents: [
+    {
+      agent_id: "stub-agent-2",
+      name: "Marcus Williams",
+      office: "Buckhead Office",
+      total_transactions: 8,
+      attach_rates: {
+        title: 0.0,
+        lending: 25.0,
+        escrow: 37.5,
+        home_warranty: 0.0,
+      },
+      quartile: "bottom",
+      service_gaps: ["title", "home_warranty"],
+      estimated_leakage_dollars: 14200,
+      suggested_action: "Never used in-house title or warranty — schedule intro call with provider reps",
+      priority: "high" as const,
+    },
+    {
+      agent_id: "stub-agent-4",
+      name: "James Carter",
+      office: "Midtown Office",
+      total_transactions: 9,
+      attach_rates: {
+        title: 22.2,
+        lending: 0.0,
+        escrow: 44.4,
+        home_warranty: 11.1,
+      },
+      quartile: "bottom",
+      service_gaps: ["lending", "home_warranty"],
+      estimated_leakage_dollars: 12800,
+      suggested_action: "0% lending attach on 9 deals — share preferred lender incentive program",
+      priority: "high" as const,
+    },
+    {
+      agent_id: "stub-agent-5",
+      name: "Tanya Brooks",
+      office: "Buckhead Office",
+      total_transactions: 11,
+      attach_rates: {
+        title: 45.5,
+        lending: 27.3,
+        escrow: 36.4,
+        home_warranty: 18.2,
+      },
+      quartile: "bottom",
+      service_gaps: ["lending", "home_warranty"],
+      estimated_leakage_dollars: 13400,
+      suggested_action: "High volume, low lending and warranty attach — invite to ancillary partner lunch",
+      priority: "medium" as const,
+    },
+    {
+      agent_id: "stub-agent-6",
+      name: "Derek Nguyen",
+      office: "Midtown Office",
+      total_transactions: 7,
+      attach_rates: {
+        title: 28.6,
+        lending: 14.3,
+        escrow: 0.0,
+        home_warranty: 28.6,
+      },
+      quartile: "bottom",
+      service_gaps: ["escrow", "lending"],
+      estimated_leakage_dollars: 8200,
+      suggested_action: "Never used in-house escrow — connect with escrow coordinator directly",
+      priority: "medium" as const,
+    },
+  ],
+  by_office: [
+    { office: "Buckhead Office", agents_flagged: 2, estimated_leakage_dollars: 27600 },
+    { office: "Midtown Office",  agents_flagged: 2, estimated_leakage_dollars: 21000 },
+  ],
+  by_service_gap: [
+    { service: "lending",       agents_with_gap: 3 },
+    { service: "home_warranty", agents_with_gap: 3 },
+    { service: "title",         agents_with_gap: 2 },
+    { service: "escrow",        agents_with_gap: 2 },
+  ],
+};
+
+export type BrokerageTargetedEngagementFixture = typeof BROKERAGE_TARGETED_ENGAGEMENT_FIXTURE;

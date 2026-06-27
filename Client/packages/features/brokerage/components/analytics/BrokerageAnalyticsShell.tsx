@@ -8,6 +8,7 @@ import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
 import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
+import { TargetedAgentEngagementPanel } from "./TargetedAgentEngagementPanel";
 
 function KpiCard({
   label,
@@ -378,6 +379,9 @@ export function BrokerageAnalyticsShell() {
           </table>
         </Box>
       </Box>
+
+      {/* Targeted Agent Engagement — SIL-279 */}
+      <TargetedAgentEngagementPanel />
     </Box>
   );
 }

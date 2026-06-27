@@ -680,3 +680,122 @@ def get_deal_failure_forensics(filters: BrokerageAnalyticsFilters) -> dict:
             },
         ],
     }
+
+def get_targeted_agent_engagement(filters: BrokerageAnalyticsFilters) -> dict:
+    """
+    Identify agents with 0% or bottom-quartile in-house ancillary attach rates
+    despite high transaction volume. Surfaces nudge opportunities with suggested
+    engagement actions for brokerage admins.
+
+    Output: flagged agent list segmented by office and service category gap,
+    with suggested engagement action per agent. Export-only in v1 — no auto-send.
+
+    Powers GET /api/v1/brokerage/analytics/targeted-agent-engagement (SIL-279)
+    TODO SIL-272: Replace stub returns with real SkySlope ancillary vendor fields.
+                  Key fields needed: title_company, lender_name, escrow_company,
+                  warranty_provider, primary_agent_id, brokerage_office_id.
+    """
+    date_from = filters.date_from
+    date_to = filters.date_to
+    if not date_from or not date_to:
+        date_from, date_to = _default_range()
+
+    return {
+        "success": True,
+        "brokerage_org_id": filters.brokerage_org_id,
+        "date_from": date_from.isoformat(),
+        "date_to": date_to.isoformat(),
+        "summary": {
+            "total_agents_analyzed": 8,
+            "agents_flagged": 4,
+            "estimated_recoverable_dollars": 48600,
+        },
+        "flagged_agents": [
+            {
+                "agent_id": "stub-agent-2",
+                "name": "Marcus Williams",
+                "office": "Buckhead Office",
+                "total_transactions": 8,
+                "attach_rates": {
+                    "title": 0.0,
+                    "lending": 25.0,
+                    "escrow": 37.5,
+                    "home_warranty": 0.0,
+                },
+                "quartile": "bottom",
+                "service_gaps": ["title", "home_warranty"],
+                "estimated_leakage_dollars": 14200,
+                "suggested_action": "Never used in-house title or warranty — schedule intro call with provider reps",
+                "priority": "high",
+            },
+            {
+                "agent_id": "stub-agent-4",
+                "name": "James Carter",
+                "office": "Midtown Office",
+                "total_transactions": 9,
+                "attach_rates": {
+                    "title": 22.2,
+                    "lending": 0.0,
+                    "escrow": 44.4,
+                    "home_warranty": 11.1,
+                },
+                "quartile": "bottom",
+                "service_gaps": ["lending", "home_warranty"],
+                "estimated_leakage_dollars": 12800,
+                "suggested_action": "0% lending attach on 9 deals — share preferred lender incentive program",
+                "priority": "high",
+            },
+            {
+                "agent_id": "stub-agent-5",
+                "name": "Tanya Brooks",
+                "office": "Buckhead Office",
+                "total_transactions": 11,
+                "attach_rates": {
+                    "title": 45.5,
+                    "lending": 27.3,
+                    "escrow": 36.4,
+                    "home_warranty": 18.2,
+                },
+                "quartile": "bottom",
+                "service_gaps": ["lending", "home_warranty"],
+                "estimated_leakage_dollars": 13400,
+                "suggested_action": "High volume, low lending and warranty attach — invite to ancillary partner lunch",
+                "priority": "medium",
+            },
+            {
+                "agent_id": "stub-agent-6",
+                "name": "Derek Nguyen",
+                "office": "Midtown Office",
+                "total_transactions": 7,
+                "attach_rates": {
+                    "title": 28.6,
+                    "lending": 14.3,
+                    "escrow": 0.0,
+                    "home_warranty": 28.6,
+                },
+                "quartile": "bottom",
+                "service_gaps": ["escrow", "lending"],
+                "estimated_leakage_dollars": 8200,
+                "suggested_action": "Never used in-house escrow — connect with escrow coordinator directly",
+                "priority": "medium",
+            },
+        ],
+        "by_office": [
+            {
+                "office": "Buckhead Office",
+                "agents_flagged": 2,
+                "estimated_leakage_dollars": 27600,
+            },
+            {
+                "office": "Midtown Office",
+                "agents_flagged": 2,
+                "estimated_leakage_dollars": 21000,
+            },
+        ],
+        "by_service_gap": [
+            {"service": "lending",       "agents_with_gap": 3},
+            {"service": "home_warranty", "agents_with_gap": 3},
+            {"service": "title",         "agents_with_gap": 2},
+            {"service": "escrow",        "agents_with_gap": 2},
+        ],
+    }

@@ -33,6 +33,7 @@ from ...services.brokerage.analytics import (
     get_funnel_analytics,
     get_location_analytics,
     get_price_analytics,
+    get_targeted_agent_engagement,
     get_timing_analytics,
     get_type_analytics,
     get_volume_analytics,
@@ -266,3 +267,19 @@ def get_analytics_deal_failure(user):
     if err:
         return err
     return _handle_result(get_deal_failure_forensics(filters))
+
+@brokerage_analytics_bp.route("/targeted-agent-engagement", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_analytics_targeted_agent_engagement(user):
+    """
+    GET /api/v1/brokerage/analytics/targeted-agent-engagement
+    Flags agents with 0% or bottom-quartile ancillary attach rates despite
+    high transaction volume. Returns target list with suggested engagement
+    actions for brokerage admin export. No auto-send in v1 — SIL-279.
+    """
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    filters, err = _build_filters(brokerage_org_id)
+    if err:
+        return err
+    return _handle_result(get_targeted_agent_engagement(filters))
