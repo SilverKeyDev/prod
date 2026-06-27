@@ -799,3 +799,182 @@ def get_targeted_agent_engagement(filters: BrokerageAnalyticsFilters) -> dict:
             {"service": "escrow",        "agents_with_gap": 2},
         ],
     }
+
+def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
+    """
+    Cross-reference agent split structures against production volume to identify
+    flight-risk and over-compensated agents for brokerage retention strategy.
+
+    Scoring methodology (for brokerage pitch conversations):
+      Flight Risk Score (0-100):
+        - Base: how far agent's split is BELOW market rate for their production tier
+        - Multiplier: production volume (higher producers = higher risk if underpaid)
+        - Tier thresholds: score >= 70 → flight_risk, 40-69 → watch, else → stable
+
+      Over-Comp Score (0-100):
+        - Base: how far agent's split is ABOVE market rate for their production tier
+        - Multiplier: inverse of production (high split + low volume = over-comp)
+        - Tier threshold: score >= 60 → over_comp
+
+    Market benchmark splits by production tier (industry standard estimates):
+        < $2M GCI/yr  → 70/30 market rate
+        $2M-$5M GCI/yr → 75/25 market rate
+        $5M-$10M GCI/yr → 80/20 market rate
+        > $10M GCI/yr  → 85/15 market rate
+
+    Powers GET /api/v1/brokerage/analytics/agent-retention-risk (SIL-278)
+    TODO SIL-272: Replace stub returns with real SkySlope production data.
+                  Key fields needed: transaction sale_price, primary_agent_id,
+                  commission_rate, close_date.
+    TODO SIL-191: Pull real split structures from brokerage agent roster/config.
+    """
+    date_from = filters.date_from
+    date_to = filters.date_to
+    if not date_from or not date_to:
+        date_from, date_to = _default_range()
+
+    return {
+        "success": True,
+        "brokerage_org_id": filters.brokerage_org_id,
+        "date_from": date_from.isoformat(),
+        "date_to": date_to.isoformat(),
+        "methodology": (
+            "Flight risk scored by comparing agent split % to market benchmark for "
+            "their production tier. High producers below market rate score highest. "
+            "Over-comp flagged where split exceeds market rate and volume is low."
+        ),
+        "summary": {
+            "total_agents_scored": 8,
+            "flight_risk_count": 2,
+            "watch_count": 2,
+            "stable_count": 2,
+            "over_comp_count": 2,
+            "estimated_at_risk_gci": 1240000,
+        },
+        "agents": [
+            {
+                "agent_id": "stub-agent-1",
+                "name": "Sarah Johnson",
+                "office": "Buckhead Office",
+                "total_transactions": 12,
+                "estimated_gci": 186000,
+                "current_split_percent": 70,
+                "market_benchmark_split_percent": 80,
+                "split_gap": -10,
+                "risk_score": 84,
+                "risk_tier": "flight_risk",
+                "peer_production_percentile": 92,
+                "recommended_action": "Top producer underpaid by 10pts vs market — offer retention split review immediately",
+            },
+            {
+                "agent_id": "stub-agent-3",
+                "name": "Priya Patel",
+                "office": "Buckhead Office",
+                "total_transactions": 10,
+                "estimated_gci": 155000,
+                "current_split_percent": 70,
+                "market_benchmark_split_percent": 75,
+                "split_gap": -5,
+                "risk_score": 71,
+                "risk_tier": "flight_risk",
+                "peer_production_percentile": 85,
+                "recommended_action": "High producer below market benchmark — proactive check-in recommended",
+            },
+            {
+                "agent_id": "stub-agent-5",
+                "name": "Tanya Brooks",
+                "office": "Buckhead Office",
+                "total_transactions": 11,
+                "estimated_gci": 162000,
+                "current_split_percent": 73,
+                "market_benchmark_split_percent": 75,
+                "split_gap": -2,
+                "risk_score": 52,
+                "risk_tier": "watch",
+                "peer_production_percentile": 78,
+                "recommended_action": "Slightly below market — monitor and revisit at next review cycle",
+            },
+            {
+                "agent_id": "stub-agent-6",
+                "name": "Derek Nguyen",
+                "office": "Midtown Office",
+                "total_transactions": 7,
+                "estimated_gci": 98000,
+                "current_split_percent": 72,
+                "market_benchmark_split_percent": 70,
+                "split_gap": 2,
+                "risk_score": 41,
+                "risk_tier": "watch",
+                "peer_production_percentile": 55,
+                "recommended_action": "Slightly above market but volume growing — maintain current terms",
+            },
+            {
+                "agent_id": "stub-agent-7",
+                "name": "Lisa Park",
+                "office": "Midtown Office",
+                "total_transactions": 9,
+                "estimated_gci": 134000,
+                "current_split_percent": 75,
+                "market_benchmark_split_percent": 75,
+                "split_gap": 0,
+                "risk_score": 22,
+                "risk_tier": "stable",
+                "peer_production_percentile": 70,
+                "recommended_action": "At market rate for production tier — no action needed",
+            },
+            {
+                "agent_id": "stub-agent-8",
+                "name": "Robert Garcia",
+                "office": "Buckhead Office",
+                "total_transactions": 8,
+                "estimated_gci": 118000,
+                "current_split_percent": 74,
+                "market_benchmark_split_percent": 70,
+                "split_gap": 4,
+                "risk_score": 18,
+                "risk_tier": "stable",
+                "peer_production_percentile": 62,
+                "recommended_action": "Slightly above market but stable producer — no immediate action",
+            },
+            {
+                "agent_id": "stub-agent-2",
+                "name": "Marcus Williams",
+                "office": "Midtown Office",
+                "total_transactions": 8,
+                "estimated_gci": 94000,
+                "current_split_percent": 80,
+                "market_benchmark_split_percent": 70,
+                "split_gap": 10,
+                "risk_score": 74,
+                "risk_tier": "over_comp",
+                "peer_production_percentile": 48,
+                "recommended_action": "10pts above market for volume — review split at next contract renewal",
+            },
+            {
+                "agent_id": "stub-agent-4",
+                "name": "James Carter",
+                "office": "Midtown Office",
+                "total_transactions": 4,
+                "estimated_gci": 52000,
+                "current_split_percent": 78,
+                "market_benchmark_split_percent": 70,
+                "split_gap": 8,
+                "risk_score": 81,
+                "risk_tier": "over_comp",
+                "peer_production_percentile": 22,
+                "recommended_action": "Low volume, high split — cost efficiency concern, consider restructure",
+            },
+        ],
+        "by_tier": [
+            {"tier": "flight_risk", "count": 2, "estimated_gci_at_risk": 341000},
+            {"tier": "watch",       "count": 2, "estimated_gci_at_risk": 260000},
+            {"tier": "stable",      "count": 2, "estimated_gci_at_risk": 0},
+            {"tier": "over_comp",   "count": 2, "estimated_gci_at_risk": 0},
+        ],
+        "market_benchmarks": [
+            {"tier": "Under $2M GCI",   "market_split_percent": 70},
+            {"tier": "$2M–$5M GCI",     "market_split_percent": 75},
+            {"tier": "$5M–$10M GCI",    "market_split_percent": 80},
+            {"tier": "Over $10M GCI",   "market_split_percent": 85},
+        ],
+    }

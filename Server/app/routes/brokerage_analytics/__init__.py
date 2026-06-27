@@ -37,6 +37,7 @@ from ...services.brokerage.analytics import (
     get_timing_analytics,
     get_type_analytics,
     get_volume_analytics,
+    get_agent_retention_risk,
 )
 
 brokerage_analytics_bp = Blueprint(
@@ -283,3 +284,19 @@ def get_analytics_targeted_agent_engagement(user):
     if err:
         return err
     return _handle_result(get_targeted_agent_engagement(filters))
+
+@brokerage_analytics_bp.route("/agent-retention-risk", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_analytics_agent_retention_risk(user):
+    """
+    GET /api/v1/brokerage/analytics/agent-retention-risk
+    Cross-references agent split structures against production volume to flag
+    flight-risk agents (top producers underpaid vs market) and over-compensated
+    agents (high split, low volume). Ranked by risk score. SIL-278.
+    """
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    filters, err = _build_filters(brokerage_org_id)
+    if err:
+        return err
+    return _handle_result(get_agent_retention_risk(filters))

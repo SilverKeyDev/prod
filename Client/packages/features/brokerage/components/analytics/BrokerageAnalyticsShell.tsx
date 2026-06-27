@@ -9,6 +9,7 @@ import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
 import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
 import { TargetedAgentEngagementPanel } from "./TargetedAgentEngagementPanel";
+import { AgentRetentionRiskPanel } from "./AgentRetentionRiskPanel"; 
 
 function KpiCard({
   label,
@@ -382,6 +383,8 @@ export function BrokerageAnalyticsShell() {
 
       {/* Targeted Agent Engagement — SIL-279 */}
       <TargetedAgentEngagementPanel />
+      {/* Agent Retention Risk — SIL-278 */}
+      <AgentRetentionRiskPanel />
     </Box>
   );
 }
