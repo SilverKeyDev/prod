@@ -206,37 +206,71 @@ export const BROKERAGE_DEAL_FAILURE_FIXTURE = {
     avg_days_to_cancellation: 18,
   },
   trend: [
-    { month: "Jan", total: 8,  cancelled: 1 },
+    { month: "Jan", total: 8, cancelled: 1 },
     { month: "Feb", total: 11, cancelled: 2 },
-    { month: "Mar", total: 9,  cancelled: 1 },
+    { month: "Mar", total: 9, cancelled: 1 },
     { month: "Apr", total: 14, cancelled: 3 },
     { month: "May", total: 12, cancelled: 2 },
     { month: "Jun", total: 18, cancelled: 2 },
   ],
   by_stage: [
     { stage: "Inspection", count: 4 },
-    { stage: "Financing",  count: 3 },
-    { stage: "Appraisal",  count: 2 },
-    { stage: "Title",      count: 1 },
-    { stage: "Unknown",    count: 1 },
+    { stage: "Financing", count: 3 },
+    { stage: "Appraisal", count: 2 },
+    { stage: "Title", count: 1 },
+    { stage: "Unknown", count: 1 },
   ],
   by_agent: [
-    { agent_id: "agent-1", name: "Sarah Johnson",   total_deals: 12, cancelled: 1, fall_through_rate_percent: 8.3  },
-    { agent_id: "agent-2", name: "Marcus Williams",  total_deals: 8,  cancelled: 3, fall_through_rate_percent: 37.5 },
-    { agent_id: "agent-3", name: "Priya Patel",      total_deals: 10, cancelled: 1, fall_through_rate_percent: 10.0 },
-    { agent_id: "agent-4", name: "James Carter",     total_deals: 9,  cancelled: 4, fall_through_rate_percent: 44.4 },
+    {
+      agent_id: "agent-1",
+      name: "Sarah Johnson",
+      total_deals: 12,
+      cancelled: 1,
+      fall_through_rate_percent: 8.3,
+    },
+    {
+      agent_id: "agent-2",
+      name: "Marcus Williams",
+      total_deals: 8,
+      cancelled: 3,
+      fall_through_rate_percent: 37.5,
+    },
+    {
+      agent_id: "agent-3",
+      name: "Priya Patel",
+      total_deals: 10,
+      cancelled: 1,
+      fall_through_rate_percent: 10.0,
+    },
+    {
+      agent_id: "agent-4",
+      name: "James Carter",
+      total_deals: 9,
+      cancelled: 4,
+      fall_through_rate_percent: 44.4,
+    },
   ],
   by_lender: [
-    { lender_name: "Wells Fargo",     total_deals: 18, cancelled: 5, fall_through_rate_percent: 27.8 },
-    { lender_name: "Chase",           total_deals: 22, cancelled: 2, fall_through_rate_percent: 9.1  },
-    { lender_name: "Rocket Mortgage", total_deals: 14, cancelled: 3, fall_through_rate_percent: 21.4 },
-    { lender_name: "Unknown / Cash",  total_deals: 18, cancelled: 1, fall_through_rate_percent: 5.6  },
+    { lender_name: "Wells Fargo", total_deals: 18, cancelled: 5, fall_through_rate_percent: 27.8 },
+    { lender_name: "Chase", total_deals: 22, cancelled: 2, fall_through_rate_percent: 9.1 },
+    {
+      lender_name: "Rocket Mortgage",
+      total_deals: 14,
+      cancelled: 3,
+      fall_through_rate_percent: 21.4,
+    },
+    {
+      lender_name: "Unknown / Cash",
+      total_deals: 18,
+      cancelled: 1,
+      fall_through_rate_percent: 5.6,
+    },
   ],
   by_price_band: [
     { band: "Under $300K", total_deals: 14, cancelled: 4, fall_through_rate_percent: 28.6 },
     { band: "$300K–$500K", total_deals: 28, cancelled: 4, fall_through_rate_percent: 14.3 },
-    { band: "$500K–$1M",   total_deals: 22, cancelled: 2, fall_through_rate_percent: 9.1  },
-    { band: "$1M+",        total_deals: 8,  cancelled: 1, fall_through_rate_percent: 12.5 },
+    { band: "$500K–$1M", total_deals: 22, cancelled: 2, fall_through_rate_percent: 9.1 },
+    { band: "$1M+", total_deals: 8, cancelled: 1, fall_through_rate_percent: 12.5 },
   ],
 };
 
@@ -267,7 +301,8 @@ export const BROKERAGE_TARGETED_ENGAGEMENT_FIXTURE = {
       quartile: "bottom",
       service_gaps: ["title", "home_warranty"],
       estimated_leakage_dollars: 14200,
-      suggested_action: "Never used in-house title or warranty — schedule intro call with provider reps",
+      suggested_action:
+        "Never used in-house title or warranty — schedule intro call with provider reps",
       priority: "high" as const,
     },
     {
@@ -301,7 +336,8 @@ export const BROKERAGE_TARGETED_ENGAGEMENT_FIXTURE = {
       quartile: "bottom",
       service_gaps: ["lending", "home_warranty"],
       estimated_leakage_dollars: 13400,
-      suggested_action: "High volume, low lending and warranty attach — invite to ancillary partner lunch",
+      suggested_action:
+        "High volume, low lending and warranty attach — invite to ancillary partner lunch",
       priority: "medium" as const,
     },
     {
@@ -324,13 +360,13 @@ export const BROKERAGE_TARGETED_ENGAGEMENT_FIXTURE = {
   ],
   by_office: [
     { office: "Buckhead Office", agents_flagged: 2, estimated_leakage_dollars: 27600 },
-    { office: "Midtown Office",  agents_flagged: 2, estimated_leakage_dollars: 21000 },
+    { office: "Midtown Office", agents_flagged: 2, estimated_leakage_dollars: 21000 },
   ],
   by_service_gap: [
-    { service: "lending",       agents_with_gap: 3 },
+    { service: "lending", agents_with_gap: 3 },
     { service: "home_warranty", agents_with_gap: 3 },
-    { service: "title",         agents_with_gap: 2 },
-    { service: "escrow",        agents_with_gap: 2 },
+    { service: "title", agents_with_gap: 2 },
+    { service: "escrow", agents_with_gap: 2 },
   ],
 };
 
@@ -364,7 +400,8 @@ export const BROKERAGE_AGENT_RETENTION_FIXTURE = {
       risk_score: 84,
       risk_tier: "flight_risk" as const,
       peer_production_percentile: 92,
-      recommended_action: "Top producer underpaid by 10pts vs market — offer retention split review immediately",
+      recommended_action:
+        "Top producer underpaid by 10pts vs market — offer retention split review immediately",
     },
     {
       agent_id: "stub-agent-3",
@@ -467,15 +504,15 @@ export const BROKERAGE_AGENT_RETENTION_FIXTURE = {
   ],
   by_tier: [
     { tier: "flight_risk", count: 2, estimated_gci_at_risk: 341000 },
-    { tier: "watch",       count: 2, estimated_gci_at_risk: 260000 },
-    { tier: "stable",      count: 2, estimated_gci_at_risk: 0 },
-    { tier: "over_comp",   count: 2, estimated_gci_at_risk: 0 },
+    { tier: "watch", count: 2, estimated_gci_at_risk: 260000 },
+    { tier: "stable", count: 2, estimated_gci_at_risk: 0 },
+    { tier: "over_comp", count: 2, estimated_gci_at_risk: 0 },
   ],
   market_benchmarks: [
-    { tier: "Under $2M GCI",  market_split_percent: 70 },
-    { tier: "$2M–$5M GCI",    market_split_percent: 75 },
-    { tier: "$5M–$10M GCI",   market_split_percent: 80 },
-    { tier: "Over $10M GCI",  market_split_percent: 85 },
+    { tier: "Under $2M GCI", market_split_percent: 70 },
+    { tier: "$2M–$5M GCI", market_split_percent: 75 },
+    { tier: "$5M–$10M GCI", market_split_percent: 80 },
+    { tier: "Over $10M GCI", market_split_percent: 85 },
   ],
 };
 

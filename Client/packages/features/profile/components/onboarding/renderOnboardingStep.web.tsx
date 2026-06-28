@@ -1,5 +1,11 @@
 import React from "react";
 
+import {
+  RenterBudgetStep,
+  RenterMoveTimelineStep,
+  RenterHouseholdStep,
+  RenterAmenitiesStep,
+} from "packages/features/profile/components/onboarding/renter";
 import { BROKERAGE_TRANSLATIONS } from "packages/features/brokerage/types/translations";
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
 import {
@@ -177,6 +183,31 @@ export function renderOnboardingStep({
           }}
         />
       );
+
+    case "renter_budget":
+      return <RenterBudgetStep formData={formData} updateFormData={updateFormData} />;
+
+    case "renter_location":
+      return (
+        <LocationSection
+          formData={formData}
+          isEditMode={true}
+          updateFormData={updateFormData}
+          scriptsReady={scriptsReady}
+          loadError={loadError}
+          wrapInCard={false}
+          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+        />
+      );
+
+    case "renter_move_timeline":
+      return <RenterMoveTimelineStep formData={formData} updateFormData={updateFormData} />;
+
+    case "renter_household":
+      return <RenterHouseholdStep formData={formData} updateFormData={updateFormData} />;
+
+    case "renter_amenities":
+      return <RenterAmenitiesStep formData={formData} updateFormData={updateFormData} />;
 
     case "brokerage_shell_setup":
       return (

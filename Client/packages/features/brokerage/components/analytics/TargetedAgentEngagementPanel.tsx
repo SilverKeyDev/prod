@@ -92,22 +92,19 @@ export function TargetedAgentEngagementPanel() {
   });
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 space-y-6">
-
+    <div className="space-y-6 rounded-xl border border-gray-200 bg-white p-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">
-            Targeted Agent Engagement
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900">Targeted Agent Engagement</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Agents with low in-house ancillary attach rates — prioritized by
-            estimated recoverable revenue.
+            Agents with low in-house ancillary attach rates — prioritized by estimated recoverable
+            revenue.
           </p>
         </div>
         <button
           onClick={() => exportToCsv(filtered)}
-          className="shrink-0 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          className="shrink-0 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
         >
           Export CSV
         </button>
@@ -116,19 +113,17 @@ export function TargetedAgentEngagementPanel() {
       {/* Summary KPIs */}
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-lg bg-gray-50 p-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wide">Agents Analyzed</p>
+          <p className="text-xs uppercase tracking-wide text-gray-500">Agents Analyzed</p>
           <p className="mt-1 text-2xl font-bold text-gray-900">
             {data.summary.total_agents_analyzed}
           </p>
         </div>
         <div className="rounded-lg bg-red-50 p-4">
-          <p className="text-xs text-red-500 uppercase tracking-wide">Flagged Agents</p>
-          <p className="mt-1 text-2xl font-bold text-red-700">
-            {data.summary.agents_flagged}
-          </p>
+          <p className="text-xs uppercase tracking-wide text-red-500">Flagged Agents</p>
+          <p className="mt-1 text-2xl font-bold text-red-700">{data.summary.agents_flagged}</p>
         </div>
         <div className="rounded-lg bg-green-50 p-4">
-          <p className="text-xs text-green-600 uppercase tracking-wide">Recoverable Revenue</p>
+          <p className="text-xs uppercase tracking-wide text-green-600">Recoverable Revenue</p>
           <p className="mt-1 text-2xl font-bold text-green-700">
             ${data.summary.estimated_recoverable_dollars.toLocaleString()}
           </p>
@@ -136,7 +131,7 @@ export function TargetedAgentEngagementPanel() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex flex-wrap gap-3">
         <select
           value={officeFilter}
           onChange={(e) => setOfficeFilter(e.target.value)}
@@ -144,7 +139,9 @@ export function TargetedAgentEngagementPanel() {
         >
           <option value="all">All Offices</option>
           {offices.map((o) => (
-            <option key={o} value={o}>{o}</option>
+            <option key={o} value={o}>
+              {o}
+            </option>
           ))}
         </select>
         <select
@@ -162,15 +159,15 @@ export function TargetedAgentEngagementPanel() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 text-left text-xs text-gray-500 uppercase tracking-wide">
+            <tr className="border-b border-gray-100 text-left text-xs uppercase tracking-wide text-gray-500">
               <th className="pb-3 pr-4 font-medium">Agent</th>
               <th className="pb-3 pr-4 font-medium">Office</th>
-              <th className="pb-3 pr-4 font-medium text-right">Deals</th>
-              <th className="pb-3 pr-4 font-medium text-right">Title</th>
-              <th className="pb-3 pr-4 font-medium text-right">Lending</th>
-              <th className="pb-3 pr-4 font-medium text-right">Escrow</th>
-              <th className="pb-3 pr-4 font-medium text-right">Warranty</th>
-              <th className="pb-3 pr-4 font-medium text-right">Leakage</th>
+              <th className="pb-3 pr-4 text-right font-medium">Deals</th>
+              <th className="pb-3 pr-4 text-right font-medium">Title</th>
+              <th className="pb-3 pr-4 text-right font-medium">Lending</th>
+              <th className="pb-3 pr-4 text-right font-medium">Escrow</th>
+              <th className="pb-3 pr-4 text-right font-medium">Warranty</th>
+              <th className="pb-3 pr-4 text-right font-medium">Leakage</th>
               <th className="pb-3 font-medium">Priority</th>
             </tr>
           </thead>
@@ -179,7 +176,7 @@ export function TargetedAgentEngagementPanel() {
               <tr key={agent.agent_id} className="group">
                 <td className="py-3 pr-4">
                   <p className="font-medium text-gray-900">{agent.name}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{agent.suggested_action}</p>
+                  <p className="mt-0.5 text-xs text-gray-400">{agent.suggested_action}</p>
                 </td>
                 <td className="py-3 pr-4 text-gray-600">{agent.office}</td>
                 <td className="py-3 pr-4 text-right text-gray-700">{agent.total_transactions}</td>
@@ -190,8 +187,8 @@ export function TargetedAgentEngagementPanel() {
                         agent.attach_rates[svc] === 0
                           ? "font-semibold text-red-600"
                           : agent.service_gaps.includes(svc)
-                          ? "text-yellow-600"
-                          : "text-gray-700"
+                            ? "text-yellow-600"
+                            : "text-gray-700"
                       }
                     >
                       {agent.attach_rates[svc]}%
@@ -221,15 +218,12 @@ export function TargetedAgentEngagementPanel() {
 
       {/* Service Gap Summary */}
       <div>
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-gray-500">
           Most Common Service Gaps
         </p>
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex flex-wrap gap-3">
           {data.by_service_gap.map((g) => (
-            <div
-              key={g.service}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            >
+            <div key={g.service} className="rounded-lg border border-gray-200 px-3 py-2 text-sm">
               <span className="font-medium text-gray-800">
                 {SERVICE_LABELS[g.service] ?? g.service}
               </span>

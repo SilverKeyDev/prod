@@ -9,7 +9,7 @@ import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
 import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
 import { TargetedAgentEngagementPanel } from "./TargetedAgentEngagementPanel";
-import { AgentRetentionRiskPanel } from "./AgentRetentionRiskPanel"; 
+import { AgentRetentionRiskPanel } from "./AgentRetentionRiskPanel";
 
 function KpiCard({
   label,

@@ -59,10 +59,7 @@ function AttachRateBar({ rate, service }: { rate: number; service: string }) {
         </BodyText>
       </Box>
       <Box className="bg-background-muted h-2 w-full overflow-hidden rounded-full">
-        <Box
-          className="h-2 rounded-full"
-          style={{ width: `${rate}%`, backgroundColor: color }}
-        />
+        <Box className="h-2 rounded-full" style={{ width: `${rate}%`, backgroundColor: color }} />
       </Box>
     </Box>
   );
@@ -84,9 +81,7 @@ export function AncillaryInsightPanel() {
 
   const sortedAgents = useMemo(
     () =>
-      [...(data?.by_agent ?? [])].sort(
-        (a, b) => b.total_leakage_dollars - a.total_leakage_dollars
-      ),
+      [...(data?.by_agent ?? [])].sort((a, b) => b.total_leakage_dollars - a.total_leakage_dollars),
     [data]
   );
 
@@ -137,7 +132,7 @@ export function AncillaryInsightPanel() {
                   <BodyText size="xs" muted>
                     {svc.in_house_count} in-house / {svc.outside_count} outside
                   </BodyText>
-                  <BodyText size="xs" className="text-red-500 font-medium">
+                  <BodyText size="xs" className="font-medium text-red-500">
                     {formatDollars(svc.leakage_dollars)} leaked
                   </BodyText>
                 </Box>
@@ -172,9 +167,7 @@ export function AncillaryInsightPanel() {
                 <tr key={agent.agent_id} className="border-border/60 border-b">
                   <td className="py-2 pr-4">
                     <Box className="flex items-center gap-2">
-                      {index === 0 && (
-                        <span className="text-red-500 text-xs font-bold">▲</span>
-                      )}
+                      {index === 0 && <span className="text-xs font-bold text-red-500">▲</span>}
                       <span className="font-medium">{agent.name}</span>
                     </Box>
                   </td>

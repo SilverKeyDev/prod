@@ -20,7 +20,15 @@ const AGENT_ONBOARDING_AFTER_ROLE: ProfileStepId[] = [
 ];
 
 const SELLER_SHELL_AFTER_ROLE: ProfileStepId[] = ["seller_shell_setup"];
-const RENTER_SHELL_AFTER_ROLE: ProfileStepId[] = ["renter_shell_setup"];
+
+const RENTER_ONBOARDING_AFTER_ROLE: ProfileStepId[] = [
+  "renter_budget",
+  "renter_location",
+  "renter_move_timeline",
+  "renter_household",
+  "renter_amenities",
+];
+
 const BROKERAGE_SHELL_AFTER_ROLE: ProfileStepId[] = ["brokerage_shell_setup"];
 const INTEGRATION_PARTNER_SHELL_AFTER_ROLE: ProfileStepId[] = ["integration_partner_shell_setup"];
 
@@ -50,7 +58,7 @@ export const FLOW_TEMPLATE_STEP_IDS: Record<FlowTemplateId, readonly ProfileStep
   buyer_onboarding: ["onboarding_role", ...BUYER_ONBOARDING_AFTER_ROLE],
   agent_onboarding: ["onboarding_role", ...AGENT_ONBOARDING_AFTER_ROLE],
   seller_onboarding: ["onboarding_role", ...SELLER_SHELL_AFTER_ROLE],
-  renter_onboarding: ["onboarding_role", ...RENTER_SHELL_AFTER_ROLE],
+  renter_onboarding: ["onboarding_role", ...RENTER_ONBOARDING_AFTER_ROLE],
   brokerage_onboarding: ["onboarding_role", ...BROKERAGE_SHELL_AFTER_ROLE],
   integration_partner_onboarding: ["onboarding_role", ...INTEGRATION_PARTNER_SHELL_AFTER_ROLE],
   buyer_personalization: [...PERSONALIZATION_BUYER_ORDER, "privacy_data"],
