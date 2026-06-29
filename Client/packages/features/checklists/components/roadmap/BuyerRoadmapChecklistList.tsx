@@ -26,6 +26,8 @@ import Card from "packages/ui/components/surfaces/cards/Card";
 
 import { BuyerRoadmapChecklistItemCard } from "./BuyerRoadmapChecklistItemCard";
 
+import { BuyerBrokerStatusBanner } from "packages/features/checklists/components/integrations/buyerBrokerReview/BuyerBrokerStatusBanner";
+
 export type BuyerRoadmapChecklistListProps = {
   currentTab: ChecklistTab;
   sortedItems: TaskChecklistItem[];
@@ -232,7 +234,18 @@ export function BuyerRoadmapChecklistList({
     isAgent,
     onOpenDispatchModal: setDispatchModalItemId,
     renderItemAgentFooter,
-    renderItemFooter,
+    renderItemFooter: (item: TaskChecklistItem) => {
+      const callerFooter = renderItemFooter?.(item) ?? null;
+      if (item.id === 6 && !isAgent && transactionId) {
+        return (
+          <>
+            <BuyerBrokerStatusBanner transactionId={transactionId} />
+            {callerFooter}
+          </>
+        );
+      }
+      return callerFooter;
+    },
     getRoadmapItemBlocker,
     sectionProgress,
     onRoadmapTabNavigate,
