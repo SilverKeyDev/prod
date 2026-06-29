@@ -72,22 +72,41 @@ def map_skyslope_transaction(
 
     Field names are placeholders — adjust when SIL-273 documents real API shape.
     """
-    external_id = raw.get("transactionId") or raw.get("id")
+    external_id = (
+        raw.get("transactionId")
+        or raw.get("saleGuid")
+        or raw.get("listingGuid")
+        or raw.get("fileGuid")
+        or raw.get("guid")
+        or raw.get("id")
+    )
     if not external_id:
-        raise ValueError("SkySlope transaction missing transactionId")
+        raise ValueError("SkySlope transaction missing external id")
 
     return {
         "brokerage_id": brokerage_id,
         "skyslope_transaction_id": str(external_id),
         "agent_id": agent_id,
-        "status": raw.get("status"),
-        "created_at": _parse_dt(raw.get("createdDate") or raw.get("created_at")),
-        "closed_at": _parse_dt(raw.get("closedDate") or raw.get("closed_at")),
-        "cancelled_at": _parse_dt(raw.get("cancelledDate") or raw.get("cancelled_at")),
-        "is_cancelled": bool(raw.get("isCancelled") or raw.get("is_cancelled")),
-        "sale_price": _to_decimal(raw.get("salePrice") or raw.get("sale_price")),
-        "list_price": _to_decimal(raw.get("listPrice") or raw.get("list_price")),
-        "address": raw.get("propertyAddress") or raw.get("address"),
+        "status": raw.get("status") or raw.get("stage"),
+        "created_at": _parse_dt(
+            raw.get("createdDate") or raw.get("dateCreated") or raw.get("created_at")
+        ),
+        "closed_at": _parse_dt(
+            raw.get("closedDate") or raw.get("dateClosed") or raw.get("closed_at")
+        ),
+        "cancelled_at": _parse_dt(
+            raw.get("cancelledDate") or raw.get("dateCancelled") or raw.get("cancelled_at")
+        ),
+        "is_cancelled": bool(
+            raw.get("isCancelled") or raw.get("is_cancelled") or raw.get("cancelled")
+        ),
+        "sale_price": _to_decimal(
+            raw.get("salePrice") or raw.get("contractPrice") or raw.get("sale_price")
+        ),
+        "list_price": _to_decimal(
+            raw.get("listPrice") or raw.get("listingPrice") or raw.get("list_price")
+        ),
+        "address": raw.get("propertyAddress") or raw.get("streetAddress") or raw.get("address"),
         "city": raw.get("city"),
         "state": raw.get("state"),
         "zip": raw.get("zip") or raw.get("postalCode"),

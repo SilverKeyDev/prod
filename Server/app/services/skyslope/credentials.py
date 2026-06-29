@@ -16,11 +16,16 @@ from app.models.brokerage import (
     BrokerageIntegrationCredential,
     BrokerageOrg,
 )
+from app.services.skyslope.credential_payload import (
+    parse_brokerage_credentials,
+    serialize_brokerage_credentials,
+)
 from app.services.skyslope.encryption import (
     CredentialEncryptionError,
     decrypt_credential,
     encrypt_credential,
 )
+from app.services.skyslope.errors import SkySlopeAuthError, SkySlopeError, public_error_message
 
 _ALLOWED_STATUSES = {
     CREDENTIAL_STATUS_ACTIVE,
@@ -47,6 +52,18 @@ def credential_to_metadata(row: BrokerageIntegrationCredential) -> dict[str, Any
         "created_at": row.created_at.isoformat(),
         "updated_at": row.updated_at.isoformat(),
     }
+
+
+def get_brokerage_access_credentials(brokerage_id: str) -> tuple[str, str]:
+    row = get_credential_row(brokerage_id)
+    if not row:
+        raise CredentialEncryptionError("SkySlope credentials not configured for brokerage")
+    access_key, access_secret = parse_brokerage_credentials(
+        decrypt_credential(row.encrypted_payload)
+    )
+    if not access_key:
+        raise CredentialEncryptionError("SkySlope access key missing for brokerage")
+    return access_key, access_secret
 
 
 def _get_brokerage_org(brokerage_id: str) -> BrokerageOrg | None:
@@ -81,6 +98,7 @@ def create_skyslope_credential(
     brokerage_id: str,
     *,
     api_key: str,
+    access_secret: str | None = None,
     skyslope_org_id: str | None = None,
 ) -> tuple[dict[str, Any] | None, str | None]:
     if not _get_brokerage_org(brokerage_id):
@@ -91,8 +109,17 @@ def create_skyslope_credential(
     if not trimmed_key:
         return None, "api_key_required"
 
+    payload_plaintext = (
+        serialize_brokerage_credentials(
+            access_key=trimmed_key,
+            access_secret=(access_secret or "").strip(),
+        )
+        if access_secret is not None
+        else trimmed_key
+    )
+
     try:
-        encrypted = encrypt_credential(trimmed_key)
+        encrypted = encrypt_credential(payload_plaintext)
     except CredentialEncryptionError:
         return None, "encryption_unavailable"
 
@@ -113,6 +140,7 @@ def update_skyslope_credential(
     brokerage_id: str,
     *,
     api_key: str | None = None,
+    access_secret: str | None = None,
     skyslope_org_id: str | None = None,
     status: str | None = None,
 ) -> tuple[dict[str, Any] | None, str | None]:
@@ -120,15 +148,24 @@ def update_skyslope_credential(
     if not row:
         return None, "not_found"
 
-    if api_key is not None:
-        trimmed_key = api_key.strip()
-        if not trimmed_key:
+    if api_key is not None or access_secret is not None:
+        current_key, current_secret = parse_brokerage_credentials(
+            decrypt_credential(row.encrypted_payload)
+        )
+        next_key = api_key.strip() if api_key is not None else current_key
+        next_secret = access_secret.strip() if access_secret is not None else current_secret
+        if not next_key:
             return None, "api_key_required"
         try:
-            row.encrypted_payload = encrypt_credential(trimmed_key)
+            row.encrypted_payload = encrypt_credential(
+                serialize_brokerage_credentials(
+                    access_key=next_key,
+                    access_secret=next_secret,
+                )
+            )
         except CredentialEncryptionError:
             return None, "encryption_unavailable"
-        row.key_last4 = _key_last4(trimmed_key)
+        row.key_last4 = _key_last4(next_key)
 
     if skyslope_org_id is not None:
         row.skyslope_org_id = skyslope_org_id.strip() or None
@@ -153,23 +190,38 @@ def delete_skyslope_credential(brokerage_id: str) -> bool:
 
 
 def get_decrypted_skyslope_api_key(brokerage_id: str) -> str:
-    """Internal: decrypt stored API key for sync service (SIL-273)."""
-    row = get_credential_row(brokerage_id)
-    if not row:
-        raise CredentialEncryptionError("SkySlope credentials not configured for brokerage")
-    return decrypt_credential(row.encrypted_payload)
+    """Backward-compatible accessor returning the brokerage AccessKey only."""
+    access_key, _ = get_brokerage_access_credentials(brokerage_id)
+    return access_key
 
 
 def test_skyslope_credential(brokerage_id: str) -> tuple[bool, str]:
-    """Verify credentials exist and decrypt locally (no SkySlope HTTP call in SIL-270)."""
+    """Verify credentials against SkySlope GET /api/healthcheck."""
+    from app.services.skyslope.client import SkySlopeClient
+
     row = get_credential_row(brokerage_id)
     if not row:
         return False, "SkySlope credentials are not configured for this brokerage."
     try:
-        decrypt_credential(row.encrypted_payload)
+        access_key, access_secret = get_brokerage_access_credentials(brokerage_id)
     except CredentialEncryptionError:
         return False, "Stored credentials could not be decrypted."
+    if not access_secret:
+        return False, "SkySlope AccessSecret is required. Update credentials with both keys."
+    try:
+        SkySlopeClient(
+            access_key=access_key,
+            access_secret=access_secret,
+            skyslope_org_id=row.skyslope_org_id,
+        ).test_connection()
+    except SkySlopeAuthError:
+        row.status = CREDENTIAL_STATUS_INVALID
+        row.updated_at = datetime.now(timezone.utc)
+        db.session.commit()
+        return False, "Invalid SkySlope credentials or unauthorized access."
+    except SkySlopeError as exc:
+        return False, public_error_message(exc)
     row.last_verified_at = datetime.now(timezone.utc)
     row.status = CREDENTIAL_STATUS_ACTIVE
     db.session.commit()
-    return True, "Stored credentials decrypt successfully."
+    return True, "SkySlope connection successful."

@@ -29,5 +29,5 @@ def test_map_skyslope_transaction_maps_core_fields(sample_raw):
 
 
 def test_map_skyslope_transaction_requires_external_id():
-    with pytest.raises(ValueError, match="transactionId"):
+    with pytest.raises(ValueError, match="external id"):
         map_skyslope_transaction({}, brokerage_id="brokerage-1")

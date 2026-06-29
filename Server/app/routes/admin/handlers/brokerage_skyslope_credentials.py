@@ -87,6 +87,7 @@ def create_brokerage_skyslope_credential(
     row, err = create_skyslope_credential(
         brokerage_id,
         api_key=payload["api_key"],
+        access_secret=payload.get("access_secret"),
         skyslope_org_id=payload.get("skyslope_org_id"),
     )
     if err == "not_found":
@@ -128,6 +129,7 @@ def update_brokerage_skyslope_credential(
     row, err = update_skyslope_credential(
         brokerage_id,
         api_key=payload.get("api_key"),
+        access_secret=payload.get("access_secret"),
         skyslope_org_id=payload.get("skyslope_org_id"),
         status=payload.get("status"),
     )
