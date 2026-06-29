@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { color } from "packages/design-tokens";
 import { useBrokerageAnalytics } from "packages/features/brokerage/hooks/useBrokerageAnalytics";
@@ -10,6 +10,16 @@ import Title from "packages/ui/components/structure/text/Title";
 import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
 import { TargetedAgentEngagementPanel } from "./TargetedAgentEngagementPanel";
 import { AgentRetentionRiskPanel } from "./AgentRetentionRiskPanel";
+
+type TimePeriod = "week" | "month" | "year" | "5years" | "all";
+
+const TIME_PERIOD_OPTIONS: { value: TimePeriod; label: string }[] = [
+  { value: "week", label: "7D" },
+  { value: "month", label: "1M" },
+  { value: "year", label: "1Y" },
+  { value: "5years", label: "5Y" },
+  { value: "all", label: "All" },
+];
 
 function KpiCard({
   label,
@@ -50,6 +60,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 export function BrokerageAnalyticsShell() {
   const { data, agents, isLoading } = useBrokerageAnalytics();
   const { data: failureData } = useDealFailureForensics();
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("all");
 
   const funnelBars = useMemo(
     () =>
@@ -125,6 +136,27 @@ export function BrokerageAnalyticsShell() {
         </Title>
         <BodyText size="sm" muted className="mt-1">
           Demo data — synthetic figures only, no PII
+        </BodyText>
+      </Box>
+
+      {/* Time Period Picker */}
+      <Box className="flex items-center gap-2">
+        {TIME_PERIOD_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setTimePeriod(opt.value)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              timePeriod === opt.value
+                ? "bg-gray-900 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+        <BodyText size="xs" muted className="ml-2">
+          {/* TODO SIL-272: pass timePeriod to each hook when real API lands */}
+          Showing fixture data — live filtering coming with SkySlope sync
         </BodyText>
       </Box>
 
