@@ -56,6 +56,7 @@ export function ClientHubScreen({ clientId: clientIdProp }: ClientHubScreenProps
   } = useChecklistProgress({
     transactionId: transactionId ?? undefined,
     enabled: Boolean(transactionId),
+    isAgentViewer: isAgentWorkspace,
   });
   const [checklistTab, setChecklistTab] = useState<ChecklistTab>(currentSection);
 

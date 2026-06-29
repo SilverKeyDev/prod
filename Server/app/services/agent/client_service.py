@@ -117,8 +117,35 @@ def validate_agent_client_relationship(agent_id: str, client_id: str) -> bool:
     return agent_may_access_client(agent_id, client_id)
 
 
+def _agent_linked_via_conversation(agent_id_s: str, client_id_s: str) -> bool:
+    return (
+        db.session.scalar(
+            select(AgentConnections).where(
+                AgentConnections.agent_id == agent_id_s,
+                AgentConnections.client_id == client_id_s,
+            )
+        )
+        is not None
+    )
+
+
+def _agent_linked_via_transaction(agent_id_s: str, client_id_s: str) -> bool:
+    """Deal spine: agent is ``primary_agent_id`` on a transaction for this buyer."""
+    return (
+        db.session.scalar(
+            select(Transaction.id)
+            .where(
+                Transaction.buyer_id == client_id_s,
+                Transaction.primary_agent_id == agent_id_s,
+            )
+            .limit(1)
+        )
+        is not None
+    )
+
+
 def agent_may_access_client(agent_id: str, client_id: str) -> bool:
-    """True when *client_id* is linked to *agent_id* in ``agent_conversations``."""
+    """True when *client_id* is linked via ``agent_conversations`` or deal ``primary_agent_id``."""
     try:
         agent_id_s = str(agent_id).strip()
         client_id_s = str(client_id).strip()
@@ -126,15 +153,9 @@ def agent_may_access_client(agent_id: str, client_id: str) -> bool:
             return False
         if get_user_if_agent(agent_id_s) is None:
             return False
-        return (
-            db.session.scalar(
-                select(AgentConnections).where(
-                    AgentConnections.agent_id == agent_id_s,
-                    AgentConnections.client_id == client_id_s,
-                )
-            )
-            is not None
-        )
+        if _agent_linked_via_conversation(agent_id_s, client_id_s):
+            return True
+        return _agent_linked_via_transaction(agent_id_s, client_id_s)
     except Exception as e:
         log.error("ERRORS", f"Error validating agent-client relationship: {e}", e)
         return False
@@ -165,14 +186,20 @@ def get_connected_agent_ids_for_client(client_id: str) -> set[str]:
 
 
 def get_agent_client_ids(agent_id: str) -> list[str]:
-    """Get all client IDs for an agent from ``agent_conversations``."""
+    """Client user ids from ``agent_conversations`` plus buyers on deals where agent is primary."""
     try:
-        if get_user_if_agent(agent_id) is None:
+        agent_id_s = str(agent_id).strip()
+        if get_user_if_agent(agent_id_s) is None:
             return []
         connections = db.session.scalars(
-            select(AgentConnections).where(AgentConnections.agent_id == agent_id)
+            select(AgentConnections).where(AgentConnections.agent_id == agent_id_s)
         ).all()
-        return [conn.client_id for conn in connections if conn.client_id]
+        ids = {conn.client_id for conn in connections if conn.client_id}
+        tx_buyers = db.session.scalars(
+            select(Transaction.buyer_id).where(Transaction.primary_agent_id == agent_id_s)
+        ).all()
+        ids |= {str(bid) for bid in tx_buyers if bid}
+        return list(ids)
     except Exception as e:
         log.error("ERRORS", f"Error getting client IDs for agent {agent_id}: {e}", e)
         return []
