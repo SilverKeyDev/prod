@@ -65,6 +65,13 @@ class BuyerBrokerReview(db.Model):
     meeting_requested_at: Mapped[datetime | None] = mapped_column(nullable=True)
     meeting_note: Mapped[str | None] = mapped_column(db.String(1000), nullable=True)
 
+    # Phase 2: hash of material preferences at approval time.
+    # If buyer changes budget/location/criteria after approval, fingerprint
+    # mismatch voids approval back to pending_review. TODO SIL-183 Phase 2.
+    approved_preferences_fingerprint: Mapped[str | None] = mapped_column(
+        db.String(64), nullable=True
+    )
+
     # Set when agreement is sent
     agreement_sent_at: Mapped[datetime | None] = mapped_column(nullable=True)
 

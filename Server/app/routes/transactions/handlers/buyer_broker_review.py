@@ -140,10 +140,18 @@ def approve_buyer_broker_review(user, transaction_id: str):
             "error": "Agreement already sent — cannot re-approve.",
         }), 409
 
+    from app.services.aggregation import get_preferences_dict_optional
+    from app.services.transactions.bba_preferences_fingerprint import compute_preferences_fingerprint
+
     now = datetime.now(timezone.utc)
     review.status = "approved"
     review.approved_by_agent_id = str(user.id)
     review.approved_at = now
+
+    # Phase 2: store fingerprint of buyer's material preferences at approval time.
+    buyer_prefs = get_preferences_dict_optional(str(tx.buyer_id))
+    if buyer_prefs:
+        review.approved_preferences_fingerprint = compute_preferences_fingerprint(buyer_prefs)
 
     body = req.get_json(silent=True) or {}
     note = body.get("note")
