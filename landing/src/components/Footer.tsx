@@ -19,7 +19,7 @@ export default function Footer() {
         </div>
 
         <div style={{ display: 'flex', gap: 20, fontSize: 13, color: 'var(--ink3)' }}>
-          <a href="mailto:hello@usesilverkey.com">Contact</a>
+          <a href="/contact">Contact</a>
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>
         </div>
