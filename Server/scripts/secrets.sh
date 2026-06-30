@@ -43,22 +43,81 @@ have_cmd sh || die "sh not found (required to run secrets.sh)"
 
 # ---- parsing helpers ----
 
-# jq JSON -> KEY=VALUE lines (flat object)
-json_to_env_lines() {
-  if have_cmd jq; then
-    jq -r 'if type=="object" then to_entries[]|"\(.key)=\"\(.value|tostring)\"" else empty end'
-  else
-    python3 - <<'PY'
-import sys,json
-try:
-    obj=json.load(sys.stdin)
-except Exception:
-    sys.exit(0)
-if isinstance(obj, dict):
-    for k,v in obj.items():
-        print(f'{k}="{v}"')
+# python-dotenv-compatible KEY=VALUE (single-quote when possible; else double-quote).
+format_env_line() {
+  FORMAT_ENV_KEY="$1" FORMAT_ENV_VAL="$2" python3 - <<'PY'
+import os
+
+
+def format_env_line(key: str, val: str) -> str:
+    val = str(val)
+    if val and all(c.isalnum() or c in "._:/-@" for c in val):
+        return f"{key}={val}"
+    if "'" not in val:
+        return f"{key}='{val}'"
+    escaped = val.replace("\\", "\\\\").replace('"', '\\"')
+    return f'{key}="{escaped}"'
+
+
+print(format_env_line(os.environ["FORMAT_ENV_KEY"], os.environ["FORMAT_ENV_VAL"]))
 PY
-  fi
+}
+
+# JSON object -> KEY=VALUE lines (flat object, dotenv-safe)
+json_to_env_lines() {
+  SECRETS_JSON_PAYLOAD="$1" python3 - <<'PY'
+import json
+import os
+
+
+def format_env_line(key: str, val: str) -> str:
+    val = str(val)
+    if val and all(c.isalnum() or c in "._:/-@" for c in val):
+        return f"{key}={val}"
+    if "'" not in val:
+        return f"{key}='{val}'"
+    escaped = val.replace("\\", "\\\\").replace('"', '\\"')
+    return f'{key}="{escaped}"'
+
+
+try:
+    obj = json.loads(os.environ["SECRETS_JSON_PAYLOAD"])
+except Exception:
+    raise SystemExit(0)
+if isinstance(obj, dict):
+    for k, v in obj.items():
+        print(format_env_line(k, str(v)))
+PY
+}
+
+# dotenv text -> dotenv-safe KEY=VALUE lines
+dotenv_to_env_lines() {
+  SECRETS_DOTENV_PAYLOAD="$1" python3 - <<'PY'
+import os
+
+
+def format_env_line(key: str, val: str) -> str:
+    val = str(val)
+    if val and all(c.isalnum() or c in "._:/-@" for c in val):
+        return f"{key}={val}"
+    if "'" not in val:
+        return f"{key}='{val}'"
+    escaped = val.replace("\\", "\\\\").replace('"', '\\"')
+    return f'{key}="{escaped}"'
+
+
+for line in os.environ["SECRETS_DOTENV_PAYLOAD"].splitlines():
+    line = line.strip()
+    if not line or line.startswith("#"):
+        continue
+    if "=" not in line:
+        continue
+    key, _, val = line.partition("=")
+    val = val.strip()
+    if len(val) >= 2 and val[0] == val[-1] and val[0] in ('"', "'"):
+        val = val[1:-1]
+    print(format_env_line(key, val))
+PY
 }
 
 # Extract SecretString or SecretBinary from AWS response
@@ -267,7 +326,7 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
   payload="$(unescape_backslashes "$payload")"
 
   if looks_like_json_object "$payload"; then
-    lines="$(printf '%s' "$payload" | json_to_env_lines || printf '')"
+    lines="$(json_to_env_lines "$payload" || printf '')"
     [ -n "$lines" ] || die "Secret $SECRET_ID parsed to no key/values (ensure flat JSON)"
     {
       echo "# From secret: $SECRET_ID (json)"
@@ -279,19 +338,7 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
       echo
     } >> "$tmp_example"
   elif looks_like_dotenv "$payload"; then
-    normalized="$(
-      printf '%s\n' "$payload" | awk 'NF && $0 !~ /^[[:space:]]*#/ {
-        idx = index($0, "=")
-        if (idx > 0) {
-          key = substr($0, 1, idx - 1)
-          val = substr($0, idx + 1)
-          gsub(/^["'\'']|["'\'']$/, "", val)
-          print key "=\"" val "\""
-        } else {
-          print
-        }
-      }'
-    )"
+    normalized="$(dotenv_to_env_lines "$payload")"
     {
       echo "# From secret: $SECRET_ID (dotenv)"
       printf '%s\n' "$normalized"
@@ -306,7 +353,7 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
     key="$(printf '%s' "$SECRET_ID" | tr ' ' '_' )"
     {
       echo "# From secret: $SECRET_ID (scalar)"
-      echo "${key}=\"${payload}\""
+      format_env_line "$key" "$payload"
       echo
     } >> "$tmp_env"
     {
@@ -323,7 +370,7 @@ if ! grep -q '^DATABASE_URL=' "$tmp_env"; then
   if [ "$USE_LOCAL_DATABASE" = "1" ]; then
     {
       echo "# Local dev database (USE_LOCAL_DATABASE=1; not fetched from Secrets Manager)"
-      echo "DATABASE_URL=\"$database_url_to_write\""
+      format_env_line DATABASE_URL "$database_url_to_write"
       echo
     } >> "$tmp_env"
     {
