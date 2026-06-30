@@ -102,7 +102,7 @@ def get_buyer_broker_review(user, transaction_id: str):
     db.session.commit()
 
     log.info(
-        "TRANSACTIONS.BBA_REVIEW",
+        "DOCUSIGN",
         "bba_review_fetched",
         {"transaction_id": transaction_id, "status": review.status},
     )
@@ -126,7 +126,7 @@ def approve_buyer_broker_review(user, transaction_id: str):
 
     if str(tx.primary_agent_id) != str(user.id):
         log.warning(
-            "TRANSACTIONS.BBA_REVIEW",
+            "DOCUSIGN",
             "bba_approve_forbidden_not_agent",
             {"transaction_id": transaction_id, "user_id": str(user.id)},
         )
@@ -160,7 +160,7 @@ def approve_buyer_broker_review(user, transaction_id: str):
     db.session.commit()
 
     log.info(
-        "TRANSACTIONS.BBA_REVIEW",
+        "DOCUSIGN",
         "bba_approved",
         {"transaction_id": transaction_id, "agent_id": str(user.id)},
     )
@@ -185,7 +185,7 @@ def request_buyer_broker_meeting(user, transaction_id: str):
 
     if str(tx.primary_agent_id) != str(user.id):
         log.warning(
-            "TRANSACTIONS.BBA_REVIEW",
+            "DOCUSIGN",
             "bba_meeting_request_forbidden_not_agent",
             {"transaction_id": transaction_id, "user_id": str(user.id)},
         )
@@ -212,7 +212,7 @@ def request_buyer_broker_meeting(user, transaction_id: str):
     db.session.commit()
 
     log.info(
-        "TRANSACTIONS.BBA_REVIEW",
+        "DOCUSIGN",
         "bba_meeting_requested",
         {"transaction_id": transaction_id, "agent_id": str(user.id), "note": note},
     )
