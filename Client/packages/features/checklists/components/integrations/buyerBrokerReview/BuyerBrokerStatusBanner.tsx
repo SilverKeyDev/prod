@@ -4,7 +4,7 @@
  * Shows current review status and hides signing footer until agreement_sent.
  */
 import { useEffect, useState } from "react";
-import Box from "packages/ui/components/structure/primitives/Box";
+import { Box } from "packages/ui/components/structure/primitives/Box";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 
 type ReviewStatus = "pending_review" | "meeting_requested" | "approved" | "agreement_sent";

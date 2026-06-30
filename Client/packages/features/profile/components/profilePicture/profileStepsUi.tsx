@@ -48,6 +48,16 @@ const iconNameForStepId = (id: ProfileStepId): IconName | undefined => {
       return "home";
     case "renter_shell_setup":
       return "home";
+    case "renter_budget":
+      return "wallet";
+    case "renter_location":
+      return "map-pin";
+    case "renter_move_timeline":
+      return "calendar";
+    case "renter_household":
+      return "users";
+    case "renter_amenities":
+      return "sparkles";
     case "brokerage_shell_setup":
       return "building-2";
     case "integration_partner_shell_setup":
@@ -62,6 +72,7 @@ const iconForStepId = (id: ProfileStepId): StepWithIcon["icon"] => {
   if (!name) return undefined;
   return (props) => <Icon name={name} {...props} />;
 };
+
 const withIcons = (steps: ProfileStep[]): StepWithIcon[] =>
   steps.map((step) => ({ ...step, icon: iconForStepId(step.id) }));
 
