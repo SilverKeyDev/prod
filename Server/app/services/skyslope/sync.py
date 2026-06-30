@@ -4,8 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.models.brokerage import CREDENTIAL_STATUS_INVALID
 from app.services.skyslope.client import MockSkySlopeClient, SkySlopeClient, SkySlopeClientProtocol
-from app.services.skyslope.credentials import get_credential_row, get_decrypted_skyslope_api_key
+from app.services.skyslope.credentials import (
+    get_brokerage_access_credentials,
+    get_credential_row,
+    update_skyslope_credential,
+)
+from app.services.skyslope.errors import SkySlopeAuthError, SkySlopeError, public_error_message
 from app.services.skyslope.mapping import map_skyslope_transaction
 from app.services.skyslope.persistence import upsert_skyslope_transactions
 from app.services.skyslope.sync_state import mark_sync_failed, mark_sync_running, mark_sync_success
@@ -22,8 +28,12 @@ def _build_client(brokerage_id: str, *, use_mock: bool = False) -> SkySlopeClien
         return MockSkySlopeClient()
 
     row = get_credential_row(brokerage_id)
-    api_key = get_decrypted_skyslope_api_key(brokerage_id)
-    return SkySlopeClient(api_key=api_key, skyslope_org_id=row.skyslope_org_id if row else None)
+    access_key, access_secret = get_brokerage_access_credentials(brokerage_id)
+    return SkySlopeClient(
+        access_key=access_key,
+        access_secret=access_secret,
+        skyslope_org_id=row.skyslope_org_id if row else None,
+    )
 
 
 def sync_brokerage_transactions(
@@ -86,8 +96,29 @@ def sync_brokerage_transactions(
             "records_imported": records_imported,
         }
 
+    except SkySlopeAuthError as exc:
+        update_skyslope_credential(brokerage_id, status=CREDENTIAL_STATUS_INVALID)
+        message = public_error_message(exc)
+        mark_sync_failed(brokerage_id, message)
+        log.error(
+            "ERRORS",
+            "SkySlope auth failed during sync",
+            {"brokerage_id": brokerage_id},
+        )
+        raise
+
+    except SkySlopeError as exc:
+        message = public_error_message(exc)
+        mark_sync_failed(brokerage_id, message)
+        log.error(
+            "ERRORS",
+            "SkySlope transaction sync failed",
+            {"brokerage_id": brokerage_id, "error_type": type(exc).__name__},
+        )
+        raise
+
     except Exception as exc:
-        mark_sync_failed(brokerage_id, str(exc))
+        mark_sync_failed(brokerage_id, "SkySlope sync failed.")
         log.error(
             "ERRORS",
             "SkySlope transaction sync failed",

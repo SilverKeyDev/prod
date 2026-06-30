@@ -3442,14 +3442,18 @@ export interface components {
             updated_at: string;
         };
         BrokerageSkySlopeCredentialCreateRequest: {
-            /** @description Per-brokerage SkySlope API key (write-only; never returned by GET) */
+            /** @description Per-brokerage SkySlope AccessKey (write-only; never returned by GET) */
             api_key: string;
+            /** @description Per-brokerage SkySlope AccessSecret (write-only; required for live API calls) */
+            access_secret?: string;
             /** @description Optional SkySlope organization identifier */
             skyslope_org_id?: string | null;
         };
         BrokerageSkySlopeCredentialUpdateRequest: {
-            /** @description Replacement SkySlope API key (write-only) */
+            /** @description Replacement SkySlope AccessKey (write-only) */
             api_key?: string;
+            /** @description Replacement SkySlope AccessSecret (write-only) */
+            access_secret?: string;
             skyslope_org_id?: string | null;
             status?: components["schemas"]["BrokerageSkySlopeCredentialStatus"];
         };

@@ -86,7 +86,7 @@ def test_create_and_get_skyslope_credential_metadata(client, app, db_session):
         assert decrypt_credential(row.encrypted_payload) == "sk-secret-key-9999"
 
 
-def test_test_connection_decrypts_stored_credential(client, app, db_session):
+def test_test_connection_requires_access_secret(client, app, db_session):
     with patch("app.services.auth.get_current_user", return_value=_ADMIN):
         client.post(
             f"/api/v1/admin/brokerages/{DEFAULT_BROKERAGE_ORG_ID}/integrations/skyslope",
@@ -99,8 +99,28 @@ def test_test_connection_decrypts_stored_credential(client, app, db_session):
         )
     assert test_resp.status_code == 200
     body = test_resp.get_json()
+    assert body.get("success") is False
+    assert "AccessSecret" in body.get("message", "")
+
+
+@patch("app.services.skyslope.client.SkySlopeClient.test_connection")
+def test_test_connection_calls_skyslope(mock_test, client, app, db_session):
+    mock_test.return_value = None
+    with patch("app.services.auth.get_current_user", return_value=_ADMIN):
+        client.post(
+            f"/api/v1/admin/brokerages/{DEFAULT_BROKERAGE_ORG_ID}/integrations/skyslope",
+            headers={"Authorization": "Bearer mock"},
+            json={"api_key": "sk-live-key-abcd", "access_secret": "sk-live-secret"},
+        )
+        test_resp = client.post(
+            f"/api/v1/admin/brokerages/{DEFAULT_BROKERAGE_ORG_ID}/integrations/skyslope/test-connection",
+            headers={"Authorization": "Bearer mock"},
+        )
+    assert test_resp.status_code == 200
+    body = test_resp.get_json()
     assert body.get("success") is True
-    assert "api_key" not in body.get("message", "").lower()
+    assert body.get("message") == "SkySlope connection successful."
+    mock_test.assert_called_once()
 
 
 def test_create_duplicate_returns_conflict(client, app, db_session):

@@ -658,7 +658,11 @@ class BrokerageSkySlopeCredentialStatus(Enum):
 class BrokerageSkySlopeCredentialCreateRequest(BaseModel):
     api_key: str = Field(
         ...,
-        description="Per-brokerage SkySlope API key (write-only; never returned by GET)",
+        description="Per-brokerage SkySlope AccessKey (write-only; never returned by GET)",
+    )
+    access_secret: str | None = Field(
+        None,
+        description="Per-brokerage SkySlope AccessSecret (write-only; required for live API calls)",
     )
     skyslope_org_id: str | None = Field(
         None, description="Optional SkySlope organization identifier"
@@ -666,7 +670,10 @@ class BrokerageSkySlopeCredentialCreateRequest(BaseModel):
 
 
 class BrokerageSkySlopeCredentialUpdateRequest(BaseModel):
-    api_key: str | None = Field(None, description="Replacement SkySlope API key (write-only)")
+    api_key: str | None = Field(None, description="Replacement SkySlope AccessKey (write-only)")
+    access_secret: str | None = Field(
+        None, description="Replacement SkySlope AccessSecret (write-only)"
+    )
     skyslope_org_id: str | None = None
     status: BrokerageSkySlopeCredentialStatus | None = None
 
