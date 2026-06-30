@@ -18,8 +18,7 @@ export function SearchStrictPreferencesControlNative(): React.ReactElement {
         <Switch value={preferencesStrictFilter} onValueChange={handleStrictPreferences} />
       </Box>
       <Text className="text-text-secondary mt-1 px-0 text-xs leading-snug">
-        {SEARCH_TRANSLATIONS["search.strict_preferences_hint"] ??
-          "When off, we only apply every preference filter when there are more than 100 homes in the search area."}
+        {SEARCH_TRANSLATIONS["search.strict_preferences_hint"]}
       </Text>
     </Box>
   );

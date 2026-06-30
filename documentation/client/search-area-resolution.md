@@ -57,8 +57,8 @@ flowchart TD
 |-------|-----------------------------------|
 | Budget min/max | No price filter |
 | Beds / baths | No bed/bath filter |
-| Must-haves / deal-breakers | Not applied |
-| `preferences_strict_filter` | Opt-in only; empty results + warning, not HTTP failure |
+| Must-haves / deal-breakers | Applied only when `preferences_strict_filter` is true |
+| `preferences_strict_filter` | Opt-in; when true, must-haves are hard filters; when false, numeric filters still apply; empty results + warning, not HTTP failure |
 
 Filter sheet slider defaults (e.g. 100k–2M) are display-only until the user moves them.
 

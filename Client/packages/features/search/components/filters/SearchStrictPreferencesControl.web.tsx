@@ -21,8 +21,7 @@ export function SearchStrictPreferencesControlWeb(): React.ReactElement {
         />
       </Box>
       <Subtitle size="xs" muted className="pl-0 pr-10">
-        {SEARCH_TRANSLATIONS["search.strict_preferences_hint"] ??
-          "When off, we only apply every preference filter when there are more than 100 homes in the search area."}
+        {SEARCH_TRANSLATIONS["search.strict_preferences_hint"]}
       </Subtitle>
     </Box>
   );

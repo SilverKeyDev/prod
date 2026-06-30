@@ -104,7 +104,7 @@ export const SEARCH_TRANSLATIONS: Record<string, string> = {
   "search.dismiss_map_listing_preview": "Hide this listing preview on the map",
   "search.strict_preferences": "Match all preferences strictly",
   "search.strict_preferences_hint":
-    "When off, we only apply every preference filter when there are more than 100 homes in the search area, so small result sets stay broader.",
+    "When on, every must-have feature must match on each listing. When off, price, beds, baths, and other numeric preferences still filter results.",
   "search.order_match_score": "Match score",
   "search.order_price": "Price",
   "search.order_distance": "Distance",
