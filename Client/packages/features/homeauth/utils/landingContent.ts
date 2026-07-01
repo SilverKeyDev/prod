@@ -1,15 +1,14 @@
 import type { LandingContent } from "packages/features/homeauth/types/landingContent";
 import { ROUTES } from "packages/navigation";
 
-import { LANDING_SECTION_IDS,landingHashHref } from "./landingSectionIds";
+import { LANDING_SECTION_IDS, landingHashHref } from "./landingSectionIds";
 
-/**
- * Single source for public landing copy — ported verbatim from PR #116.
- */
+/** Single source for public landing copy. */
 export const LANDING_CONTENT: LandingContent = {
   nav: {
     landmarkLabel: "SilverKey",
     loginLabel: "Log in",
+    signUpLabel: "Sign up",
     bookDemoLabel: "Book a demo",
     links: [
       { label: "Platform", href: landingHashHref(LANDING_SECTION_IDS.info) },
@@ -19,17 +18,17 @@ export const LANDING_CONTENT: LandingContent = {
     ],
   },
   hero: {
-    badge: "SkySlope integration · Live insights",
-    headlineWords: ["Empower", "every", "agent", "with", "smarter", "transaction", "insights."],
-    italicWordIndex: 4,
+    headlineWords: ["The", "intelligence", "layer", "for", "every", "transaction."],
+    italicWordIndex: 1,
     subheadline:
-      "SilverKey helps brokerages transform SkySlope transaction data into coaching, support, and growth opportunities — so every agent performs at their best.",
+      "SilverKey turns your brokerage's transaction data into coaching, support, and growth so every agent performs at their best, layered on top of the transaction tools you already run.",
     primaryCtaLabel: "Book a demo →",
-    secondaryCtaLabel: "See how it works",
-    trustLine: "No commitment required · Setup in under a week",
+    signUpCtaLabel: "Sign up",
+    trustLine: "No commitment required. Setup in under a week.",
   },
   demo: {
-    windowTitle: "SilverKey · Brokerage Overview · Q2 2026",
+    windowTitle: "SilverKey, Brokerage Overview, Q2 2026",
+    syncCaption: "Synced from your transaction management system",
     stats: [
       { id: "dc1", label: "Closed this quarter", value: "247", sub: "transactions" },
       {
@@ -43,54 +42,38 @@ export const LANDING_CONTENT: LandingContent = {
     ],
     queueHeading: "Growth coaching queue",
     queueItems: [
-      { name: "Marcus T.", opportunity: "Volume up 34% — team lead candidate" },
-      { name: "Priya M.", opportunity: "3 stalled contracts — needs guidance" },
-      { name: "Carlos W.", opportunity: "Top performer — ready for recognition" },
+      { name: "Marcus T.", opportunity: "Volume up 34%, team lead candidate" },
+      { name: "Priya M.", opportunity: "3 stalled contracts, needs guidance" },
+      { name: "Carlos W.", opportunity: "Top performer, ready for recognition" },
     ],
-    trendHeading: "Transaction trend · 6 months",
+    trendHeading: "Transaction trend, 6 months",
     trendValues: [34, 41, 38, 52, 47, 58],
     trendMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
   },
   partners: {
-    eyebrow: "Backed by & integrated with",
-    headline: "The ecosystem powering SilverKey",
-    subheadline: "Trusted partners and integrations that make the platform work.",
+    eyebrow: "Built to fit your stack",
+    subheadline:
+      "SilverKey layers onto the systems your brokerage already runs. Here is what powers it today.",
     items: [
       {
-        id: "gt-ventures",
-        logoKey: "gt-ventures",
-        badge: "Backer",
-        sub: "Pre-seed investor backing SilverKey's go-to-market",
-      },
-      {
-        id: "skyslope",
-        logoKey: "skyslope",
-        badge: "Integration",
-        sub: "Transaction management — the data source powering all roster insights",
-      },
-      {
-        id: "better",
-        logoKey: "better",
-        badge: "MSA Signed",
-        sub: "Mortgage partner · $3K + $1,500/user · Activates on launch",
+        id: "tms-compatible",
+        title: "Works with your transaction management platform",
+        badge: "Compatible",
+        sub: "SilverKey reads roster and transaction data from the system you already use, so nothing about your compliance workflow changes.",
       },
       {
         id: "move-concierge",
+        title: "Move Concierge",
         logoKey: "move-concierge",
-        badge: "Agreement Signed",
-        sub: "Move management partner · Revenue share · Live integration",
+        badge: "Live integration",
+        sub: "Move management partner. Revenue share signed, integration live.",
       },
       {
-        id: "exp-realty",
-        logoKey: "exp-realty",
-        badge: "Pilot Committed",
-        sub: "Top-10 national team · 10 agents committed to live pilot",
-      },
-      {
-        id: "ga-broker",
-        logoKey: "ga-broker",
-        badge: "Founder Credential",
-        sub: "Built by a licensed Georgia broker — real experience behind every feature",
+        id: "ga-agent",
+        title: "Georgia Agent",
+        logoKey: "ga-agent",
+        badge: "Founder credential",
+        sub: "Built by a licensed Georgia real estate agent, so every feature reflects how deals actually close.",
       },
     ],
   },
@@ -100,12 +83,11 @@ export const LANDING_CONTENT: LandingContent = {
     headlineAccent: "coaches.",
     headlineAfter: " Insights that stick.",
     subheadline:
-      "SilverKey analyzes your SkySlope transaction data continuously — surfacing what matters before it becomes a problem.",
+      "SilverKey analyzes production and pipeline data continuously, surfacing what matters before it becomes a problem.",
+    cardsCaption: "Illustrative outputs based on roster modeling.",
     cards: [
       {
         icon: "bar-chart-2",
-        iconTintClass: "text-[#3B6FE0]",
-        iconBgClass: "bg-[#EBF0FB]",
         statTarget: 12,
         statSuffix: "",
         statDelayMs: 200,
@@ -115,24 +97,20 @@ export const LANDING_CONTENT: LandingContent = {
       },
       {
         icon: "heart",
-        iconTintClass: "text-[#2DA771]",
-        iconBgClass: "bg-[#E4F4EC]",
         statTarget: 23,
-        statSuffix: "%",
+        statSuffix: "",
         statDelayMs: 300,
-        title: "Average retention improvement",
-        body: "Brokerages using SilverKey identify growth signals early — and act on them before agents start looking elsewhere. Retention follows naturally.",
+        title: "Retention signals caught early",
+        body: "Growth and flight risk show up in the data before they show up in a resignation. SilverKey surfaces both so you can act while it still matters.",
         animDirection: "up",
       },
       {
         icon: "file-signature",
-        iconTintClass: "text-[#D4893A]",
-        iconBgClass: "bg-[#FBF0E2]",
         statTarget: 3,
-        statSuffix: "d",
+        statSuffix: "",
         statDelayMs: 400,
-        title: "Faster average time to close",
-        body: "Spotting bottlenecks across your transaction portfolio helps leadership address recurring sticking points — improving pace for the whole brokerage.",
+        title: "Bottlenecks surfaced across your portfolio",
+        body: "Spot recurring sticking points across your transactions so leadership can fix pace for the whole brokerage, not one deal at a time.",
         animDirection: "right",
       },
     ],
@@ -178,79 +156,54 @@ export const LANDING_CONTENT: LandingContent = {
   },
   pricing: {
     eyebrow: "Pricing",
+    cardEyebrow: "Built for brokerages",
     headlineBefore: "Simple, ",
     headlineAccent: "honest",
     headlineAfter: " pricing.",
     subheadline:
-      "One monthly price per brokerage, scaled to roster size. The number lives in the walkthrough — because it belongs in a conversation.",
-    monthlyLabel: "Monthly",
-    annualLabel: "Annual · save 20%",
-    priceMonthly: "Custom",
-    priceAnnual: "Custom (annual · 20% off)",
-    footnote: "Exact pricing in the walkthrough",
-    mostPopularLabel: "Most popular",
-    tiers: [
-      {
-        id: "starter",
-        name: "Starter",
-        agentLimit: "per brokerage · up to 25 agents",
-        features: [
-          "Full roster overview",
-          "Coaching opportunity signals",
-          "SkySlope integration",
-          "Monthly reporting",
-        ],
-        ctaLabel: "Get started →",
-      },
-      {
-        id: "growth",
-        name: "Growth",
-        agentLimit: "per brokerage · unlimited agents",
-        featured: true,
-        features: [
-          "Everything in Starter",
-          "Agent growth & retention signals",
-          "Transaction bottleneck analysis",
-          "Priority support",
-          "Onboarding & coaching playbooks",
-        ],
-        ctaLabel: "Book a demo →",
-      },
+      "One monthly price per brokerage, scaled to roster size. The number lives in the walkthrough because it belongs in a conversation.",
+    priceLabel: "Custom",
+    highlights: [
+      "Full roster overview and coaching signals",
+      "Integrations with your existing transaction stack",
+      "Onboarding support sized to your team",
     ],
+    supportingLine: "Pricing scales with roster size. We'll walk through it live.",
+    ctaLabel: "Book a demo →",
   },
   faq: {
     eyebrow: "FAQ",
     headline: "Questions brokers actually ask.",
     items: [
       {
-        question: "Where does the data come from?",
+        question: "Does SilverKey replace our transaction management platform?",
         answer:
-          "Your own transactions. SilverKey connects to SkySlope through authorized brokerage credentials and reads deal data you already generate. Nothing external, nothing your agents need to do.",
+          "No. SilverKey sits on top of the transaction tools you already run. Your system of record stays exactly where it is. We read the production and pipeline data and turn it into coaching and growth signals.",
       },
       {
-        question: "Do my agents have to do anything?",
+        question: "What does SilverKey actually do?",
         answer:
-          "No. No new login, no migration, no new tool. Agents keep working exactly as they do now. The insights come from transactions they're already closing in SkySlope.",
+          "It reads deal velocity, pipeline depth, and closing trends across your roster, then surfaces which agents need a conversation this week, who is ready to grow, and where deals are stalling. Leadership gets a clear picture without digging through reports.",
       },
       {
-        question: "Is this surveillance?",
+        question: "How does SilverKey make money?",
         answer:
-          "No. SilverKey reads brokerage-level production and pipeline — the same numbers you already own. It's not activity monitoring. It's the roster health read you've always wanted, built to help your agents succeed.",
+          "One monthly platform fee per brokerage, scaled to roster size. Ancillary partners such as mortgage, title, insurance, and moving pay for placement and data services, and your brokerage takes a cut. These are placement and data fees, not referral fees.",
       },
       {
-        question: "Who can see the insights?",
+        question: "Who controls which partners my agents see?",
         answer:
-          "Your brokerage leadership only. Roster insights stay inside your shop. We never share, aggregate, or sell agent data across brokerages.",
-      },
-      {
-        question: "We're not on SkySlope. Can we still use this?",
-        answer:
-          "SkySlope is our first integration. More transaction systems are coming. Get on the list and you'll hear from us when yours is ready.",
+          "You do. SilverKey is independent and does not own any mortgage, title, or insurance business, so partner placement reflects your agents' interests, not ours. You set what appears and how.",
       },
       {
         question: "How long does setup take?",
         answer:
-          "The walkthrough is 15 minutes. If it's a fit, onboarding is one connection — no migration, no IT project. Most brokerages are live within a week.",
+          "Under a week, with onboarding sized to your team. No long-term commitment to get started.",
+      },
+      {
+        question: "Who built this?",
+        answer:
+          "A licensed Georgia real estate agent and a full engineering team, so the product reflects how deals actually close.",
       },
     ],
   },
@@ -260,26 +213,17 @@ export const LANDING_CONTENT: LandingContent = {
     headlineAfter: "",
     subheadline: "Give your team the coaching and support they need to close more deals.",
     primaryCtaLabel: "Book a demo →",
-    secondaryCtaLabel: "Text or call us",
-    footnote: "Responds in under 5 minutes · Atlanta, GA · No pressure, no pitch deck",
-    primaryHref: "https://cal.com/silverkey/demo",
-    secondaryHref: "sms:+14045550000",
-  },
-  sticky: {
-    message: "Empower every agent with smarter insights.",
-    bookDemoLabel: "Book a demo",
-    textUsLabel: "Text us",
-    textUsHref: "sms:+14045550000",
+    footnote: "Responds in under 5 minutes. Atlanta, GA. No pressure, no pitch deck.",
   },
   footer: {
     location: "Atlanta, Georgia",
     copyright: "© 2026 SilverKey. All rights reserved.",
     disclaimer:
-      "Platform fees are charged for marketplace placement and data services, not for referrals.",
+      "Platform fees are charged for partner placement and data services, not referral fees.",
     socialLinks: [
-      { href: "https://linkedin.com/company/silverkey", label: "LinkedIn", text: "in" },
-      { href: "https://twitter.com/usesilverkey", label: "X / Twitter", text: "𝕏" },
-      { href: "https://instagram.com/usesilverkey", label: "Instagram", text: "◎" },
+      { href: "https://linkedin.com/company/silverkey", label: "LinkedIn", icon: "linkedin" },
+      { href: "https://twitter.com/usesilverkey", label: "X / Twitter", icon: "x" },
+      { href: "https://instagram.com/usesilverkey", label: "Instagram", icon: "instagram" },
     ],
     legalLinks: [
       { label: "Contact", href: ROUTES.CONTACT },

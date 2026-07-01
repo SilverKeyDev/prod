@@ -12,11 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { color } from "packages/design-tokens";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
-import {
-  registerLandingScrollTarget,
-  scrollToLandingSection,
-} from "packages/features/homeauth/utils/landingScroll";
-import { LANDING_SECTION_IDS } from "packages/features/homeauth/utils/landingSectionIds";
+import { registerLandingScrollTarget } from "packages/features/homeauth/utils/landingScroll";
 import { Box, Pressable, ScrollView, Text } from "packages/ui/components/structure/primitives";
 
 import {
@@ -30,7 +26,6 @@ import {
   LandingPartners,
   LandingPricing,
   LandingSavingsCalculator,
-  LandingSectionDivider,
 } from "./landing";
 
 type AuthHomeNavigation = NativeStackNavigationProp<
@@ -69,7 +64,6 @@ export function HomeScreenNative() {
 
   const goSignup = () => navigation.navigate("Signup");
   const goLogin = () => navigation.navigate("Login");
-  const goBookDemo = () => scrollToLandingSection(LANDING_SECTION_IDS.finalCta);
 
   return (
     <SafeAreaView style={styles.root} edges={["top", "left", "right"]}>
@@ -81,22 +75,16 @@ export function HomeScreenNative() {
         showsVerticalScrollIndicator={false}
       >
         <Box className="bg-background-base min-h-full min-w-0 flex-col">
-          <LandingNav onBookDemo={goBookDemo} />
+          <LandingNav />
           <Box className="pt-[calc(env(safe-area-inset-top,0px)+3.5rem)]">
-            <LandingHero onBookDemo={goBookDemo} />
+            <LandingHero />
             <LandingNativeAuthStrip onSignup={goSignup} />
             <LandingDemoPreview />
-            <LandingSectionDivider />
             <LandingPartners />
-            <LandingSectionDivider />
             <LandingInfoSection />
-            <LandingSectionDivider />
             <LandingSavingsCalculator />
-            <LandingSectionDivider />
             <LandingPricing />
-            <LandingSectionDivider />
             <LandingFAQ />
-            <LandingSectionDivider />
             <LandingFinalCTA />
           </Box>
           <LandingFooter />
@@ -130,7 +118,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   primaryButton: {
-    backgroundColor: color("brand.accent"),
+    backgroundColor: color("gold.DEFAULT"),
     minHeight: 44,
     justifyContent: "center",
     paddingVertical: 14,

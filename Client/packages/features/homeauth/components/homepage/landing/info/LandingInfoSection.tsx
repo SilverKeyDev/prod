@@ -1,12 +1,17 @@
 import { useLandingReveal } from "packages/features/homeauth/hooks/useLandingReveal";
+import { LANDING_HEADLINE_ACCENT_CLASS } from "packages/features/homeauth/utils/landingChrome";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
 import { LANDING_SECTION_IDS } from "packages/features/homeauth/utils/landingSectionIds";
+import { LANDING_SECTION_LAYOUT } from "packages/features/homeauth/utils/landingSectionLayout";
 import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Title } from "@/components/ui";
 
 import { LandingEyebrow } from "../shared/LandingEyebrow";
+import { LandingSectionShell } from "../shared/LandingSectionShell";
 import { LandingInfoCard } from "./LandingInfoCard";
+
+const infoLayout = LANDING_SECTION_LAYOUT[LANDING_SECTION_IDS.info];
 
 export function LandingInfoSection() {
   const { info } = LANDING_CONTENT;
@@ -14,9 +19,11 @@ export function LandingInfoSection() {
   const { ref: headerRef, inView: headerInView } = useLandingReveal({ threshold: 0.15 });
 
   return (
-    <section
+    <LandingSectionShell
       id={LANDING_SECTION_IDS.info}
-      className="bg-background-base px-responsive-sm relative overflow-hidden py-16 sm:py-20"
+      layout={infoLayout}
+      className="px-responsive-sm py-16 sm:py-20"
+      fullBleed
     >
       <Box
         ref={headerRef}
@@ -29,9 +36,7 @@ export function LandingInfoSection() {
         <LandingEyebrow>{info.eyebrow}</LandingEyebrow>
         <Title as="h2" size="lg" className="mb-3 text-center !font-serif">
           {info.headlineBefore}
-          <BodyText as="span" size="lg" className="!text-brand-primary !font-serif italic">
-            {info.headlineAccent}
-          </BodyText>
+          <span className={LANDING_HEADLINE_ACCENT_CLASS}>{info.headlineAccent}</span>
           {info.headlineAfter}
         </Title>
         <BodyText as="p" size="md" muted className="mx-auto max-w-md text-center">
@@ -47,6 +52,10 @@ export function LandingInfoSection() {
           <LandingInfoCard key={card.title} {...card} inView={gridInView} />
         ))}
       </Box>
-    </section>
+
+      <BodyText as="p" size="xs" muted className="mx-auto mt-4 max-w-[880px] text-center">
+        {info.cardsCaption}
+      </BodyText>
+    </LandingSectionShell>
   );
 }

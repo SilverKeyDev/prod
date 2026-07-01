@@ -17,8 +17,6 @@ const ANIM_CLASS: Record<LandingInfoCardContent["animDirection"], string> = {
 
 export function LandingInfoCard({
   icon,
-  iconTintClass,
-  iconBgClass,
   statTarget,
   statSuffix,
   statDelayMs,
@@ -37,14 +35,14 @@ export function LandingInfoCard({
           : `opacity-0 ${ANIM_CLASS[animDirection]}`
       }`}
     >
-      <Box
-        className={`mb-3.5 flex h-10 w-10 items-center justify-center rounded-[10px] ${iconBgClass}`}
-      >
-        <Icon name={icon} size={20} className={iconTintClass} />
+      <Box className="mb-1.5 flex items-center gap-2.5">
+        <Box className="border-border-card-subtle flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border bg-gray-100">
+          <Icon name={icon} size={20} className="text-gray-600" />
+        </Box>
+        <Title as="p" size="lg" className="!text-brand-primary !font-serif leading-none">
+          {stat}
+        </Title>
       </Box>
-      <Title as="p" size="lg" className="!text-brand-primary mb-1.5 !font-serif leading-none">
-        {stat}
-      </Title>
       <BodyText as="p" size="sm" className="mb-1.5 font-semibold">
         {title}
       </BodyText>

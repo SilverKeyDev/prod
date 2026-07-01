@@ -186,6 +186,10 @@
     animation: marquee 15s linear infinite;
   }
 
+  .animate-landing-partner-marquee {
+    animation: marquee 42s linear infinite;
+  }
+
   .animate-bounce-in {
     animation: bounce-in 0.5s ease-out;
   }
@@ -311,18 +315,12 @@
       animation: none;
     }
 
-    .landing-partner-track {
+    .landing-partner-marquee {
       animation: none;
     }
-  }
-}
 
-@keyframes landing-partner-scroll {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
+    .animate-landing-partner-marquee {
+      animation: none;
+    }
   }
 }

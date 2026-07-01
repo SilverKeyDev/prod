@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
+import { LANDING_DEMO_LAYOUT } from "packages/features/homeauth/utils/landingSectionLayout";
 import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText } from "@/components/ui";
+
+import { LandingSectionShell } from "../shared/LandingSectionShell";
 
 type DemoRevealKey = "dc1" | "dc2" | "dc3" | "dc4" | "dw1" | "dw2";
 
@@ -57,27 +60,36 @@ export function LandingDemoPreview() {
     }`;
 
   return (
-    <Box className="bg-background-base px-responsive-sm pb-16">
-      <Box className="border-border bg-background-surface mx-auto max-w-[880px] overflow-hidden rounded-2xl border shadow-lg">
-        <Box className="border-border flex items-center gap-2 border-b bg-neutral-100/80 px-4 py-3">
-          {["#D4C4A8", "#D4C4A8", "#D4C4A8"].map((dotColor) => (
-            <Box
-              key={dotColor}
-              className="h-2.5 w-2.5 rounded-full"
-              style={{ backgroundColor: dotColor }}
-              aria-hidden
-            />
-          ))}
-          <BodyText as="span" size="xs" muted className="ml-2 font-medium">
-            {demo.windowTitle}
+    <LandingSectionShell
+      layout={LANDING_DEMO_LAYOUT}
+      className="px-responsive-sm pb-16 pt-4"
+      fullBleed
+    >
+      <Box className="border-border bg-background-base mx-auto max-w-[880px] overflow-hidden rounded-2xl border shadow-lg">
+        <Box className="border-border bg-background-surface border-b px-4 py-3">
+          <Box className="flex items-center gap-2">
+            {["#D4C4A8", "#D4C4A8", "#D4C4A8"].map((dotColor) => (
+              <Box
+                key={dotColor}
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: dotColor }}
+                aria-hidden
+              />
+            ))}
+            <BodyText as="span" size="xs" muted className="ml-2 font-medium">
+              {demo.windowTitle}
+            </BodyText>
+          </Box>
+          <BodyText as="p" size="xs" muted className="mt-1 pl-[38px]">
+            {demo.syncCaption}
           </BodyText>
         </Box>
 
-        <Box className="grid grid-cols-2 gap-2.5 p-5 md:grid-cols-4">
+        <Box className="grid min-w-0 grid-cols-2 gap-2.5 p-5 md:grid-cols-4">
           {demo.stats.map((card) => (
             <Box
               key={card.id}
-              className={`border-border bg-background-base rounded-lg border p-3.5 ${cardReveal(shown[card.id as DemoRevealKey])}`}
+              className={`border-border bg-background-surface min-w-0 rounded-lg border p-3.5 ${cardReveal(shown[card.id as DemoRevealKey])}`}
             >
               <BodyText
                 as="p"
@@ -99,7 +111,7 @@ export function LandingDemoPreview() {
 
         <Box className="grid grid-cols-1 gap-2.5 px-5 pb-5 md:grid-cols-2">
           <Box
-            className={`border-border bg-background-base rounded-lg border p-3.5 ${cardReveal(shown.dw1, "motion-safe:delay-150")}`}
+            className={`border-border bg-background-surface rounded-lg border p-3.5 ${cardReveal(shown.dw1, "motion-safe:delay-150")}`}
           >
             <BodyText
               as="p"
@@ -112,7 +124,7 @@ export function LandingDemoPreview() {
             {demo.queueItems.map((item) => (
               <Box
                 key={item.name}
-                className="border-border bg-background-surface mb-1.5 rounded-md border px-2.5 py-2 last:mb-0"
+                className="border-border bg-background-base mb-1.5 rounded-md border px-2.5 py-2 last:mb-0"
               >
                 <BodyText as="p" size="xs" className="font-medium">
                   {item.name}
@@ -125,7 +137,7 @@ export function LandingDemoPreview() {
           </Box>
 
           <Box
-            className={`border-border bg-background-base rounded-lg border p-3.5 ${cardReveal(shown.dw2, "motion-safe:delay-250")}`}
+            className={`border-border bg-background-surface rounded-lg border p-3.5 ${cardReveal(shown.dw2, "motion-safe:delay-250")}`}
           >
             <BodyText
               as="p"
@@ -135,29 +147,52 @@ export function LandingDemoPreview() {
             >
               {demo.trendHeading}
             </BodyText>
-            <Box className="flex h-11 items-end gap-1">
-              {demo.trendValues.map((value, index) => (
-                <Box
-                  key={demo.trendMonths[index]}
-                  className="flex-1 rounded-t-sm"
-                  style={{
-                    height: `${Math.round((value / maxTrend) * 40)}px`,
-                    backgroundColor: index === demo.trendValues.length - 1 ? "#3B6FE0" : "#EBF0FB",
-                  }}
-                  aria-hidden
-                />
-              ))}
+            <Box className="bg-accent-muted/60 rounded-lg px-2 pb-2 pt-3">
+              <Box className="flex h-16 gap-1.5">
+                {demo.trendValues.map((value, index) => {
+                  const isLatest = index === demo.trendValues.length - 1;
+                  const heightPercent = Math.max((value / maxTrend) * 100, 10);
+
+                  return (
+                    <Box
+                      key={demo.trendMonths[index]}
+                      className="flex min-w-0 flex-1 flex-col justify-end"
+                    >
+                      <Box
+                        className={`w-full rounded-t-md ${
+                          isLatest ? "bg-brand-primary" : "bg-primary-muted"
+                        }`}
+                        style={{ height: `${heightPercent}%` }}
+                        aria-hidden
+                      />
+                    </Box>
+                  );
+                })}
+              </Box>
             </Box>
-            <Box className="mt-1.5 flex justify-between">
-              {demo.trendMonths.map((month) => (
-                <BodyText key={month} as="span" size="xs" muted>
-                  {month}
-                </BodyText>
-              ))}
+            <Box
+              className="mt-2 grid gap-1"
+              style={{ gridTemplateColumns: `repeat(${demo.trendMonths.length}, 1fr)` }}
+            >
+              {demo.trendMonths.map((month, index) => {
+                const isLatest = index === demo.trendMonths.length - 1;
+
+                return (
+                  <BodyText
+                    key={month}
+                    as="span"
+                    size="xs"
+                    muted={!isLatest}
+                    className={`text-center ${isLatest ? "text-brand-primary font-semibold" : ""}`}
+                  >
+                    {month}
+                  </BodyText>
+                );
+              })}
             </Box>
           </Box>
         </Box>
       </Box>
-    </Box>
+    </LandingSectionShell>
   );
 }

@@ -3,11 +3,16 @@ import { useState } from "react";
 import { useLandingReveal } from "packages/features/homeauth/hooks/useLandingReveal";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
 import { LANDING_SECTION_IDS } from "packages/features/homeauth/utils/landingSectionIds";
+import { LANDING_SECTION_LAYOUT } from "packages/features/homeauth/utils/landingSectionLayout";
+import { Icon } from "packages/ui/components/media/icons";
 import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 
 import { LandingEyebrow } from "../shared/LandingEyebrow";
+import { LandingSectionShell } from "../shared/LandingSectionShell";
+
+const faqLayout = LANDING_SECTION_LAYOUT[LANDING_SECTION_IDS.faq];
 
 export function LandingFAQ() {
   const { faq } = LANDING_CONTENT;
@@ -15,9 +20,11 @@ export function LandingFAQ() {
   const { ref, inView } = useLandingReveal({ threshold: 0.1 });
 
   return (
-    <section
+    <LandingSectionShell
       id={LANDING_SECTION_IDS.faq}
-      className="bg-background-base px-responsive-sm py-16 sm:py-20"
+      layout={faqLayout}
+      className="px-responsive-sm py-16 sm:py-20"
+      fullBleed
     >
       <Box
         className={`mx-auto max-w-[680px] text-center motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
@@ -55,15 +62,13 @@ export function LandingFAQ() {
                 <BodyText as="span" size="sm" className="flex-1 text-left">
                   {item.question}
                 </BodyText>
-                <BodyText
-                  as="span"
-                  size="lg"
+                <Icon
+                  name="plus"
+                  size={20}
                   className={`!text-brand-primary shrink-0 motion-safe:transition-transform ${
                     isOpen ? "rotate-45" : ""
                   }`}
-                >
-                  +
-                </BodyText>
+                />
               </Button>
               {isOpen ? (
                 <BodyText as="p" size="sm" muted className="pb-4 leading-relaxed">
@@ -74,6 +79,6 @@ export function LandingFAQ() {
           );
         })}
       </Box>
-    </section>
+    </LandingSectionShell>
   );
 }

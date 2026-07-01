@@ -287,18 +287,25 @@
     "reason": "IntersectionObserver is web-only."
   },
   {
+    "id": "landing-active-section-hook",
+    "description": "Landing nav scroll-spy — IntersectionObserver on web, no-op on native.",
+    "webPath": "packages/features/homeauth/hooks/useLandingActiveSection.web.ts",
+    "nativePath": "packages/features/homeauth/hooks/useLandingActiveSection.native.ts",
+    "reason": "Hash scroll-spy nav is web-only."
+  },
+  {
+    "id": "landing-nav",
+    "description": "Landing fixed header — mobile bottom-sheet menu on web, inline nav on native.",
+    "webPath": "packages/features/homeauth/components/homepage/landing/nav/LandingNav.web.tsx",
+    "nativePath": "packages/features/homeauth/components/homepage/landing/nav/LandingNav.native.tsx",
+    "reason": "Web mobile menu uses AccessibleDialog, hash scroll, and scrollToLandingSection; native keeps compact header without in-page section nav."
+  },
+  {
     "id": "landing-counter-hook",
     "description": "Landing stat counter animation on web; static value on native.",
     "webPath": "packages/features/homeauth/hooks/useAnimatedCounter.web.ts",
     "nativePath": "packages/features/homeauth/hooks/useAnimatedCounter.native.ts",
     "reason": "requestAnimationFrame counter is web-only."
-  },
-  {
-    "id": "landing-sticky-bar",
-    "description": "Fixed bottom CTA bar on scroll — web only.",
-    "webPath": "packages/features/homeauth/components/homepage/landing/sticky/LandingStickyBar.web.tsx",
-    "nativePath": "packages/features/homeauth/components/homepage/landing/sticky/LandingStickyBar.native.tsx",
-    "reason": "Fixed scroll-triggered bar uses window scroll on web."
   },
   {
     "id": "landing-scroll",

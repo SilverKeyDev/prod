@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 
-import { LANDING_NAV_SCROLL_MARGIN_CLASS } from "packages/features/homeauth/utils/landingChrome";
+import { openLandingBookDemo } from "packages/features/homeauth/utils/landingBookDemo";
+import { LANDING_GOLD_SIGNUP_BUTTON_CLASS } from "packages/features/homeauth/utils/landingChrome";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
-import { scrollToLandingSection } from "packages/features/homeauth/utils/landingScroll";
 import { LANDING_SECTION_IDS } from "packages/features/homeauth/utils/landingSectionIds";
+import { LANDING_SECTION_LAYOUT } from "packages/features/homeauth/utils/landingSectionLayout";
+import { Link, ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/structure/primitives";
-import RippleBackground from "packages/ui/components/surfaces/backgrounds/RippleBackground";
 
 import { BodyText, Button, Title } from "@/components/ui";
+
+import { LandingSectionShell } from "../shared/LandingSectionShell";
 
 const WORD_DELAYS = [
   "delay-[180ms]",
@@ -19,11 +22,9 @@ const WORD_DELAYS = [
   "delay-[540ms]",
 ];
 
-export type LandingHeroProps = {
-  onBookDemo?: () => void;
-};
+const heroLayout = LANDING_SECTION_LAYOUT[LANDING_SECTION_IDS.hero];
 
-export function LandingHero({ onBookDemo }: LandingHeroProps) {
+export function LandingHero() {
   const { hero } = LANDING_CONTENT;
   const [mounted, setMounted] = useState(false);
 
@@ -32,44 +33,28 @@ export function LandingHero({ onBookDemo }: LandingHeroProps) {
     return () => window.clearTimeout(timer);
   }, []);
 
-  const handleBookDemo = () => {
-    if (onBookDemo) {
-      onBookDemo();
-      return;
-    }
-    scrollToLandingSection(LANDING_SECTION_IDS.finalCta);
-  };
-
   return (
-    <section
+    <LandingSectionShell
       id={LANDING_SECTION_IDS.hero}
-      className={`bg-brand-primary px-responsive-sm relative overflow-hidden pb-20 pt-28 text-center sm:pt-32 ${LANDING_NAV_SCROLL_MARGIN_CLASS}`}
+      layout={heroLayout}
+      className="px-responsive-sm pb-24 pt-28 text-center sm:pb-28 sm:pt-32"
+      fullBleed
     >
-      <Box className="pointer-events-none absolute inset-0 z-0 opacity-[0.35]">
-        <RippleBackground overlay />
-      </Box>
-
-      <Box className="relative z-10 mx-auto max-w-[680px]">
-        <Box className="border-border/30 mb-6 inline-flex items-center gap-1.5 rounded-full border bg-white/55 px-3.5 py-1 backdrop-blur-sm">
-          <Box className="bg-success h-1.5 w-1.5 animate-pulse rounded-full motion-reduce:animate-none" />
-          <BodyText as="span" size="xs" className="text-text-secondary font-medium">
-            {hero.badge}
-          </BodyText>
-        </Box>
-
+      <Box className="relative z-10 mx-auto max-w-[760px]">
         <Title
           as="h1"
           size="xl"
           id="landing-hero-heading"
-          className="!font-serif leading-tight !text-white"
+          className="text-4xl leading-[1.05] sm:text-5xl md:text-6xl lg:text-7xl"
         >
           {hero.headlineWords.map((word, index) => (
             <Box as="span" key={`${word}-${index}`} className="inline">
               <BodyText
                 as="span"
-                size="lg"
-                className={`inline-block !font-serif motion-safe:transition-all motion-safe:duration-500 ${WORD_DELAYS[index] ?? ""} ${
-                  index === hero.italicWordIndex ? "!text-gold font-normal italic" : "!text-white"
+                className={`inline-block !font-serif text-4xl leading-[1.05] motion-safe:transition-all motion-safe:duration-500 sm:text-5xl md:text-6xl lg:text-7xl ${WORD_DELAYS[index] ?? ""} ${
+                  index === hero.italicWordIndex
+                    ? "!text-gold font-normal italic"
+                    : "!text-text-primary"
                 } ${mounted ? "translate-y-0 opacity-100" : "translate-y-3.5 opacity-0 motion-reduce:translate-y-0 motion-reduce:opacity-100"}`}
               >
                 {word}
@@ -79,33 +64,25 @@ export function LandingHero({ onBookDemo }: LandingHeroProps) {
           ))}
         </Title>
 
-        <BodyText as="p" size="md" className="mx-auto mt-4 max-w-lg !text-white/85">
+        <BodyText as="p" size="lg" muted className="mx-auto mt-6 max-w-xl">
           {hero.subheadline}
         </BodyText>
 
-        <Box className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          <Button
-            variant="outline"
-            size="lg"
-            onPress={handleBookDemo}
-            className="border-gold !text-gold hover:!bg-gold hover:!text-background-base"
-          >
+        <Box className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Button variant="primary" size="lg" onPress={() => openLandingBookDemo("hero")}>
             {hero.primaryCtaLabel}
           </Button>
-          <Button
-            variant="ghost"
-            size="lg"
-            onPress={() => scrollToLandingSection(LANDING_SECTION_IDS.info)}
-            className="!text-white/80 hover:!bg-white/10 hover:!text-white"
-          >
-            {hero.secondaryCtaLabel}
-          </Button>
+          <Link to={ROUTES.SIGNUP}>
+            <Button variant="primary" size="lg" className={LANDING_GOLD_SIGNUP_BUTTON_CLASS}>
+              {hero.signUpCtaLabel}
+            </Button>
+          </Link>
         </Box>
 
-        <BodyText as="p" size="xs" className="mt-3 !text-white/60">
+        <BodyText as="p" size="xs" muted className="mt-4">
           {hero.trustLine}
         </BodyText>
       </Box>
-    </section>
+    </LandingSectionShell>
   );
 }

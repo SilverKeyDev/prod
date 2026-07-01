@@ -8,16 +8,23 @@ import {
 } from "packages/features/homeauth/utils/landingSavingsMath";
 import { scrollToLandingSection } from "packages/features/homeauth/utils/landingScroll";
 import { LANDING_SECTION_IDS } from "packages/features/homeauth/utils/landingSectionIds";
+import { LANDING_SECTION_LAYOUT } from "packages/features/homeauth/utils/landingSectionLayout";
 import {
   trackLandingCta,
   trackLandingSlider,
 } from "packages/hooks/analytics/trackLandingAnalytics";
+import PriceRangeSlider from "packages/ui/components/inputs/form/preferences/PriceRangeSlider";
 import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 
 import { LandingEyebrow } from "../shared/LandingEyebrow";
+import { LandingSectionShell } from "../shared/LandingSectionShell";
 import { LandingRangeInput } from "./LandingRangeInput";
+
+const GCI_TICK_VALUES = [
+  30000, 50000, 75000, 85000, 100000, 125000, 150000, 200000, 250000, 300000,
+];
 
 function formatSliderDisplay(sliderId: string, value: number): string {
   if (sliderId === "sl-gci") {
@@ -42,12 +49,6 @@ export function LandingSavingsCalculator() {
     growthPercent: growth,
   });
 
-  const sliderValues: Record<string, number> = {
-    "sl-agents": agents,
-    "sl-gci": gci,
-    "sl-growth": growth,
-  };
-
   const setSliderValue = (sliderId: string, value: number) => {
     trackLandingSlider(sliderId, value);
     if (sliderId === "sl-agents") setAgents(value);
@@ -56,9 +57,11 @@ export function LandingSavingsCalculator() {
   };
 
   return (
-    <section
+    <LandingSectionShell
       id={LANDING_SECTION_IDS.savings}
-      className="px-responsive-sm bg-neutral-100/80 py-16 sm:py-20"
+      layout={LANDING_SECTION_LAYOUT[LANDING_SECTION_IDS.savings]}
+      className="px-responsive-sm py-16 sm:py-20"
+      fullBleed
     >
       <Box
         className={`mx-auto max-w-[680px] text-center motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
@@ -83,22 +86,34 @@ export function LandingSavingsCalculator() {
           </BodyText>
           {savings.sliders.map((slider) => (
             <Box key={slider.id} className="mb-6 last:mb-0">
-              <Box className="mb-2 flex justify-between">
-                <BodyText as="span" size="xs" muted>
-                  {slider.label}
-                </BodyText>
-                <BodyText as="span" size="xs" className="font-semibold">
-                  {formatSliderDisplay(slider.id, sliderValues[slider.id] ?? slider.defaultValue)}
-                </BodyText>
-              </Box>
-              <LandingRangeInput
-                id={slider.id}
-                min={slider.min}
-                max={slider.max}
-                step={slider.step}
-                value={sliderValues[slider.id] ?? slider.defaultValue}
-                onChange={(value) => setSliderValue(slider.id, value)}
-              />
+              <BodyText as="p" size="xs" muted className="mb-2 font-semibold">
+                {slider.label}
+              </BodyText>
+              {slider.id === "sl-gci" ? (
+                <PriceRangeSlider
+                  tickValues={GCI_TICK_VALUES}
+                  value={gci}
+                  onChange={(value) => setSliderValue(slider.id, value)}
+                  formatValue={(value) => formatSliderDisplay(slider.id, value)}
+                />
+              ) : (
+                <LandingRangeInput
+                  id={slider.id}
+                  label={slider.label}
+                  min={slider.min}
+                  max={slider.max}
+                  step={slider.step}
+                  value={
+                    slider.id === "sl-agents"
+                      ? agents
+                      : slider.id === "sl-growth"
+                        ? growth
+                        : slider.defaultValue
+                  }
+                  formatValue={(value) => formatSliderDisplay(slider.id, value)}
+                  onChange={(value) => setSliderValue(slider.id, value)}
+                />
+              )}
             </Box>
           ))}
         </Box>
@@ -115,7 +130,7 @@ export function LandingSavingsCalculator() {
           <Title as="p" size="xl" className="!text-gold mb-1 !font-serif leading-none">
             {formatLandingSavingsCurrency(total)}
           </Title>
-          <BodyText as="p" size="xs" muted className="mb-6">
+          <BodyText as="p" size="xs" muted className="mb-5">
             {savings.resultSub}
           </BodyText>
 
@@ -158,6 +173,6 @@ export function LandingSavingsCalculator() {
           </Button>
         </Box>
       </Box>
-    </section>
+    </LandingSectionShell>
   );
 }

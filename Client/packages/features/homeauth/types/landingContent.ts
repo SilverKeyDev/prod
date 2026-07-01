@@ -1,10 +1,4 @@
-export type LandingPartnerLogoKey =
-  | "gt-ventures"
-  | "skyslope"
-  | "better"
-  | "move-concierge"
-  | "exp-realty"
-  | "ga-broker";
+export type LandingPartnerLogoKey = "move-concierge" | "ga-agent";
 
 export type LandingNavLink = {
   label: string;
@@ -25,15 +19,16 @@ export type LandingDemoQueueItem = {
 
 export type LandingPartnerItem = {
   id: string;
-  logoKey: LandingPartnerLogoKey;
+  title: string;
+  logoKey?: LandingPartnerLogoKey;
   badge: string;
   sub: string;
 };
 
+export type LandingInfoCardIcon = "bar-chart-2" | "heart" | "file-signature";
+
 export type LandingInfoCard = {
-  icon: "bar-chart-2" | "heart" | "file-signature";
-  iconTintClass: string;
-  iconBgClass: string;
+  icon: LandingInfoCardIcon;
   statTarget: number;
   statSuffix: string;
   statDelayMs: number;
@@ -51,44 +46,38 @@ export type LandingSavingsSlider = {
   defaultValue: number;
 };
 
-export type LandingPricingTier = {
-  id: string;
-  name: string;
-  agentLimit: string;
-  features: string[];
-  ctaLabel: string;
-  featured?: boolean;
-};
-
 export type LandingFaqItem = {
   question: string;
   answer: string;
 };
 
+export type LandingSocialIcon = "linkedin" | "x" | "instagram";
+
 export type LandingSocialLink = {
   href: string;
   label: string;
-  text: string;
+  icon: LandingSocialIcon;
 };
 
 export type LandingContent = {
   nav: {
     landmarkLabel: string;
     loginLabel: string;
+    signUpLabel: string;
     bookDemoLabel: string;
     links: LandingNavLink[];
   };
   hero: {
-    badge: string;
     headlineWords: string[];
     italicWordIndex: number;
     subheadline: string;
     primaryCtaLabel: string;
-    secondaryCtaLabel: string;
+    signUpCtaLabel: string;
     trustLine: string;
   };
   demo: {
     windowTitle: string;
+    syncCaption: string;
     stats: LandingDemoStat[];
     queueHeading: string;
     queueItems: LandingDemoQueueItem[];
@@ -98,7 +87,6 @@ export type LandingContent = {
   };
   partners: {
     eyebrow: string;
-    headline: string;
     subheadline: string;
     items: LandingPartnerItem[];
   };
@@ -108,6 +96,7 @@ export type LandingContent = {
     headlineAccent: string;
     headlineAfter: string;
     subheadline: string;
+    cardsCaption: string;
     cards: LandingInfoCard[];
   };
   savings: {
@@ -126,17 +115,15 @@ export type LandingContent = {
   };
   pricing: {
     eyebrow: string;
+    cardEyebrow: string;
     headlineBefore: string;
     headlineAccent: string;
     headlineAfter: string;
     subheadline: string;
-    monthlyLabel: string;
-    annualLabel: string;
-    priceMonthly: string;
-    priceAnnual: string;
-    footnote: string;
-    mostPopularLabel: string;
-    tiers: LandingPricingTier[];
+    priceLabel: string;
+    highlights: string[];
+    supportingLine: string;
+    ctaLabel: string;
   };
   faq: {
     eyebrow: string;
@@ -149,16 +136,7 @@ export type LandingContent = {
     headlineAfter: string;
     subheadline: string;
     primaryCtaLabel: string;
-    secondaryCtaLabel: string;
     footnote: string;
-    primaryHref: string;
-    secondaryHref: string;
-  };
-  sticky: {
-    message: string;
-    bookDemoLabel: string;
-    textUsLabel: string;
-    textUsHref: string;
   };
   footer: {
     location: string;

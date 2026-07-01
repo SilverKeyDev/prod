@@ -5,6 +5,14 @@ import { Box } from "packages/ui/components/structure/primitives";
 import { getWindow } from "packages/utils/core/platform";
 
 import type { RippleBackgroundProps } from "./rippleBackgroundProps";
+import {
+  RIPPLE_LARGE_OVERLAY_AREA_THRESHOLD,
+  RIPPLE_LINE_MAX_WIDTH,
+  RIPPLE_LINE_MIN_WIDTH,
+  rippleDotColor,
+  rippleLineColor,
+  rippleLineOpacityForDistance,
+} from "./rippleBackgroundTokens";
 
 const CONNECT_DISTANCE = 95;
 const MOUSE_RADIUS = 95;
@@ -56,10 +64,22 @@ export default function RippleBackground({ overlay = false }: RippleBackgroundPr
       let margin: number;
 
       if (isOverlay) {
-        const shortSide = Math.min(width, height);
-        connectDistRef.current = Math.max(24, Math.min(52, shortSide * 0.62));
-        margin = Math.max(2, Math.min(10, Math.floor(shortSide * 0.12)));
-        particleCount = Math.max(10, Math.min(28, Math.floor(currentArea / 1100)));
+        const isLargeOverlay = currentArea > RIPPLE_LARGE_OVERLAY_AREA_THRESHOLD;
+        if (isLargeOverlay) {
+          connectDistRef.current = CONNECT_DISTANCE;
+          margin = 20;
+          const baseParticleCount = 120;
+          const baseArea = 1920 * 1080;
+          particleCount = Math.max(
+            40,
+            Math.min(180, Math.floor((baseParticleCount * currentArea) / baseArea))
+          );
+        } else {
+          const shortSide = Math.min(width, height);
+          connectDistRef.current = Math.max(24, Math.min(52, shortSide * 0.62));
+          margin = Math.max(2, Math.min(10, Math.floor(shortSide * 0.12)));
+          particleCount = Math.max(10, Math.min(28, Math.floor(currentArea / 1100)));
+        }
       } else {
         connectDistRef.current = CONNECT_DISTANCE;
         margin = 20;
@@ -89,8 +109,8 @@ export default function RippleBackground({ overlay = false }: RippleBackgroundPr
       const connectD = connectDistRef.current;
 
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = color("neutral.300");
-      ctx.strokeStyle = color("neutral.200");
+      ctx.fillStyle = rippleDotColor();
+      ctx.strokeStyle = rippleLineColor();
       ctx.lineWidth = 0.5;
 
       for (const p of particles.current) {
@@ -114,7 +134,7 @@ export default function RippleBackground({ overlay = false }: RippleBackgroundPr
         ctx.fill();
       }
 
-      ctx.strokeStyle = color("neutral.200");
+      ctx.strokeStyle = rippleLineColor();
       for (let i = 0; i < particles.current.length; i++) {
         for (let j = i + 1; j < particles.current.length; j++) {
           const pi = particles.current[i];
@@ -124,8 +144,9 @@ export default function RippleBackground({ overlay = false }: RippleBackgroundPr
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < connectD) {
             const segments = 20;
-            const maxWidth = 0.5;
-            const minWidth = 0.2;
+            const maxWidth = RIPPLE_LINE_MAX_WIDTH;
+            const minWidth = RIPPLE_LINE_MIN_WIDTH;
+            ctx.globalAlpha = rippleLineOpacityForDistance(dist, connectD);
 
             for (let seg = 0; seg < segments; seg++) {
               const t1 = seg / segments;
@@ -148,6 +169,7 @@ export default function RippleBackground({ overlay = false }: RippleBackgroundPr
               ctx.lineTo(x2, y2);
               ctx.stroke();
             }
+            ctx.globalAlpha = 1;
           }
         }
       }

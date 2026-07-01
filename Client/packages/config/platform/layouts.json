@@ -24,6 +24,22 @@
     "category": "layout"
   },
   {
+    "id": "landing-nav",
+    "description": "Public landing fixed header with section navigation",
+    "webPath": "packages/features/homeauth/components/homepage/landing/nav/LandingNav.web.tsx",
+    "nativePath": "packages/features/homeauth/components/homepage/landing/nav/LandingNav.native.tsx",
+    "reason": "Web adds a bottom-sheet mobile menu with hash scroll and auth CTAs below md; native keeps compact header without in-page section nav.",
+    "category": "navigation"
+  },
+  {
+    "id": "landing-nav-mobile-menu",
+    "description": "Landing mobile web navigation drawer",
+    "webPath": "packages/features/homeauth/components/homepage/landing/nav/LandingNavMobileMenu.web.tsx",
+    "nativePath": null,
+    "reason": "Web-only bottom sheet for collapsed landing nav on viewports below md; uses AccessibleDialog and DOM hash scroll.",
+    "category": "responsive-layout"
+  },
+  {
     "id": "reels-view-implementation",
     "description": "Video reels viewing experience with platform-specific gestures",
     "webPath": "packages/features/feed/components/Reels/DesktopReelsViewImpl.web.tsx",
