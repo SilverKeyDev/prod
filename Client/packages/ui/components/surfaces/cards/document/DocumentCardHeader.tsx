@@ -3,7 +3,7 @@ import { Icon } from "@ui/icons";
 import { useLocalization } from "packages/contexts";
 import { Box } from "packages/ui/components/structure/primitives";
 
-import { BodyText, Subtitle } from "@/components/ui";
+import { BodyText, Title } from "@/components/ui";
 
 import { getDocumentIconName } from "./documentCardHeaderIcon";
 interface DocumentCardHeaderProps {
@@ -79,9 +79,9 @@ export default function DocumentCardHeader({
           <Icon name={documentIconName} size={24} />
         </Box>
         <Box className="h-[2.75rem] min-w-0 flex-1 overflow-hidden">
-          <Subtitle size="sm" className="line-clamp-2">
+          <Title as="h3" size="sm" className="line-clamp-2">
             {title}
-          </Subtitle>
+          </Title>
         </Box>
       </Box>
 

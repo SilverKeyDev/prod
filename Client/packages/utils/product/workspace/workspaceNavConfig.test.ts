@@ -19,20 +19,10 @@ describe("getWorkspaceNavTabs", () => {
     expect(keys).toContain("agent");
   });
 
-  it("brokerage shows analytics tab on desktop", () => {
-    const tabs = getWorkspaceNavTabs("brokerage", false);
-    const keys = tabs.map((t) => t.key);
-    expect(keys).toContain("analytics");
-    expect(tabs.find((t) => t.key === "analytics")?.labelKey).toBe(
-      "workspace.nav.analytics.brokerage"
-    );
-  });
-
-  it("buyer and agent hide analytics tab", () => {
-    for (const ws of ["buyer", "agent", "seller", "renter", "integration_partner"] as const) {
-      const keys = getWorkspaceNavTabs(ws, false).map((t) => t.key);
-      expect(keys).not.toContain("analytics");
-    }
+  it("brokerage shows same desktop nav tabs as buyer (no separate analytics tab)", () => {
+    const keys = getWorkspaceNavTabs("brokerage", false).map((t) => t.key);
+    expect(keys).toEqual(["dashboard", "search", "decide", "agent", "profile"]);
+    expect(keys).not.toContain("analytics");
   });
 
   it("seller, renter, brokerage, and integration_partner show full desktop nav (no longer placeholders)", () => {

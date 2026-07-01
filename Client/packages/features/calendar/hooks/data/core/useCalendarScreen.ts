@@ -51,6 +51,8 @@ export function useCalendarScreen({
     calendarsError,
     eventsError,
     connectGoogleCalendar,
+    needsGoogleReconnect,
+    connectionPromptVariant,
   } = useGoogleCalendarStoreIntegration();
 
   const isClientView = Boolean(clientUserId);
@@ -319,6 +321,7 @@ export function useCalendarScreen({
 
   const shouldShowConnectionPrompt = useMemo(() => {
     if (isClientView || connectionStatusLoading) return false;
+    if (needsGoogleReconnect) return true;
     if (!isConnected) return true;
     if (isConnected && permissions !== null) {
       if (!hasRequiredPermissions || isPartiallyEnabled) return true;
@@ -327,6 +330,7 @@ export function useCalendarScreen({
   }, [
     isClientView,
     connectionStatusLoading,
+    needsGoogleReconnect,
     isConnected,
     permissions,
     hasRequiredPermissions,
@@ -347,6 +351,7 @@ export function useCalendarScreen({
     permissionsReady,
     clientEventsQuery,
     shouldShowConnectionPrompt,
+    connectionPromptVariant,
     handleConnect,
     calendarShellRef,
     selectedDayKey,

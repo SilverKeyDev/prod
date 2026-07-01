@@ -107,7 +107,7 @@ const CardAddressDisplay: React.FC<CardAddressDisplayProps> = ({
         <BodyText
           as="p"
           size="sm"
-          className={`${currentSizeStyles.secondary} text-black/60 ${variant === "compact" ? "ml-1" : ""} overflow-hidden whitespace-nowrap`}
+          className={`${currentSizeStyles.secondary} text-text-secondary ${variant === "compact" ? "ml-1" : ""} overflow-hidden whitespace-nowrap`}
           title={secondaryAddress}
           style={{
             textOverflow: "ellipsis",

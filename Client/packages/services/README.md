@@ -6,7 +6,7 @@ HTTP client, security helpers, and React Query–oriented data wiring. **Feature
 
 ```
 packages/services/
-├── http/              # HttpClient, compatibility fetch helpers (apiGet, apiPost, …)
+├── http/              # HttpClient, fetch helpers (apiGet, apiPost, …)
 ├── security/          # PII scrubbing, secure logger, error reporting, clipboard, images
 ├── data/              # Route tables + prefetch/polling helpers for React Query
 ├── index.ts           # Re-exports: auth/token helpers, HTTP config, security, error types

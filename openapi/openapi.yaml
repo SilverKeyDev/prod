@@ -158,6 +158,18 @@ components:
       $ref: "./components/schemas/shared/core/AuthSessionUser.yaml"
     BulkUpdateFavoritesRequest:
       $ref: "./components/schemas/auth/BulkUpdateFavoritesRequest.yaml"
+    BrokerageSkySlopeCredential:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredential.yaml"
+    BrokerageSkySlopeCredentialCreateRequest:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialCreateRequest.yaml"
+    BrokerageSkySlopeCredentialUpdateRequest:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialUpdateRequest.yaml"
+    BrokerageSkySlopeCredentialResponse:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialResponse.yaml"
+    BrokerageSkySlopeCredentialStatus:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialStatus.yaml"
+    BrokerageSkySlopeCredentialTestResponse:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialTestResponse.yaml"
     ChatbotHistoryMessage:
       $ref: "./components/schemas/shared/chatbot/ChatbotHistoryMessage.yaml"
     ChatbotHistoryResponse:
@@ -686,6 +698,10 @@ components:
       $ref: "./components/schemas/admin/SetCurrentUserDevWorkspaceRequest.yaml"
     SetCurrentUserDevWorkspaceResponse:
       $ref: "./components/schemas/admin/SetCurrentUserDevWorkspaceResponse.yaml"
+    ExchangeDevAccountSessionRequest:
+      $ref: "./components/schemas/admin/ExchangeDevAccountSessionRequest.yaml"
+    MintDevAccountSessionResponse:
+      $ref: "./components/schemas/admin/MintDevAccountSessionResponse.yaml"
     UpdateChecklistDispatchAutomationRequest:
       $ref: "./components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml"
     UpdateChecklistRequest:
@@ -5794,6 +5810,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/dev-accounts/session:
+    post:
+      tags: [ Admin ]
+      summary: Mint one-time dev account session token (admin)
+      operationId: adminMintDevAccountSession
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetCurrentUserDevWorkspaceRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MintDevAccountSessionResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/dev-accounts/session/exchange:
+    post:
+      tags: [ Admin ]
+      summary: Exchange one-time dev account session token
+      operationId: adminExchangeDevAccountSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExchangeDevAccountSessionRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/users/gate-roles:
     get:
       tags: [ Admin ]
@@ -7000,59 +7079,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/agent/chats/messages:
-    post:
-      tags:
-        - Agent
-      summary: Send message
-      description: Send a message in a conversation
-      operationId: sendMessage
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SendMessageRequest"
-      responses:
-        "200":
-          description: Message sent
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SendMessageResponse"
-        "400":
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Access denied
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Conversation not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/partners:
     get:
       tags:
@@ -7234,6 +7260,161 @@ paths:
                 $ref: "#/components/schemas/RevShareAnalyticsResponse"
         "404":
           description: Partner not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope:
+    get:
+      tags:
+        - Admin
+      summary: Get SkySlope integration metadata for a brokerage (admin only)
+      operationId: getAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Credential metadata (no secret values)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialResponse"
+        "404":
+          description: Credential or brokerage not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Admin
+      summary: Store encrypted SkySlope API key for a brokerage (admin only)
+      operationId: createAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrokerageSkySlopeCredentialCreateRequest"
+      responses:
+        "201":
+          description: Credential stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialResponse"
+        "404":
+          description: Brokerage not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Credential already exists for this brokerage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - Admin
+      summary: Update SkySlope integration credentials for a brokerage (admin only)
+      operationId: updateAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrokerageSkySlopeCredentialUpdateRequest"
+      responses:
+        "200":
+          description: Credential updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialResponse"
+        "404":
+          description: Credential or brokerage not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Admin
+      summary: Delete SkySlope integration credentials for a brokerage (admin only)
+      operationId: deleteAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Credential deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Credential not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope/test-connection:
+    post:
+      tags:
+        - Admin
+      summary: Verify stored SkySlope credentials decrypt successfully (admin only)
+      operationId: testAdminBrokerageSkySlopeConnection
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Connection test result (safe message only)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialTestResponse"
+        "404":
+          description: Credential not found
           content:
             application/json:
               schema:

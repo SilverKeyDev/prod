@@ -10,4 +10,4 @@
 
 **Canonical context:** `.cursor/rules/shared/silverkey-context.mdc` + `.cursor/rules/shared/pitch-and-fundraising.mdc` (company/fundraising), `AGENTS.md` (commands/gates), `documentation/` (long-form guides).
 
-**Cursor Automations:** Paste seeds from `.cursor/memory/automations/` into Memory Notes — see `automations/README.md` or `./scripts/print-automation-memory.sh <persona>`.
+**Cursor Automations (Cursor only):** See `documentation/client/tooling/cursor-agent-memory.md` and `.cursor/memory/automations/README.md`.

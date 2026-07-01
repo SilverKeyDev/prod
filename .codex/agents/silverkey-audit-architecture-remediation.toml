@@ -1,8 +1,0 @@
-name = "silverkey-audit-architecture-remediation"
-description = """Fix post-audit architecture smells — fat app imports, harmful barrels, context-as-store, layout pulling half the app; align with layered imports and thin apps."""
-developer_instructions = """
-Before work: read and follow `.cursor/agents/silverkey-audit-architecture-remediation.md` (canonical persona).
-Apply always-on rules under `.cursor/rules/shared/` and scoped `.mdc` rules when paths match.
-Engineering gates: `AGENTS.md` — `make check-client`, `make lint`, `make test-be` as appropriate.
-Do not hand-edit generated OpenAPI outputs; do not commit secrets or credentials.
-"""

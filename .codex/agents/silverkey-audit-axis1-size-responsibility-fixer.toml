@@ -1,8 +1,0 @@
-name = "silverkey-audit-axis1-size-responsibility-fixer"
-description = """Fix audit axis 1 issues — oversized components, mixed responsibilities; split UI, hooks, and data per thin-app architecture."""
-developer_instructions = """
-Before work: read and follow `.cursor/agents/silverkey-audit-axis1-size-responsibility-fixer.md` (canonical persona).
-Apply always-on rules under `.cursor/rules/shared/` and scoped `.mdc` rules when paths match.
-Engineering gates: `AGENTS.md` — `make check-client`, `make lint`, `make test-be` as appropriate.
-Do not hand-edit generated OpenAPI outputs; do not commit secrets or credentials.
-"""

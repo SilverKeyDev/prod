@@ -1,9 +1,7 @@
 import { useCallback } from "react";
 
-import {
-  buildEventRequestMessage,
-  buildEventRequestPayloadFromCreateFormState,
-} from "packages/features/messaging";
+import { buildEventRequestPayloadFromCreateFormState } from "packages/features/messaging/utils/buildEventRequestPayloadFromCreateFormState";
+import { buildEventRequestMessage } from "packages/features/messaging/utils/eventRequestPayload";
 import { log } from "packages/logger";
 import type { UIState } from "packages/store";
 

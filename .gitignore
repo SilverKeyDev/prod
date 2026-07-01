@@ -156,3 +156,6 @@ htmlcov/
 
 # Root-level npm pack downloads (do not vendor tarballs at monorepo root)
 /*.tgz
+
+# Optional QA password override (SIL-145); committed file is documentation/client/qa/test-accounts.json
+documentation/client/qa/test-accounts.local.json

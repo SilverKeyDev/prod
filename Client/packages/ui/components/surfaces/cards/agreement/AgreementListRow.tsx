@@ -6,12 +6,11 @@ import {
 } from "packages/features/search/types/search/formatters/address";
 import { useAuthStore } from "packages/store";
 import { Box, Text } from "packages/ui/components/structure/primitives";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 import { AgendaListItemShell } from "packages/ui/components/surfaces/patterns/AgendaListItemShell";
 import { agreementAgendaAccentBarClass } from "packages/utils/transaction/agreement/agreementAgendaAccentBar";
 import { getContextualAgreementStatus } from "packages/utils/transaction/agreement/contextualAgreementStatus";
 import { extractReportTitleFromPath } from "packages/utils/transaction/documents";
-
-import { BodyText } from "@/components/ui";
 
 import AgreementCardActions from "./AgreementCardActions";
 import { AGREEMENT_CONTEXTUAL_STATUS_BADGE } from "./agreementContextualStatusBadge";

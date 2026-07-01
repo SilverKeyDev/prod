@@ -4,6 +4,7 @@ import { getDocument, getFetch } from "packages/utils/core/platform";
 
 import { notifyAuthenticationError } from "./auth/authErrorNotify";
 import { isAuthEndpoint, recoverSessionAfter401 } from "./auth/authRecovery";
+import { isNonSession401Error, parse401ErrorCode } from "./auth/nonSession401Errors";
 import { AuthenticationError, HttpError } from "./errors";
 import { normalizeUrl, sleep } from "./request/httpRequestHeaders";
 import { logApiRequest, logApiResponse } from "./request/logging";
@@ -168,18 +169,23 @@ export class HttpClient {
         signal,
       });
 
+      let contentType = response.headers.get("content-type") ?? "";
+      let responseText = await response.text();
+
       if (response.status === 401 && !isAuthEndpoint(url) && !signal?.aborted) {
-        const recovered = await recoverSessionAfter401();
-        if (recovered) {
-          response = await getFetch()(url, {
-            ...requestOptions,
-            signal,
-          });
+        const integration401 = isNonSession401Error(parse401ErrorCode(responseText, contentType));
+        if (!integration401) {
+          const recovered = await recoverSessionAfter401();
+          if (recovered) {
+            response = await getFetch()(url, {
+              ...requestOptions,
+              signal,
+            });
+            contentType = response.headers.get("content-type") ?? "";
+            responseText = await response.text();
+          }
         }
       }
-
-      const contentType = response.headers.get("content-type") ?? "";
-      const responseText = await response.text();
       const cookiesAfter = getCookieNames(doc);
 
       if (!response.ok && url.includes("/api/v1/search/isochrone")) {

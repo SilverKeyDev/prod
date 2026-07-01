@@ -1,9 +1,0 @@
-name = "silverkey-refactor-suggestion-engine"
-description = """Identify oversized or complex files/functions and propose modular refactors consistent with SilverKey architecture."""
-sandbox_mode = "read-only"
-developer_instructions = """
-Before work: read and follow `.cursor/agents/silverkey-refactor-suggestion-engine.md` (canonical persona).
-Apply always-on rules under `.cursor/rules/shared/` and scoped `.mdc` rules when paths match.
-Engineering gates: `AGENTS.md` — `make check-client`, `make lint`, `make test-be` as appropriate.
-Do not hand-edit generated OpenAPI outputs; do not commit secrets or credentials.
-"""

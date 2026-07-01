@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
-import type { OnboardingData } from "packages/features/profile";
-import type { PreferencesSubmitResult } from "packages/features/profile";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import type { PreferencesSubmitResult } from "packages/features/profile/types/onboarding/submitHandler";
 
 import { preferencesApi } from "@/features/homeauth/api/preferences";
 

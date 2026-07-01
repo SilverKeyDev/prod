@@ -8,7 +8,7 @@ Canonical reference for every script in the SilverKey monorepo. The **Makefile**
 
 | I want to… | Run |
 |---|---|
-| First-time machine setup | `make setup` |
+| First-time machine setup | `make setup` (core) then `make setup-dev` (backend) |
 | Refresh deps after `git pull` | `make refresh` |
 | Reset/init the local dev database | `make dev-db-init` |
 | Start full dev stack (web + backend) | `make dev` |
@@ -44,8 +44,9 @@ Orchestration scripts called directly from the Makefile or used by git hooks.
 
 | Script | Purpose | Called by |
 |--------|---------|-----------|
-| `setup/setup-local.sh` | First-time onboarding: deps, build, AWS SSO, local DB init, verify, MCP | `make setup` |
-| `setup/setup-mcp.sh` | Cursor MCP config install and verify only | `make setup-mcp`; tail of `setup-local.sh` |
+| `setup/setup-local.sh` | Core onboarding: deps, Client + Server env, verify | `make setup` |
+| `setup/setup-dev.sh` | Backend onboarding: AWS SSO, secrets (prod DATABASE_URL), backend verify | `make setup-dev` |
+| `setup/setup-mcp.sh` | Cursor MCP config install and verify only | `make setup-mcp` |
 | `setup/refresh.sh` | Post-`git pull` refresh: clean caches, pnpm install, bootstrap-venv, optional secrets, optional DB reset | `make refresh` |
 | `setup/check-deps.sh` | Scan local machine prerequisites | Manual |
 
@@ -59,6 +60,10 @@ Orchestration scripts called directly from the Makefile or used by git hooks.
 | `ci/pre-commit-openapi-drift.sh` | OpenAPI regen when spec/generated paths change (`--advisory`) | `.pre-commit-config.yaml` |
 | `ci/pre-push-check.sh` | Scoped typecheck / contract tests; blocking via `make`, advisory on `git push` | `scripts/githooks/pre-push`; `make pre-push-check` |
 | `ci/check-script-references.sh` | Fail on stale flat `scripts/*.sh` references after reorganization | `make check-docs` |
+| `ci/test-secrets-database-url.sh` | Unit tests for DATABASE_URL helpers (`scripts/lib/secrets-database-url.sh`) | `make check-docs` |
+| `ci/test-setup-verify-database.sh` | Tests `setup_verify_env_file` accepts local + remote `DATABASE_URL` | `make check-docs` |
+| `ci/test-setup-verify-redis.sh` | Tests `setup_verify_redis` soft vs strict (`SETUP_REQUIRE_REDIS`) | `make check-docs` |
+| `ci/test-secrets-retrieval.sh` | Mock-AWS integration tests for `secrets.sh` (prod default vs `USE_LOCAL_DATABASE=1`) | `make check-docs` |
 | `ci/check-doc-placement.sh` | Fail if forbidden `docs/` paths or misplaced long markdown are detected | `make check-docs`; `.github/workflows/doc-check.yml` |
 | `ci/check-doc-links.sh` | Check internal markdown links | `make check-docs`; `.github/workflows/doc-check.yml` |
 | `ci/check-macos-duplicate-files.sh` | Fail on iCloud-style duplicate filenames | First step of `run-all-linters.sh` |
@@ -83,11 +88,12 @@ See `scripts/ci/README.md` for the add-a-script policy.
 | File | Purpose | Sourced by |
 |------|---------|-----------|
 | `deps.sh` | Prerequisite scan and install helpers | `setup/check-deps.sh`, `setup/setup-local.sh`, `setup/refresh.sh` |
-| `aws-setup.sh` | AWS SSO setup and profile configuration | `setup/setup-local.sh` |
+| `aws-setup.sh` | AWS SSO setup and profile configuration | `setup/setup-dev.sh` |
 | `aws-sso-env.sh` | AWS profile and region env helpers | `Server/scripts/secrets.sh` |
+| `secrets-database-url.sh` | `DATABASE_URL` classification helpers (local vs remote, secret name patterns) | `Server/scripts/secrets.sh`, `setup-verify.sh`, `ci/test-secrets-database-url.sh` |
 | `client-env-from-secrets.sh` | Split `EXPO_PUBLIC_*` keys into Client `.env` | `Server/scripts/secrets.sh` |
-| `setup-verify.sh` | Post-setup verification checks | `setup/setup-local.sh` |
-| `setup-mcp.sh` | MCP install and verify logic (lib version) | `setup/setup-mcp.sh`, `setup/setup-local.sh` |
+| `setup-verify.sh` | Post-setup verification checks (`SETUP_REQUIRE_REDIS=1` enforces Redis; default warns) | `setup/setup-local.sh`, `setup/setup-dev.sh` |
+| `setup-mcp.sh` | MCP install and verify logic (lib version) | `setup/setup-mcp.sh` |
 | `clean-caches.sh` | Remove regenerable dev caches | `make clean-caches`; `setup/refresh.sh` |
 
 ### `run/` — local dev orchestration
@@ -116,7 +122,9 @@ Install with: `git config core.hooksPath scripts/githooks`
 |------|---------|-----------|
 | `deploy/prod-parity/compose.sh` | Prod-parity compose wrapper; `build` passes all `Client/.env` keys as `--build-arg` | `make prod-parity-build` |
 | `deploy/prod-parity/docker-compose.yml` | Local prod-parity stack: app, Redis, Celery worker, Beat | `make prod-parity` via `compose.sh` |
-| `deploy/prod-parity/smoke.sh` | Build, boot, `/livez` + `/readyz`, tear down | `make prod-parity-smoke` (before Docker/deploy PRs) |
+| `deploy/prod-parity/smoke.sh` | Build, boot, `/livez` + `/readyz`, tear down | `make prod-parity-smoke`; `ci/does-it-run-docker.sh` (CI overlay) |
+| `deploy/prod-parity/docker-compose.ci.yml` | Ephemeral Postgres overlay for CI does-it-run | `does-it-run-docker.sh` |
+| `ci/does-it-run.sh` | PR smoke gate (frontend + backend-light; docker when deploy paths change) | `make does-it-run`; `.github/workflows/does-it-run-callable.yml` |
 
 Canonical production deploy lives in `.github/scripts/ec2-deploy.sh`, invoked by `.github/workflows/ci_web.yml` via SSH.
 
@@ -149,7 +157,7 @@ Backend-specific scripts. Activate `Server/.venv` before running Python scripts 
 |--------|---------|-----------|
 | `generate-pydantic-models.sh` | OpenAPI → `app/schemas/generated.py` | Root `openapi:generate`; `scripts/ci/sync-openapi.sh`; `.github/workflows/openapi-sync.yml` |
 | `bootstrap-venv.sh` | Create or refresh `.venv`, install requirements | `scripts/setup/setup-local.sh`; `scripts/setup/refresh.sh` |
-| `secrets.sh` | AWS Secrets Manager → `Server/.env` with local dev `DATABASE_URL`; does not reset or migrate DBs | `make secrets`; `scripts/setup/refresh.sh --secrets` |
+| `secrets.sh` | AWS Secrets Manager → `Server/.env` (prod `DATABASE_URL` by default; `USE_LOCAL_DATABASE=1` for local Docker); does not reset or migrate DBs | `make secrets`; `scripts/setup/refresh.sh --secrets` |
 | `prod-db-secrets.sh` | Production DB secret → `Server/.env.prod-db`; requires prod/admin AWS access | `make prod-db-secrets` |
 | `gunicorn-entrypoint.sh` | Env-driven Gunicorn launcher (workers, timeout, bind from env) | `Dockerfile.web` CMD; `run-backend.sh --production`; EC2 health checks |
 
@@ -275,7 +283,6 @@ Scripts run exclusively inside GitHub Actions. Do not invoke locally unless debu
 | `ec2-deploy.sh` | Full EC2 deploy: ECR pull, Secrets Manager env merge, Docker stack (app/worker/beat/redis), static frontend sync | `.github/workflows/ci_web.yml` via SSH |
 | `_secrets-env.sh` | AWS Secrets Manager merge + `.env.example` validation helpers | Sourced by `ec2-deploy.sh`, `fetch-client-bundle-env.sh` |
 | `fetch-client-bundle-env.sh` | Fetch `EXPO_PUBLIC_*` from SM into `GITHUB_ENV` for ci_web Docker build | `.github/workflows/ci_web.yml` |
-| `apply-bundle-env-github-fallback.sh` | GitHub secrets fallback when SM omits bundle keys (planned for removal) | `.github/workflows/ci_web.yml` |
 | `gh-db-upgrade.sh` | Build `Dockerfile.web --target migrate`, run `flask db upgrade` against prod DB secret | `.github/workflows/db-migrate-main.yml` |
 | `summarize-openapi-sync-diff.sh` | Human-readable drift summary for generated OpenAPI artifacts | `.github/workflows/openapi-sync.yml` on failure |
 
@@ -289,7 +296,7 @@ Scripts run exclusively inside GitHub Actions. Do not invoke locally unless debu
 | `test-callable.yml` | `pytest`; `pnpm test:coverage`; `Server/scripts/misc/check_coverage_thresholds.py`; `Server/scripts/endpoints/extract_routes.py` |
 | `openapi-sync.yml` | `Server/scripts/generate-pydantic-models.sh`; `Client/scripts/generate-api-types.sh`; `.github/scripts/summarize-openapi-sync-diff.sh` |
 | `doc-check.yml` | `scripts/ci/check-doc-placement.sh`; `scripts/ci/check-doc-links.sh` |
-| `ci_web.yml` | `fetch-client-bundle-env.sh`; `apply-bundle-env-github-fallback.sh`; `assert-bundle-secrets.mjs`; `export-bundle-docker-build-args.mjs`; `.github/scripts/ec2-deploy.sh` |
+| `ci_web.yml` | `fetch-client-bundle-env.sh`; `assert-bundle-secrets.mjs`; `export-bundle-docker-build-args.mjs`; `.github/scripts/ec2-deploy.sh` |
 | `db-migrate-main.yml` | `.github/scripts/gh-db-upgrade.sh` |
 | `endpoints-check-dead.yml` | `Server/scripts/endpoints/check_dead_endpoints.py` |
 | `endpoints-sync-posthog.yml` | `Server/scripts/endpoints/sync_inventory_posthog.py` |

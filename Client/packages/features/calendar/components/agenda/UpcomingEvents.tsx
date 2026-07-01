@@ -197,7 +197,11 @@ export function UpcomingEvents({
           padding="sm"
           hover={false}
         >
-          <CalendarConnectionPrompt onConnect={d.handleConnect} isLoading={d.calendarsLoading} />
+          <CalendarConnectionPrompt
+            onConnect={d.handleConnect}
+            isLoading={d.calendarsLoading}
+            variant={d.connectionPromptVariant}
+          />
         </Card>
       );
       return wrap(promptCard);
@@ -206,7 +210,11 @@ export function UpcomingEvents({
     const disconnectedBody = (
       <Box className={sectionTitle ? "w-full gap-4" : "mt-4 w-full gap-4"}>
         <Card border="charcoal" className="w-full" padding="sm" hover={false}>
-          <CalendarConnectionPrompt onConnect={d.handleConnect} isLoading={d.calendarsLoading} />
+          <CalendarConnectionPrompt
+            onConnect={d.handleConnect}
+            isLoading={d.calendarsLoading}
+            variant={d.connectionPromptVariant}
+          />
         </Card>
         <UpcomingAgendaList
           items={mergeUpcomingAgendaItems([], d.agendaTodosIncompleteInRange)}

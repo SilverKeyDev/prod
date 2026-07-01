@@ -14,7 +14,7 @@ import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/trans
 import {
   ARCHITECTURAL_STYLE_OPTIONS,
   PROPERTY_USE_OPTIONS,
-  RENOVATION_OPTIONS,
+  RENOVATION_PREFERENCE_OPTIONS,
   WALKABILITY_OPTIONS,
 } from "packages/features/search/types/otherFilterOptions";
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
@@ -296,7 +296,7 @@ export function SearchFiltersContent({
         />
         <FilterChipRow
           label="Renovation preference"
-          options={RENOVATION_OPTIONS}
+          options={RENOVATION_PREFERENCE_OPTIONS}
           value={formData.renovation_preference}
           onChange={(v) => update("renovation_preference", v)}
         />

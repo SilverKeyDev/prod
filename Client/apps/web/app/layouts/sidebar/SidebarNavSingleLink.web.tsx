@@ -17,7 +17,7 @@ import { sidebarNavLabelActive, sidebarNavLabelInactive } from "./sidebarNavSect
 
 export type SidebarNavSingleLinkProps = {
   categoryKey: string;
-  firstItem: SidebarNavItem;
+  item: SidebarNavItem;
   expanded: boolean;
   isActive: boolean;
   unreadCount: number;
@@ -28,7 +28,7 @@ export type SidebarNavSingleLinkProps = {
 
 export function SidebarNavSingleLink({
   categoryKey,
-  firstItem,
+  item,
   expanded,
   isActive,
   unreadCount,
@@ -37,9 +37,9 @@ export function SidebarNavSingleLink({
   onPrefetchHref,
 }: SidebarNavSingleLinkProps) {
   const location = useLocation();
-  const itemIconName = firstItem.icon;
+  const itemIconName = item.icon;
   const buttonClass = `${getChromeNavButtonStyles(isActive)} ${!expanded ? "justify-center" : ""}`;
-  const titleAttr = !expanded ? firstItem?.name : "";
+  const titleAttr = !expanded ? item.name : "";
   const iconEl = (
     <Box className="relative inline-flex items-center">
       <Icon
@@ -68,13 +68,13 @@ export function SidebarNavSingleLink({
         {iconEl}
         {expanded && (
           <span className={isActive ? sidebarNavLabelActive : sidebarNavLabelInactive}>
-            {firstItem?.name}
+            {item.name}
           </span>
         )}
       </SearchNavLink>
     );
   }
-  const to = firstItem?.href ?? "/";
+  const to = item.href;
   const handleClick = () => {
     const navId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
     log.info("ROUTING", "[NAV] Sidebar nav click (link)", {
@@ -100,13 +100,13 @@ export function SidebarNavSingleLink({
       <Link {...linkProps}>
         {iconEl}
         <span className={isActive ? sidebarNavLabelActive : sidebarNavLabelInactive}>
-          {firstItem?.name}
+          {item.name}
         </span>
       </Link>
     );
   }
   return (
-    <AccessibleLink {...linkProps} label={firstItem?.name ?? categoryKey}>
+    <AccessibleLink {...linkProps} label={item.name}>
       {iconEl}
     </AccessibleLink>
   );

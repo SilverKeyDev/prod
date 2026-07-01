@@ -296,6 +296,14 @@
     "category": "navigation"
   },
   {
+    "id": "find-agents-screen-layout",
+    "description": "Find agents: dashboard-embedded web page vs native full-screen stack with SafeAreaView",
+    "webPath": "apps/web/pages/misc/FindAgentsPage.tsx",
+    "nativePath": "packages/features/agent/components/agentDiscovery/FindAgentsScreen.native.tsx",
+    "reason": "Web renders discovery inside dashboard content width. Native uses stack navigation, SafeAreaView, and RN Pressable/ScrollView shell around AgentDiscoveryView.native.",
+    "category": "layout"
+  },
+  {
     "id": "agent-profile-in-app-layout",
     "description": "Agent profile: web marketing-style page vs native stack screen",
     "webPath": "apps/web/pages/misc/AgentProfilePage.tsx",
@@ -316,7 +324,7 @@
     "description": "Account personalization settings: web-only scroll + sidebar nav (no native account settings screen yet)",
     "webPath": "packages/features/profile/components/settings/PersonalizationSettingsScreen.web.tsx",
     "nativePath": null,
-    "reason": "Web account settings uses DOM scroll-spy, dashboard mobile header injection, and web-only profile section components. Native account settings are not implemented; thin apps/web SettingsPage composes this screen.",
+    "reason": "Web account settings uses DOM scroll-spy, dashboard mobile header injection, and web-only profile section components. Native account settings are not implemented; ProfilePage composes PersonalizationSettingsScreen.web.",
     "category": "layout"
   },
   {

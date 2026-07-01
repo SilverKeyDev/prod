@@ -93,7 +93,7 @@ export default function CompCard({ comp, className = "" }: CompCardProps) {
               {comp.address.streetAddress}
             </Title>
           </Box>
-          <BodyText as="p" size="xs" className="ml-4 truncate text-black/60 sm:text-sm">
+          <BodyText as="p" size="xs" muted className="ml-4 truncate sm:text-sm">
             {comp.address.city}, {comp.address.state} {comp.address.zipcode}
           </BodyText>
         </Box>

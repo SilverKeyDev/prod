@@ -4,15 +4,17 @@ import { Icon } from "@ui/icons";
 
 import type { AgentClient, AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
+import type { MessagingMode } from "packages/features/agent/components/messaging/screen/messagingConfig";
+import { getMessagingConfig } from "packages/features/agent/components/messaging/screen/messagingConfig";
 import {
   agentClientKindTranslationKey,
-  type AgentClientSortMode,
-  getMessagingConfig,
-  type MessagingMode,
   pipelineStageTranslationKey,
+} from "packages/features/agent/utils/agentClientListLabels";
+import {
+  type AgentClientSortMode,
   sortAgentClients,
-} from "packages/features/agent";
-import { getMessagePreview } from "packages/features/messaging";
+} from "packages/features/agent/utils/agentClientListSort";
+import { getMessagePreview } from "packages/features/messaging/utils/messagePreview";
 import { Box } from "packages/ui/components/structure/primitives";
 import {
   SIDEBAR_INSET_BODY_MUTED,

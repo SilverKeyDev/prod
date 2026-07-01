@@ -1,7 +1,11 @@
 # pyright: reportUndefinedVariable=false
 from ..extensions import db
 from .agent import AgentConnectionRequest, AgentConnections, ChatHistory, Todo
-from .brokerage import BrokerageOrg, UserOrgMembership
+from .brokerage import (
+    BrokerageIntegrationCredential,
+    BrokerageOrg,
+    UserOrgMembership,
+)
 from .calendar import CalendarEvent, CalendarShare
 from .documents import (
     Agreement,
@@ -35,6 +39,7 @@ from .property import (
     UserPropertyLink,
     UserScoreWeights,
 )
+from .skyslope import SkySlopeSyncState, SkySlopeTransaction
 from .system import DeploymentLoggerConfig
 from .transactions import (
     BuyerBrokerReview,
@@ -70,6 +75,7 @@ def init_db():
 
 
 __all__ = [
+    "BrokerageIntegrationCredential",
     "BrokerageOrg",
     "UserOrgMembership",
     "BrokeragePartnerAdoption",
@@ -127,4 +133,6 @@ __all__ = [
     "DocusignOAuthToken",
     "DocusignTemplate",
     "db",
+    "SkySlopeSyncState",
+    "SkySlopeTransaction",
 ]

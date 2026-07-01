@@ -1,14 +1,11 @@
+import CalendarEventRequestModal from "packages/features/agent/components/modals/calendarEventRequest/CalendarEventRequestModal";
+import AgentSearchModal from "packages/features/agent/components/modals/search/AgentSearchModal";
+import ClientSearchModal from "packages/features/agent/components/modals/search/ClientSearchModal";
+import SelectDocumentModal from "packages/features/agent/components/modals/search/SelectDocumentModal";
+import SelectHomeModal from "packages/features/agent/components/modals/search/SelectHomeModal";
 import type { MessagingSendMessageOptions } from "packages/features/messaging/hooks/data/messaging/types";
 import type { SavedHome } from "packages/types";
 import type { DocumentData } from "packages/ui/components/surfaces/cards/document/DocumentCard";
-
-import {
-  AgentSearchModal,
-  CalendarEventRequestModal,
-  ClientSearchModal,
-  SelectDocumentModal,
-  SelectHomeModal,
-} from "@/features/agent/components/modals";
 
 type MessagingModalsProps = {
   mode: "agent" | "client";

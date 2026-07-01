@@ -3,12 +3,9 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRe
 import type { ReactNode } from "react";
 
 import type { AgentClient } from "packages/api";
-import {
-  getMessagingConfig,
-  useAgentAutoSelectClient,
-  useAgentClients,
-} from "packages/features/agent";
-import { useAgentChats } from "packages/features/messaging";
+import { getMessagingConfig } from "packages/features/agent/components/messaging/screen/messagingConfig";
+import { useAgentClients } from "packages/features/agent/hooks/data/clients/useAgentClients";
+import { useAgentAutoSelectClient } from "packages/features/agent/hooks/ui/useAgentAutoSelectClient";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import MessagingModals from "packages/features/messaging/components/layout/chrome/MessagingModals";
 import UnifiedMessageInput from "packages/features/messaging/components/layout/input/UnifiedMessageInput";
@@ -16,6 +13,7 @@ import { loadUnifiedMessagesListModule } from "packages/features/messaging/compo
 import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
 import { useAgentChatsSse } from "packages/features/messaging/hooks/data/useAgentChatsSse";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
+import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import { useMessagingComposerStoreIntegration } from "packages/features/messaging/hooks/store/useMessagingComposerStoreIntegration";
 import { useMessagingComposerStore } from "packages/features/messaging/store";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";

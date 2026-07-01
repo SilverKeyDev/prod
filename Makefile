@@ -15,7 +15,7 @@ REGION ?= us-east-2
 PROFILE ?=
 PYTEST_ARGS ?=
 
-.PHONY: help setup setup-mcp refresh check-deps clean-caches secrets db-up db-down db-reset db-health dev-db-init migrate \
+.PHONY: help setup setup-dev setup-mcp refresh check-deps clean-caches secrets db-up db-down db-reset db-health dev-db-init migrate \
 	test test-all test-fe test-be test-be-ci-parity test-frontend test-backend \
 	dev dev-web dev-backend \
 	pre-commit precommit pre-push-check \
@@ -24,22 +24,23 @@ PYTEST_ARGS ?=
 	format-client format-check mobile \
 	routes-extract endpoints-check-dead routes-extract-verify endpoints-sync-posthog \
 	log-contracts log-contracts-migrate log-contracts-migrate-check log-contracts-lint log-contracts-verify \
-	prod-parity prod-parity-build prod-parity-smoke
+	prod-parity prod-parity-build prod-parity-smoke does-it-run
 
 help:
 	@echo "SilverKey Makefile (see also ./scripts/setup/setup-local.sh and ./scripts/setup/refresh.sh)"
 	@echo ""
-	@echo "  make setup            First-time setup — see setup.md (optional: ARGS='--skip-secrets')"
+	@echo "  make setup            Prereqs + Client + Server venv (see setup.md)"
+	@echo "  make setup-dev        AWS SSO + secrets (prod DATABASE_URL) + backend verify"
 	@echo "  make setup-mcp        Cursor MCP only (seed mcp.json, install uv/npx, verify)"
 	@echo "  make refresh          After git pull: clear caches + pnpm + pip (ARGS='--secrets' | '--reset-db' | '--no-clean' | '--aggressive-clean')"
 	@echo "  make check-deps       Scan node/pnpm/python/redis/libmagic (ARGS='--skip-secrets' | '--no-install')"
 	@echo "  make clean-caches     Remove regenerable dev caches only (ARGS='--aggressive')"
-	@echo "  make secrets          AWS Secrets Manager -> Server/.env (uses AWS_PROFILE / ~/.aws/config)"
+	@echo "  make secrets          AWS Secrets Manager -> Server/.env (prod DATABASE_URL; USE_LOCAL_DATABASE=1 for Docker)"
 	@echo "  make db-up            Start local Postgres for dev ($(LOCAL_DATABASE_URL))"
 	@echo "  make db-down          Stop local Postgres and clear the local dev DB volume"
 	@echo "  make db-reset         Reset local Postgres volume and restart it"
 	@echo "  make db-health        Check local Postgres readiness"
-	@echo "  make dev-db-init      Reset local DB, refresh non-DB secrets, and run migrations"
+	@echo "  make dev-db-init      Local Docker only: reset volume + local DATABASE_URL + migrations"
 	@echo "  make migrate          flask db upgrade (operators only; see warning in recipe)"
 	@echo "  make test / test-all Client + Server tests"
 	@echo "  make test-fe          Client Vitest (pnpm test:run)"
@@ -74,9 +75,13 @@ help:
 	@echo "  make prod-parity-build    Build local prod-parity Docker stack (app + Redis + Celery)"
 	@echo "  make prod-parity          Run local prod-parity stack (requires Server/.env + Client/.env)"
 	@echo "  make prod-parity-smoke    Build, boot, curl /livez+/readyz, tear down (pre-merge Docker check)"
+	@echo "  make does-it-run          CI smoke gate locally (frontend + backend-light; DOES_IT_RUN_MODE=docker for full Docker)"
 
 setup:
 	bash "$(ROOT)/scripts/setup/setup-local.sh" $(ARGS)
+
+setup-dev:
+	bash "$(ROOT)/scripts/setup/setup-dev.sh" $(ARGS)
 
 setup-mcp:
 	bash "$(ROOT)/scripts/setup/setup-mcp.sh"
@@ -91,7 +96,7 @@ clean-caches:
 	bash "$(ROOT)/scripts/lib/clean-caches.sh" $(ARGS)
 
 secrets:
-	bash "$(ROOT)/Server/scripts/secrets.sh" "$(REGION)" "$(PROFILE)"
+	sh "$(ROOT)/Server/scripts/secrets.sh" "$(REGION)" "$(PROFILE)"
 
 db-up:
 	docker compose up -d postgres
@@ -108,7 +113,7 @@ db-health:
 
 dev-db-init:
 	$(MAKE) db-reset
-	$(MAKE) secrets
+	USE_LOCAL_DATABASE=1 $(MAKE) secrets
 	$(MAKE) migrate
 
 migrate:
@@ -165,6 +170,10 @@ check-client:
 	cd "$(ROOT)/Client" && pnpm check
 
 check-docs:
+	bash "$(ROOT)/scripts/ci/test-secrets-database-url.sh"
+	bash "$(ROOT)/scripts/ci/test-setup-verify-database.sh"
+	bash "$(ROOT)/scripts/ci/test-setup-verify-redis.sh"
+	bash "$(ROOT)/scripts/ci/test-secrets-retrieval.sh"
 	bash "$(ROOT)/scripts/ci/check-script-references.sh"
 	bash "$(ROOT)/scripts/ci/check-doc-placement.sh"
 	bash "$(ROOT)/scripts/ci/check-doc-links.sh"
@@ -225,3 +234,7 @@ prod-parity:
 
 prod-parity-smoke:
 	bash "$(ROOT)/scripts/deploy/prod-parity/smoke.sh"
+
+does-it-run:
+	@MODE="$${DOES_IT_RUN_MODE:-all-light}"; \
+	bash "$(ROOT)/scripts/ci/does-it-run.sh" --mode "$$MODE"

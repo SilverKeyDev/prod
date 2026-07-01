@@ -13,7 +13,7 @@ Product-specific client documentation. Package code: `Client/packages/features/`
 | workspace | Partial | [workspace.md](./workspace.md) |
 | admin | Partial | [admin.md](./admin.md) |
 | partners | Shipped | [partners.md](./partners.md), [rev-share-partners.md](./rev-share-partners.md) |
-| search | Shipped | [search.md](./search.md) |
+| search | Shipped | [search.md](./search.md), [search-filter-score-audit-sil-269.md](./search-filter-score-audit-sil-269.md) |
 
 ## Tier B — secondary
 

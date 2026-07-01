@@ -6,6 +6,9 @@ End-to-end and release QA checklists for the SilverKey **web and mobile** client
 |----------|-------------|
 | [END_TO_END_QA_RUNBOOK.md](./END_TO_END_QA_RUNBOOK.md) | Master execution order and links |
 | [ENV_AND_DEVICE_MATRIX.md](./ENV_AND_DEVICE_MATRIX.md) | Staging, test users, cross-browser and **real Mobile Safari** |
+| [test-accounts.json](./test-accounts.json) | **SIL-145** committed per-role QA credentials (SIL-126 step 1) |
+| [test-accounts.example.json](./test-accounts.example.json) | Schema template (placeholders only) |
+| [PROVISION_TEST_ACCOUNTS.md](./PROVISION_TEST_ACCOUNTS.md) | One-time inbox + signup/onboarding/seed runbook |
 | [FLOW_SIGNUP_AND_VERIFICATION.md](./FLOW_SIGNUP_AND_VERIFICATION.md) | Signup, verification — manual QA steps |
 | [FLOW_PAYMENTS.md](./FLOW_PAYMENTS.md) | Billing when product confirms it is live |
 | [ACCOUNT_DELETION.md](./ACCOUNT_DELETION.md) | Web self-serve delete; admin delete; support fallback |

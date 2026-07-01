@@ -9,7 +9,7 @@ Docs for the SilverKey frontend: TypeScript/React (web) and React Native (mobile
 | [architecture/](./architecture/) | Thin apps, layers, workspaces, shared packages, TypeScript layout |
 | [platform/](./platform/) | Web vs React Native, mobile structure, parity, platformVariants |
 | [standards/](./standards/) | Lint, accessibility, responsive UI, color tokens |
-| [tooling/](./tooling/) | tsconfig, Tailwind, config files, env gates, Cursor agent memory |
+| [tooling/](./tooling/) | tsconfig, Tailwind, config files, env gates, Cursor/Claude agent configuration |
 | [patterns/](./patterns/) | React hooks, component audit rubric |
 | [features/](./features/) | Product integrations (DocuSign, Maps, rev-share, onboarding) |
 | [qa/](./qa/) | E2E QA runbooks and release checklists — **start with [qa/END_TO_END_QA_RUNBOOK.md](./qa/END_TO_END_QA_RUNBOOK.md)** |

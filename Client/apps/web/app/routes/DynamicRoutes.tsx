@@ -88,6 +88,11 @@ export function DynamicRoutes({ user, handleLogout }: DynamicRoutesProps) {
         path="/buyer-checklists"
         element={<Navigate to="/dashboard" replace />}
       />,
+      <Route
+        key="analytics-redirect"
+        path="/analytics"
+        element={<Navigate to="/dashboard" replace />}
+      />,
       <Route key="settings-redirect" path="/settings/*" element={<SettingsRedirect />} />,
     ],
     []

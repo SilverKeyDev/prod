@@ -25,9 +25,6 @@ export const RENOVATION_PREFERENCE_OPTIONS = [
   { value: "complete", label: "Complete Renovation" },
 ] as const;
 
-/** @deprecated Use {@link RENOVATION_PREFERENCE_OPTIONS}. */
-export const RENOVATION_OPTIONS = RENOVATION_PREFERENCE_OPTIONS;
-
 /** Canonical values for `intended_property_use`. */
 export const INTENDED_PROPERTY_USE_OPTIONS = [
   { value: "primary", label: "Primary Residence" },

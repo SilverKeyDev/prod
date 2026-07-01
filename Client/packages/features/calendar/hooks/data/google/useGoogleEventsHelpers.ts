@@ -3,6 +3,11 @@ import { googleCalendarApi } from "packages/features/calendar/api";
 import { log } from "packages/logger";
 import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling";
 
+import {
+  GoogleReconnectRequiredError,
+  isGoogleReconnectRequiredApiError,
+} from "@/features/calendar/utils/core/googleCalendarReconnect";
+
 /**
  * Build the queryFn for a single calendar's events list.
  */
@@ -21,6 +26,12 @@ export function buildEventsListQueryFn(
       timeMax,
     });
     if (!response.success) {
+      if (isGoogleReconnectRequiredApiError(response.error)) {
+        googleCalendarApi.clearConnectionStatus();
+        throw new GoogleReconnectRequiredError(
+          resolveApiResultErrorMessage(response, "Google Calendar reconnection required.")
+        );
+      }
       throw new Error(resolveApiResultErrorMessage(response, "Failed to fetch events"));
     }
     const events = (response.data?.items ?? []).map((event) => ({

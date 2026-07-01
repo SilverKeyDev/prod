@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-import type { OnboardingData } from "packages/features/profile";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { useUserPreferences } from "packages/hooks/data/auth/useUserData";
 import { Box } from "packages/ui/components/structure/primitives";
 import { Transition } from "packages/ui/components/system/adapters/headless";

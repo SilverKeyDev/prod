@@ -4,9 +4,5 @@
  */
 import fontSizeJson from "./fontSize.json";
 
-export const fontFamily = {
-  serif: ["Playfair Display", "serif"],
-  sans: ["Inter", "sans-serif"],
-} as const;
-
+export { fontFamily } from "./fontFamily";
 export const fontSize = fontSizeJson as typeof fontSizeJson;

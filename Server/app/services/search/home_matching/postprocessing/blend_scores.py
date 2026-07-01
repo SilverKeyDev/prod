@@ -11,8 +11,6 @@ from logger import log
 from ..config.settings import DEFAULT_TOP_K
 from ..embeddings.scorer import EmbeddingScorer
 from .batch_scoring import score_home_batch
-from .comparison import compare_scoring_methods
-from .stats import get_ensemble_stats
 
 
 class EnsembleScorer:
@@ -252,18 +250,6 @@ class EnsembleScorer:
         except Exception as e:
             log.error("ERRORS", f"Error ranking homes: {e}")
             return []
-
-    def compare_scoring_methods(
-        self, user_data: dict[str, Any], homes_data: list[dict[str, Any]]
-    ) -> dict[str, Any]:
-        """Compare how different scoring methods rank the same homes."""
-        return compare_scoring_methods(
-            user_data, homes_data, self.embedding_scorer, self.blend_scores
-        )
-
-    def get_ensemble_stats(self) -> dict[str, Any]:
-        """Get statistics about ensemble performance."""
-        return get_ensemble_stats(self.score_history)
 
     def _track_scoring_event(
         self,

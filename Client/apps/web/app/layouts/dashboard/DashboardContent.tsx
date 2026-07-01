@@ -35,13 +35,6 @@ const BrokerageDashboardPage = lazy(
     () => import("@/pages/workspace/BrokerageDashboardPage")
   )
 );
-const BrokerageAnalyticsPage = lazy(
-  traceLazyImport(
-    "DASHBOARD",
-    "lazy:BrokerageAnalyticsPage",
-    () => import("@/pages/workspace/BrokerageAnalyticsPage")
-  )
-);
 const IntegrationPartnerDashboardPage = lazy(
   traceLazyImport(
     "DASHBOARD",
@@ -77,9 +70,6 @@ const AgreementSigningCompletePage = lazy(
     () => import("@/pages/workspace/AgreementSigningCompletePage")
   )
 );
-const FindAgentsPage = lazy(
-  traceLazyImport("ROUTING", "lazy:FindAgentsPage", () => import("@/pages/misc/FindAgentsPage"))
-);
 const AgentPage = lazy(
   traceLazyImport("MESSAGES", "lazy:AgentPage", () => import("@/pages/workspace/AgentPage"))
 );
@@ -113,7 +103,9 @@ function ReportingSuspenseFallback({ variant }: { variant: DashboardRouteFallbac
   useEffect(() => {
     const tVisible = performance.now();
     const cat = logCategoryForSuspenseVariant(variant);
-    log.info(cat, "[PERF] Suspense fallback visible (lazy chunk loading)", { variant });
+    log.info(cat, "[PERF] Suspense fallback visible (lazy chunk loading)", {
+      variant,
+    });
     return () => {
       log.info(cat, "[PERF] Suspense fallback hidden (chunk resolved or navigated away)", {
         variant,
@@ -147,8 +139,8 @@ export function DashboardContent({
     route.isProfile ||
     route.isLibrary ||
     route.isFindAgents ||
-    route.isAgreementSigningComplete ||
-    route.isAnalytics;
+    route.isAnalytics ||
+    route.isAgreementSigningComplete;
 
   const searchHeightClass =
     isSearch && isMobile
@@ -220,14 +212,6 @@ export function DashboardContent({
         </Suspense>
       </PageErrorBoundary>
     )
-  ) : activeKey === "analytics" ? (
-    activeWorkspace === "brokerage" ? (
-      <Suspense fallback={loadingFallback}>
-        <BrokerageAnalyticsPage />
-      </Suspense>
-    ) : (
-      <WorkspacePlaceholderPage workspace={activeWorkspace} />
-    )
   ) : activeKey === "dashboard" ? (
     <Suspense fallback={loadingFallback}>
       {activeWorkspace === "brokerage" ? (
@@ -242,12 +226,6 @@ export function DashboardContent({
         <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
       )}
     </Suspense>
-  ) : activeKey === "find_agents" ? (
-    <PageErrorBoundary key="find-agents" pageLabel="Find agents">
-      <Suspense fallback={loadingFallback}>
-        <FindAgentsPage setMobileHeaderActions={setMobileHeaderActions} />
-      </Suspense>
-    </PageErrorBoundary>
   ) : activeKey === "agreement_signing_complete" ? (
     <PageErrorBoundary key="agreement-signing-complete" pageLabel="Signing">
       <Suspense fallback={loadingFallback}>

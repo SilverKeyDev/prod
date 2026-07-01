@@ -7,7 +7,7 @@ import {
   type OnboardingData,
   PROFILE_NOT_SPECIFIED_LABEL,
   profileFieldValueClassName,
-  RENOVATION_OPTIONS,
+  RENOVATION_PREFERENCE_OPTIONS,
 } from "packages/features/profile/utils";
 import { WALKABILITY_OPTIONS } from "packages/features/profile/utils/public/constants";
 import { FormFieldLabel as Label } from "packages/ui";
@@ -109,7 +109,7 @@ export function HousingDropdownRows({
         <Dropdown
           value={formData.renovation_preference ?? ""}
           onChange={(value) => updateFormData("renovation_preference", value)}
-          options={RENOVATION_OPTIONS}
+          options={RENOVATION_PREFERENCE_OPTIONS}
           placeholder="Select renovation preference"
         />
       ) : (
@@ -119,7 +119,9 @@ export function HousingDropdownRows({
           )}`}
         >
           {formData.renovation_preference
-            ? RENOVATION_OPTIONS.find((opt) => opt.value === formData.renovation_preference)?.label
+            ? RENOVATION_PREFERENCE_OPTIONS.find(
+                (opt) => opt.value === formData.renovation_preference
+              )?.label
             : PROFILE_NOT_SPECIFIED_LABEL}
         </Box>
       ),

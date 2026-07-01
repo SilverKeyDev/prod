@@ -3,7 +3,7 @@
  */
 import { useCallback } from "react";
 
-import { negotiationService } from "packages/features/negotiate";
+import { negotiationService } from "packages/features/negotiate/utils/instance";
 
 export function useNegotiation() {
   const generateStrategy = useCallback(async () => {

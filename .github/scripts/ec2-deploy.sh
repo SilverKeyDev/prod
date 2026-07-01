@@ -7,6 +7,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ "$SCRIPT_DIR" = "/tmp/deploy" ] && [ -d /tmp/deploy ]; then
+  chmod 700 /tmp/deploy 2>/dev/null || sudo chmod 700 /tmp/deploy 2>/dev/null || true
+fi
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/_secrets-env.sh"
 
@@ -71,6 +74,12 @@ scale_env_docker_flags() {
 
 cleanup_deploy_temp_files() {
   rm -f "${ENV_BUILD:-}" "${DEPLOY_ENV_EXAMPLE:-}" 2>/dev/null || true
+}
+
+cleanup_deploy_staging_dir() {
+  if [ -d /tmp/deploy ]; then
+    sudo rm -rf /tmp/deploy 2>/dev/null || rm -rf /tmp/deploy 2>/dev/null || true
+  fi
 }
 
 # Failure diagnostics — error highlights first, then inspect, then log tail (secrets redacted).
@@ -559,6 +568,7 @@ deploy_exit_trap() {
   fi
   try_rollback_on_failure
   cleanup_deploy_temp_files
+  cleanup_deploy_staging_dir
   exit "$exit_code"
 }
 
@@ -610,7 +620,8 @@ echo "🧽 Light host cleanup (containers left running until new image is ready)
 sudo apt-get clean >/dev/null 2>&1 || true
 sudo rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* >/dev/null 2>&1 || true
 sudo journalctl --vacuum-time=3d >/dev/null 2>&1 || true
-sudo rm -rf ~/.cache /root/.cache /tmp/* /var/tmp/* >/dev/null 2>&1 || true
+find /tmp -mindepth 1 -maxdepth 1 ! -name deploy -exec rm -rf {} + >/dev/null 2>&1 || true
+sudo rm -rf ~/.cache /root/.cache /var/tmp/* >/dev/null 2>&1 || true
 
 if ! aws --version 2>/dev/null | grep -q aws-cli; then
   curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -764,5 +775,6 @@ fi
 
 DEPLOY_SUCCEEDED=1
 prune_docker_after_success
+cleanup_deploy_staging_dir
 
 echo "✅ Deployment complete! All containers are healthy."

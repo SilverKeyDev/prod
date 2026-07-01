@@ -14,7 +14,7 @@ import {
 import {
   ARCHITECTURAL_STYLE_OPTIONS,
   PROPERTY_USE_OPTIONS,
-  RENOVATION_OPTIONS,
+  RENOVATION_PREFERENCE_OPTIONS,
   WALKABILITY_OPTIONS,
 } from "packages/features/search/types/otherFilterOptions";
 import { FormFieldLabel as Label } from "packages/ui";
@@ -86,7 +86,7 @@ export default function OtherFilterContent({
           <Dropdown
             value={formData.renovation_preference ?? ""}
             onChange={(v) => updateFormData("renovation_preference", v)}
-            options={RENOVATION_OPTIONS}
+            options={RENOVATION_PREFERENCE_OPTIONS}
             placeholder="Select renovation preference"
             size="sm"
             noBorder={noBorder}

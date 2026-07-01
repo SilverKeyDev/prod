@@ -39,6 +39,8 @@ make prod-parity-smoke
 
 Smoke waits for the app container healthcheck (`/livez`), then curls `/livez` and `/readyz` (DB + Redis). Run before merging `Dockerfile.web` or deploy-script changes.
 
+**CI does-it-run (every PR):** GitHub Actions runs lightweight frontend + backend smoke on every PR; full Docker smoke runs automatically when deploy/Docker paths change (see [`docker-compose.ci.yml`](./prod-parity/docker-compose.ci.yml) Postgres overlay). Local equivalent: `make does-it-run` or `DOES_IT_RUN_MODE=docker make does-it-run`.
+
 On `build`, [`prod-parity/compose.sh`](./prod-parity/compose.sh) passes every `Client/.env` entry as a Docker `--build-arg` (no hardcoded keys in compose YAML). `up` uses `Client/.env` only for compose interpolation.
 
 **Docker Desktop (Apple Silicon):** prod-parity images are `linux/arm64`. If the app dies with exit **132** while loading routes (SIGILL), it is usually `cryptography` 47+ — not torch. Pin is documented in `Server/requirements/runtime.txt`; rebuild after changing it (`make prod-parity-build`).

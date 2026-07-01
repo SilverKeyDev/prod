@@ -38,8 +38,8 @@ export type DashboardRouteResult = {
   isProfile: boolean;
   isLibrary: boolean;
   isMessaging: boolean;
-  isAnalytics: boolean;
   isFindAgents: boolean;
+  isAnalytics: boolean;
   isAgreementSigningComplete: boolean;
   isFullHeightRoute: boolean;
   widthPercent: number;
@@ -73,8 +73,8 @@ export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResul
     isProfile: activeKey === "profile",
     isLibrary: activeKey === "library",
     isMessaging: activeKey === "messaging",
-    isAnalytics: activeKey === "analytics",
     isFindAgents: activeKey === "find_agents",
+    isAnalytics: activeKey === "analytics",
     isAgreementSigningComplete: activeKey === "agreement_signing_complete",
     isFullHeightRoute,
     widthPercent,

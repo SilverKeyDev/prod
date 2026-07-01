@@ -3,6 +3,5 @@ export {
   INTENDED_PROPERTY_USE_OPTIONS,
   INTENDED_USE_OPTIONS,
   PROPERTY_USE_OPTIONS,
-  RENOVATION_OPTIONS,
   RENOVATION_PREFERENCE_OPTIONS,
 } from "packages/utils/product/domain/profile/housingFilterOptions";

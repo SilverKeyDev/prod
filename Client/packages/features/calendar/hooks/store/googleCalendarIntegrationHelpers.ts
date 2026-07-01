@@ -9,6 +9,11 @@ import { resolveApiResultErrorMessage } from "packages/utils/core/errorHandling"
 
 import { googleCalendarApi } from "@/features/calendar/api";
 import { useGoogleEvents } from "@/features/calendar/hooks/data/google/useGoogleEvents";
+import {
+  GoogleReconnectRequiredError,
+  isGoogleReconnectRequiredApiError,
+  isGoogleReconnectRequiredError,
+} from "@/features/calendar/utils/core/googleCalendarReconnect";
 
 /** Avoids writing the Zustand slice when only the events array reference changed. */
 function calendarEventsStoreSyncSignature(events: GoogleEvent[]): string {
@@ -81,6 +86,13 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
     queryFn: async () => {
       const response = await googleCalendarApi.getOrCreateSilverKeyCalendar(undefined);
       if (!response.success || !response.data) {
+        if (isGoogleReconnectRequiredApiError(response.error)) {
+          googleCalendarApi.clearConnectionStatus();
+          queryClient.setQueryData([...queryKeys.googleCalendar.all, "connection"], false);
+          throw new GoogleReconnectRequiredError(
+            resolveApiResultErrorMessage(response, "Google Calendar reconnection required.")
+          );
+        }
         throw new Error(
           resolveApiResultErrorMessage(response, "Failed to load SilverKey calendar")
         );
@@ -104,6 +116,8 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
       : "Failed to load SilverKey calendar"
     : null;
 
+  const needsGoogleReconnect = isGoogleReconnectRequiredError(silverKeyQuery.error);
+
   return {
     queryClient,
     isConnected,
@@ -111,6 +125,7 @@ export function useGoogleCalendarConnectionState(shouldLoadData: boolean) {
     calendars,
     calendarsLoading,
     calendarsError,
+    needsGoogleReconnect,
   };
 }
 

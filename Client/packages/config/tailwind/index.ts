@@ -1,10 +1,12 @@
 // Relative path required: PostCSS/jiti loads this file in Node where "packages/design-tokens" alias is not resolved.
-/* eslint-disable silverkey/no-relative-parent-imports -- Node context, no Vite alias */
+
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
+
 const breakpoints = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/breakpoints.json"));
 const Z_LAYERS = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/zLayers.json"));
 const spacingMap = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/spacing.json"));
@@ -72,8 +74,6 @@ const sharedTailwindPreset = {
         "mobile-card": "16 / 9",
         "mobile-hero": "4 / 3",
       },
-      // Derived from Z_LAYERS in packages/design-tokens — single source of truth.
-      // Tailwind requires string values; native code imports Z_LAYERS directly for numbers.
       zIndex: Object.fromEntries(
         Object.entries(Z_LAYERS ?? {}).map(([key, value]) => [key, String(value)])
       ),

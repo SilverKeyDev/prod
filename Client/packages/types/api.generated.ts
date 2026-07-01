@@ -2050,6 +2050,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/dev-accounts/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mint one-time dev account session token (admin) */
+        post: operations["adminMintDevAccountSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dev-accounts/session/exchange": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange one-time dev account session token */
+        post: operations["adminExchangeDevAccountSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users/gate-roles": {
         parameters: {
             query?: never;
@@ -2601,26 +2635,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/agent/chats/messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Send message
-         * @description Send a message in a conversation
-         */
-        post: operations["sendMessage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/admin/partners": {
         parameters: {
             query?: never;
@@ -2702,6 +2716,43 @@ export interface paths {
         get: operations["getAdminRevShareAnalytics"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get SkySlope integration metadata for a brokerage (admin only) */
+        get: operations["getAdminBrokerageSkySlopeCredential"];
+        /** Update SkySlope integration credentials for a brokerage (admin only) */
+        put: operations["updateAdminBrokerageSkySlopeCredential"];
+        /** Store encrypted SkySlope API key for a brokerage (admin only) */
+        post: operations["createAdminBrokerageSkySlopeCredential"];
+        /** Delete SkySlope integration credentials for a brokerage (admin only) */
+        delete: operations["deleteAdminBrokerageSkySlopeCredential"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope/test-connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify stored SkySlope credentials decrypt successfully (admin only) */
+        post: operations["testAdminBrokerageSkySlopeConnection"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3366,6 +3417,59 @@ export interface components {
         BulkUpdateFavoritesRequest: {
             /** @description Replaces the user's favorites; each element is a home object passed to add_or_update_home_basic (same flexible shape as add-favorite). */
             favorites: components["schemas"]["FavoriteHomePayload"][];
+        };
+        BrokerageSkySlopeCredential: {
+            /** @description Brokerage org id (brokerage_orgs.id) */
+            brokerage_id: string;
+            /**
+             * @description Integration provider identifier
+             * @enum {string}
+             */
+            provider: "skyslope";
+            /** @description Last four characters of the API key (masked display only) */
+            key_last4?: string | null;
+            /** @description Optional SkySlope organization identifier */
+            skyslope_org_id?: string | null;
+            status: components["schemas"]["BrokerageSkySlopeCredentialStatus"];
+            /**
+             * Format: date-time
+             * @description When connection was last verified successfully
+             */
+            last_verified_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        BrokerageSkySlopeCredentialCreateRequest: {
+            /** @description Per-brokerage SkySlope AccessKey (write-only; never returned by GET) */
+            api_key: string;
+            /** @description Per-brokerage SkySlope AccessSecret (write-only; required for live API calls) */
+            access_secret?: string;
+            /** @description Optional SkySlope organization identifier */
+            skyslope_org_id?: string | null;
+        };
+        BrokerageSkySlopeCredentialUpdateRequest: {
+            /** @description Replacement SkySlope AccessKey (write-only) */
+            api_key?: string;
+            /** @description Replacement SkySlope AccessSecret (write-only) */
+            access_secret?: string;
+            skyslope_org_id?: string | null;
+            status?: components["schemas"]["BrokerageSkySlopeCredentialStatus"];
+        };
+        BrokerageSkySlopeCredentialResponse: {
+            success: boolean;
+            data: components["schemas"]["BrokerageSkySlopeCredential"];
+        };
+        /**
+         * @description SkySlope integration credential health status
+         * @enum {string}
+         */
+        BrokerageSkySlopeCredentialStatus: "active" | "invalid" | "pending";
+        BrokerageSkySlopeCredentialTestResponse: {
+            success: boolean;
+            /** @description Safe, non-secret connection test result */
+            message: string;
         };
         ChatbotHistoryMessage: {
             id: string;
@@ -6364,6 +6468,16 @@ export interface components {
         };
         SetCurrentUserDevWorkspaceResponse: components["schemas"]["SuccessResponse"] & {
             user?: components["schemas"]["User"];
+        };
+        ExchangeDevAccountSessionRequest: {
+            /** @description One-time dev session token minted by an admin for a target dev test account. */
+            token: string;
+        };
+        MintDevAccountSessionResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description One-time token for tab-scoped dev account session exchange. */
+            token: string;
+            role: components["schemas"]["DevWorkspacePersona"];
+            user: components["schemas"]["User"];
         };
         UpdateChecklistDispatchAutomationRequest: {
             enabled: boolean;
@@ -13148,6 +13262,90 @@ export interface operations {
             };
         };
     };
+    adminMintDevAccountSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MintDevAccountSessionResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminExchangeDevAccountSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExchangeDevAccountSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     adminListGateRoleUsers: {
         parameters: {
             query?: never;
@@ -14653,75 +14851,6 @@ export interface operations {
             };
         };
     };
-    sendMessage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SendMessageRequest"];
-            };
-        };
-        responses: {
-            /** @description Message sent */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SendMessageResponse"];
-                };
-            };
-            /** @description Invalid request body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Access denied */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Conversation not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     listAdminPartners: {
         parameters: {
             query?: never;
@@ -14897,6 +15026,178 @@ export interface operations {
                 };
             };
             /** @description Partner not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Credential metadata (no secret values) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
+                };
+            };
+            /** @description Credential or brokerage not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrokerageSkySlopeCredentialUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Credential updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
+                };
+            };
+            /** @description Credential or brokerage not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrokerageSkySlopeCredentialCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Credential stored */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
+                };
+            };
+            /** @description Brokerage not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Credential already exists for this brokerage */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Credential deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Credential not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    testAdminBrokerageSkySlopeConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Connection test result (safe message only) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialTestResponse"];
+                };
+            };
+            /** @description Credential not found */
             404: {
                 headers: {
                     [name: string]: unknown;

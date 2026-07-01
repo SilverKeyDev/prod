@@ -1,5 +1,5 @@
 ---
-paths:
-  - "Client/apps/**/*.{ts,tsx}"
+alwaysApply: false
+paths: Client/apps/**/*.{ts,tsx}
 ---
 @../../.cursor/rules/frontend/platform-file-extensions.mdc

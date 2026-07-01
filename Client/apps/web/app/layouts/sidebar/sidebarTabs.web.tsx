@@ -1,20 +1,16 @@
 import type { IconName } from "packages/ui/types/icons";
 import { stripWorkspaceShellPrefix } from "packages/utils/core/layout/dashboardLayoutConfig";
 
-export type SidebarTabKey = "dashboard" | "analytics" | "search" | "decide" | "profile" | "agent";
-export type SidebarSubStep = {
-  label: string;
-  to: string;
-  icon?: IconName;
-};
+export type SidebarTabKey = "dashboard" | "search" | "decide" | "profile" | "agent";
+
 export type SidebarTab = {
   key: SidebarTabKey;
   name: string;
   description: string;
   icon: IconName;
   href: string;
-  subSteps?: SidebarSubStep[];
 };
+
 export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
   dashboard: {
     key: "dashboard",
@@ -22,27 +18,6 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     description: "Overview and quick access to key actions",
     icon: "home",
     href: "/dashboard",
-    subSteps: [
-      {
-        label: "Dashboard",
-        to: "/dashboard",
-        icon: "home",
-      },
-    ],
-  },
-  analytics: {
-    key: "analytics",
-    name: "Analytics",
-    description: "Brokerage performance and team insights",
-    icon: "bar-chart-2",
-    href: "/analytics",
-    subSteps: [
-      {
-        label: "Analytics",
-        to: "/analytics",
-        icon: "bar-chart-2",
-      },
-    ],
   },
   search: {
     key: "search",
@@ -50,13 +25,6 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     description: "Explore homes and neighborhoods",
     icon: "search",
     href: "/search",
-    subSteps: [
-      {
-        label: "Find Homes",
-        to: "/search",
-        icon: "search",
-      },
-    ],
   },
   decide: {
     key: "decide",
@@ -64,13 +32,6 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     description: "Compare and pick your best options",
     icon: "library",
     href: "/library",
-    subSteps: [
-      {
-        label: "Compare Reports",
-        to: "/library",
-        icon: "library",
-      },
-    ],
   },
   profile: {
     key: "profile",
@@ -78,13 +39,6 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     description: "Manage your profile and preferences",
     icon: "user",
     href: "/profile",
-    subSteps: [
-      {
-        label: "Profile",
-        to: "/profile",
-        icon: "user",
-      },
-    ],
   },
   agent: {
     key: "agent",
@@ -92,19 +46,12 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     description: "Communicate with your agent",
     icon: "send",
     href: "/messaging",
-    subSteps: [
-      {
-        label: "Messaging",
-        to: "/messaging",
-        icon: "send",
-      },
-    ],
   },
 };
+
 export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   const p = stripWorkspaceShellPrefix(pathname);
   if (p.startsWith("/dashboard")) return SIDEBAR_TABS.dashboard;
-  if (p.startsWith("/analytics")) return SIDEBAR_TABS.analytics;
   if (p.startsWith("/profile")) return SIDEBAR_TABS.profile;
   if (p.startsWith("/search")) return SIDEBAR_TABS.search;
   if (p.startsWith("/library") || p.startsWith("/saved") || p.startsWith("/compare-reports"))

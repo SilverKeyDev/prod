@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
-# First-time local onboarding: deps → build → AWS SSO → local DB init → verify → MCP.
-# Usage: ./scripts/setup/setup-local.sh [--skip-secrets] [--ci] [--no-install]
+# Core local onboarding: prerequisites → Client + Server env → verify.
+# Usage: ./scripts/setup/setup-local.sh [--force-venv] [--ci] [--no-install]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
-SKIP_SECRETS=false
+FORCE_VENV=false
 BOOTSTRAP_CI=false
 NO_INSTALL=false
 for arg in "$@"; do
   case "$arg" in
-    --skip-secrets) SKIP_SECRETS=true ;;
-    --force-venv)
-      echo "setup-local: --force-venv is no longer required (make setup recreates Server/.venv when present)" >&2
-      ;;
+    --force-venv) FORCE_VENV=true ;;
     --ci) BOOTSTRAP_CI=true ;;
     --no-install) NO_INSTALL=true ;;
+    --skip-secrets)
+      echo "setup-local: --skip-secrets is no longer used (make setup does not run AWS/secrets). Use make setup-dev for backend." >&2
+      ;;
     *)
       echo "Unknown option: $arg" >&2
-      echo "Usage: $0 [--skip-secrets] [--ci] [--no-install]" >&2
+      echo "Usage: $0 [--force-venv] [--ci] [--no-install]" >&2
       exit 1
       ;;
   esac
@@ -29,17 +29,13 @@ die() { echo "setup-local: $*" >&2; exit 1; }
 
 # shellcheck source=lib/deps.sh
 source "${ROOT}/scripts/lib/deps.sh"
-# shellcheck source=lib/aws-setup.sh
-source "${ROOT}/scripts/lib/aws-setup.sh"
 # shellcheck source=lib/setup-verify.sh
 source "${ROOT}/scripts/lib/setup-verify.sh"
-# shellcheck source=lib/setup-mcp.sh
-source "${ROOT}/scripts/lib/setup-mcp.sh"
 
 [[ "$NO_INSTALL" == true ]] && DEPS_NO_INSTALL=true
-[[ "$SKIP_SECRETS" == true ]] && DEPS_SKIP_AWS_SETUP=true
+DEPS_SKIP_AWS_SETUP=true
 
-# --- Step 1: prerequisites (install or print commands) ---
+# --- Step 1/3: prerequisites (install or print commands) ---
 if ! deps_ensure_prerequisites; then
   die "Fix prerequisites, then re-run make setup (see setup.md)"
 fi
@@ -48,45 +44,28 @@ if [[ -d "$ROOT/scripts" ]]; then
   find "$ROOT/scripts" -type f -name '*.sh' -exec chmod +x {} +
 fi
 
-# --- Step 2: build Client + Server environments ---
-echo "==> Step 2/6: Client (pnpm install)"
+# --- Step 2/3: build Client + Server environments ---
+echo "==> Step 2/3: Client (pnpm install)"
 (cd Client && pnpm install)
 
 bootstrap_args=()
-if [[ -d Server/.venv ]]; then
-  echo "==> Step 2/6: Server (removing existing .venv, recreating)"
+if [[ "$FORCE_VENV" == true ]]; then
+  echo "==> Step 2/3: Server (recreating .venv — --force-venv)"
   bootstrap_args+=(--force)
+elif [[ -d Server/.venv ]]; then
+  echo "==> Step 2/3: Server (refreshing existing .venv)"
+  bootstrap_args+=(--refresh-deps)
 else
-  echo "==> Step 2/6: Server (Python venv)"
+  echo "==> Step 2/3: Server (Python venv)"
 fi
 [[ "$BOOTSTRAP_CI" == true ]] && bootstrap_args+=(--ci)
 # Nounset-safe empty-array expansion (macOS Bash 3.2 errors on "${arr[@]}" when empty).
 bash Server/scripts/bootstrap-venv.sh ${bootstrap_args[@]+"${bootstrap_args[@]}"}
 
-# --- Step 3–4: AWS SSO + local DB init ---
-if [[ "$SKIP_SECRETS" != true ]]; then
-  echo "==> Step 3/6: AWS SSO"
-  if ! aws_setup_login "$ROOT"; then
-    die "AWS SSO setup failed (see setup.md — AWS section)"
-  fi
-
-  echo "==> Step 4/6: Local dev database (reset, secrets, migrations)"
-  make dev-db-init REGION="${AWS_REGION:-us-east-2}" PROFILE="${AWS_PROFILE:-}"
-else
-  echo "==> Steps 3–4/6: Skipped AWS SSO, secrets, and local DB init (--skip-secrets)"
-  echo "    Copy Server/.env.example to Server/.env and fill values manually."
-fi
-
-# --- Step 5: verify ---
-echo "==> Step 5/6: Verify"
-if ! setup_verify_all "$ROOT" "$SKIP_SECRETS"; then
+# --- Step 3/3: verify ---
+echo "==> Step 3/3: Verify"
+if ! setup_verify_core "$ROOT"; then
   die "Setup verification failed — fix issues above and re-run make setup"
-fi
-
-# --- Step 6: Cursor MCP (local config, no secrets committed) ---
-echo "==> Step 6/6: Cursor MCP"
-if ! setup_mcp_configure "$ROOT"; then
-  echo "setup-local: MCP step reported errors (see above) — core setup may still be usable" >&2
 fi
 
 if [[ -f "$ROOT/.pre-commit-config.yaml" && -x "$ROOT/Server/.venv/bin/pip" ]]; then
@@ -106,8 +85,8 @@ cat <<EOF
 
 setup-local: done
 
-  make dev              # web + API (DB initialized by setup)
-  make dev-db-init      # reset local DB + secrets + migrations
-  make dev-web          # web only
-  setup.md              # full guide (incl. Cursor MCP — step 6)
+  make dev-web          # web only (works now)
+  make setup-dev        # AWS + local DB + Server/.env (needed for make dev)
+  make setup-mcp        # optional Cursor MCP tooling
+  setup.md              # full guide
 EOF

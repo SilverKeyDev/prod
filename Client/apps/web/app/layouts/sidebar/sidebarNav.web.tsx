@@ -5,85 +5,44 @@ import { getWorkspaceNavTabs } from "packages/utils/product/workspace/workspaceN
 import { SIDEBAR_TABS } from "./sidebarTabs.web";
 
 export type SidebarNavItem = {
+  key: string;
   name: string;
   href: string;
   icon: IconName;
 };
 
-export type NavCategory = {
-  name: string;
-  icon: IconName;
-  items: SidebarNavItem[];
-};
-
-export type NavigationStructure = Record<string, NavCategory>;
+export type NavigationStructure = Record<string, SidebarNavItem>;
 
 const navigationStructure: NavigationStructure = {
   dashboard: {
+    key: "dashboard",
     name: SIDEBAR_TABS.dashboard.name,
+    href: SIDEBAR_TABS.dashboard.href,
     icon: SIDEBAR_TABS.dashboard.icon,
-    items: [
-      {
-        name: SIDEBAR_TABS.dashboard.name,
-        href: SIDEBAR_TABS.dashboard.href,
-        icon: SIDEBAR_TABS.dashboard.icon,
-      },
-    ],
-  },
-  analytics: {
-    name: SIDEBAR_TABS.analytics.name,
-    icon: SIDEBAR_TABS.analytics.icon,
-    items: [
-      {
-        name: SIDEBAR_TABS.analytics.name,
-        href: SIDEBAR_TABS.analytics.href,
-        icon: SIDEBAR_TABS.analytics.icon,
-      },
-    ],
   },
   search: {
+    key: "search",
     name: SIDEBAR_TABS.search.name,
+    href: SIDEBAR_TABS.search.href,
     icon: SIDEBAR_TABS.search.icon,
-    items: [
-      {
-        name: SIDEBAR_TABS.search.name,
-        href: SIDEBAR_TABS.search.href,
-        icon: SIDEBAR_TABS.search.icon,
-      },
-    ],
   },
   decide: {
+    key: "decide",
     name: SIDEBAR_TABS.decide.name,
+    href: SIDEBAR_TABS.decide.href,
     icon: SIDEBAR_TABS.decide.icon,
-    items: [
-      {
-        name: SIDEBAR_TABS.decide.name,
-        href: SIDEBAR_TABS.decide.href,
-        icon: SIDEBAR_TABS.decide.icon,
-      },
-    ],
   },
   agent: {
+    key: "agent",
     name: SIDEBAR_TABS.agent.name,
+    href: SIDEBAR_TABS.agent.href,
     icon: SIDEBAR_TABS.agent.icon,
-    items: [
-      {
-        name: SIDEBAR_TABS.agent.name,
-        href: SIDEBAR_TABS.agent.href,
-        icon: SIDEBAR_TABS.agent.icon,
-      },
-    ],
   },
   profile: {
+    key: "profile",
     name: SIDEBAR_TABS.profile.name,
+    href: SIDEBAR_TABS.profile.href,
     icon: SIDEBAR_TABS.profile.icon,
-    items: [
-      {
-        name: SIDEBAR_TABS.profile.name,
-        href: SIDEBAR_TABS.profile.href,
-        icon: SIDEBAR_TABS.profile.icon,
-      },
-    ],
   },
 };
 
@@ -107,10 +66,6 @@ export function getNavigation(
     navigation[tab.key] = {
       ...base,
       name,
-      items: base.items.map((item) => ({
-        ...item,
-        label: item.label === base.name ? name : item.label,
-      })),
     };
   }
 
