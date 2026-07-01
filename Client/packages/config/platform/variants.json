@@ -280,6 +280,41 @@
     "reason": "Native home screen uses full-screen vertical stack; web uses different composition."
   },
   {
+    "id": "landing-reveal-hook",
+    "description": "Landing scroll reveal — IntersectionObserver on web, immediate on native.",
+    "webPath": "packages/features/homeauth/hooks/useLandingReveal.web.ts",
+    "nativePath": "packages/features/homeauth/hooks/useLandingReveal.native.ts",
+    "reason": "IntersectionObserver is web-only."
+  },
+  {
+    "id": "landing-counter-hook",
+    "description": "Landing stat counter animation on web; static value on native.",
+    "webPath": "packages/features/homeauth/hooks/useAnimatedCounter.web.ts",
+    "nativePath": "packages/features/homeauth/hooks/useAnimatedCounter.native.ts",
+    "reason": "requestAnimationFrame counter is web-only."
+  },
+  {
+    "id": "landing-sticky-bar",
+    "description": "Fixed bottom CTA bar on scroll — web only.",
+    "webPath": "packages/features/homeauth/components/homepage/landing/sticky/LandingStickyBar.web.tsx",
+    "nativePath": "packages/features/homeauth/components/homepage/landing/sticky/LandingStickyBar.native.tsx",
+    "reason": "Fixed scroll-triggered bar uses window scroll on web."
+  },
+  {
+    "id": "landing-scroll",
+    "description": "Scroll to landing section — DOM on web, ScrollView ref on native.",
+    "webPath": "packages/features/homeauth/utils/landingScroll.ts",
+    "nativePath": "packages/features/homeauth/utils/landingScroll.native.ts",
+    "reason": "Web uses getElementById; native uses registered ScrollView."
+  },
+  {
+    "id": "landing-analytics",
+    "description": "Landing PostHog capture helpers — web only.",
+    "webPath": "packages/hooks/analytics/trackLandingAnalytics.web.ts",
+    "nativePath": "packages/hooks/analytics/trackLandingAnalytics.native.ts",
+    "reason": "PostHog slider/CTA events are web-only."
+  },
+  {
     "id": "contact-us-screen",
     "description": "Contact us screen with platform-specific layout.",
     "webPath": "packages/features/homeauth/components/legal/ContactUsFeature.tsx",

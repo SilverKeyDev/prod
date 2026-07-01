@@ -310,5 +310,19 @@
     .animate-spin {
       animation: none;
     }
+
+    .landing-partner-track {
+      animation: none;
+    }
+  }
+}
+
+@keyframes landing-partner-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
   }
 }

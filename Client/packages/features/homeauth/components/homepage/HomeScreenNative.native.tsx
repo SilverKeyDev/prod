@@ -1,9 +1,8 @@
 /**
- * Mobile-only Auth home / landing screen.
- * Instagram-style: rippled background, centered logo + buttons, Log in link at bottom.
+ * Mobile auth home — full marketing landing (PR #116 structure) with sign-up CTAs.
  */
 
-import React from "react";
+import { useEffect, useRef } from "react";
 
 import type { ParamListBase } from "@react-navigation/native";
 import { useNavigation } from "@react-navigation/native";
@@ -13,14 +12,27 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { color } from "packages/design-tokens";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
-import AppImage from "packages/ui/components/media/asset/AppImage.native";
-import { LOGO_SOURCE } from "packages/ui/components/media/asset/logoSource.native";
-import { ScrollView } from "packages/ui/components/structure/primitives";
-import { Pressable } from "packages/ui/components/structure/primitives";
-import { Text } from "packages/ui/components/structure/primitives";
-import { RippleBackground } from "packages/ui/components/surfaces/backgrounds";
+import {
+  registerLandingScrollTarget,
+  scrollToLandingSection,
+} from "packages/features/homeauth/utils/landingScroll";
+import { LANDING_SECTION_IDS } from "packages/features/homeauth/utils/landingSectionIds";
+import { Box, Pressable, ScrollView, Text } from "packages/ui/components/structure/primitives";
 
-/** Minimal auth stack screen names we navigate to from Home. Matches AuthStackParamList in apps/mobile. */
+import {
+  LandingDemoPreview,
+  LandingFAQ,
+  LandingFinalCTA,
+  LandingFooter,
+  LandingHero,
+  LandingInfoSection,
+  LandingNav,
+  LandingPartners,
+  LandingPricing,
+  LandingSavingsCalculator,
+  LandingSectionDivider,
+} from "./landing";
+
 type AuthHomeNavigation = NativeStackNavigationProp<
   ParamListBase & {
     Login: undefined;
@@ -32,52 +44,69 @@ type AuthHomeNavigation = NativeStackNavigationProp<
   "Home"
 >;
 
+function LandingNativeAuthStrip({ onSignup }: { onSignup: () => void }) {
+  return (
+    <View style={styles.authStrip}>
+      <GoogleSignInButton text="Sign up with Google" />
+      <Pressable onPress={onSignup} style={styles.primaryButton}>
+        <Text style={styles.primaryButtonText}>Sign up</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 export function HomeScreenNative() {
   const navigation = useNavigation<AuthHomeNavigation>();
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    registerLandingScrollTarget({
+      scrollTo: (options) => scrollRef.current?.scrollTo(options),
+      scrollToEnd: (options) => scrollRef.current?.scrollToEnd(options),
+    });
+    return () => registerLandingScrollTarget(null);
+  }, []);
+
+  const goSignup = () => navigation.navigate("Signup");
+  const goLogin = () => navigation.navigate("Login");
+  const goBookDemo = () => scrollToLandingSection(LANDING_SECTION_IDS.finalCta);
 
   return (
-    <SafeAreaView style={styles.root} edges={["top", "left", "right", "bottom"]}>
-      <RippleBackground />
+    <SafeAreaView style={styles.root} edges={["top", "left", "right"]}>
       <ScrollView
+        ref={scrollRef}
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.centerBlock}>
-          <AppImage source={LOGO_SOURCE} style={styles.logo} resizeMode="contain" alt="SilverKey" />
-
-          <View style={styles.actions}>
-            <GoogleSignInButton text="Sign up with Google" />
-            <Pressable onPress={() => navigation.navigate("Signup")} style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>Sign up</Text>
-            </Pressable>
-          </View>
-
+        <Box className="bg-background-base min-h-full min-w-0 flex-col">
+          <LandingNav onBookDemo={goBookDemo} />
+          <Box className="pt-[calc(env(safe-area-inset-top,0px)+3.5rem)]">
+            <LandingHero onBookDemo={goBookDemo} />
+            <LandingNativeAuthStrip onSignup={goSignup} />
+            <LandingDemoPreview />
+            <LandingSectionDivider />
+            <LandingPartners />
+            <LandingSectionDivider />
+            <LandingInfoSection />
+            <LandingSectionDivider />
+            <LandingSavingsCalculator />
+            <LandingSectionDivider />
+            <LandingPricing />
+            <LandingSectionDivider />
+            <LandingFAQ />
+            <LandingSectionDivider />
+            <LandingFinalCTA />
+          </Box>
+          <LandingFooter />
           <View style={styles.loginRow}>
             <Text style={styles.loginPrompt}>Have an account? </Text>
-            <Pressable
-              onPress={() => navigation.navigate("Login")}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
+            <Pressable onPress={goLogin} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Text style={styles.loginLink}>Log in</Text>
             </Pressable>
           </View>
-        </View>
-
-        <View style={styles.footer}>
-          <Pressable onPress={() => navigation.navigate("Privacy")} style={styles.footerLink}>
-            <Text style={styles.footerLinkText}>Privacy</Text>
-          </Pressable>
-          <Text style={styles.footerDot}> · </Text>
-          <Pressable onPress={() => navigation.navigate("Terms")} style={styles.footerLink}>
-            <Text style={styles.footerLinkText}>Terms</Text>
-          </Pressable>
-          <Text style={styles.footerDot}> · </Text>
-          <Pressable onPress={() => navigation.navigate("Contact")} style={styles.footerLink}>
-            <Text style={styles.footerLinkText}>Contact</Text>
-          </Pressable>
-        </View>
+        </Box>
       </ScrollView>
     </SafeAreaView>
   );
@@ -90,30 +119,15 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flex: 1,
-    zIndex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 32,
-    paddingTop: 48,
-    paddingBottom: 24,
-    justifyContent: "space-between",
   },
-  centerBlock: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logo: {
-    width: 200,
-    height: 72,
-    marginBottom: 48,
-  },
-  actions: {
+  authStrip: {
     width: "100%",
-    alignItems: "stretch",
+    paddingHorizontal: 24,
+    paddingBottom: 24,
     gap: 12,
-    marginBottom: 24,
   },
   primaryButton: {
     backgroundColor: color("brand.accent"),
@@ -133,6 +147,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingVertical: 16,
   },
   loginPrompt: {
     fontSize: 14,
@@ -142,26 +157,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: color("brand.accent"),
-  },
-  footer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 16,
-  },
-  footerLink: {
-    minHeight: 44,
-    justifyContent: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-  },
-  footerLinkText: {
-    fontSize: 12,
-    color: color("neutral.500"),
-  },
-  footerDot: {
-    fontSize: 12,
-    color: color("neutral.400"),
   },
 });
