@@ -48,6 +48,21 @@ function isShellSetupStepComplete(formData: OnboardingData): boolean {
   return typeof value === "string" && value.trim() !== "";
 }
 
+function isRenterBudgetStepComplete(formData: OnboardingData): boolean {
+  return formData.renter_budget_max != null && formData.renter_budget_max > 0;
+}
+
+function isRenterLocationStepComplete(formData: OnboardingData): boolean {
+  return Array.isArray(formData.important_locations) && formData.important_locations.length > 0;
+}
+
+function isRenterMoveTimelineStepComplete(formData: OnboardingData): boolean {
+  return (
+    typeof formData.renter_move_in_timeline === "string" &&
+    formData.renter_move_in_timeline.trim() !== ""
+  );
+}
+
 const STEP_COMPLETION_HANDLERS: Partial<
   Record<ProfileStepId, (formData: OnboardingData) => boolean>
 > = {
@@ -67,6 +82,11 @@ const STEP_COMPLETION_HANDLERS: Partial<
   renter_shell_setup: isShellSetupStepComplete,
   brokerage_shell_setup: isShellSetupStepComplete,
   integration_partner_shell_setup: isShellSetupStepComplete,
+  renter_budget: isRenterBudgetStepComplete,
+  renter_location: isRenterLocationStepComplete,
+  renter_move_timeline: isRenterMoveTimelineStepComplete,
+  renter_household: () => true,
+  renter_amenities: () => true,
 };
 
 export function getStepCompletionHandler(

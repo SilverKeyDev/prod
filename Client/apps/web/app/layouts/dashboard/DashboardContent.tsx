@@ -152,7 +152,7 @@ export function DashboardContent({
   const wrapperClass = isSearch
     ? searchHeightClass
     : isMessaging
-      ? "relative mx-0 flex max-h-full min-h-0 w-full flex-1 flex-col overflow-hidden"
+      ? "relative mx-0 flex min-h-0 w-full flex-1 flex-col overflow-hidden"
       : `mx-auto ${MOBILE_SIDE_PX} md:px-0 ${
           contentTopMargin ? "pt-4 md:pt-8" : ""
         } ${contentBottomMargin ? "pb-4 sm:pb-6 md:pb-8" : ""}`;

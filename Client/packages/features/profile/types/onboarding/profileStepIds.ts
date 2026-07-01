@@ -18,6 +18,11 @@ export const PROFILE_STEP_IDS = [
   "privacy_data",
   "seller_shell_setup",
   "renter_shell_setup",
+  "renter_budget",
+  "renter_location",
+  "renter_move_timeline",
+  "renter_household",
+  "renter_amenities",
   "brokerage_shell_setup",
   "integration_partner_shell_setup",
 ] as const;

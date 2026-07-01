@@ -1,11 +1,17 @@
 // Relative path required: PostCSS/jiti loads this file in Node where "packages/design-tokens" alias is not resolved.
- 
+
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
+
+const breakpoints = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/breakpoints.json"));
+const Z_LAYERS = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/zLayers.json"));
+const spacingMap = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/spacing.json"));
+const fontSize = require(path.resolve(__dirname, "../../design-tokens/tokens/typography/fontSize.json"));
+const fontFamily = { serif: ["Playfair Display", "serif"], sans: ["Inter", "sans-serif"] };
 const foundation = require(
   path.resolve(__dirname, "../../design-tokens/tokens/color/foundation.json")
 );
@@ -13,22 +19,6 @@ const features = require(path.resolve(__dirname, "../../design-tokens/tokens/col
 const colors = { ...foundation, ...features };
 const motionTheme = require(
   path.resolve(__dirname, "../../design-tokens/tokens/motion/motion.theme.json")
-);
-// Direct requires: PostCSS/jiti cannot resolve barrel re-exports from design-tokens/index.ts.
-const { breakpoints } = require(
-  path.resolve(__dirname, "../../design-tokens/tokens/layout/breakpoints.ts")
-);
-const { Z_LAYERS } = require(
-  path.resolve(__dirname, "../../design-tokens/tokens/layout/zLayers.ts")
-);
-const fontSize = require(
-  path.resolve(__dirname, "../../design-tokens/tokens/typography/fontSize.json")
-);
-const { fontFamily } = require(
-  path.resolve(__dirname, "../../design-tokens/tokens/typography/fontFamily.ts")
-);
-const { spacing: spacingMap } = require(
-  path.resolve(__dirname, "../../design-tokens/tokens/layout/spacing.ts")
 );
 
 /**
@@ -38,11 +28,11 @@ const { spacing: spacingMap } = require(
 /** @type {import('tailwindcss').Config} */
 const sharedTailwindPreset = {
   theme: {
-    screens: breakpoints,
+    screens: breakpoints ?? {},
     extend: {
       colors,
-      fontFamily,
-      fontSize,
+      fontFamily: fontFamily ?? {},
+      fontSize: fontSize ?? {},
       ...motionTheme,
       animation: {
         "fade-in": "fadeIn 0.5s ease-out",
@@ -64,7 +54,7 @@ const sharedTailwindPreset = {
           "100%": { transform: "scale(1)" },
         },
       },
-      spacing: spacingMap,
+      spacing: spacingMap ?? {},
       minHeight: {
         touch: "44px",
         "touch-lg": "48px",
@@ -84,10 +74,8 @@ const sharedTailwindPreset = {
         "mobile-card": "16 / 9",
         "mobile-hero": "4 / 3",
       },
-      // Derived from Z_LAYERS in packages/design-tokens — single source of truth.
-      // Tailwind requires string values; native code imports Z_LAYERS directly for numbers.
       zIndex: Object.fromEntries(
-        Object.entries(Z_LAYERS).map(([key, value]) => [key, String(value)])
+        Object.entries(Z_LAYERS ?? {}).map(([key, value]) => [key, String(value)])
       ),
     },
   },

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import MessagingModals from "packages/features/messaging/components/layout/chrome/MessagingModals";
 import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
 import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
+import { useAgentChatsSse } from "packages/features/messaging/hooks/data/useAgentChatsSse";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useMessagingComposerStoreIntegration } from "packages/features/messaging/hooks/store/useMessagingComposerStoreIntegration";
 import { useMessagingComposerStore } from "packages/features/messaging/store";
@@ -47,6 +48,9 @@ export default function ClientMessaging({
 }: ClientMessagingProps = {}) {
   useMessagingComposerStoreIntegration();
   useFirstRenderCommitTimer("MESSAGES", "ClientMessaging");
+  // SIL-180: Subscribe to agent SSE stream so new messages appear without refresh
+  useAgentChatsSse(true);
+
   const { userProfile } = useUserData();
   const agentId = useMemo(() => null, []);
   const showFindAgentInMessagingHeader = !(userProfile?.roles ?? []).includes("agent");
@@ -104,7 +108,6 @@ export default function ClientMessaging({
 
   const isTyping = false;
 
-  // Client inbox: pending agent-initiated requests the buyer may accept or reject (agents auto-accept clients).
   const { requests: pendingConnectionRequests } = useConnectionRequests({ inboxEnabled: true });
   const pendingConnectionRequestCount = pendingConnectionRequests.length;
 
@@ -193,8 +196,6 @@ export default function ClientMessaging({
   useEffect(() => {
     if (!setMobileHeaderActions) return;
 
-    // When sidebar is expanded on mobile, the sidebar's own internal header takes over.
-    // Clear the mobile shell header to avoid duplicate controls.
     if (isSidebarExpanded) {
       headerContentKeyRef.current = null;
       setMobileHeaderActions(null);

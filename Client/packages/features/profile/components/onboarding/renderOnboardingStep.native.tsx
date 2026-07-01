@@ -1,5 +1,11 @@
 import React from "react";
 
+import {
+  RenterBudgetStep,
+  RenterMoveTimelineStep,
+  RenterHouseholdStep,
+  RenterAmenitiesStep,
+} from "packages/features/profile/components/onboarding/renter";
 import { BROKERAGE_TRANSLATIONS } from "packages/features/brokerage/types/translations";
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
 import {
@@ -45,6 +51,7 @@ export function renderOnboardingStep({
   switch (stepId) {
     case "onboarding_role":
       return <OnboardingRoleStep formData={formData} updateFormData={updateFormData} />;
+
     case "demographics":
       return isBuyer ? (
         <BuyerAboutMeStepContent
@@ -61,6 +68,7 @@ export function renderOnboardingStep({
           showWhyJoiningQuestion={false}
         />
       );
+
     case "agent_brokerage":
       return (
         <AgentBrokerageSection
@@ -70,6 +78,7 @@ export function renderOnboardingStep({
           wrapInCard={false}
         />
       );
+
     case "agent_licensing":
       return (
         <AgentLicensingSection
@@ -79,6 +88,7 @@ export function renderOnboardingStep({
           wrapInCard={false}
         />
       );
+
     case "agent_profile":
       return (
         <AgentProfileServiceSection
@@ -88,10 +98,13 @@ export function renderOnboardingStep({
           wrapInCard={false}
         />
       );
+
     case "housing_essentials":
       return <HousingStepEssentials formData={formData} updateFormData={updateFormData} />;
+
     case "housing_ranges":
       return <HousingStepRanges formData={formData} updateFormData={updateFormData} />;
+
     case "location":
       return (
         <LocationStep
@@ -100,6 +113,7 @@ export function renderOnboardingStep({
           patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
       );
+
     case "search_property":
       return (
         <ProfileSearchPropertySection
@@ -109,6 +123,7 @@ export function renderOnboardingStep({
           patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
         />
       );
+
     case "financial":
       return isBuyer ? (
         <BuyerFinancingStepContent
@@ -123,6 +138,7 @@ export function renderOnboardingStep({
           showAffordabilityZipHint={!zip && !formData.paying_cash}
         />
       ) : null;
+
     case "seller_shell_setup":
       return (
         <WorkspaceShellSetupStep
@@ -135,6 +151,7 @@ export function renderOnboardingStep({
           }}
         />
       );
+
     case "renter_shell_setup":
       return (
         <WorkspaceShellSetupStep
@@ -147,6 +164,28 @@ export function renderOnboardingStep({
           }}
         />
       );
+
+    case "renter_budget":
+      return <RenterBudgetStep formData={formData} updateFormData={updateFormData} />;
+
+    case "renter_location":
+      return (
+        <LocationStep
+          formData={formData}
+          updateFormData={updateFormData}
+          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
+        />
+      );
+
+    case "renter_move_timeline":
+      return <RenterMoveTimelineStep formData={formData} updateFormData={updateFormData} />;
+
+    case "renter_household":
+      return <RenterHouseholdStep formData={formData} updateFormData={updateFormData} />;
+
+    case "renter_amenities":
+      return <RenterAmenitiesStep formData={formData} updateFormData={updateFormData} />;
+
     case "brokerage_shell_setup":
       return (
         <WorkspaceShellSetupStep
@@ -159,6 +198,7 @@ export function renderOnboardingStep({
           }}
         />
       );
+
     case "integration_partner_shell_setup":
       return (
         <WorkspaceShellSetupStep
@@ -171,6 +211,7 @@ export function renderOnboardingStep({
           }}
         />
       );
+
     default:
       return (
         <Box className="py-6">

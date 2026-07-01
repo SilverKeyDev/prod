@@ -92,6 +92,16 @@ export type OnboardingData = {
   buyer_about_pet_types?: string[];
   buyer_about_move_motivation?: string;
 
+  // Renter preferences (SIL-226)
+  renter_budget_min?: number; // monthly rent min
+  renter_budget_max?: number; // monthly rent max
+  renter_move_in_timeline?: string; // e.g. "immediately" | "1_month" | "3_months" | "6_months"
+  renter_household_size?: number;
+  renter_has_pets?: boolean;
+  renter_pet_types?: string[];
+  renter_amenities?: string[]; // e.g. ["in_unit_laundry", "parking", "gym", "pet_friendly"]
+  renter_preferred_areas?: string[];
+
   // Buyer Financing (SIL-182) — flat form keys; persisted via price_financing ext + user_financials
   lender_status?: string;
   lender_name?: string;

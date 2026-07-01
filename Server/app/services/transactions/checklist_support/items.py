@@ -72,7 +72,8 @@ SEARCH_ITEMS = [
             "buyer_broker_single_property",
         ],
         "forms_card_variant": "document",
-        "completion_type": "signature_based",
+        "completion_type": "signature_plus_review",
+        "component_key": "buyer_broker_review",
         "bullets": [
             "Review the agreement type: exclusive, non-exclusive, or single-property representation.",
             "Understand the compensation structure and how your agent will be paid.",
