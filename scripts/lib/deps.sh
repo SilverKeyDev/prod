@@ -160,8 +160,14 @@ deps_check_libmagic_system() {
       ;;
     Linux)
       if command -v dpkg-query >/dev/null 2>&1; then
-        dpkg-query -W -f='${Status}' libmagic1 2>/dev/null | grep -q 'install ok installed'
-        return $?
+        local pkg status
+        for pkg in libmagic1 libmagic1t64; do
+          status="$(dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null || true)"
+          if [[ "$status" == *'install ok installed'* ]]; then
+            return 0
+          fi
+        done
+        return 1
       fi
       if command -v rpm >/dev/null 2>&1; then
         rpm -q file-libs >/dev/null 2>&1 || rpm -q file >/dev/null 2>&1
