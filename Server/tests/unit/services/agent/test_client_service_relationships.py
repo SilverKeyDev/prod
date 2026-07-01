@@ -1,6 +1,6 @@
 """Tests for client_service relationship and ID merge helpers."""
 
-from app.models import AgentConnections, User, UserRole
+from app.models import AgentConnections, Transaction, User, UserRole
 from app.services.agent.client_service import (
     agent_may_access_client,
     get_agent_client_ids,
@@ -9,6 +9,7 @@ from app.services.agent.client_service import (
     validate_agent_client_relationship,
 )
 from app.services.auth.user_role_helpers import ensure_user_role
+from app.services.brokerage.constants import DEFAULT_BROKERAGE_ORG_ID
 
 
 def _add_agent_client(db_session, agent: User, client_u: User) -> None:
@@ -209,3 +210,33 @@ def test_get_user_agent_id_falls_back_to_connection(db_session):
     db_session.session.commit()
 
     assert get_user_agent_id("gua-c2") == "gua-a2"
+
+
+def test_agent_may_access_client_true_when_primary_agent_on_transaction(db_session):
+    agent = User(
+        id="tx-agent",
+        cognito_id="cog-tx-agent",
+        email="tx-agent@example.com",
+        name="Tx Agent",
+    )
+    buyer = User(
+        id="tx-buyer",
+        cognito_id="cog-tx-buyer",
+        email="tx-buyer@example.com",
+        name="Tx Buyer",
+    )
+    db_session.session.add_all([agent, buyer])
+    ensure_user_role("tx-agent", "agent")
+    ensure_user_role("tx-buyer", "buyer")
+    db_session.session.add(
+        Transaction(
+            id="tx-deal-1",
+            buyer_id="tx-buyer",
+            primary_agent_id="tx-agent",
+            brokerage_org_id=DEFAULT_BROKERAGE_ORG_ID,
+        )
+    )
+    db_session.session.commit()
+
+    assert agent_may_access_client("tx-agent", "tx-buyer") is True
+    assert set(get_agent_client_ids("tx-agent")) == {"tx-buyer"}

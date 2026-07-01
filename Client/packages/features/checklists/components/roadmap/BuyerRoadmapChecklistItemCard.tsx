@@ -256,7 +256,7 @@ function BuyerRoadmapChecklistItemCardInner({
             checked={checked}
             onToggle={handleCheckboxToggle}
             disabled={checkboxDisabled}
-            deferInteractionToParent
+            deferInteractionToParent={!isAgent}
             roadmapSoftBlocked={roadmapSoftBlocked}
             roadmapBlockerInlineText={blockerInlineText}
             roadmapBlockerInlineVariant={
@@ -307,9 +307,11 @@ function BuyerRoadmapChecklistItemCardInner({
 
   const checkboxRow = roadmapHandoff
     ? wrapRowPressTarget(handoffAccessibilityLabel, handleRoadmapHandoff, checkboxRowInner)
-    : !expanded
-      ? wrapRowPressTarget(expandRowAccessibilityLabel, handleExpandRowPress, checkboxRowInner)
-      : wrapRowPressTarget(toggleRowAccessibilityLabel, handleCheckboxToggle, checkboxRowInner);
+    : isAgent
+      ? checkboxRowInner
+      : !expanded
+        ? wrapRowPressTarget(expandRowAccessibilityLabel, handleExpandRowPress, checkboxRowInner)
+        : wrapRowPressTarget(toggleRowAccessibilityLabel, handleCheckboxToggle, checkboxRowInner);
 
   const integrationBlock = (
     <ChecklistStepAttachments
