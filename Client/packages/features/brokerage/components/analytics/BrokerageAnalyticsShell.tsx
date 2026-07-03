@@ -1,17 +1,23 @@
 import { useMemo, useState } from "react";
 
-import { color } from "packages/design-tokens";
 import { useBrokerageAnalytics } from "packages/features/brokerage/hooks/useBrokerageAnalytics";
 import { useDealFailureForensics } from "packages/features/brokerage/hooks/useDealFailureForensics";
-import { DonutChart, VerticalBarChart } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
+import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTabs";
 import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
 import { TargetedAgentEngagementPanel } from "./TargetedAgentEngagementPanel";
 import { AgentRetentionRiskPanel } from "./AgentRetentionRiskPanel";
+import {
+  AnalyticsLineChart,
+  AnalyticsBarChart,
+  AnalyticsDonutChart,
+  AnalyticsHeatMap,
+} from "../charts";
 
 type TimePeriod = "week" | "month" | "year" | "5years" | "all";
+type Tab = "overview" | "agents" | "leakage" | "forensics" | "market";
 
 const TIME_PERIOD_OPTIONS: { value: TimePeriod; label: string }[] = [
   { value: "week", label: "7D" },
@@ -19,6 +25,14 @@ const TIME_PERIOD_OPTIONS: { value: TimePeriod; label: string }[] = [
   { value: "year", label: "1Y" },
   { value: "5years", label: "5Y" },
   { value: "all", label: "All" },
+];
+
+const DASHBOARD_TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "agents", label: "Agents" },
+  { id: "leakage", label: "Leakage" },
+  { id: "forensics", label: "Deal forensics" },
+  { id: "market", label: "Market" },
 ];
 
 function KpiCard({
@@ -56,51 +70,51 @@ function SectionCard({ title, children }: { title: string; children: React.React
   );
 }
 
-/** Brokerage analytics shell — populated with demo fixtures (SIL-202 will swap to real API). */
 export function BrokerageAnalyticsShell() {
   const { data, agents, isLoading } = useBrokerageAnalytics();
   const { data: failureData } = useDealFailureForensics();
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all");
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
 
   const funnelBars = useMemo(
     () =>
       data.transactionFunnel.map((s) => ({
         label: s.stage,
         value: s.count,
-        displayValue: String(s.count),
       })),
     [data]
   );
 
-  const agentPerformanceBars = useMemo(
-    () =>
-      [...agents]
-        .sort((a, b) => b.closings - a.closings)
-        .slice(0, 8)
-        .map((a) => ({
-          label: a.name.split(" ")[0] ?? a.name,
-          value: a.closings,
-          displayValue: String(a.closings),
-        })),
-    [agents]
-  );
+  const agentPerformanceBarsWithZ = useMemo(() => {
+    const sorted = [...agents]
+      .sort((a, b) => b.closings - a.closings)
+      .slice(0, 8);
+    const vals = sorted.map((a) => a.closings);
+    const avg = vals.reduce((s, v) => s + v, 0) / vals.length;
+    const std = Math.sqrt(
+      vals.reduce((s, v) => s + (v - avg) ** 2, 0) / vals.length
+    );
+    return sorted.map((a) => ({
+      label: a.name.split(" ")[0] ?? a.name,
+      value: a.closings,
+      zScore: std > 0 ? +((a.closings - avg) / std).toFixed(2) : 0,
+    }));
+  }, [agents]);
 
   const agentStatusDonut = useMemo(
     () =>
       data.agentStatusBreakdown.map((s) => ({
         label: s.label,
         value: s.value,
-        color: s.color,
       })),
     [data]
   );
 
-  const failureTrendBars = useMemo(
+  const failureTrendLine = useMemo(
     () =>
       failureData.trend.map((t) => ({
         label: t.month,
         value: t.cancelled,
-        displayValue: String(t.cancelled),
       })),
     [failureData]
   );
@@ -110,7 +124,6 @@ export function BrokerageAnalyticsShell() {
       failureData.by_stage.map((s) => ({
         label: s.stage,
         value: s.count,
-        displayValue: String(s.count),
       })),
     [failureData]
   );
@@ -139,6 +152,15 @@ export function BrokerageAnalyticsShell() {
         </BodyText>
       </Box>
 
+      {/* Tab header — SIL-286: reusing UnderlineTabs from packages/ui */}
+      <UnderlineTabs
+        items={DASHBOARD_TABS}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as Tab)}
+        size="sm"
+        scrollable
+      />
+
       {/* Time Period Picker */}
       <Box className="flex items-center gap-2">
         {TIME_PERIOD_OPTIONS.map((opt) => (
@@ -160,263 +182,343 @@ export function BrokerageAnalyticsShell() {
         </BodyText>
       </Box>
 
-      {/* KPI Cards */}
-      <Box className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Active Agents" value={overview.activeAgents} />
-        <KpiCard label="Open Transactions" value={overview.openTransactions} />
-        <KpiCard
-          label="Messaging SLA"
-          value={`${overview.messagingSlaPercent}%`}
-          delta="Response within 24h"
-        />
-        <KpiCard label="At-Risk Agents" value={overview.atRiskCount} delta="Stalled > 14 days" />
-        <KpiCard
-          label="Closings This Month"
-          value={overview.closingsThisMonth}
-          delta={`${closingsDelta >= 0 ? "+" : ""}${closingsDelta} vs last month`}
-        />
-        <KpiCard
-          label="Active Clients"
-          value={overview.activeClientsThisMonth}
-          delta={`${clientsDelta >= 0 ? "+" : ""}${clientsDelta} vs last month`}
-        />
-      </Box>
-
-      {/* Charts Row 1 */}
-      <Box className="grid gap-4 lg:grid-cols-2">
-        <SectionCard title="Transaction Funnel">
-          <VerticalBarChart data={funnelBars} />
-        </SectionCard>
-        <SectionCard title="Agent Status Breakdown">
-          <DonutChart data={agentStatusDonut} />
-        </SectionCard>
-      </Box>
-
-      {/* Charts Row 2 */}
-      <Box className="grid gap-4 lg:grid-cols-2">
-        <SectionCard title="Messaging Activity (Last 7 Days)">
-          <VerticalBarChart data={data.messagingActivity} />
-        </SectionCard>
-        <SectionCard title="Closings Trend (6 Months)">
-          <VerticalBarChart data={data.closingsTrend} />
-        </SectionCard>
-      </Box>
-
-      {/* Agent Performance Table */}
-      <SectionCard title="Agent Performance">
-        <Box className="mb-4">
-          <VerticalBarChart data={agentPerformanceBars} />
-        </Box>
-        <Box className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-border border-b">
-                <th className="py-2 pr-4">Agent</th>
-                <th className="py-2 pr-4">Active Clients</th>
-                <th className="py-2 pr-4">Closings</th>
-                <th className="py-2 pr-4">Stall Stage</th>
-                <th className="py-2">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {agents.map((agent) => (
-                <tr key={agent.id} className="border-border/60 border-b">
-                  <td className="py-2 pr-4 font-medium">{agent.name}</td>
-                  <td className="py-2 pr-4">{agent.activeClients}</td>
-                  <td className="py-2 pr-4">{agent.closings}</td>
-                  <td className="py-2 pr-4 font-mono text-xs">{agent.stall ?? "—"}</td>
-                  <td className="py-2">
-                    <span
-                      className={
-                        agent.status === "top"
-                          ? "font-medium text-green-600"
-                          : agent.status === "at_risk"
-                            ? "font-medium text-red-500"
-                            : "text-blue-500"
-                      }
-                    >
-                      {agent.status === "top"
-                        ? "Top Performer"
-                        : agent.status === "at_risk"
-                          ? "At Risk"
-                          : "Healthy"}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Box>
-      </SectionCard>
-
-      {/* Ancillary Capture Leakage — SIL-277 */}
-      <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Title size="sm" as="h3" className="mb-1">
-          Ancillary Capture Leakage
-        </Title>
-        <BodyText size="xs" muted className="mb-4">
-          Revenue leaking to outside title, lending, escrow, and home warranty vendors
-        </BodyText>
-        <AncillaryInsightPanel />
-      </Box>
-
-      {/* Deal Failure Forensics — SIL-281 */}
-      <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Title size="sm" as="h3" className="mb-1">
-          Deal Failure Forensics
-        </Title>
-        <BodyText size="xs" muted className="mb-4">
-          Fall-through rate:{" "}
-          <span className="font-medium text-red-500">
-            {failureData.summary.fall_through_rate_percent}%
-          </span>{" "}
-          · {failureData.summary.total_cancelled} cancelled of{" "}
-          {failureData.summary.total_transactions} transactions · avg{" "}
-          {failureData.summary.avg_days_to_cancellation} days to cancellation
-        </BodyText>
-
-        {/* Trend + Stage charts */}
-        <Box className="mb-6 grid gap-4 lg:grid-cols-2">
-          <Box>
-            <BodyText size="xs" muted className="mb-2">
-              Cancellations by Month
-            </BodyText>
-            <VerticalBarChart data={failureTrendBars} />
+      {/* ── Overview tab ── */}
+      {activeTab === "overview" && (
+        <Box className="flex flex-col gap-6">
+          <Box className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiCard label="Active Agents" value={overview.activeAgents} />
+            <KpiCard label="Open Transactions" value={overview.openTransactions} />
+            <KpiCard
+              label="Messaging SLA"
+              value={`${overview.messagingSlaPercent}%`}
+              delta="Response within 24h"
+            />
+            <KpiCard label="At-Risk Agents" value={overview.atRiskCount} delta="Stalled > 14 days" />
+            <KpiCard
+              label="Closings This Month"
+              value={overview.closingsThisMonth}
+              delta={`${closingsDelta >= 0 ? "+" : ""}${closingsDelta} vs last month`}
+            />
+            <KpiCard
+              label="Active Clients"
+              value={overview.activeClientsThisMonth}
+              delta={`${clientsDelta >= 0 ? "+" : ""}${clientsDelta} vs last month`}
+            />
           </Box>
-          <Box>
-            <BodyText size="xs" muted className="mb-2">
-              Failure Stage Breakdown
-            </BodyText>
-            <VerticalBarChart data={failureStageBars} />
+
+          <Box className="grid gap-4 lg:grid-cols-2">
+            <SectionCard title="Transaction Funnel">
+              <AnalyticsBarChart
+                data={funnelBars}
+                orientation="vertical"
+                color="#4a6741"
+                height={220}
+              />
+            </SectionCard>
+            <SectionCard title="Agent Status Breakdown">
+              <AnalyticsDonutChart
+                data={agentStatusDonut}
+                centerLabel={String(overview.activeAgents)}
+                centerSub="active agents"
+                height={280}
+                colors={["#22c55e", "#3b82f6", "#ef4444"]}
+              />
+            </SectionCard>
+          </Box>
+
+          <Box className="grid gap-4 lg:grid-cols-2">
+            <SectionCard title="Messaging Activity (Last 7 Days)">
+              <AnalyticsBarChart
+                data={data.messagingActivity.map((d) => ({ label: d.label, value: d.value }))}
+                orientation="vertical"
+                color="#4a6741"
+                height={220}
+              />
+            </SectionCard>
+            <SectionCard title="Closings Trend (6 Months)">
+              <AnalyticsLineChart
+                data={data.closingsTrend.map((d) => ({ label: d.label, value: d.value }))}
+                height={220}
+              />
+            </SectionCard>
           </Box>
         </Box>
+      )}
 
-        {/* Agent leaderboard */}
-        <BodyText size="xs" muted className="mb-2">
-          Agent Fall-Through Rates
-        </BodyText>
-        <Box className="mb-6 overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-border border-b">
-                <th className="py-2 pr-4">Agent</th>
-                <th className="py-2 pr-4">Total Deals</th>
-                <th className="py-2 pr-4">Cancelled</th>
-                <th className="py-2">Fall-Through Rate</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...failureData.by_agent]
-                .sort((a, b) => b.fall_through_rate_percent - a.fall_through_rate_percent)
-                .map((agent) => (
-                  <tr key={agent.agent_id} className="border-border/60 border-b">
-                    <td className="py-2 pr-4 font-medium">{agent.name}</td>
-                    <td className="py-2 pr-4">{agent.total_deals}</td>
-                    <td className="py-2 pr-4">{agent.cancelled}</td>
-                    <td className="py-2">
-                      <span
-                        className={
-                          agent.fall_through_rate_percent >= 30
-                            ? "font-medium text-red-500"
-                            : agent.fall_through_rate_percent >= 15
-                              ? "font-medium text-yellow-500"
-                              : "font-medium text-green-600"
-                        }
-                      >
-                        {agent.fall_through_rate_percent}%
-                      </span>
-                    </td>
+      {/* ── Agents tab ── */}
+      {activeTab === "agents" && (
+        <Box className="flex flex-col gap-6">
+          <SectionCard title="Agent Performance">
+            <Box className="mb-4">
+              <AnalyticsBarChart
+                data={agentPerformanceBarsWithZ}
+                unit=" closings"
+                height={260}
+              />
+            </Box>
+            <Box className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-border border-b">
+                    <th className="py-2 pr-4">Agent</th>
+                    <th className="py-2 pr-4">Active Clients</th>
+                    <th className="py-2 pr-4">Closings</th>
+                    <th className="py-2 pr-4">Stall Stage</th>
+                    <th className="py-2">Status</th>
                   </tr>
-                ))}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {agents.map((agent) => (
+                    <tr key={agent.id} className="border-border/60 border-b">
+                      <td className="py-2 pr-4 font-medium">{agent.name}</td>
+                      <td className="py-2 pr-4">{agent.activeClients}</td>
+                      <td className="py-2 pr-4">{agent.closings}</td>
+                      <td className="py-2 pr-4 font-mono text-xs">{agent.stall ?? "—"}</td>
+                      <td className="py-2">
+                        <span
+                          className={
+                            agent.status === "top"
+                              ? "font-medium text-green-600"
+                              : agent.status === "at_risk"
+                                ? "font-medium text-red-500"
+                                : "text-blue-500"
+                          }
+                        >
+                          {agent.status === "top"
+                            ? "Top Performer"
+                            : agent.status === "at_risk"
+                              ? "At Risk"
+                              : "Healthy"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Box>
+          </SectionCard>
+          <TargetedAgentEngagementPanel />
+          <AgentRetentionRiskPanel />
         </Box>
+      )}
 
-        {/* Lender leaderboard */}
-        <BodyText size="xs" muted className="mb-2">
-          Lender Fall-Through Rates
-        </BodyText>
-        <Box className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-border border-b">
-                <th className="py-2 pr-4">Lender</th>
-                <th className="py-2 pr-4">Total Deals</th>
-                <th className="py-2 pr-4">Cancelled</th>
-                <th className="py-2">Fall-Through Rate</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...failureData.by_lender]
-                .sort((a, b) => b.fall_through_rate_percent - a.fall_through_rate_percent)
-                .map((lender) => (
-                  <tr key={lender.lender_name} className="border-border/60 border-b">
-                    <td className="py-2 pr-4 font-medium">{lender.lender_name}</td>
-                    <td className="py-2 pr-4">{lender.total_deals}</td>
-                    <td className="py-2 pr-4">{lender.cancelled}</td>
-                    <td className="py-2">
-                      <span
-                        className={
-                          lender.fall_through_rate_percent >= 25
-                            ? "font-medium text-red-500"
-                            : lender.fall_through_rate_percent >= 15
-                              ? "font-medium text-yellow-500"
-                              : "font-medium text-green-600"
-                        }
-                      >
-                        {lender.fall_through_rate_percent}%
-                      </span>
-                    </td>
+      {/* ── Leakage tab ── */}
+      {activeTab === "leakage" && (
+        <Box className="flex flex-col gap-6">
+          <Box className="border-border bg-background-surface rounded-xl border p-5">
+            <Title size="sm" as="h3" className="mb-1">
+              Ancillary Capture Leakage
+            </Title>
+            <BodyText size="xs" muted className="mb-4">
+              Revenue leaking to outside title, lending, escrow, and home warranty vendors
+            </BodyText>
+            <AncillaryInsightPanel />
+          </Box>
+          <SectionCard title="Service Revenue Mix">
+            <AnalyticsDonutChart
+              data={[
+                { label: "Title", value: 38, detail: "$912K" },
+                { label: "Mortgage", value: 27, detail: "$648K" },
+                { label: "Escrow", value: 21, detail: "$504K" },
+                { label: "Warranty", value: 14, detail: "$336K" },
+              ]}
+              centerLabel="$2.4M"
+              centerSub="total revenue"
+              showEntropy
+              height={300}
+            />
+          </SectionCard>
+        </Box>
+      )}
+
+      {/* ── Deal Forensics tab ── */}
+      {activeTab === "forensics" && (
+        <Box className="flex flex-col gap-6">
+          <Box className="border-border bg-background-surface rounded-xl border p-5">
+            <Title size="sm" as="h3" className="mb-1">
+              Deal Failure Forensics
+            </Title>
+            <BodyText size="xs" muted className="mb-4">
+              Fall-through rate:{" "}
+              <span className="font-medium text-red-500">
+                {failureData.summary.fall_through_rate_percent}%
+              </span>{" "}
+              · {failureData.summary.total_cancelled} cancelled of{" "}
+              {failureData.summary.total_transactions} transactions · avg{" "}
+              {failureData.summary.avg_days_to_cancellation} days to cancellation
+            </BodyText>
+
+            <Box className="mb-6 grid gap-4 lg:grid-cols-2">
+              <Box>
+                <BodyText size="xs" muted className="mb-2">
+                  Cancellations by Month
+                </BodyText>
+                <AnalyticsLineChart
+                  data={failureTrendLine}
+                  height={200}
+                  color="#e34948"
+                  showConfidenceBand={false}
+                />
+              </Box>
+              <Box>
+                <BodyText size="xs" muted className="mb-2">
+                  Failure Stage Breakdown
+                </BodyText>
+                <AnalyticsBarChart
+                  data={failureStageBars}
+                  orientation="vertical"
+                  color="#e34948"
+                  height={200}
+                />
+              </Box>
+            </Box>
+
+            <BodyText size="xs" muted className="mb-2">
+              Agent Fall-Through Rates
+            </BodyText>
+            <Box className="mb-6 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-border border-b">
+                    <th className="py-2 pr-4">Agent</th>
+                    <th className="py-2 pr-4">Total Deals</th>
+                    <th className="py-2 pr-4">Cancelled</th>
+                    <th className="py-2">Fall-Through Rate</th>
                   </tr>
-                ))}
-            </tbody>
-          </table>
-        </Box>
+                </thead>
+                <tbody>
+                  {[...failureData.by_agent]
+                    .sort((a, b) => b.fall_through_rate_percent - a.fall_through_rate_percent)
+                    .map((agent) => (
+                      <tr key={agent.agent_id} className="border-border/60 border-b">
+                        <td className="py-2 pr-4 font-medium">{agent.name}</td>
+                        <td className="py-2 pr-4">{agent.total_deals}</td>
+                        <td className="py-2 pr-4">{agent.cancelled}</td>
+                        <td className="py-2">
+                          <span
+                            className={
+                              agent.fall_through_rate_percent >= 30
+                                ? "font-medium text-red-500"
+                                : agent.fall_through_rate_percent >= 15
+                                  ? "font-medium text-yellow-500"
+                                  : "font-medium text-green-600"
+                            }
+                          >
+                            {agent.fall_through_rate_percent}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </Box>
 
-        {/* Price band table */}
-        <BodyText size="xs" muted className="mb-2 mt-6">
-          Fall-Through Rates by Price Band
-        </BodyText>
-        <Box className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-border border-b">
-                <th className="py-2 pr-4">Price Band</th>
-                <th className="py-2 pr-4">Total Deals</th>
-                <th className="py-2 pr-4">Cancelled</th>
-                <th className="py-2">Fall-Through Rate</th>
-              </tr>
-            </thead>
-            <tbody>
-              {failureData.by_price_band.map((band) => (
-                <tr key={band.band} className="border-border/60 border-b">
-                  <td className="py-2 pr-4 font-medium">{band.band}</td>
-                  <td className="py-2 pr-4">{band.total_deals}</td>
-                  <td className="py-2 pr-4">{band.cancelled}</td>
-                  <td className="py-2">
-                    <span
-                      className={
-                        band.fall_through_rate_percent >= 25
-                          ? "font-medium text-red-500"
-                          : band.fall_through_rate_percent >= 15
-                            ? "font-medium text-yellow-500"
-                            : "font-medium text-green-600"
-                      }
-                    >
-                      {band.fall_through_rate_percent}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Box>
-      </Box>
+            <BodyText size="xs" muted className="mb-2">
+              Lender Fall-Through Rates
+            </BodyText>
+            <Box className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-border border-b">
+                    <th className="py-2 pr-4">Lender</th>
+                    <th className="py-2 pr-4">Total Deals</th>
+                    <th className="py-2 pr-4">Cancelled</th>
+                    <th className="py-2">Fall-Through Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...failureData.by_lender]
+                    .sort((a, b) => b.fall_through_rate_percent - a.fall_through_rate_percent)
+                    .map((lender) => (
+                      <tr key={lender.lender_name} className="border-border/60 border-b">
+                        <td className="py-2 pr-4 font-medium">{lender.lender_name}</td>
+                        <td className="py-2 pr-4">{lender.total_deals}</td>
+                        <td className="py-2 pr-4">{lender.cancelled}</td>
+                        <td className="py-2">
+                          <span
+                            className={
+                              lender.fall_through_rate_percent >= 25
+                                ? "font-medium text-red-500"
+                                : lender.fall_through_rate_percent >= 15
+                                  ? "font-medium text-yellow-500"
+                                  : "font-medium text-green-600"
+                            }
+                          >
+                            {lender.fall_through_rate_percent}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </Box>
 
-      {/* Targeted Agent Engagement — SIL-279 */}
-      <TargetedAgentEngagementPanel />
-      {/* Agent Retention Risk — SIL-278 */}
-      <AgentRetentionRiskPanel />
+            <BodyText size="xs" muted className="mb-2 mt-6">
+              Fall-Through Rates by Price Band
+            </BodyText>
+            <Box className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-border border-b">
+                    <th className="py-2 pr-4">Price Band</th>
+                    <th className="py-2 pr-4">Total Deals</th>
+                    <th className="py-2 pr-4">Cancelled</th>
+                    <th className="py-2">Fall-Through Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {failureData.by_price_band.map((band) => (
+                    <tr key={band.band} className="border-border/60 border-b">
+                      <td className="py-2 pr-4 font-medium">{band.band}</td>
+                      <td className="py-2 pr-4">{band.total_deals}</td>
+                      <td className="py-2 pr-4">{band.cancelled}</td>
+                      <td className="py-2">
+                        <span
+                          className={
+                            band.fall_through_rate_percent >= 25
+                              ? "font-medium text-red-500"
+                              : band.fall_through_rate_percent >= 15
+                                ? "font-medium text-yellow-500"
+                                : "font-medium text-green-600"
+                          }
+                        >
+                          {band.fall_through_rate_percent}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {/* ── Market tab ── */}
+      {activeTab === "market" && (
+        <Box className="flex flex-col gap-6">
+          <SectionCard title="Transaction Activity Density">
+            <BodyText size="xs" muted className="mb-3">
+              Activity by day and hour — fixture data, live with SkySlope sync
+            </BodyText>
+            <AnalyticsHeatMap
+              xLabels={["8:00","9:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"]}
+              yLabels={["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]}
+              data={[
+                {x:0,y:0,value:6},{x:1,y:0,value:18},{x:2,y:0,value:22},{x:3,y:0,value:14},{x:4,y:0,value:8},{x:5,y:0,value:10},{x:6,y:0,value:16},{x:7,y:0,value:20},{x:8,y:0,value:12},{x:9,y:0,value:7},{x:10,y:0,value:4},
+                {x:0,y:1,value:5},{x:1,y:1,value:20},{x:2,y:1,value:24},{x:3,y:1,value:16},{x:4,y:1,value:9},{x:5,y:1,value:11},{x:6,y:1,value:18},{x:7,y:1,value:22},{x:8,y:1,value:14},{x:9,y:1,value:8},{x:10,y:1,value:3},
+                {x:0,y:2,value:7},{x:1,y:2,value:16},{x:2,y:2,value:20},{x:3,y:2,value:18},{x:4,y:2,value:10},{x:5,y:2,value:12},{x:6,y:2,value:15},{x:7,y:2,value:19},{x:8,y:2,value:11},{x:9,y:2,value:6},{x:10,y:2,value:3},
+                {x:0,y:3,value:4},{x:1,y:3,value:14},{x:2,y:3,value:19},{x:3,y:3,value:21},{x:4,y:3,value:8},{x:5,y:3,value:9},{x:6,y:3,value:17},{x:7,y:3,value:21},{x:8,y:3,value:13},{x:9,y:3,value:7},{x:10,y:3,value:2},
+                {x:0,y:4,value:5},{x:1,y:4,value:12},{x:2,y:4,value:17},{x:3,y:4,value:15},{x:4,y:4,value:7},{x:5,y:4,value:8},{x:6,y:4,value:14},{x:7,y:4,value:18},{x:8,y:4,value:10},{x:9,y:4,value:5},{x:10,y:4,value:2},
+                {x:0,y:5,value:1},{x:1,y:5,value:3},{x:2,y:5,value:4},{x:3,y:5,value:3},{x:4,y:5,value:2},{x:5,y:5,value:2},{x:6,y:5,value:3},{x:7,y:5,value:4},{x:8,y:5,value:2},{x:9,y:5,value:1},{x:10,y:5,value:0},
+                {x:0,y:6,value:1},{x:1,y:6,value:2},{x:2,y:6,value:3},{x:3,y:6,value:2},{x:4,y:6,value:1},{x:5,y:6,value:1},{x:6,y:6,value:2},{x:7,y:6,value:3},{x:8,y:6,value:2},{x:9,y:6,value:1},{x:10,y:6,value:0},
+              ]}
+              height={200}
+              valueLabel="transactions"
+            />
+          </SectionCard>
+        </Box>
+      )}
     </Box>
   );
 }

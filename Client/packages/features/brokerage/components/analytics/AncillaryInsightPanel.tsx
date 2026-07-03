@@ -17,6 +17,7 @@
  * TODO SIL-211: Reuse this panel in brokerage performance dashboard.
  */
 import { useMemo } from "react";
+import ReactECharts from "echarts-for-react";
 
 import { useAncillaryAnalytics } from "packages/features/brokerage/hooks/useAncillaryAnalytics";
 import { Box } from "packages/ui/components/structure/primitives";
@@ -45,26 +46,6 @@ function formatDollars(amount: number): string {
   return `$${amount}`;
 }
 
-function AttachRateBar({ rate, service }: { rate: number; service: string }) {
-  const color = SERVICE_COLORS[service] ?? "#6b7280";
-  const leakagePercent = 100 - rate;
-  return (
-    <Box className="w-full">
-      <Box className="mb-1 flex justify-between">
-        <BodyText size="xs" muted>
-          In-house {rate.toFixed(1)}%
-        </BodyText>
-        <BodyText size="xs" className="text-red-500">
-          Outside {leakagePercent.toFixed(1)}%
-        </BodyText>
-      </Box>
-      <Box className="bg-background-muted h-2 w-full overflow-hidden rounded-full">
-        <Box className="h-2 rounded-full" style={{ width: `${rate}%`, backgroundColor: color }} />
-      </Box>
-    </Box>
-  );
-}
-
 /** Synthetic data disclaimer shown on all demo data. */
 function DemoDisclaimer() {
   return (
@@ -74,6 +55,80 @@ function DemoDisclaimer() {
       </BodyText>
     </Box>
   );
+}
+
+interface ServiceData {
+  service: string;
+  in_house_count: number;
+  outside_count: number;
+  attach_rate_percent: number;
+  leakage_dollars: number;
+  fee_assumption: number;
+}
+
+function AttachRatesChart({ services }: { services: ServiceData[] }) {
+  const labels = services.map((s) => SERVICE_LABELS[s.service] ?? s.service);
+  const inHouseData = services.map((s) => ({
+    value: parseFloat(s.attach_rate_percent.toFixed(1)),
+    itemStyle: { color: SERVICE_COLORS[s.service] ?? "#6b7280", borderRadius: [0, 3, 3, 0] },
+  }));
+  const outsideData = services.map((s) => ({
+    value: parseFloat((100 - s.attach_rate_percent).toFixed(1)),
+    itemStyle: { color: "rgba(239,68,68,0.15)", borderRadius: [0, 3, 3, 0] },
+  }));
+
+  const option = {
+    tooltip: {
+      trigger: "axis",
+      axisPointer: { type: "none" },
+      formatter: (params: { seriesName: string; value: number; dataIndex: number }[]) => {
+        const svc = services[params[0].dataIndex];
+        const label = SERVICE_LABELS[svc.service] ?? svc.service;
+        return [
+          `<b>${label}</b>`,
+          `In-house: <b>${svc.attach_rate_percent.toFixed(1)}%</b> (${svc.in_house_count} transactions)`,
+          `Outside: <b>${(100 - svc.attach_rate_percent).toFixed(1)}%</b> (${svc.outside_count} transactions)`,
+          `Leakage: <b style="color:#ef4444">${formatDollars(svc.leakage_dollars)}</b>`,
+        ].join("<br/>");
+      },
+    },
+    grid: { left: 130, right: 16, top: 8, bottom: 8 },
+    xAxis: {
+      type: "value",
+      min: 0,
+      max: 100,
+      axisLabel: { fontSize: 10, formatter: "{value}%" },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: "rgba(11,11,11,0.05)" } },
+    },
+    yAxis: {
+      type: "category",
+      data: labels,
+      axisLabel: { fontSize: 11 },
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { show: false },
+    },
+    series: [
+      {
+        name: "In-house",
+        type: "bar",
+        stack: "attach",
+        data: inHouseData,
+        barMaxWidth: 20,
+      },
+      {
+        name: "Outside",
+        type: "bar",
+        stack: "attach",
+        data: outsideData,
+        barMaxWidth: 20,
+      },
+    ],
+  };
+
+  return <ReactECharts option={option} style={{ height: services.length * 56 + 24 }} />;
 }
 
 export function AncillaryInsightPanel() {
@@ -116,31 +171,15 @@ export function AncillaryInsightPanel() {
         </BodyText>
       </Box>
 
-      {/* Attach rates by service */}
+      {/* Attach rates by service — now ECharts stacked bar */}
       <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Title size="sm" as="h3" className="mb-4">
+        <Title size="sm" as="h3" className="mb-1">
           Attach Rates by Service
         </Title>
-        <Box className="flex flex-col gap-5">
-          {data.by_service.map((svc) => (
-            <Box key={svc.service}>
-              <Box className="mb-2 flex items-center justify-between">
-                <BodyText size="sm" className="font-medium">
-                  {SERVICE_LABELS[svc.service] ?? svc.service}
-                </BodyText>
-                <Box className="flex gap-4">
-                  <BodyText size="xs" muted>
-                    {svc.in_house_count} in-house / {svc.outside_count} outside
-                  </BodyText>
-                  <BodyText size="xs" className="font-medium text-red-500">
-                    {formatDollars(svc.leakage_dollars)} leaked
-                  </BodyText>
-                </Box>
-              </Box>
-              <AttachRateBar rate={svc.attach_rate_percent} service={svc.service} />
-            </Box>
-          ))}
-        </Box>
+        <BodyText size="xs" muted className="mb-4">
+          Hover any bar to see in-house vs outside breakdown and leakage amount
+        </BodyText>
+        <AttachRatesChart services={data.by_service} />
       </Box>
 
       {/* Agent leakage leaderboard */}
