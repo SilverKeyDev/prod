@@ -72,6 +72,10 @@ if [[ "${2:-}" == "get-secret-value" ]]; then
       printf '%s\n' '{"SecretString":"{\"EXPO_PUBLIC_POSTHOG_KEY\":\"ph_mock_test_key\",\"GOOGLE_MAPS_SERVER_KEY\":\"server-only-not-client\"}"}'
       exit 0
       ;;
+    shell_metachar)
+      printf '%s\n' '{"SecretString":"{\"SKYSLOPE_SECRET\":\"abc`def\"}"}'
+      exit 0
+      ;;
     *)
       die "unexpected secret-id: $secret_id"
       ;;

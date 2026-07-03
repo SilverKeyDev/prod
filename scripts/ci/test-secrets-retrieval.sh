@@ -106,9 +106,11 @@ prepare_workspace "$workspace_d"
 run_secrets "$workspace_d" env MOCK_AWS_SECRET_NAMES="db_url cognito gmaps"
 client_env="${workspace_d}/Client/.env"
 server_env_d="${workspace_d}/Server/.env"
-assert_file_contains "EXPO_PUBLIC keys land in Client/.env" "$client_env" 'EXPO_PUBLIC_POSTHOG_KEY="ph_mock_test_key"'
+assert_file_contains "EXPO_PUBLIC keys land in Client/.env" "$client_env" "EXPO_PUBLIC_POSTHOG_KEY="
+assert_file_contains "EXPO_PUBLIC value in Client/.env" "$client_env" "ph_mock_test_key"
 assert_file_not_contains "EXPO_PUBLIC keys stripped from Server/.env" "$server_env_d" "EXPO_PUBLIC_POSTHOG_KEY"
-assert_file_contains "server-only keys stay in Server/.env" "$server_env_d" 'GOOGLE_MAPS_SERVER_KEY="server-only-not-client"'
+assert_file_contains "server-only keys stay in Server/.env" "$server_env_d" "GOOGLE_MAPS_SERVER_KEY="
+assert_file_contains "server-only value in Server/.env" "$server_env_d" "server-only-not-client"
 
 workspace_e="$(mktemp -d)"
 cleanup_dirs+=("$workspace_e")
@@ -146,8 +148,26 @@ cleanup_dirs+=("$workspace_g")
 prepare_workspace "$workspace_g"
 run_secrets "$workspace_g" env MOCK_AWS_SECRET_NAMES="db_url dotenv_test"
 env_file_g="${workspace_g}/Server/.env"
-assert_file_contains "dotenv secret normalized FOO" "$env_file_g" 'DOTENV_FOO="bar"'
-assert_file_contains "dotenv secret normalized BAZ" "$env_file_g" 'DOTENV_BAZ="quoted"'
+assert_file_contains "dotenv secret normalized FOO" "$env_file_g" "DOTENV_FOO="
+assert_file_contains "dotenv secret FOO value" "$env_file_g" "bar"
+assert_file_contains "dotenv secret normalized BAZ" "$env_file_g" "DOTENV_BAZ="
+assert_file_contains "dotenv secret BAZ value" "$env_file_g" "quoted"
+
+workspace_h="$(mktemp -d)"
+cleanup_dirs+=("$workspace_h")
+prepare_workspace "$workspace_h"
+run_secrets "$workspace_h" env MOCK_AWS_SECRET_NAMES="db_url shell_metachar cognito"
+env_file_h="${workspace_h}/Server/.env"
+assert_file_contains "shell metachar secret written" "$env_file_h" "SKYSLOPE_SECRET="
+if (
+  cd "${workspace_h}/Server"
+  "${ROOT}/Server/.venv/bin/python" -c "from dotenv import dotenv_values; import sys; sys.exit(0 if dotenv_values('.env').get('SKYSLOPE_SECRET') else 1)"
+); then
+  printf 'OK: shell metachar .env is python-dotenv parseable\n'
+else
+  printf 'FAIL: shell metachar .env is not python-dotenv parseable\n' >&2
+  failures=$((failures + 1))
+fi
 
 for dir in "${cleanup_dirs[@]}"; do
   rm -rf "$dir"

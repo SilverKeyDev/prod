@@ -12,11 +12,17 @@ import Svg, { Circle, Line } from "react-native-svg";
 import { color } from "packages/design-tokens";
 
 import type { RippleBackgroundProps } from "./rippleBackgroundProps";
+import {
+  RIPPLE_LARGE_OVERLAY_AREA_THRESHOLD,
+  RIPPLE_LINE_STROKE_WIDTH,
+  rippleDotColor,
+  rippleLineColor,
+  rippleLineOpacityForDistance,
+} from "./rippleBackgroundTokens";
 
 const CONNECT_DISTANCE = 95;
 const PARTICLE_COUNT_FULL = 80;
 const DOT_RADIUS = 2;
-const LINE_STROKE_WIDTH = 0.5;
 const MARGIN = 20;
 const DRIFT_AMPLITUDE = 2.5;
 const TICK_MS = 80;
@@ -43,10 +49,15 @@ function useBaseParticles(width: number, height: number, count: number): Point[]
   }, [width, height, count]);
 }
 
-function useOverlayBaseParticles(width: number, height: number, count: number): Point[] {
+function useOverlayBaseParticles(
+  width: number,
+  height: number,
+  count: number,
+  spread = false
+): Point[] {
   return useMemo(() => {
     const shortSide = Math.min(width, height);
-    const margin = Math.max(2, Math.min(10, Math.floor(shortSide * 0.12)));
+    const margin = spread ? MARGIN : Math.max(2, Math.min(10, Math.floor(shortSide * 0.12)));
     const w = width - 2 * margin;
     const h = height - 2 * margin;
     if (w <= 0 || h <= 0 || count <= 0) return [];
@@ -62,7 +73,7 @@ function useOverlayBaseParticles(width: number, height: number, count: number): 
       });
     }
     return points;
-  }, [width, height, count]);
+  }, [width, height, count, spread]);
 }
 
 function useDriftedParticles(base: Point[], tick: number): Point[] {
@@ -86,7 +97,7 @@ function RippleFullScreen() {
   }, []);
 
   const lines = useMemo(() => {
-    const result: { x1: number; y1: number; x2: number; y2: number }[] = [];
+    const result: { x1: number; y1: number; x2: number; y2: number; opacity: number }[] = [];
     for (let i = 0; i < particles.length; i++) {
       for (let j = i + 1; j < particles.length; j++) {
         const a = particles[i];
@@ -95,15 +106,21 @@ function RippleFullScreen() {
         const dy = a.y - b.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < CONNECT_DISTANCE) {
-          result.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y });
+          result.push({
+            x1: a.x,
+            y1: a.y,
+            x2: b.x,
+            y2: b.y,
+            opacity: rippleLineOpacityForDistance(dist, CONNECT_DISTANCE),
+          });
         }
       }
     }
     return result;
   }, [particles]);
 
-  const fillColor = color("neutral.300");
-  const strokeColor = color("neutral.200");
+  const fillColor = rippleDotColor();
+  const strokeColor = rippleLineColor();
 
   return (
     <View style={[styles.container, { backgroundColor: color("neutral.50") }]} pointerEvents="none">
@@ -116,7 +133,8 @@ function RippleFullScreen() {
             x2={line.x2}
             y2={line.y2}
             stroke={strokeColor}
-            strokeWidth={LINE_STROKE_WIDTH}
+            strokeWidth={RIPPLE_LINE_STROKE_WIDTH}
+            strokeOpacity={line.opacity}
           />
         ))}
         {particles.map((p, idx) => (
@@ -128,11 +146,17 @@ function RippleFullScreen() {
 }
 
 function RippleOverlayMeasured({ width, height }: { width: number; height: number }) {
+  const area = width * height;
+  const isLargeOverlay = area > RIPPLE_LARGE_OVERLAY_AREA_THRESHOLD;
   const shortSide = Math.min(width, height);
-  const connectDistance = Math.max(24, Math.min(52, shortSide * 0.62));
-  const particleCount = Math.max(10, Math.min(28, Math.floor((width * height) / 1100)));
+  const connectDistance = isLargeOverlay
+    ? CONNECT_DISTANCE
+    : Math.max(24, Math.min(52, shortSide * 0.62));
+  const particleCount = isLargeOverlay
+    ? Math.max(40, Math.min(180, Math.floor((120 * area) / (1920 * 1080))))
+    : Math.max(10, Math.min(28, Math.floor(area / 1100)));
   const [tick, setTick] = useState(0);
-  const baseParticles = useOverlayBaseParticles(width, height, particleCount);
+  const baseParticles = useOverlayBaseParticles(width, height, particleCount, isLargeOverlay);
   const particles = useDriftedParticles(baseParticles, tick);
 
   useEffect(() => {
@@ -141,7 +165,7 @@ function RippleOverlayMeasured({ width, height }: { width: number; height: numbe
   }, []);
 
   const lines = useMemo(() => {
-    const result: { x1: number; y1: number; x2: number; y2: number }[] = [];
+    const result: { x1: number; y1: number; x2: number; y2: number; opacity: number }[] = [];
     for (let i = 0; i < particles.length; i++) {
       for (let j = i + 1; j < particles.length; j++) {
         const a = particles[i];
@@ -150,15 +174,21 @@ function RippleOverlayMeasured({ width, height }: { width: number; height: numbe
         const dy = a.y - b.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < connectDistance) {
-          result.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y });
+          result.push({
+            x1: a.x,
+            y1: a.y,
+            x2: b.x,
+            y2: b.y,
+            opacity: rippleLineOpacityForDistance(dist, connectDistance),
+          });
         }
       }
     }
     return result;
   }, [particles, connectDistance]);
 
-  const fillColor = color("neutral.300");
-  const strokeColor = color("neutral.200");
+  const fillColor = rippleDotColor();
+  const strokeColor = rippleLineColor();
 
   return (
     <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
@@ -170,7 +200,8 @@ function RippleOverlayMeasured({ width, height }: { width: number; height: numbe
           x2={line.x2}
           y2={line.y2}
           stroke={strokeColor}
-          strokeWidth={LINE_STROKE_WIDTH}
+          strokeWidth={RIPPLE_LINE_STROKE_WIDTH}
+          strokeOpacity={line.opacity}
         />
       ))}
       {particles.map((p, idx) => (
