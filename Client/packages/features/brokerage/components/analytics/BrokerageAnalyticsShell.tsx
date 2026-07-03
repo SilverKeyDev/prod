@@ -5,6 +5,7 @@ import { useDealFailureForensics } from "packages/features/brokerage/hooks/useDe
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
+import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTabs";
 import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
 import { TargetedAgentEngagementPanel } from "./TargetedAgentEngagementPanel";
 import { AgentRetentionRiskPanel } from "./AgentRetentionRiskPanel";
@@ -26,12 +27,12 @@ const TIME_PERIOD_OPTIONS: { value: TimePeriod; label: string }[] = [
   { value: "all", label: "All" },
 ];
 
-const TABS: { value: Tab; label: string }[] = [
-  { value: "overview", label: "Overview" },
-  { value: "agents", label: "Agents" },
-  { value: "leakage", label: "Leakage" },
-  { value: "forensics", label: "Deal forensics" },
-  { value: "market", label: "Market" },
+const DASHBOARD_TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "agents", label: "Agents" },
+  { id: "leakage", label: "Leakage" },
+  { id: "forensics", label: "Deal forensics" },
+  { id: "market", label: "Market" },
 ];
 
 function KpiCard({
@@ -151,24 +152,14 @@ export function BrokerageAnalyticsShell() {
         </BodyText>
       </Box>
 
-      {/* Tab header */}
-      <Box className="border-border border-b">
-        <Box className="flex items-center gap-1">
-          {TABS.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => setActiveTab(tab.value)}
-              className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                activeTab === tab.value
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </Box>
-      </Box>
+      {/* Tab header — SIL-286: reusing UnderlineTabs from packages/ui */}
+      <UnderlineTabs
+        items={DASHBOARD_TABS}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as Tab)}
+        size="sm"
+        scrollable
+      />
 
       {/* Time Period Picker */}
       <Box className="flex items-center gap-2">
