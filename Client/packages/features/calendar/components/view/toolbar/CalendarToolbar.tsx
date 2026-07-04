@@ -44,22 +44,21 @@ export function CalendarToolbar({
   return (
     <Box style={styles.wrapper}>
       {/*
-       * Date range + prev/next on the left; Week|Month toggle on the right (sm+).
-       * Mobile: wrap-friendly row; toggle stays end-aligned when it wraps.
+       * Mobile: prev | centered date range | next on one row; toggle below.
+       * sm+: date range + prev/next on the left; Week|Month toggle on the right.
        * Padding uses CSS-compatible keys so web `Box` (div) applies insets (RN shorthands do not).
        */}
       <Box
         style={styles.headerSection}
         className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
-        <Box className="flex min-w-0 flex-row flex-wrap items-center gap-2 sm:gap-3">
-          <Box style={styles.dateCluster} className="min-w-0">
-            {sectionTitle ? <Text style={styles.sectionTitle}>{sectionTitle}</Text> : null}
-            <Text style={styles.toolbarDateRange} className="text-base sm:text-xl">
-              {toolbarLabel}
+        <Box className="flex min-w-0 w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+          {sectionTitle ? (
+            <Text style={styles.sectionTitle} className="shrink-0">
+              {sectionTitle}
             </Text>
-          </Box>
-          <Box style={styles.traverseCluster}>
+          ) : null}
+          <Box className="flex min-w-0 w-full flex-row items-center gap-2 sm:w-auto">
             <IconButton
               iconName="chevron-left"
               variant="outline"
@@ -68,8 +67,15 @@ export function CalendarToolbar({
               label={prevLabel}
               onPress={onPrev}
               disabled={disabledPrev}
-              className={TRAVERSE_ICON_BUTTON_CLASSNAME}
+              className={`${TRAVERSE_ICON_BUTTON_CLASSNAME} order-1 shrink-0 sm:order-2`}
             />
+            <Text
+              style={styles.toolbarDateRange}
+              numberOfLines={1}
+              className="order-2 min-w-0 flex-1 truncate text-center text-base sm:order-1 sm:flex-none sm:text-left sm:text-xl"
+            >
+              {toolbarLabel}
+            </Text>
             <IconButton
               iconName="chevron-right"
               variant="outline"
@@ -78,7 +84,7 @@ export function CalendarToolbar({
               label={nextLabel}
               onPress={onNext}
               disabled={disabledNext}
-              className={TRAVERSE_ICON_BUTTON_CLASSNAME}
+              className={`${TRAVERSE_ICON_BUTTON_CLASSNAME} order-3 shrink-0`}
             />
           </Box>
         </Box>
@@ -112,19 +118,6 @@ const styles = {
     paddingTop: spacing(3),
     paddingLeft: spacing(3),
     paddingRight: spacing(3),
-  },
-  dateCluster: {
-    display: "flex" as const,
-    flexDirection: "row" as const,
-    flexWrap: "wrap" as const,
-    alignItems: "center" as const,
-    gap: spacing(2),
-  },
-  traverseCluster: {
-    display: "flex" as const,
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
-    gap: spacing(2),
   },
   sectionTitle: {
     fontSize: 18,
