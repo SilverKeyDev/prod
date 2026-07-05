@@ -301,6 +301,32 @@ export function userPreferencesToOnboardingData(
     agent_primary_service_zips: toStringArray(get("agent_primary_service_zips")),
     agent_specialties: toStringArray(get("agent_specialties")),
     agent_social_links: toRecordString(get("agent_social_links")),
+    // Brokerage onboarding (MVP)
+    brokerage_legal_business_name: toString(get("brokerage_legal_business_name")),
+    brokerage_dba_name: toString(get("brokerage_dba_name")),
+    brokerage_primary_admin_name: toString(get("brokerage_primary_admin_name")),
+    brokerage_primary_admin_email: toString(get("brokerage_primary_admin_email")),
+    brokerage_primary_admin_phone: toString(get("brokerage_primary_admin_phone")),
+    brokerage_primary_admin_title: toString(get("brokerage_primary_admin_title")),
+    brokerage_admin_is_broker_of_record: toBool(get("brokerage_admin_is_broker_of_record")),
+    brokerage_license_number: toString(get("brokerage_license_number")),
+    brokerage_license_states: toStringArray(get("brokerage_license_states")),
+    brokerage_broker_of_record_name: toString(get("brokerage_broker_of_record_name")),
+    brokerage_broker_of_record_license_number: toString(
+      get("brokerage_broker_of_record_license_number")
+    ),
+    brokerage_agent_count: toNumber(get("brokerage_agent_count")),
+    brokerage_expected_monthly_users: toNumber(get("brokerage_expected_monthly_users")),
+    brokerage_primary_markets: toStringArray(get("brokerage_primary_markets")),
+    brokerage_office_name: toString(get("brokerage_office_name")),
+    brokerage_office_address: toString(get("brokerage_office_address")),
+    brokerage_office_state: toString(get("brokerage_office_state")),
+    brokerage_account_manager_name: toString(get("brokerage_account_manager_name")),
+    brokerage_account_manager_email: toString(get("brokerage_account_manager_email")),
+    brokerage_branch_name: toString(get("brokerage_branch_name")),
+    brokerage_branch_address: toString(get("brokerage_branch_address")),
+    brokerage_is_branch: toBool(get("brokerage_is_branch")),
+    brokerage_is_subteam: toBool(get("brokerage_is_subteam")),
     public_profile_slug: toString(get("public_profile_slug")),
   };
 
