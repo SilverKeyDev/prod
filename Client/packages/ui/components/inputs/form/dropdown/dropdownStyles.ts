@@ -6,6 +6,9 @@ export const DROPDOWN_SEARCH_HEADER_ESTIMATE_PX = 58;
 export const DROPDOWN_MENU_CHROME_PX = 12;
 export const MAX_VISIBLE_OPTIONS_CAP = 25;
 
+/** Matches `.mobile-input` padding in components.css without applying that class (avoids double px/py). */
+const DROPDOWN_SHELL_PADDING = "px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3.5 lg:px-6 lg:py-4";
+
 export function getDropdownVariantStyles(
   variant: "default" | "mobile" | "compact",
   noBorder: boolean,
@@ -15,7 +18,7 @@ export function getDropdownVariantStyles(
     default:
       "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
     mobile:
-      "mobile-input border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly",
+      "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly",
     compact:
       "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
   };
@@ -24,7 +27,7 @@ export function getDropdownVariantStyles(
     default:
       "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent",
     mobile:
-      "mobile-input border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent touch-friendly",
+      "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent touch-friendly",
     compact:
       "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent",
   };
@@ -39,7 +42,7 @@ export function getDropdownShellClasses(variant: "default" | "mobile" | "compact
   if (variant === "compact") {
     return "flex items-center cursor-pointer";
   }
-  return "flex items-center cursor-pointer touch-friendly mobile-input";
+  return "flex items-center cursor-pointer touch-friendly";
 }
 
 export function getDropdownTextStyles(
@@ -66,9 +69,9 @@ export function getDropdownSizeStyles(
   }
 
   const sizeStyles = {
-    sm: "h-auto min-h-9 px-3",
-    md: "h-auto min-h-12 px-4",
-    lg: "h-auto min-h-14 px-5",
+    sm: `min-h-9 ${DROPDOWN_SHELL_PADDING}`,
+    md: `min-h-12 ${DROPDOWN_SHELL_PADDING}`,
+    lg: `min-h-14 ${DROPDOWN_SHELL_PADDING}`,
   };
   return sizeStyles[size];
 }
@@ -100,7 +103,7 @@ export function buildDropdownButtonClasses(
   const disabledStyles = getDropdownDisabledStyles(disabled);
 
   return [
-    "w-full rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2",
+    "group w-full rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2",
     shellClasses,
     "disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed",
     textStyles,
