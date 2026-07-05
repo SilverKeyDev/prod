@@ -54,7 +54,7 @@ export function AgentPublicProfileShell({
 
   return (
     <Box className="bg-background-base min-h-screen">
-      <LandingNav endActions={endActions} />
+      <LandingNav endActions={endActions} showSectionLinks={false} />
       <main className={LANDING_NAV_MAIN_OFFSET_CLASS}>{children}</main>
     </Box>
   );

@@ -26,9 +26,17 @@ export type LandingNavProps = {
    * `null` renders no end actions; omit for the default landing cluster.
    */
   endActions?: ReactNode;
+  /**
+   * Landing section links (Platform / ROI / Pricing / FAQ) and their mobile
+   * hamburger menu. Off for public agent pages, where the sections don't exist.
+   */
+  showSectionLinks?: boolean;
 };
 
-export function LandingNav({ endActions }: LandingNavProps = {}) {
+export function LandingNav({
+  endActions,
+  showSectionLinks = true,
+}: LandingNavProps = {}) {
   const { nav } = LANDING_CONTENT;
   const activeSectionId = useLandingActiveSection();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -58,47 +66,51 @@ export function LandingNav({ endActions }: LandingNavProps = {}) {
             </Title>
           </Link>
 
-          <Box className="hidden flex-1 items-center justify-center gap-6 md:flex">
-            {nav.links.map((item) => {
-              const sectionId = homeLandingSectionIdFromHref(item.href);
-              if (!sectionId) {
+          {showSectionLinks ? (
+            <Box className="hidden flex-1 items-center justify-center gap-6 md:flex">
+              {nav.links.map((item) => {
+                const sectionId = homeLandingSectionIdFromHref(item.href);
+                if (!sectionId) {
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className="text-text-secondary text-sm font-semibold"
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
+
+                const isActive = activeSectionId === sectionId;
                 return (
-                  <Link
+                  <HomeHashLink
                     key={item.href}
-                    to={item.href}
-                    className="text-text-secondary text-sm font-semibold"
+                    sectionId={sectionId}
+                    className={`hidden min-h-11 items-center border-b-2 px-2 text-sm font-semibold motion-safe:transition-colors md:inline-flex ${
+                      isActive
+                        ? "border-brand-primary text-text-primary"
+                        : "text-text-secondary hover:text-text-primary border-transparent"
+                    }`}
                   >
                     {item.label}
-                  </Link>
+                  </HomeHashLink>
                 );
-              }
-
-              const isActive = activeSectionId === sectionId;
-              return (
-                <HomeHashLink
-                  key={item.href}
-                  sectionId={sectionId}
-                  className={`hidden min-h-11 items-center border-b-2 px-2 text-sm font-semibold motion-safe:transition-colors md:inline-flex ${
-                    isActive
-                      ? "border-brand-primary text-text-primary"
-                      : "text-text-secondary hover:text-text-primary border-transparent"
-                  }`}
-                >
-                  {item.label}
-                </HomeHashLink>
-              );
-            })}
-          </Box>
+              })}
+            </Box>
+          ) : null}
 
           <Box className="flex shrink-0 items-center gap-1 sm:gap-2">
-            <IconButton
-              variant="ghost"
-              size="md"
-              iconName="menu"
-              label="Open navigation menu"
-              onPress={() => setMenuOpen(true)}
-              className="touch-manipulation md:hidden"
-            />
+            {showSectionLinks ? (
+              <IconButton
+                variant="ghost"
+                size="md"
+                iconName="menu"
+                label="Open navigation menu"
+                onPress={() => setMenuOpen(true)}
+                className="touch-manipulation md:hidden"
+              />
+            ) : null}
             {showDefaultActions ? (
               <>
                 <Link to={ROUTES.LOGIN}>
@@ -134,12 +146,14 @@ export function LandingNav({ endActions }: LandingNavProps = {}) {
         </Box>
       </header>
 
-      <LandingNavMobileMenu
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        activeSectionId={activeSectionId}
-        showDefaultActions={showDefaultActions}
-      />
+      {showSectionLinks ? (
+        <LandingNavMobileMenu
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          activeSectionId={activeSectionId}
+          showDefaultActions={showDefaultActions}
+        />
+      ) : null}
     </>
   );
 }
