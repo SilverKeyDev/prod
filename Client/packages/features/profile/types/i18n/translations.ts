@@ -38,7 +38,6 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
     "This agent profile is unavailable or the link may be incorrect.",
   "profile.public.back_home": "Back to home",
   "profile.public.back_to_dashboard": "Back to dashboard",
-  "profile.public.nav_login": "Login",
   "profile.public.contact_heading": "Contact",
   "profile.public.contact_subtitle":
     "How clients can reach you on your public profile.",

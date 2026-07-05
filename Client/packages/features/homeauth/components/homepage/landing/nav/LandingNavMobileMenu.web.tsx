@@ -23,8 +23,13 @@ type LandingNavMobileMenuProps = {
   open: boolean;
   onClose: () => void;
   activeSectionId: LandingSectionId | null;
-  /** Hide the Login / Sign up / Book demo footer when the nav's end actions are overridden. */
+  /** Hide the auth-actions footer when the nav's end actions are overridden. */
   showDefaultActions?: boolean;
+  /**
+   * "publicAgent" drops the landing section links and the Login footer item
+   * (Login is always visible in the agent-page nav bar).
+   */
+  variant?: "landing" | "publicAgent";
 };
 
 export function LandingNavMobileMenu({
@@ -32,6 +37,7 @@ export function LandingNavMobileMenu({
   onClose,
   activeSectionId,
   showDefaultActions = true,
+  variant = "landing",
 }: LandingNavMobileMenuProps) {
   const { nav } = LANDING_CONTENT;
 
@@ -99,52 +105,56 @@ export function LandingNavMobileMenu({
                 </Box>
               </Box>
 
-              <Box className="flex flex-col gap-1 px-4 py-4">
-                {nav.links.map((item) => {
-                  const sectionId = homeLandingSectionIdFromHref(item.href);
-                  if (!sectionId) {
-                    return (
-                      <Link key={item.href} to={item.href} onClick={onClose}>
-                        <BodyText
-                          as="span"
-                          size="sm"
-                          className="flex min-h-11 items-center font-semibold"
-                        >
-                          {item.label}
-                        </BodyText>
-                      </Link>
-                    );
-                  }
+              {variant === "landing" ? (
+                <Box className="flex flex-col gap-1 px-4 py-4">
+                  {nav.links.map((item) => {
+                    const sectionId = homeLandingSectionIdFromHref(item.href);
+                    if (!sectionId) {
+                      return (
+                        <Link key={item.href} to={item.href} onClick={onClose}>
+                          <BodyText
+                            as="span"
+                            size="sm"
+                            className="flex min-h-11 items-center font-semibold"
+                          >
+                            {item.label}
+                          </BodyText>
+                        </Link>
+                      );
+                    }
 
-                  const isActive = activeSectionId === sectionId;
-                  return (
-                    <Button
-                      key={item.href}
-                      variant="ghost"
-                      size="md"
-                      label={item.label}
-                      onPress={() => handleSectionPress(sectionId)}
-                      className={`!h-auto min-h-11 w-full !justify-start px-2 text-left font-semibold ${
-                        isActive ? "!text-brand-primary" : ""
-                      }`}
-                    >
-                      {item.label}
-                    </Button>
-                  );
-                })}
-              </Box>
+                    const isActive = activeSectionId === sectionId;
+                    return (
+                      <Button
+                        key={item.href}
+                        variant="ghost"
+                        size="md"
+                        label={item.label}
+                        onPress={() => handleSectionPress(sectionId)}
+                        className={`!h-auto min-h-11 w-full !justify-start px-2 text-left font-semibold ${
+                          isActive ? "!text-brand-primary" : ""
+                        }`}
+                      >
+                        {item.label}
+                      </Button>
+                    );
+                  })}
+                </Box>
+              ) : null}
 
               {showDefaultActions ? (
                 <Box className="border-border safe-bottom flex flex-col gap-3 border-t px-4 py-4">
-                  <Link to={ROUTES.LOGIN} onClick={onClose}>
-                    <BodyText
-                      as="span"
-                      size="sm"
-                      className="text-text-primary flex min-h-11 items-center justify-center font-semibold"
-                    >
-                      {nav.loginLabel}
-                    </BodyText>
-                  </Link>
+                  {variant === "landing" ? (
+                    <Link to={ROUTES.LOGIN} onClick={onClose}>
+                      <BodyText
+                        as="span"
+                        size="sm"
+                        className="text-text-primary flex min-h-11 items-center justify-center font-semibold"
+                      >
+                        {nav.loginLabel}
+                      </BodyText>
+                    </Link>
+                  ) : null}
                   <Link to={ROUTES.SIGNUP} onClick={onClose}>
                     <Button
                       variant="primary"

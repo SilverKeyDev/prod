@@ -27,20 +27,24 @@ export type LandingNavProps = {
    */
   endActions?: ReactNode;
   /**
-   * Landing section links (Platform / ROI / Pricing / FAQ) and their mobile
-   * hamburger menu. Off for public agent pages, where the sections don't exist.
+   * "publicAgent" (agent public pages): no landing section links; desktop auth
+   * cluster matches landing, while on mobile Log in stays in the bar and the
+   * hamburger holds Sign up + Book a demo.
    */
-  showSectionLinks?: boolean;
+  variant?: "landing" | "publicAgent";
 };
 
 export function LandingNav({
   endActions,
-  showSectionLinks = true,
+  variant = "landing",
 }: LandingNavProps = {}) {
   const { nav } = LANDING_CONTENT;
   const activeSectionId = useLandingActiveSection();
   const [menuOpen, setMenuOpen] = useState(false);
   const showDefaultActions = endActions === undefined;
+  const showSectionLinks = variant === "landing";
+  // No section links and no default actions (e.g. Back to dashboard) → empty menu.
+  const showMenuButton = showSectionLinks || showDefaultActions;
 
   return (
     <>
@@ -101,7 +105,7 @@ export function LandingNav({
           ) : null}
 
           <Box className="flex shrink-0 items-center gap-1 sm:gap-2">
-            {showSectionLinks ? (
+            {showMenuButton ? (
               <IconButton
                 variant="ghost"
                 size="md"
@@ -117,7 +121,11 @@ export function LandingNav({
                   <BodyText
                     as="span"
                     size="sm"
-                    className="text-text-primary hidden min-h-11 items-center px-2 font-semibold sm:inline-flex"
+                    className={`text-text-primary min-h-11 items-center px-2 font-semibold ${
+                      variant === "publicAgent"
+                        ? "inline-flex"
+                        : "hidden sm:inline-flex"
+                    }`}
                   >
                     {nav.loginLabel}
                   </BodyText>
@@ -134,6 +142,9 @@ export function LandingNav({
                 <Button
                   variant="primary"
                   size="sm"
+                  className={
+                    variant === "publicAgent" ? "hidden sm:inline-flex" : ""
+                  }
                   onPress={() => openLandingBookDemo("nav")}
                 >
                   {nav.bookDemoLabel}
@@ -146,12 +157,13 @@ export function LandingNav({
         </Box>
       </header>
 
-      {showSectionLinks ? (
+      {showMenuButton ? (
         <LandingNavMobileMenu
           open={menuOpen}
           onClose={() => setMenuOpen(false)}
           activeSectionId={activeSectionId}
           showDefaultActions={showDefaultActions}
+          variant={variant}
         />
       ) : null}
     </>
