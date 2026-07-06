@@ -24,7 +24,8 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.agent.open_link": "Open link",
   "profile.agent.share": ACTION_LABELS.SHARE,
   "profile.agent.share_sheet_title": "{{name}} — SilverKey",
-  "profile.agent.share_sheet_text": "View my public agent profile on SilverKey.",
+  "profile.agent.share_sheet_text":
+    "View my public agent profile on SilverKey.",
   "profile.agent.link_copied": "Link copied to clipboard",
   "profile.agent.copy_failed": "Could not copy link",
 
@@ -36,8 +37,10 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.public.unavailable_body":
     "This agent profile is unavailable or the link may be incorrect.",
   "profile.public.back_home": "Back to home",
+  "profile.public.back_to_dashboard": "Back to dashboard",
   "profile.public.contact_heading": "Contact",
-  "profile.public.contact_subtitle": "How clients can reach you on your public profile.",
+  "profile.public.contact_subtitle":
+    "How clients can reach you on your public profile.",
   "profile.public.email_label": "Email",
   "profile.public.phone_label": "Phone",
   "profile.public.mls_id_label": "MLS ID",
@@ -46,7 +49,8 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.public.hero_fallback_name": "Agent",
   "profile.public.photo_aria": "Profile photo, {{name}}",
   "profile.public.licenses_heading": "Licenses and service area",
-  "profile.public.licenses_subtitle": "States, license details, and where this agent focuses.",
+  "profile.public.licenses_subtitle":
+    "States, license details, and where this agent focuses.",
 
   "profile.public.connect_cta": "Connect",
   "profile.public.connect_modal_title": "Sign in to connect",
@@ -55,7 +59,8 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
     "Create an account or sign in to send a connection request to this agent.\n\nWe will connect you automatically after you are signed in.",
   "profile.public.connect_modal_body_with_agent":
     "Sign in or create an account and we'll connect you with {{agentName}} automatically.",
-  "profile.public.connect_banner": "After signing in, you'll be connected with {{agentName}}.",
+  "profile.public.connect_banner":
+    "After signing in, you'll be connected with {{agentName}}.",
   "profile.public.connect_sign_in": "Sign in",
   "profile.public.connect_create_account": "Create an account",
   "profile.public.connect_toast_success": "Connection request sent",
@@ -64,7 +69,8 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.public.connect_resume_error":
     "Could not complete your connection automatically. Open this profile again and tap Connect.",
   "profile.public.connect_request_error": "Failed to send connection request",
-  "profile.public.connect_profile_not_ready": "Profile not loaded. Please try again in a moment.",
+  "profile.public.connect_profile_not_ready":
+    "Profile not loaded. Please try again in a moment.",
 
   // Buyer onboarding — About Me (SIL-182)
   "profile.onboarding.about.title": "About you",
@@ -85,7 +91,8 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.onboarding.about.pet_types.dog": "Dog",
   "profile.onboarding.about.pet_types.cat": "Cat",
   "profile.onboarding.about.pet_types.other": "Other",
-  "profile.onboarding.about.move_motivation.label": "What's got you looking to move right now?",
+  "profile.onboarding.about.move_motivation.label":
+    "What's got you looking to move right now?",
   "profile.onboarding.about.move_motivation.placeholder":
     "Optional — tell us what's driving the move",
 
@@ -93,9 +100,12 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.onboarding.financing.title": "Financing",
   "profile.onboarding.financing.subtitle":
     "Share where you are in the process so we can tailor listings and next steps.",
-  "profile.onboarding.financing.lender_status.label": "Have you talked to a lender yet?",
-  "profile.onboarding.financing.lender_status.pre_approved": "Yes, I'm pre-approved",
-  "profile.onboarding.financing.lender_status.pre_qualified": "Yes, pre-qualified",
+  "profile.onboarding.financing.lender_status.label":
+    "Have you talked to a lender yet?",
+  "profile.onboarding.financing.lender_status.pre_approved":
+    "Yes, I'm pre-approved",
+  "profile.onboarding.financing.lender_status.pre_qualified":
+    "Yes, pre-qualified",
   "profile.onboarding.financing.lender_status.not_yet": "Not yet",
   "profile.onboarding.financing.lender_name.label": "Who are you working with?",
   "profile.onboarding.financing.lender_name.placeholder": "Lender or bank name",
@@ -103,12 +113,14 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
     "Want us to connect you with a lender?",
   "profile.onboarding.financing.want_lender_connection.yes": "Yes",
   "profile.onboarding.financing.want_lender_connection.no": "No",
-  "profile.onboarding.financing.payment_method.label": "How are you planning to pay?",
+  "profile.onboarding.financing.payment_method.label":
+    "How are you planning to pay?",
   "profile.onboarding.financing.payment_method.financing": "Financing",
   "profile.onboarding.financing.payment_method.cash": "Cash",
   "profile.onboarding.financing.gross_income.label": "Gross annual income",
   "profile.onboarding.financing.gross_income.placeholder": "Before taxes",
-  "profile.onboarding.financing.loan_type.label": "What kind of loan are you thinking?",
+  "profile.onboarding.financing.loan_type.label":
+    "What kind of loan are you thinking?",
   "profile.onboarding.financing.loan_type.conventional": "Conventional",
   "profile.onboarding.financing.loan_type.fha": "FHA",
   "profile.onboarding.financing.loan_type.va": "VA",
@@ -123,10 +135,12 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.onboarding.financing.first_home.label": "Is this your first home?",
   "profile.onboarding.financing.first_home.yes": "Yes, first home",
   "profile.onboarding.financing.first_home.no": "No, I've bought before",
-  "profile.onboarding.financing.price_range.label": "What price range feels comfortable?",
+  "profile.onboarding.financing.price_range.label":
+    "What price range feels comfortable?",
   "profile.onboarding.financing.price_range.min_placeholder": "Min",
   "profile.onboarding.financing.price_range.max_placeholder": "Max",
-  "profile.onboarding.financing.max_monthly.label": "Any monthly payment you want to stay under?",
+  "profile.onboarding.financing.max_monthly.label":
+    "Any monthly payment you want to stay under?",
   "profile.onboarding.financing.max_monthly.placeholder": "Optional",
   "profile.onboarding.financing.credit.label": "How's your credit looking?",
   "profile.onboarding.financing.credit.excellent": "Excellent (740+)",
@@ -134,7 +148,8 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.onboarding.financing.credit.fair": "Fair (580–669)",
   "profile.onboarding.financing.credit.working_on_it": "Working on it",
   "profile.onboarding.financing.credit.unknown": "Not sure",
-  "profile.onboarding.financing.rent_or_own.label": "Do you currently rent or own?",
+  "profile.onboarding.financing.rent_or_own.label":
+    "Do you currently rent or own?",
   "profile.onboarding.financing.rent_or_own.rent": "Rent",
   "profile.onboarding.financing.rent_or_own.own": "Own",
   "profile.onboarding.financing.need_to_sell.label":

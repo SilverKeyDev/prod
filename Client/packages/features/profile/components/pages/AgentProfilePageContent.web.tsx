@@ -2,69 +2,39 @@ import { useEffect, useMemo } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { PublicAgentProfileConnect } from "packages/features/agent";
-import { usePublicAgentProfile } from "packages/features/agent/hooks/data/public/usePublicAgentProfile";
 import { AgentPublicProfileView } from "packages/features/profile/components/AgentPublicProfileView";
-import { useUserData } from "packages/hooks/data/user/useUserData";
-import { getRouteSeoMeta, useNavigation, useRouteParams } from "packages/navigation";
+import { usePublicAgentProfileLookup } from "packages/features/profile/hooks/data/usePublicAgentProfileLookup";
+import { getRouteSeoMeta, useNavigation } from "packages/navigation";
 import { DEFAULT_APP_TITLE } from "packages/navigation/router/pageTitles";
-import { useAuthStore } from "packages/store";
 import { BodyText, Box, Button, Loading, Title } from "packages/ui";
 import {
   buildAgentProfileUrl,
   buildShortPublicProfilePath,
   generateAgentProfileSlug,
-  resolveAgentProfileRouteParams,
 } from "packages/utils/growth/agent";
-import { applySocialMetaTags, setDocumentTitle } from "packages/utils/seo/documentMeta";
+import {
+  applySocialMetaTags,
+  setDocumentTitle,
+} from "packages/utils/seo/documentMeta";
 import { setJsonLdScript } from "packages/utils/seo/jsonLd";
 import { getSiteOrigin } from "packages/utils/seo/siteOrigin";
 
 export function AgentProfilePageContent() {
   const { t } = useLocalization();
   const {
-    publicSlug,
-    briefSlug,
-    name: nameSegment,
-  } = useRouteParams<{
-    publicSlug?: string;
-    name?: string;
-    briefSlug?: string;
-  }>();
-  const routeSlug = publicSlug?.trim() ?? "";
-
-  const { agentUserId } = useMemo(() => {
-    if (routeSlug) {
-      return { agentUserId: null };
-    }
-    return resolveAgentProfileRouteParams(nameSegment, briefSlug);
-  }, [routeSlug, nameSegment, briefSlug]);
-
-  const profileQueryUserId = agentUserId ?? undefined;
-
-  const {
-    data: agent,
+    agent,
     isLoading,
     isError,
     error,
     isFetched,
-  } = usePublicAgentProfile(
-    routeSlug ? { publicProfileSlug: routeSlug } : { userId: profileQueryUserId }
-  );
-
-  const agentId = useMemo(
-    () => (routeSlug ? agent?.id?.trim() : profileQueryUserId?.trim()) ?? "",
-    [routeSlug, agent?.id, profileQueryUserId]
-  );
-
-  const hasLookup = Boolean(routeSlug) || Boolean(profileQueryUserId?.trim());
+    agentId,
+    hasLookup,
+    nameSegment,
+    isOwnProfile,
+  } = usePublicAgentProfileLookup();
 
   const { getCurrentRoute, navigate, navigateToPath } = useNavigation();
   const { pathname, search } = getCurrentRoute();
-  const authUser = useAuthStore((s) => s.user);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const { userProfile } = useUserData();
-  const viewerId = isAuthenticated ? (userProfile?.id ?? authUser?.id ?? null) : null;
-  const isOwnProfile = Boolean(viewerId && agent?.id && viewerId === agent.id.trim());
 
   const canonicalNameSlug = useMemo(() => {
     if (!agent?.name) return null;
@@ -92,7 +62,15 @@ export function AgentProfilePageContent() {
         state,
       });
     }
-  }, [agent, agentId, canonicalNameSlug, getCurrentRoute, nameSegment, navigateToPath, pathname]);
+  }, [
+    agent,
+    agentId,
+    canonicalNameSlug,
+    getCurrentRoute,
+    nameSegment,
+    navigateToPath,
+    pathname,
+  ]);
 
   useEffect(() => {
     if (!agent?.name?.trim()) {
@@ -105,8 +83,11 @@ export function AgentProfilePageContent() {
     const pageUrl = origin ? `${origin}${pathname}${search}` : "";
     const fallbackDesc = getRouteSeoMeta(pathname).description;
     const desc =
-      (agent.agent_bio ?? "").trim().slice(0, 160) || agent.brokerage_name?.trim() || fallbackDesc;
-    const rawImage = agent.profile_picture_url ?? agent.professional_headshot_url ?? "";
+      (agent.agent_bio ?? "").trim().slice(0, 160) ||
+      agent.brokerage_name?.trim() ||
+      fallbackDesc;
+    const rawImage =
+      agent.profile_picture_url ?? agent.professional_headshot_url ?? "";
     const imageUrl =
       rawImage && /^https?:\/\//i.test(rawImage)
         ? rawImage
@@ -118,7 +99,9 @@ export function AgentProfilePageContent() {
     }
     const sameAs =
       agent.social_links &&
-      Object.values(agent.social_links).filter((u): u is string => typeof u === "string");
+      Object.values(agent.social_links).filter(
+        (u): u is string => typeof u === "string",
+      );
     setJsonLdScript("seo-agent-person", {
       "@context": "https://schema.org",
       "@type": "Person",
@@ -147,7 +130,11 @@ export function AgentProfilePageContent() {
             <BodyText size="md" muted className="mb-6">
               {t("profile.public.invalid_link_body")}
             </BodyText>
-            <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
+            <Button
+              variant="primary"
+              onClick={() => navigate("HOME")}
+              iconName="home"
+            >
               {t("profile.public.back_home")}
             </Button>
           </Box>
@@ -175,9 +162,15 @@ export function AgentProfilePageContent() {
               {t("profile.public.load_error_title")}
             </Title>
             <BodyText size="md" muted className="mb-6">
-              {error instanceof Error ? error.message : t("profile.public.generic_error")}
+              {error instanceof Error
+                ? error.message
+                : t("profile.public.generic_error")}
             </BodyText>
-            <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
+            <Button
+              variant="primary"
+              onClick={() => navigate("HOME")}
+              iconName="home"
+            >
               {t("profile.public.back_home")}
             </Button>
           </Box>
@@ -197,7 +190,11 @@ export function AgentProfilePageContent() {
             <BodyText size="md" muted className="mb-6">
               {t("profile.public.unavailable_body")}
             </BodyText>
-            <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
+            <Button
+              variant="primary"
+              onClick={() => navigate("HOME")}
+              iconName="home"
+            >
               {t("profile.public.back_home")}
             </Button>
           </Box>
@@ -218,7 +215,11 @@ export function AgentProfilePageContent() {
           agentId={agent.id}
           isOwnProfile={isOwnProfile}
           agentName={agent.name ?? undefined}
-          agentPhotoUrl={agent.profile_picture_url ?? agent.professional_headshot_url ?? undefined}
+          agentPhotoUrl={
+            agent.profile_picture_url ??
+            agent.professional_headshot_url ??
+            undefined
+          }
         />
       }
     />
