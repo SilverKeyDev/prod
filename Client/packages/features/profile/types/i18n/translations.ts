@@ -38,6 +38,20 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
     "This agent profile is unavailable or the link may be incorrect.",
   "profile.public.back_home": "Back to home",
   "profile.public.back_to_dashboard": "Back to dashboard",
+
+  // Public agent site sections (web redesign)
+  "profile.public.site.hero_eyebrow": "Real estate agent",
+  "profile.public.site.licensed_in": "Licensed in {{states}}",
+  "profile.public.site.email_action": "Email",
+  "profile.public.site.call_action": "Call",
+  "profile.public.site.about_eyebrow": "About",
+  "profile.public.site.about_heading": "Meet {{firstName}}",
+  "profile.public.site.service_areas_eyebrow": "Service areas",
+  "profile.public.site.service_areas_heading": "Where {{firstName}} works",
+  "profile.public.site.credentials_eyebrow": "Credentials",
+  "profile.public.site.credentials_heading": "Licenses & affiliations",
+  "profile.public.site.contact_eyebrow": "Contact",
+  "profile.public.site.contact_heading": "Work with {{firstName}}",
   "profile.public.contact_heading": "Contact",
   "profile.public.contact_subtitle":
     "How clients can reach you on your public profile.",
