@@ -1,8 +1,9 @@
+import { type MouseEvent, type ReactElement, type RefObject, useRef } from "react";
+
 import Button from "@ui/button/Button";
 import IconButton from "@ui/button/IconButton";
 import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
-import type { MouseEvent, ReactElement, RefObject } from "react";
 
 import { Box, Row } from "packages/ui/components/structure/primitives";
 
@@ -38,10 +39,28 @@ export function DropdownTrigger<T>({
   t,
 }: DropdownTriggerProps<T>): ReactElement {
   const showClear = clearable && Boolean(selectedOption) && !disabled;
+  const triggerButtonRef = useRef<HTMLButtonElement>(null);
+
+  const focusTriggerButton = () => {
+    triggerButtonRef.current?.focus();
+  };
+
+  const handleChevronMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    event.preventDefault();
+    focusTriggerButton();
+  };
+
+  const handleChevronClick = () => {
+    if (disabled) return;
+    focusTriggerButton();
+    handleToggle();
+  };
 
   return (
     <Row className={`${buttonClasses} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}>
       <Button
+        ref={triggerButtonRef}
         type="button"
         variant="ghost"
         contentAlign="start"
@@ -84,8 +103,9 @@ export function DropdownTrigger<T>({
       ) : null}
 
       <Box
-        className={`flex shrink-0 items-center px-1 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
-        onClick={disabled ? undefined : handleToggle}
+        className={`flex shrink-0 items-center ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+        onMouseDown={handleChevronMouseDown}
+        onClick={handleChevronClick}
         aria-hidden
       >
         <Icon
