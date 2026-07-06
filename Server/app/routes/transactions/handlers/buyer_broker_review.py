@@ -21,14 +21,15 @@ from sqlalchemy import select
 
 from app import db
 from app.models.transactions.buyer_broker_review import BuyerBrokerReview, BuyerBrokerReviewEvent
+from app.schemas import EmptyRequest
 from app.services.transactions.access import resolve_authorized_transaction
 from app.utils.common_patterns import (
     forbidden,
     handle_exceptions_with_logging,
-    not_found,
     require_authenticated_user,
 )
 from app.utils.security import rate_limit
+from app.utils.validation import validate_request
 from logger import log
 
 from .. import transactions_bp
@@ -37,9 +38,7 @@ from .. import transactions_bp
 def _get_or_create_review(transaction_id: str) -> BuyerBrokerReview:
     """Get existing review row or create pending_review for this transaction."""
     review = db.session.scalar(
-        select(BuyerBrokerReview).where(
-            BuyerBrokerReview.transaction_id == str(transaction_id)
-        )
+        select(BuyerBrokerReview).where(BuyerBrokerReview.transaction_id == str(transaction_id))
     )
     if review is None:
         review = BuyerBrokerReview(
@@ -113,7 +112,8 @@ def get_buyer_broker_review(user, transaction_id: str):
 @rate_limit(max_requests=60, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
-def approve_buyer_broker_review(user, transaction_id: str):
+@validate_request(EmptyRequest)
+def approve_buyer_broker_review(user, transaction_id: str, data: EmptyRequest):
     """
     POST /api/v1/transactions/{tx_id}/buyer-broker-review/approve
     Agent attests they have spoken with the buyer and approves sending the BBA.
@@ -135,13 +135,17 @@ def approve_buyer_broker_review(user, transaction_id: str):
     review = _get_or_create_review(transaction_id)
 
     if review.status == "agreement_sent":
-        return jsonify({
-            "success": False,
-            "error": "Agreement already sent — cannot re-approve.",
-        }), 409
+        return jsonify(
+            {
+                "success": False,
+                "error": "Agreement already sent — cannot re-approve.",
+            }
+        ), 409
 
     from app.services.aggregation import get_preferences_dict_optional
-    from app.services.transactions.bba_preferences_fingerprint import compute_preferences_fingerprint
+    from app.services.transactions.bba_preferences_fingerprint import (
+        compute_preferences_fingerprint,
+    )
 
     now = datetime.now(timezone.utc)
     review.status = "approved"
@@ -171,7 +175,8 @@ def approve_buyer_broker_review(user, transaction_id: str):
 @rate_limit(max_requests=60, window_seconds=60)
 @handle_exceptions_with_logging
 @require_authenticated_user
-def request_buyer_broker_meeting(user, transaction_id: str):
+@validate_request(EmptyRequest)
+def request_buyer_broker_meeting(user, transaction_id: str, data: EmptyRequest):
     """
     POST /api/v1/transactions/{tx_id}/buyer-broker-review/request-meeting
     Agent records that they need a meeting before approving the BBA.
@@ -194,10 +199,12 @@ def request_buyer_broker_meeting(user, transaction_id: str):
     review = _get_or_create_review(transaction_id)
 
     if review.status == "agreement_sent":
-        return jsonify({
-            "success": False,
-            "error": "Agreement already sent.",
-        }), 409
+        return jsonify(
+            {
+                "success": False,
+                "error": "Agreement already sent.",
+            }
+        ), 409
 
     body = req.get_json(silent=True) or {}
     note = body.get("note")
