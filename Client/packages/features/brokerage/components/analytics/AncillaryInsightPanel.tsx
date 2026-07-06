@@ -131,8 +131,8 @@ function AttachRatesChart({ services }: { services: ServiceData[] }) {
   return <ReactECharts option={option} style={{ height: services.length * 56 + 24 }} />;
 }
 
-export function AncillaryInsightPanel() {
-  const { data, isLoading } = useAncillaryAnalytics();
+export function AncillaryInsightPanel({ period = "all" }: { period?: import("packages/features/brokerage/hooks/useBrokerageAnalytics").TimePeriod }) {
+  const { data, isLoading } = useAncillaryAnalytics(period);
 
   const sortedAgents = useMemo(
     () =>

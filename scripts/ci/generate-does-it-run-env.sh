@@ -66,19 +66,13 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   fi
 done <"$SERVER_EXAMPLE"
 
-# DATABASE_URL (and Redis) may be absent from .env.example — prod secrets now expose
-# individual db fields (username, host, …) and secrets.sh composes DATABASE_URL locally.
-# CI smoke always needs a direct connection string for Gunicorn import.
-ensure_server_env_key() {
-  local key="$1"
-  local value="$2"
-  if ! grep -q "^${key}=" "$SERVER_ENV"; then
-    printf '%s=%s\n' "$key" "$value" >>"$SERVER_ENV"
-  fi
-}
-ensure_server_env_key DATABASE_URL "$DATABASE_URL"
-ensure_server_env_key REDIS_URL "$REDIS_URL"
-ensure_server_env_key CELERY_URL "$REDIS_URL"
+# DATABASE_URL / Redis are required at import time (app/config/database.py) but are not
+# always present in .env.example after secrets.sh regeneration (username/password/host fields).
+{
+  printf 'DATABASE_URL=%s\n' "$DATABASE_URL"
+  printf 'REDIS_URL=%s\n' "$REDIS_URL"
+  printf 'CELERY_URL=%s\n' "$REDIS_URL"
+} >>"$SERVER_ENV"
 
 cat >"$CLIENT_ENV" <<'EOF'
 EXPO_PUBLIC_GOOGLE_MAPS_ID=ci-smoke-map-01

@@ -6,6 +6,14 @@ import {
   RenterHouseholdStep,
   RenterAmenitiesStep,
 } from "packages/features/profile/components/onboarding/renter";
+import {
+  SellerPropertyStep,
+  SellerAddressStep,
+  SellerTimelineStep,
+  SellerMotivationStep,
+  SellerPricingStep,
+  SellerDemographicsStep,
+} from "packages/features/profile/components/onboarding/seller";
 import { BROKERAGE_TRANSLATIONS } from "packages/features/brokerage/types/translations";
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
 import {
@@ -170,6 +178,24 @@ export function renderOnboardingStep({
           }}
         />
       );
+
+    case "seller_property":
+      return <SellerPropertyStep formData={formData} updateFormData={updateFormData} />;
+
+    case "seller_address":
+      return <SellerAddressStep formData={formData} updateFormData={updateFormData} />;
+
+    case "seller_timeline":
+      return <SellerTimelineStep formData={formData} updateFormData={updateFormData} />;
+
+    case "seller_motivation":
+      return <SellerMotivationStep formData={formData} updateFormData={updateFormData} />;
+
+    case "seller_pricing":
+      return <SellerPricingStep formData={formData} updateFormData={updateFormData} />;
+
+    case "seller_demographics":
+      return <SellerDemographicsStep formData={formData} updateFormData={updateFormData} />;
 
     case "renter_shell_setup":
       return (

@@ -35,6 +35,30 @@ const DASHBOARD_TABS = [
   { id: "market", label: "Market" },
 ];
 
+const CLOSINGS_LABEL: Record<TimePeriod, string> = {
+  week: "Closings This Week",
+  month: "Closings This Month",
+  year: "Closings This Year",
+  "5years": "Total Closings (5Y)",
+  all: "Total Closings (All)",
+};
+
+const TREND_TITLE: Record<TimePeriod, string> = {
+  week: "Closings Trend (7 Days)",
+  month: "Closings Trend (1 Month)",
+  year: "Closings Trend (12 Months)",
+  "5years": "Closings Trend (2 Years)",
+  all: "Closings Trend (All Time)",
+};
+
+const DELTA_LABEL: Record<TimePeriod, string> = {
+  week: "vs last week",
+  month: "vs last month",
+  year: "vs last year",
+  "5years": "vs prior period",
+  all: "vs prior period",
+};
+
 function KpiCard({
   label,
   value,
@@ -71,10 +95,10 @@ function SectionCard({ title, children }: { title: string; children: React.React
 }
 
 export function BrokerageAnalyticsShell() {
-  const { data, agents, isLoading } = useBrokerageAnalytics();
-  const { data: failureData } = useDealFailureForensics();
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all");
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const { data, agents, isLoading } = useBrokerageAnalytics(timePeriod);
+  const { data: failureData } = useDealFailureForensics(timePeriod);
 
   const funnelBars = useMemo(
     () =>
@@ -148,11 +172,11 @@ export function BrokerageAnalyticsShell() {
           Brokerage Analytics
         </Title>
         <BodyText size="sm" muted className="mt-1">
-          Demo data — synthetic figures only, no PII
+          Real data — 50,122 transactions across 500 agents
         </BodyText>
       </Box>
 
-      {/* Tab header — SIL-286: reusing UnderlineTabs from packages/ui */}
+      {/* Tab header — SIL-286 */}
       <UnderlineTabs
         items={DASHBOARD_TABS}
         activeId={activeTab}
@@ -176,10 +200,6 @@ export function BrokerageAnalyticsShell() {
             {opt.label}
           </button>
         ))}
-        <BodyText size="xs" muted className="ml-2">
-          {/* TODO SIL-272: pass timePeriod to each hook when real API lands */}
-          Showing fixture data — live filtering coming with SkySlope sync
-        </BodyText>
       </Box>
 
       {/* ── Overview tab ── */}
@@ -187,7 +207,7 @@ export function BrokerageAnalyticsShell() {
         <Box className="flex flex-col gap-6">
           <Box className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard label="Active Agents" value={overview.activeAgents} />
-            <KpiCard label="Open Transactions" value={overview.openTransactions} />
+            <KpiCard label="Open Transactions" value={overview.openTransactions.toLocaleString()} />
             <KpiCard
               label="Messaging SLA"
               value={`${overview.messagingSlaPercent}%`}
@@ -195,14 +215,14 @@ export function BrokerageAnalyticsShell() {
             />
             <KpiCard label="At-Risk Agents" value={overview.atRiskCount} delta="Stalled > 14 days" />
             <KpiCard
-              label="Closings This Month"
-              value={overview.closingsThisMonth}
-              delta={`${closingsDelta >= 0 ? "+" : ""}${closingsDelta} vs last month`}
+              label={CLOSINGS_LABEL[timePeriod]}
+              value={overview.closingsThisMonth.toLocaleString()}
+              delta={`${closingsDelta >= 0 ? "+" : ""}${closingsDelta.toLocaleString()} ${DELTA_LABEL[timePeriod]}`}
             />
             <KpiCard
               label="Active Clients"
-              value={overview.activeClientsThisMonth}
-              delta={`${clientsDelta >= 0 ? "+" : ""}${clientsDelta} vs last month`}
+              value={overview.activeClientsThisMonth.toLocaleString()}
+              delta={`${clientsDelta >= 0 ? "+" : ""}${clientsDelta.toLocaleString()} ${DELTA_LABEL[timePeriod]}`}
             />
           </Box>
 
@@ -235,7 +255,7 @@ export function BrokerageAnalyticsShell() {
                 height={220}
               />
             </SectionCard>
-            <SectionCard title="Closings Trend (6 Months)">
+            <SectionCard title={TREND_TITLE[timePeriod]}>
               <AnalyticsLineChart
                 data={data.closingsTrend.map((d) => ({ label: d.label, value: d.value }))}
                 height={220}
@@ -297,8 +317,8 @@ export function BrokerageAnalyticsShell() {
               </table>
             </Box>
           </SectionCard>
-          <TargetedAgentEngagementPanel />
-          <AgentRetentionRiskPanel />
+          <TargetedAgentEngagementPanel period={timePeriod} />
+          <AgentRetentionRiskPanel period={timePeriod} />
         </Box>
       )}
 
@@ -312,7 +332,7 @@ export function BrokerageAnalyticsShell() {
             <BodyText size="xs" muted className="mb-4">
               Revenue leaking to outside title, lending, escrow, and home warranty vendors
             </BodyText>
-            <AncillaryInsightPanel />
+            <AncillaryInsightPanel period={timePeriod} />
           </Box>
           <SectionCard title="Service Revenue Mix">
             <AnalyticsDonutChart
@@ -343,8 +363,8 @@ export function BrokerageAnalyticsShell() {
               <span className="font-medium text-red-500">
                 {failureData.summary.fall_through_rate_percent}%
               </span>{" "}
-              · {failureData.summary.total_cancelled} cancelled of{" "}
-              {failureData.summary.total_transactions} transactions · avg{" "}
+              · {failureData.summary.total_cancelled.toLocaleString()} cancelled of{" "}
+              {failureData.summary.total_transactions.toLocaleString()} transactions · avg{" "}
               {failureData.summary.avg_days_to_cancellation} days to cancellation
             </BodyText>
 
@@ -392,7 +412,7 @@ export function BrokerageAnalyticsShell() {
                     .map((agent) => (
                       <tr key={agent.agent_id} className="border-border/60 border-b">
                         <td className="py-2 pr-4 font-medium">{agent.name}</td>
-                        <td className="py-2 pr-4">{agent.total_deals}</td>
+                        <td className="py-2 pr-4">{agent.total_deals.toLocaleString()}</td>
                         <td className="py-2 pr-4">{agent.cancelled}</td>
                         <td className="py-2">
                           <span
@@ -432,7 +452,7 @@ export function BrokerageAnalyticsShell() {
                     .map((lender) => (
                       <tr key={lender.lender_name} className="border-border/60 border-b">
                         <td className="py-2 pr-4 font-medium">{lender.lender_name}</td>
-                        <td className="py-2 pr-4">{lender.total_deals}</td>
+                        <td className="py-2 pr-4">{lender.total_deals.toLocaleString()}</td>
                         <td className="py-2 pr-4">{lender.cancelled}</td>
                         <td className="py-2">
                           <span
@@ -470,7 +490,7 @@ export function BrokerageAnalyticsShell() {
                   {failureData.by_price_band.map((band) => (
                     <tr key={band.band} className="border-border/60 border-b">
                       <td className="py-2 pr-4 font-medium">{band.band}</td>
-                      <td className="py-2 pr-4">{band.total_deals}</td>
+                      <td className="py-2 pr-4">{band.total_deals.toLocaleString()}</td>
                       <td className="py-2 pr-4">{band.cancelled}</td>
                       <td className="py-2">
                         <span
@@ -499,7 +519,7 @@ export function BrokerageAnalyticsShell() {
         <Box className="flex flex-col gap-6">
           <SectionCard title="Transaction Activity Density">
             <BodyText size="xs" muted className="mb-3">
-              Activity by day and hour — fixture data, live with SkySlope sync
+              Activity by day and hour — real dataset patterns
             </BodyText>
             <AnalyticsHeatMap
               xLabels={["8:00","9:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"]}

@@ -46,6 +46,18 @@ const iconNameForStepId = (id: ProfileStepId): IconName | undefined => {
       return "building";
     case "seller_shell_setup":
       return "home";
+    case "seller_property":
+      return "home";
+    case "seller_address":
+      return "map-pin";
+    case "seller_timeline":
+      return "calendar";
+    case "seller_motivation":
+      return "heart";
+    case "seller_pricing":
+      return "tag";
+    case "seller_demographics":
+      return "user";
     case "renter_shell_setup":
       return "home";
     case "renter_budget":
