@@ -91,11 +91,19 @@ source "${DOES_IT_RUN_SERVER_ENV}"
 set +a
 unset TESTING
 export FLASK_ENV=production
+# database.py reads DATABASE_URL at import time (before run.py load_dotenv). Force the smoke
+# URL here so Gunicorn always sees it — server.env append is not sufficient when Actions
+# injects an empty DATABASE_URL or when .env.example omits the key.
+export DATABASE_URL="postgresql://silverkey:silverkey@127.0.0.1:5432/silverkey_ci"
 export REDIS_URL="${REDIS_URL:-redis://127.0.0.1:6379/0}"
 export CELERY_URL="${CELERY_URL:-$REDIS_URL}"
 export WEB_CONCURRENCY=1
 export GUNICORN_THREADS=2
 export GUNICORN_BIND=127.0.0.1:5000
+
+if [[ -z "${DATABASE_URL}" ]]; then
+  fail "DATABASE_URL is empty before Gunicorn start"
+fi
 
 bash "$ROOT/Server/scripts/gunicorn-entrypoint.sh" &
 gunicorn_pid=$!
