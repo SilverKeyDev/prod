@@ -1,3 +1,7 @@
+import type { ReactNode } from "react";
+
+import type { IconName } from "packages/ui/components/media/icons";
+import { Icon } from "packages/ui/components/media/icons";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 
@@ -25,17 +29,71 @@ export function PublicProfileChipRow({
   if (!filtered.length) return null;
   return (
     <Box className="gap-2">
-      <BodyText
-        size="xs"
-        className="text-text-secondary font-medium uppercase tracking-wide"
-      >
-        {label}
-      </BodyText>
+      {label ? (
+        <BodyText
+          size="xs"
+          className="text-text-secondary font-medium uppercase tracking-wide"
+        >
+          {label}
+        </BodyText>
+      ) : null}
       <Box className="flex flex-row flex-wrap gap-2">
         {filtered.map((item) => (
           <PublicProfileChip key={item}>{item}</PublicProfileChip>
         ))}
       </Box>
+    </Box>
+  );
+}
+
+/**
+ * Icon-badged card in the landing info-card style. `surface` flips the card
+ * background for sections with the base tone.
+ */
+export function PublicProfileInfoCard({
+  iconName,
+  title,
+  surface = false,
+  children,
+  className = "",
+}: {
+  iconName: IconName;
+  title: string;
+  surface?: boolean;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Box
+      className={`border-border gap-4 rounded-2xl border p-5 shadow-sm hover:shadow-md motion-safe:transition-shadow sm:p-6 ${
+        surface ? "bg-background-surface" : "bg-background-base"
+      } ${className}`}
+    >
+      <Box className="flex flex-row items-center gap-3">
+        <Box
+          className={`border-border flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+            surface ? "bg-background-base" : "bg-background-surface"
+          }`}
+        >
+          <Icon name={iconName} size={18} className="text-brand-primary" />
+        </Box>
+        <BodyText size="sm" className="text-text-primary font-semibold">
+          {title}
+        </BodyText>
+      </Box>
+      {children}
+    </Box>
+  );
+}
+
+/** Compact map-pin tile for a single service area (zip). */
+export function PublicProfileAreaTile({ area }: { area: string }) {
+  return (
+    <Box className="border-border bg-background-base flex flex-row items-center gap-2 rounded-xl border p-4 shadow-sm hover:shadow-md motion-safe:transition-shadow">
+      <Icon name="map-pin" size={16} className="text-brand-primary shrink-0" />
+      <BodyText size="sm" className="font-semibold">
+        {area}
+      </BodyText>
     </Box>
   );
 }

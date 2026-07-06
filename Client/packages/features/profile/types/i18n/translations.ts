@@ -53,6 +53,7 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.public.site.service_areas_heading": "Where {{firstName}} works",
   "profile.public.site.credentials_eyebrow": "Credentials",
   "profile.public.site.credentials_heading": "Licenses & affiliations",
+  "profile.public.site.license_details_title": "License details",
   "profile.public.site.contact_eyebrow": "Contact",
   "profile.public.site.contact_heading": "Work with {{firstName}}",
   "profile.public.contact_heading": "Contact",

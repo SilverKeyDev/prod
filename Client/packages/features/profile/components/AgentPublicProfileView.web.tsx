@@ -3,7 +3,11 @@ import { type ReactNode, useMemo } from "react";
 import { useLocalization } from "packages/contexts";
 import { PublicProfileContact } from "packages/features/profile/components/publicSite/PublicProfileContact.web";
 import { PublicProfileCredentials } from "packages/features/profile/components/publicSite/PublicProfileCredentials.web";
-import { PublicProfileChipRow } from "packages/features/profile/components/publicSite/PublicProfileDetails.web";
+import {
+  PublicProfileAreaTile,
+  PublicProfileChipRow,
+  PublicProfileInfoCard,
+} from "packages/features/profile/components/publicSite/PublicProfileDetails.web";
 import { PublicProfileHero } from "packages/features/profile/components/publicSite/PublicProfileHero.web";
 import { PublicProfileSection } from "packages/features/profile/components/publicSite/PublicProfileSection.web";
 import {
@@ -55,17 +59,22 @@ export function AgentPublicProfileView({
           })}
           tone="base"
         >
-          <Box className="gap-6">
+          <Box className="grid items-start gap-8 md:grid-cols-3">
             <BodyText
               size="md"
-              className="text-text-primary max-w-3xl whitespace-pre-wrap leading-relaxed"
+              className="text-text-primary whitespace-pre-wrap leading-relaxed md:col-span-2"
             >
               {agent.agent_bio}
             </BodyText>
-            <PublicProfileChipRow
-              label={FIELD_LABELS.AGENT_SPECIALTIES}
-              items={agent.specialties ?? undefined}
-            />
+            {agent.specialties?.length ? (
+              <PublicProfileInfoCard
+                iconName="sparkles"
+                title={FIELD_LABELS.AGENT_SPECIALTIES}
+                surface
+              >
+                <PublicProfileChipRow label="" items={agent.specialties} />
+              </PublicProfileInfoCard>
+            ) : null}
           </Box>
         </PublicProfileSection>
       ) : null}
@@ -79,10 +88,13 @@ export function AgentPublicProfileView({
           })}
           tone="surface"
         >
-          <PublicProfileChipRow
-            label={FIELD_LABELS.AGENT_PRIMARY_SERVICE_ZIPS}
-            items={agent.primary_service_zips ?? undefined}
-          />
+          <Box className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {(agent.primary_service_zips ?? [])
+              .filter((zip) => zip?.trim())
+              .map((zip) => (
+                <PublicProfileAreaTile key={zip} area={zip} />
+              ))}
+          </Box>
         </PublicProfileSection>
       ) : null}
 
