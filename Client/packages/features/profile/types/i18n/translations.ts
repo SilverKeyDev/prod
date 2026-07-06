@@ -42,6 +42,9 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   // Public agent site sections (web redesign)
   "profile.public.site.hero_eyebrow": "Real estate agent",
   "profile.public.site.licensed_in": "Licensed in {{states}}",
+  "profile.public.site.serving_areas": "Serving {{areas}}",
+  "profile.public.site.serving_areas_more":
+    "Serving {{areas}} and {{count}} more areas",
   "profile.public.site.email_action": "Email",
   "profile.public.site.call_action": "Call",
   "profile.public.site.about_eyebrow": "About",

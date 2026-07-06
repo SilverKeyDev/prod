@@ -4,6 +4,7 @@ import type {
   PublicAgentProfile,
 } from "packages/features/profile/utils/public/agentPublicProfileViewModel";
 import { PUBLIC_PROFILE_SECTION_IDS } from "packages/features/profile/utils/public/publicProfileSectionIds";
+import { Icon } from "packages/ui/components/media/icons";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import { ExternalAnchor } from "packages/ui/components/system/accessibility";
@@ -15,7 +16,7 @@ const CARD_CLASS =
   "border-border bg-background-surface gap-1 rounded-2xl border p-5 sm:p-6";
 
 const SOCIAL_PILL_CLASS =
-  "border-border bg-background-surface text-text-primary inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-semibold !break-normal !no-underline";
+  "border-border bg-background-surface text-text-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-5 text-sm font-semibold !break-normal !no-underline";
 
 type PublicProfileContactProps = {
   agent: PublicAgentProfile;
@@ -99,6 +100,7 @@ export function PublicProfileContact({
                   label={`${link.label}: ${link.href}`}
                 >
                   {link.label}
+                  <Icon name="external-link" size={14} className="shrink-0" />
                 </ExternalAnchor>
               ))}
             </Box>

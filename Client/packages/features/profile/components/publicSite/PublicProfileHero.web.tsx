@@ -6,6 +6,7 @@ import type {
   PublicAgentProfile,
 } from "packages/features/profile/utils/public/agentPublicProfileViewModel";
 import { ProfileAvatar } from "packages/ui/components/media/avatar";
+import { Icon } from "packages/ui/components/media/icons";
 import { Box, Image } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
@@ -18,9 +19,10 @@ import {
 } from "./PublicProfileSection.web";
 
 const QUICK_ACTION_CLASS =
-  "border-border bg-background-base text-text-primary inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-semibold !break-normal !no-underline";
+  "border-border bg-background-base text-text-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-5 text-sm font-semibold !break-normal !no-underline";
 
 const HERO_SPECIALTY_LIMIT = 6;
+const HERO_AREA_LIMIT = 4;
 
 type PublicProfileHeroProps = {
   agent: PublicAgentProfile;
@@ -39,6 +41,10 @@ export function PublicProfileHero({
   const specialties = (agent.specialties ?? [])
     .filter((s) => s?.trim())
     .slice(0, HERO_SPECIALTY_LIMIT);
+  const serviceAreas =
+    agent.primary_service_zips?.filter((z) => z?.trim()) ?? [];
+  const shownAreas = serviceAreas.slice(0, HERO_AREA_LIMIT).join(", ");
+  const extraAreaCount = serviceAreas.length - HERO_AREA_LIMIT;
   const photoAria = t("profile.public.photo_aria", { name: model.displayName });
 
   return (
@@ -68,6 +74,25 @@ export function PublicProfileHero({
                 })}
               </BodyText>
             ) : null}
+            {serviceAreas.length ? (
+              <Box className="flex flex-row items-center gap-1.5">
+                <Icon
+                  name="map-pin"
+                  size={14}
+                  className="text-text-secondary shrink-0"
+                />
+                <BodyText size="sm" className="text-text-secondary">
+                  {extraAreaCount > 0
+                    ? t("profile.public.site.serving_areas_more", {
+                        areas: shownAreas,
+                        count: String(extraAreaCount),
+                      })
+                    : t("profile.public.site.serving_areas", {
+                        areas: shownAreas,
+                      })}
+                </BodyText>
+              </Box>
+            ) : null}
             {specialties.length ? (
               <Box className="flex flex-row flex-wrap gap-2">
                 {specialties.map((item) => (
@@ -83,6 +108,7 @@ export function PublicProfileHero({
                   className={QUICK_ACTION_CLASS}
                   label={t("profile.public.email_label")}
                 >
+                  <Icon name="mail" size={16} className="shrink-0" />
                   {t("profile.public.site.email_action")}
                 </ExternalAnchor>
               ) : null}
@@ -92,6 +118,7 @@ export function PublicProfileHero({
                   className={QUICK_ACTION_CLASS}
                   label={t("profile.public.phone_label")}
                 >
+                  <Icon name="phone" size={16} className="shrink-0" />
                   {t("profile.public.site.call_action")}
                 </ExternalAnchor>
               ) : null}
