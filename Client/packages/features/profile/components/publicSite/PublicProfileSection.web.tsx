@@ -27,7 +27,8 @@ export function PublicProfileEyebrow({ children }: { children: string }) {
 
 type PublicProfileSectionProps = {
   id: string;
-  eyebrow: string;
+  /** Optional uppercase label above the heading; omit for a heading-only section. */
+  eyebrow?: string;
   heading: string;
   tone?: PublicProfileSectionTone;
   children: ReactNode;
@@ -58,14 +59,16 @@ export function PublicProfileSection({
     >
       <Box
         ref={ref}
-        className={`${PUBLIC_PROFILE_CONTAINER_CLASS} gap-6 py-14 sm:gap-8 sm:py-16 motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+        className={`${PUBLIC_PROFILE_CONTAINER_CLASS} gap-5 py-14 sm:gap-6 sm:py-16 motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
           inView
             ? "translate-y-0 opacity-100"
             : "motion-safe:translate-y-8 motion-safe:opacity-0"
         }`}
       >
-        <Box className="gap-2">
-          <PublicProfileEyebrow>{eyebrow}</PublicProfileEyebrow>
+        <Box className="gap-1.5">
+          {eyebrow ? (
+            <PublicProfileEyebrow>{eyebrow}</PublicProfileEyebrow>
+          ) : null}
           <Title as="h2" size="lg" className="!font-serif">
             {heading}
           </Title>

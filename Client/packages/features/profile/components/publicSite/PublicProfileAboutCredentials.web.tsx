@@ -44,14 +44,14 @@ export function PublicProfileAboutCredentials({
     ) ||
     model.mlsCards.length > 0;
 
-  if (!hasAboutCard && !hasCredentialsCard) return null;
+  const hasRightCard = hasCredentialsCard || model.hasBrokerageBlock;
+  if (!hasAboutCard && !hasRightCard) return null;
 
-  const bothCards = hasAboutCard && hasCredentialsCard;
+  const bothCards = hasAboutCard && hasRightCard;
 
   return (
     <PublicProfileSection
       id={PUBLIC_PROFILE_SECTION_IDS.about}
-      eyebrow={t("profile.public.site.about_eyebrow")}
       heading={t("profile.public.site.about_heading", {
         firstName: model.firstName,
       })}
@@ -62,11 +62,10 @@ export function PublicProfileAboutCredentials({
       >
         {hasAboutCard ? (
           <PublicProfileInfoCard
-            iconName="user"
             title={t("profile.public.site.about_card_title")}
             surface
           >
-            <Box className="gap-5">
+            <Box className="gap-4">
               {hasBio ? (
                 <BodyText
                   size="md"
@@ -76,44 +75,25 @@ export function PublicProfileAboutCredentials({
                 </BodyText>
               ) : null}
               {model.hasBrokerageBlock ? (
-                <Box className="border-border gap-3 border-t pt-4">
-                  <BodyText
-                    size="xs"
-                    className="text-text-secondary font-medium uppercase tracking-wide"
-                  >
-                    {SECTION_TITLES.AGENT_BROKERAGE}
-                  </BodyText>
-                  <Box className="grid gap-3 sm:grid-cols-2">
-                    <PublicProfileDetail
-                      label={FIELD_LABELS.AGENT_BROKERAGE_NAME}
-                      value={agent.brokerage_name ?? undefined}
-                    />
-                    <PublicProfileDetail
-                      label={FIELD_LABELS.AGENT_BROKERAGE_BIC}
-                      value={agent.brokerage_bic_name ?? undefined}
-                    />
-                    <PublicProfileDetail
-                      label={FIELD_LABELS.AGENT_BROKERAGE_ADDRESS}
-                      value={agent.brokerage_address ?? undefined}
-                    />
-                    <PublicProfileDetail
-                      label={FIELD_LABELS.AGENT_BROKERAGE_EMAIL}
-                      value={agent.brokerage_email ?? undefined}
-                    />
-                    <PublicProfileDetail
-                      label={FIELD_LABELS.AGENT_BROKERAGE_PHONE}
-                      value={agent.brokerage_phone ?? undefined}
-                    />
-                  </Box>
+                <Box className="border-border/60 gap-0.5 border-t pt-4">
+                  {agent.brokerage_name?.trim() ? (
+                    <BodyText size="sm" muted>
+                      {agent.brokerage_name}
+                    </BodyText>
+                  ) : null}
+                  {agent.brokerage_address?.trim() ? (
+                    <BodyText size="xs" muted>
+                      {agent.brokerage_address}
+                    </BodyText>
+                  ) : null}
                 </Box>
               ) : null}
             </Box>
           </PublicProfileInfoCard>
         ) : null}
 
-        {hasCredentialsCard ? (
+        {hasRightCard ? (
           <PublicProfileInfoCard
-            iconName="shield"
             title={t("profile.public.credentials_heading")}
             surface
           >
@@ -156,6 +136,38 @@ export function PublicProfileAboutCredentials({
                       ))}
                     </Box>
                   ))}
+                </Box>
+              ) : null}
+              {model.hasBrokerageBlock ? (
+                <Box className="border-border/60 gap-3 border-t pt-4">
+                  <BodyText
+                    size="xs"
+                    className="text-text-secondary font-medium uppercase tracking-wide"
+                  >
+                    {SECTION_TITLES.AGENT_BROKERAGE}
+                  </BodyText>
+                  <Box className="grid gap-3 sm:grid-cols-2">
+                    <PublicProfileDetail
+                      label={FIELD_LABELS.AGENT_BROKERAGE_NAME}
+                      value={agent.brokerage_name ?? undefined}
+                    />
+                    <PublicProfileDetail
+                      label={FIELD_LABELS.AGENT_BROKERAGE_BIC}
+                      value={agent.brokerage_bic_name ?? undefined}
+                    />
+                    <PublicProfileDetail
+                      label={FIELD_LABELS.AGENT_BROKERAGE_ADDRESS}
+                      value={agent.brokerage_address ?? undefined}
+                    />
+                    <PublicProfileDetail
+                      label={FIELD_LABELS.AGENT_BROKERAGE_EMAIL}
+                      value={agent.brokerage_email ?? undefined}
+                    />
+                    <PublicProfileDetail
+                      label={FIELD_LABELS.AGENT_BROKERAGE_PHONE}
+                      value={agent.brokerage_phone ?? undefined}
+                    />
+                  </Box>
                 </Box>
               ) : null}
             </Box>

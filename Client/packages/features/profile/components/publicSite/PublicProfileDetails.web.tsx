@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import type { IconName } from "packages/ui/components/media/icons";
-import { Icon } from "packages/ui/components/media/icons";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 
@@ -47,17 +45,16 @@ export function PublicProfileChipRow({
 }
 
 /**
- * Icon-badged card in the landing info-card style. `surface` flips the card
- * background for sections with the base tone.
+ * Card in the landing style with a small uppercase brand-colored title
+ * (the landing eyebrow treatment). `surface` flips the card background for
+ * sections with the base tone.
  */
 export function PublicProfileInfoCard({
-  iconName,
   title,
   surface = false,
   children,
   className = "",
 }: {
-  iconName: IconName;
   title: string;
   surface?: boolean;
   children: ReactNode;
@@ -69,18 +66,13 @@ export function PublicProfileInfoCard({
         surface ? "bg-background-surface" : "bg-background-base"
       } ${className}`}
     >
-      <Box className="flex flex-row items-center gap-3">
-        <Box
-          className={`border-border flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
-            surface ? "bg-background-base" : "bg-background-surface"
-          }`}
-        >
-          <Icon name={iconName} size={18} className="text-brand-primary" />
-        </Box>
-        <BodyText size="sm" className="text-text-primary font-semibold">
-          {title}
-        </BodyText>
-      </Box>
+      <BodyText
+        as="span"
+        size="xs"
+        className="text-brand-primary font-semibold uppercase tracking-widest"
+      >
+        {title}
+      </BodyText>
       {children}
     </Box>
   );
