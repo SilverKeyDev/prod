@@ -11,7 +11,7 @@ Phase 1 foundation: verify the sending domain in SES, wire Cognito auth emails t
 | Area | Status |
 |------|--------|
 | Cognito user pool | `prod-silverkey-users` — signup / verify / password reset via Cognito API (`Server/app/services/auth/`) |
-| Server SES sends | `Server/app/services/email/send_test_emails_via_ses.py`, Sunday newsletter GHA (to move in SIL-187) |
+| Server SES sends | `Server/app/services/email/send_test_emails_via_ses.py`, `run_email_listings.py` ([SIL-187](https://linear.app/silverkey/issue/SIL-187)) |
 | Shared sender constant | `noreply@usesilverkey.com` — `Server/app/services/email/ses_config.py` |
 | DNS (SPF/DKIM/DMARC) | **Ops task** — add records at domain registrar |
 | Cognito → SES | **Ops task** — switch pool email provider from Cognito default to SES |

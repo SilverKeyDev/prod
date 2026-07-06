@@ -302,7 +302,6 @@ Scripts run exclusively inside GitHub Actions. Do not invoke locally unless debu
 | `db-migrate-main.yml` | `.github/scripts/gh-db-upgrade.sh` |
 | `endpoints-check-dead.yml` | `Server/scripts/endpoints/check_dead_endpoints.py` |
 | `endpoints-sync-posthog.yml` | `Server/scripts/endpoints/sync_inventory_posthog.py` |
-| `sunday_newsletter.yml` | Inline `run:` steps (email orchestrator; inlined, not a script file) |
 
 ---
 

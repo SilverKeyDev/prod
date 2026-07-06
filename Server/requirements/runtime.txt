@@ -7,9 +7,9 @@
 #   all features (integrations, embeddings/ML, PDFs, Celery, etc.).
 #
 # Where it is used:
-#   - Docker: Dockerfile.web (CPU torch first, then runtime.txt)
-#   - GitHub Actions: sunday_newsletter.yml, sunday_newsletter_test.yml (CPU torch first)
-#   - Local: Server/scripts/bootstrap-venv.sh (CPU torch on Linux, then runtime.txt)
+#   - Docker: Dockerfile.web (CPU torch via scripts/install-torch-cpu.sh, then runtime.txt)
+#   - GitHub Actions: test-callable.yml, does-it-run backend-light (install-torch-cpu.sh)
+#   - Local: Server/scripts/bootstrap-venv.sh (install-torch-cpu.sh on Linux, then runtime.txt)
 #
 # Not used for:
 #   - PR lint → requirements/lint.txt (ci.txt + ruff + pyright)
@@ -42,8 +42,8 @@ matplotlib>=3.8.0
 scikit-learn==1.5.0
 scipy==1.13.1
 # torch: on linux the bare PyPI wheel is the multi-GB CUDA build, but there is no GPU in
-# prod. Dockerfile.web and bootstrap-venv.sh (linux) pre-install the CPU wheel from
-# https://download.pytorch.org/whl/cpu, which satisfies this pin so it is not reinstalled.
+# prod. Dockerfile.web and bootstrap-venv.sh (linux) pre-install the CPU wheel via
+# Server/scripts/install-torch-cpu.sh, which satisfies this pin so it is not reinstalled.
 # Do NOT pin `+cpu` here: those local-tagged wheels do not exist for macOS, where the
 # default PyPI wheel is already CPU-only.
 torch==2.10.0

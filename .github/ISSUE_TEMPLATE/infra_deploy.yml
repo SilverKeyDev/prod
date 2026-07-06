@@ -22,8 +22,6 @@ body:
         - OpenAPI Schema Sync
         - Prod Deploy - Web (EC2)
         - DB migrate (main)
-        - Sunday Newsletter
-        - Sunday Newsletter (Test - Single Email)
     validations:
       required: true
 

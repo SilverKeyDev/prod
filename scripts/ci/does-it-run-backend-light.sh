@@ -68,10 +68,9 @@ fi
 # shellcheck disable=SC1091
 source .venv/bin/activate
 python -m pip install --upgrade pip >/dev/null
-# Install the CPU-only torch wheel first so the runtime.txt `torch==2.10.0` pin is already
-# satisfied and pip does not pull the multi-GB CUDA build (matches bootstrap-venv.sh and
-# Dockerfile.web). The version tracks the pin in requirements/runtime.txt.
-pip install --no-cache-dir torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
+# CPU-only torch first (runtime.txt pin); shared script retries and falls back to a direct
+# CloudFront wheel URL when pip hits download-r2.pytorch.org TLS failures on CI runners.
+bash "$ROOT/Server/scripts/install-torch-cpu.sh"
 pip install --no-cache-dir -r requirements/runtime.txt
 
 echo "does-it-run-backend-light: building web bundle for SPA serving..."

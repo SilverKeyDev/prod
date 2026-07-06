@@ -84,7 +84,7 @@
   # below does not pull torch (or its CUDA deps) again. Mirrors the CPU-wheel install in
   # .github/workflows/test-callable.yml.
   RUN pip install --upgrade pip setuptools wheel --quiet --disable-pip-version-check \
-   && pip install --no-cache-dir torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu --quiet --disable-pip-version-check \
+   && bash scripts/install-torch-cpu.sh \
    && pip install --no-cache-dir --prefer-binary -r requirements/runtime.txt --quiet --disable-pip-version-check \
    && pip cache purge >/dev/null 2>&1 \
    && rm -rf /tmp/* /var/tmp/* ~/.cache/pip
