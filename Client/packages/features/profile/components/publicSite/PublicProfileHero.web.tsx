@@ -25,6 +25,8 @@ const QUICK_ACTION_CLASS =
 
 const HERO_SPECIALTY_LIMIT = 6;
 const HERO_AREA_LIMIT = 4;
+/** Bios longer than this drop below the identity row at full reading width. */
+const HERO_BIO_INLINE_LIMIT = 280;
 
 /** Staggered fade-up applied to hero rows once mounted (respects reduced motion). */
 function revealClass(mounted: boolean, delay: string): string {
@@ -66,6 +68,7 @@ export function PublicProfileHero({
   const photoAria = t("profile.public.photo_aria", { name: model.displayName });
 
   const bio = agent.agent_bio?.trim() ?? "";
+  const bioIsLong = bio.length > HERO_BIO_INLINE_LIMIT;
   const licenseNumbers = agent.license_numbers?.filter((n) => n?.trim()) ?? [];
   // Brokerage + license identity as one quiet fine-print line under the CTAs.
   const finePrintItems = [
@@ -116,7 +119,7 @@ export function PublicProfileHero({
               </BodyText>
             ) : null}
 
-            {bio ? (
+            {bio && !bioIsLong ? (
               <BodyText
                 size="md"
                 className={`text-text-secondary mt-5 whitespace-pre-wrap leading-relaxed ${revealClass(mounted, "delay-200")}`}
@@ -200,16 +203,6 @@ export function PublicProfileHero({
                 </ExternalAnchor>
               ) : null}
             </Box>
-
-            {finePrintItems.length ? (
-              <Box
-                className={`border-border/60 mt-9 border-t pt-4 ${revealClass(mounted, "delay-500")}`}
-              >
-                <BodyText size="xs" muted className="tracking-wide">
-                  {finePrintItems.join("  ·  ")}
-                </BodyText>
-              </Box>
-            ) : null}
           </Box>
 
           <Box className={`shrink-0 ${revealClass(mounted, "delay-150")}`}>
@@ -238,6 +231,25 @@ export function PublicProfileHero({
             </Box>
           </Box>
         </Box>
+
+        {bio && bioIsLong ? (
+          <BodyText
+            size="md"
+            className={`text-text-secondary mt-12 max-w-3xl whitespace-pre-wrap leading-relaxed ${revealClass(mounted, "delay-300")}`}
+          >
+            {bio}
+          </BodyText>
+        ) : null}
+
+        {finePrintItems.length ? (
+          <Box
+            className={`border-border/60 mt-12 border-t pt-4 ${revealClass(mounted, "delay-500")}`}
+          >
+            <BodyText size="xs" muted className="tracking-wide">
+              {finePrintItems.join("  ·  ")}
+            </BodyText>
+          </Box>
+        ) : null}
       </Box>
     </section>
   );
