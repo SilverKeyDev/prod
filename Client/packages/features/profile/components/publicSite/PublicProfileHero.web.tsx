@@ -5,6 +5,7 @@ import type {
   AgentPublicProfileViewModel,
   PublicAgentProfile,
 } from "packages/features/profile/utils/public/agentPublicProfileViewModel";
+import { PUBLIC_PROFILE_SECTION_IDS } from "packages/features/profile/utils/public/publicProfileSectionIds";
 import { ProfileAvatar } from "packages/ui/components/media/avatar";
 import { Icon } from "packages/ui/components/media/icons";
 import { Box, Image } from "packages/ui/components/structure/primitives";
@@ -64,8 +65,24 @@ export function PublicProfileHero({
   const extraAreaCount = serviceAreas.length - HERO_AREA_LIMIT;
   const photoAria = t("profile.public.photo_aria", { name: model.displayName });
 
+  const bio = agent.agent_bio?.trim() ?? "";
+  const licenseNumbers = agent.license_numbers?.filter((n) => n?.trim()) ?? [];
+  // Brokerage + license identity as one quiet fine-print line under the CTAs.
+  const finePrintItems = [
+    agent.brokerage_name?.trim() || null,
+    agent.brokerage_address?.trim() || null,
+    licenseNumbers.length
+      ? t("profile.public.site.licenses_fineprint", {
+          numbers: licenseNumbers.join(", "),
+        })
+      : null,
+  ].filter((item): item is string => Boolean(item));
+
   return (
-    <section className="bg-background-surface relative overflow-hidden">
+    <section
+      id={PUBLIC_PROFILE_SECTION_IDS.about}
+      className="bg-background-surface relative overflow-hidden"
+    >
       <Box className="pointer-events-none absolute inset-0 opacity-30">
         <RippleBackground overlay />
       </Box>
@@ -96,6 +113,15 @@ export function PublicProfileHero({
                 className={`mt-3 ${revealClass(mounted, "delay-150")}`}
               >
                 {agent.brokerage}
+              </BodyText>
+            ) : null}
+
+            {bio ? (
+              <BodyText
+                size="md"
+                className={`text-text-secondary mt-5 whitespace-pre-wrap leading-relaxed ${revealClass(mounted, "delay-200")}`}
+              >
+                {bio}
               </BodyText>
             ) : null}
 
@@ -174,6 +200,16 @@ export function PublicProfileHero({
                 </ExternalAnchor>
               ) : null}
             </Box>
+
+            {finePrintItems.length ? (
+              <Box
+                className={`border-border/60 mt-9 border-t pt-4 ${revealClass(mounted, "delay-500")}`}
+              >
+                <BodyText size="xs" muted className="tracking-wide">
+                  {finePrintItems.join("  ·  ")}
+                </BodyText>
+              </Box>
+            ) : null}
           </Box>
 
           <Box className={`shrink-0 ${revealClass(mounted, "delay-150")}`}>

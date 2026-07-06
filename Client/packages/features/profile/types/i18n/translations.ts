@@ -47,10 +47,8 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
     "Serving {{areas}} and {{count}} more areas",
   "profile.public.site.email_action": "Email",
   "profile.public.site.call_action": "Call",
-  "profile.public.site.about_heading": "Meet {{firstName}}",
-  "profile.public.site.about_card_title": "About",
   "profile.public.site.social_eyebrow": "Connect",
-  "profile.public.credentials_heading": "Licenses & Brokerage",
+  "profile.public.site.licenses_fineprint": "License {{numbers}}",
   "profile.public.contact_heading": "Contact",
   "profile.public.contact_subtitle":
     "How clients can reach you on your public profile.",
