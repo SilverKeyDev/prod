@@ -1,20 +1,6 @@
 import React from "react";
 
-import {
-  RenterBudgetStep,
-  RenterMoveTimelineStep,
-  RenterHouseholdStep,
-  RenterAmenitiesStep,
-} from "packages/features/profile/components/onboarding/renter";
-import {
-  SellerPropertyStep,
-  SellerAddressStep,
-  SellerTimelineStep,
-  SellerMotivationStep,
-  SellerPricingStep,
-  SellerDemographicsStep,
-} from "packages/features/profile/components/onboarding/seller";
-import { BROKERAGE_TRANSLATIONS } from "packages/features/brokerage/types/translations";
+import { BrokerageShellSetupStep } from "packages/features/brokerage/components/onboarding/BrokerageShellSetupStep.web";
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
 import {
   AgentBrokerageSection,
@@ -28,6 +14,20 @@ import {
   BuyerFinancingStepContent,
 } from "packages/features/profile/components/onboarding/buyer";
 import OnboardingRoleStep from "packages/features/profile/components/onboarding/OnboardingRoleStep.web";
+import {
+  RenterAmenitiesStep,
+  RenterBudgetStep,
+  RenterHouseholdStep,
+  RenterMoveTimelineStep,
+} from "packages/features/profile/components/onboarding/renter";
+import {
+  SellerAddressStep,
+  SellerDemographicsStep,
+  SellerMotivationStep,
+  SellerPricingStep,
+  SellerPropertyStep,
+  SellerTimelineStep,
+} from "packages/features/profile/components/onboarding/seller";
 import { ProfileHousingEssentialsSection } from "packages/features/profile/components/profileScreen/tabs/housing/ProfileHousingEssentialsSection";
 import { ProfileHousingRangesSection } from "packages/features/profile/components/profileScreen/tabs/housing/ProfileHousingRangesSection";
 import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/tabs/search/ProfileSearchPropertySection";
@@ -236,17 +236,7 @@ export function renderOnboardingStep({
       return <RenterAmenitiesStep formData={formData} updateFormData={updateFormData} />;
 
     case "brokerage_shell_setup":
-      return (
-        <WorkspaceShellSetupStep
-          formData={formData}
-          updateFormData={updateFormData}
-          copy={{
-            title: BROKERAGE_TRANSLATIONS.BROKERAGE_SHELL_SETUP_TITLE,
-            subtitle: BROKERAGE_TRANSLATIONS.BROKERAGE_SHELL_SETUP_SUBTITLE,
-            inputLabel: BROKERAGE_TRANSLATIONS.BROKERAGE_SHELL_TEST_INPUT_LABEL,
-          }}
-        />
-      );
+      return <BrokerageShellSetupStep formData={formData} updateFormData={updateFormData} />;
 
     case "integration_partner_shell_setup":
       return (
