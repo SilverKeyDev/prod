@@ -7,6 +7,7 @@ import type { UserProfile } from "@/features/homeauth/types";
 import AgentProfilePage from "@/pages/misc/AgentProfilePage";
 import PropertyDetailsPage from "@/pages/property/PropertyDetailsPage";
 import AdminDevPersonaOutlet from "@/pages/workspace/admin/AdminDevPersonaOutlet";
+import AdminIntegrationsOutlet from "@/pages/workspace/admin/AdminIntegrationsOutlet";
 import AdminLoggingOutlet from "@/pages/workspace/admin/AdminLoggingOutlet";
 import AdminPartnersOutlet from "@/pages/workspace/admin/AdminPartnersOutlet";
 import AdminSuperadminOutlet from "@/pages/workspace/admin/AdminSuperadminOutlet";
@@ -45,6 +46,7 @@ function useStableNonDashboardRoutes(): ReactElement[] {
         <Route path="platform-health" element={<Navigate to="/admin/logging" replace />} />
         <Route path="notifications" element={<Navigate to="/admin/logging" replace />} />
         <Route path="logging" element={<AdminLoggingOutlet />} />
+        <Route path="integrations" element={<AdminIntegrationsOutlet />} />
         <Route path="partners" element={<AdminPartnersOutlet />} />
         <Route path="support-messaging" element={<AdminSupportMessagingOutlet />} />
         <Route path="dev-persona" element={<AdminDevPersonaOutlet />} />
