@@ -4,9 +4,7 @@
  */
 export const PUBLIC_PROFILE_SECTION_IDS = {
   about: "about",
-  serviceAreas: "service-areas",
-  credentials: "credentials",
-  contact: "contact",
+  social: "social",
   // Reserved for upcoming sections: SIL-290 listings, SIL-291 search, SIL-289 testimonials.
   listings: "listings",
   search: "search",

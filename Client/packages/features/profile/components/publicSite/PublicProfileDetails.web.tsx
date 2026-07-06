@@ -86,18 +86,6 @@ export function PublicProfileInfoCard({
   );
 }
 
-/** Compact map-pin tile for a single service area (zip). */
-export function PublicProfileAreaTile({ area }: { area: string }) {
-  return (
-    <Box className="border-border bg-background-base flex flex-row items-center gap-2 rounded-xl border p-4 shadow-sm hover:shadow-md motion-safe:transition-shadow">
-      <Icon name="map-pin" size={16} className="text-brand-primary shrink-0" />
-      <BodyText size="sm" className="font-semibold">
-        {area}
-      </BodyText>
-    </Box>
-  );
-}
-
 /** Small label + value block; renders nothing without a value. */
 export function PublicProfileDetail({
   label,
