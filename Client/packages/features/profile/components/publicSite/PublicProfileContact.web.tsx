@@ -13,10 +13,10 @@ import { PublicProfileDetail } from "./PublicProfileDetails.web";
 import { PublicProfileSection } from "./PublicProfileSection.web";
 
 const CARD_CLASS =
-  "border-border bg-background-surface gap-1 rounded-2xl border p-5 sm:p-6";
+  "border-border bg-background-surface gap-1 rounded-2xl border p-5 shadow-sm hover:shadow-md motion-safe:transition-shadow sm:p-6";
 
 const SOCIAL_PILL_CLASS =
-  "border-border bg-background-surface text-text-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-5 text-sm font-semibold !break-normal !no-underline";
+  "border-border bg-background-surface text-text-primary hover:border-brand-primary hover:text-brand-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-5 text-sm font-semibold !break-normal !no-underline motion-safe:transition-colors";
 
 type PublicProfileContactProps = {
   agent: PublicAgentProfile;

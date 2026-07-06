@@ -15,7 +15,7 @@ import {
 import { PublicProfileSection } from "./PublicProfileSection.web";
 
 const CARD_CLASS =
-  "border-border bg-background-base gap-4 rounded-2xl border p-5 sm:p-6";
+  "border-border bg-background-base gap-4 rounded-2xl border p-5 shadow-sm hover:shadow-md motion-safe:transition-shadow sm:p-6";
 
 type PublicProfileCredentialsProps = {
   agent: PublicAgentProfile;
