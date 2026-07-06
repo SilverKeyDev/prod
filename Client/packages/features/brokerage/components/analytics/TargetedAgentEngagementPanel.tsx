@@ -62,8 +62,8 @@ function exportToCsv(rows: typeof data.flagged_agents) {
   URL.revokeObjectURL(url);
 }
 
-export function TargetedAgentEngagementPanel() {
-  const { data, isLoading, error } = useTargetedAgentEngagement();
+export function TargetedAgentEngagementPanel({ period = "all" }: { period?: import("../../hooks/useBrokerageAnalytics").TimePeriod })  {
+  const { data, isLoading, error } = useTargetedAgentEngagement(period);
   const [officeFilter, setOfficeFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
 

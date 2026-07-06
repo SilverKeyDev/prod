@@ -74,8 +74,8 @@ function exportToCsv(rows: typeof data.agents) {
   URL.revokeObjectURL(url);
 }
 
-export function AgentRetentionRiskPanel() {
-  const { data, isLoading, error } = useAgentRetentionRisk();
+export function AgentRetentionRiskPanel({ period = "all" }: { period?: import("../../hooks/useBrokerageAnalytics").TimePeriod }) {
+  const { data, isLoading, error } = useAgentRetentionRisk(period);
   const [tierFilter, setTierFilter] = useState<string>("all");
 
   if (isLoading) {

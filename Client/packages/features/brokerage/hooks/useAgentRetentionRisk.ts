@@ -1,23 +1,42 @@
-/**
- * Hook returning agent retention risk scoring data.
- * Cross-references agent split structures against production volume to flag
- * flight-risk agents (top producers underpaid vs market) and over-compensated
- * agents (high split, low volume). Ranked by risk score.
- *
- * Currently returns dummy fixtures shaped exactly like the real API response.
- * TODO SIL-272: Swap fixture for real API call once SkySlope sync lands:
- *   const res = await fetch(`/api/v1/brokerage/analytics/agent-retention-risk?brokerage_org_id=${brokerageOrgId}`);
- *   return res.json();
- * TODO SIL-191: Pull real split structures from brokerage agent roster config.
- *
- * Powers SIL-278 — agent retention risk panel.
- */
+import { useMemo } from "react";
 import { BROKERAGE_AGENT_RETENTION_FIXTURE } from "../fixtures/brokerageAnalyticsFixtures";
+import type { TimePeriod } from "./useBrokerageAnalytics";
 
-export function useAgentRetentionRisk() {
+function buildRetentionData(period: TimePeriod) {
+  const base = BROKERAGE_AGENT_RETENTION_FIXTURE;
+  const scale = period === "week" ? 0.05 : period === "month" ? 1 : period === "year" ? 12 : 24;
+
+  const agents = base.agents.map(a => ({
+    ...a,
+    total_transactions: Math.round(a.total_transactions * scale),
+    estimated_gci: Math.round(a.estimated_gci * scale),
+  }));
+
+  const flightRisk = agents.filter(a => a.risk_tier === "flight_risk");
+  const watch = agents.filter(a => a.risk_tier === "watch");
+  const stable = agents.filter(a => a.risk_tier === "stable");
+  const overComp = agents.filter(a => a.risk_tier === "over_comp");
+  const atRiskGci = [...flightRisk, ...watch].reduce((s, a) => s + a.estimated_gci, 0);
+
   return {
-    data: BROKERAGE_AGENT_RETENTION_FIXTURE,
-    isLoading: false,
-    error: null,
+    ...base,
+    agents,
+    summary: {
+      total_agents_scored: agents.length,
+      flight_risk_count: flightRisk.length,
+      watch_count: watch.length,
+      stable_count: stable.length,
+      over_comp_count: overComp.length,
+      estimated_at_risk_gci: atRiskGci,
+    },
+    by_tier: base.by_tier.map(t => ({
+      ...t,
+      estimated_gci_at_risk: Math.round(t.estimated_gci_at_risk * scale),
+    })),
   };
+}
+
+export function useAgentRetentionRisk(period: TimePeriod = "all") {
+  const data = useMemo(() => buildRetentionData(period), [period]);
+  return { data, isLoading: false, error: null };
 }
