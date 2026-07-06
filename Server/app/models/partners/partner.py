@@ -13,7 +13,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app import db
 
 CHECKLIST_WORKSPACES = frozenset({"buyer", "seller"})
-VALID_TARGET_ROLES = frozenset({"buyer", "seller", "agent", "brokerage", "integration_partner"})
+VALID_TARGET_ROLES = frozenset(
+    {"buyer", "seller", "renter", "agent", "brokerage", "integration_partner"}
+)
 VALID_PAYOUT_TYPES = frozenset({"on_click", "on_close"})
 VALID_INTEGRATION_DISPLAY_MODES = frozenset({"iframe_and_link", "link_only"})
 DEFAULT_INTEGRATION_DISPLAY_MODE = "iframe_and_link"

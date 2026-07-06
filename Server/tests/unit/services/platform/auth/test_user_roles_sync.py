@@ -30,6 +30,11 @@ class TestDesiredClientRolesFromWhyJoin:
             "investor",
         }
 
+    def test_renter_only(self) -> None:
+        assert desired_client_roles_from_why_join(["renting_house"], grant_agent_role=False) == {
+            "renter",
+        }
+
     def test_agent_adds_agent_role(self) -> None:
         assert desired_client_roles_from_why_join([], grant_agent_role=True) == {"agent"}
 

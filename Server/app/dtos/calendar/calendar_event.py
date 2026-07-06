@@ -69,6 +69,16 @@ class CalendarEventDTO:
 
         if calendar_event_row.event_type:
             payload["silverKeyEventType"] = calendar_event_row.event_type
+
+        virtual_meeting_enabled = calendar_event_row.conference_status is not None
+        if virtual_meeting_enabled:
+            payload["silverKeyVirtualMeetingEnabled"] = True
+            meet_url = calendar_event_row.meet_url
+            if meet_url and not payload.get("hangoutLink"):
+                payload["hangoutLink"] = meet_url
+        elif calendar_event_row.meet_url is None and calendar_event_row.conference_status is None:
+            payload["silverKeyVirtualMeetingEnabled"] = False
+
         return payload
 
     @classmethod
@@ -89,8 +99,11 @@ class CalendarEventDTO:
         payload = cls._merge_db_overlays(payload, calendar_event_row)
 
         validated = _validate_event_payload(payload, create=create)
-        if validated is not None and validated.silverKeyEventType is not None:
-            payload["silverKeyEventType"] = validated.silverKeyEventType
+        if validated is not None:
+            if validated.silverKeyEventType is not None:
+                payload["silverKeyEventType"] = validated.silverKeyEventType
+            if validated.silverKeyVirtualMeetingEnabled is not None:
+                payload["silverKeyVirtualMeetingEnabled"] = validated.silverKeyVirtualMeetingEnabled
 
         return payload
 

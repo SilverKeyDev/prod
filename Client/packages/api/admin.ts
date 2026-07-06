@@ -15,3 +15,10 @@ export {
   type UpdateUserSystemRolesResponse,
   type UpdateUserSystemRolesResult,
 } from "packages/features/admin/api/admin";
+export {
+  type BrokerageSkySlopeCredential,
+  type BrokerageSkySlopeCredentialCreateRequest,
+  type BrokerageSkySlopeCredentialTestResponse,
+  type BrokerageSkySlopeCredentialUpdateRequest,
+  skyslopeCredentialsApi,
+} from "packages/features/admin/api/skyslopeCredentials";

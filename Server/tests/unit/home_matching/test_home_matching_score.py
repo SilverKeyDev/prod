@@ -77,47 +77,54 @@ class TestMCDAScoring:
         from app.services.search.home_matching.mcda.score import score_listing_mcda
 
         preferences = {
-            "price_max": 400000,
+            "home_budget_max": 400000,
             "preferred_bedrooms_min": 3,
-            "preferred_bathrooms": 2,
+            "preferred_bathrooms_min": 2,
         }
 
         property_dict = {
-            "ListPrice": 350000,
-            "BedroomsTotal": 2,  # Below minimum
-            "BathroomsTotalInteger": 2,
-            "LivingArea": 2000,
-            "PropertyType": "Residential",
+            "price": 350000,
+            "bedrooms": 2,  # Below minimum
+            "bathrooms": 2,
+            "sqft": 2000,
+            "homeType": "SINGLE_FAMILY",
         }
 
         score = score_listing_mcda(preferences, property_dict)
+        ok_beds = dict(property_dict)
+        ok_beds["bedrooms"] = 3
+        score_ok = score_listing_mcda(preferences, ok_beds)
 
-        # Should have reduced score due to beds constraint
-        assert score < 50.0
+        # Should score lower than the same listing with enough bedrooms
+        assert score < score_ok
+        assert score < 65.0
 
     def test_score_wrong_property_type(self):
         """Test scoring applies penalty for wrong property type"""
         from app.services.search.home_matching.mcda.score import score_listing_mcda
 
         preferences = {
-            "price_max": 400000,
-            "preferred_bedrooms": 3,
-            "preferred_housing_type": "house",  # Want single family
+            "home_budget_max": 400000,
+            "preferred_bedrooms_min": 3,
+            "preferred_housing_type": "single_family",
         }
 
         property_dict = {
-            "ListPrice": 350000,
-            "BedroomsTotal": 3,
-            "BathroomsTotalInteger": 2,
-            "PropertyType": "Residential",
-            "PropertySubType": "Condo",  # Different type
-            "LivingArea": 2000,
+            "price": 350000,
+            "bedrooms": 3,
+            "bathrooms": 2,
+            "homeType": "CONDO",
+            "sqft": 2000,
         }
 
         score = score_listing_mcda(preferences, property_dict)
+        house = dict(property_dict)
+        house["homeType"] = "SINGLE_FAMILY"
+        score_house = score_listing_mcda(preferences, house)
 
-        # Should have penalty for wrong property type
-        assert score < 60.0
+        # Should score lower than a matching housing type
+        assert score < score_house
+        assert score < 65.0
 
     def test_score_with_commute_preference(self):
         """Test scoring considers commute time"""

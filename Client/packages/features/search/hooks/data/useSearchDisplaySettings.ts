@@ -11,7 +11,7 @@ import { useAuthStore } from "packages/store";
 
 /**
  * Loads search display settings from the API when authenticated and keeps Zustand in sync.
- * Patches persist server-side when local display fields change from the Display dropdown.
+ * Patches persist server-side when display fields change from search preferences (web panel or native filters).
  */
 export function useSearchDisplaySettings(authReady: boolean) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);

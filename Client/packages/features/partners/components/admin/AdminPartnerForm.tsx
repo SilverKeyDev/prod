@@ -14,6 +14,7 @@ import {
   type PartnerIntegrationDisplayMode,
   partnerShowsIframe,
 } from "packages/features/partners/types/integrationDisplay";
+import { OptionTagInput } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Label from "packages/ui/components/structure/text/Label";
@@ -23,7 +24,6 @@ import { workspaceSwitcherLabelKey } from "packages/utils/product/workspace/work
 import { interpolateDestinationUrl } from "packages/utils/transaction/revShare/interpolateDestinationUrl";
 
 import { Button, Dropdown, Input } from "@/components/ui";
-import OptionTagInput from "@/features/profile/components/settings/inputs/tags/OptionTagInput.web";
 
 const CHECKLIST_ROLES: Workspace[] = ["buyer", "seller"];
 

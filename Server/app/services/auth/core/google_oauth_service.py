@@ -185,7 +185,6 @@ class GoogleOAuthService:
             "scope": " ".join(self.scopes),
             "access_type": "offline",
             "prompt": "consent",
-            "include_granted_scopes": "true",
             "state": state,
         }
         return (f"{self.auth_endpoint}?{urlencode(params)}", state)

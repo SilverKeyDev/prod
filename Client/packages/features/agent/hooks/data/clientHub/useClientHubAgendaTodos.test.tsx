@@ -30,11 +30,13 @@ const completedClientTodo: TodoItem = {
 };
 
 const updateTodo = vi.fn();
+const deleteTodo = vi.fn();
 
 vi.mock("./useAgentTodos", () => ({
   useAgentTodos: () => ({
     todos: [clientTodo, otherClientTodo, completedClientTodo],
     updateTodo,
+    deleteTodo,
   }),
 }));
 

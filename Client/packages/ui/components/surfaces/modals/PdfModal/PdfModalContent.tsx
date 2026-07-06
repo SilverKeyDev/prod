@@ -7,11 +7,7 @@ import Button from "packages/ui/components/actions/button/Button";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import {
-  getPdfIframeAllow,
-  getPdfIframeSandbox,
-  getPdfViewerStyles,
-} from "packages/utils/transaction/documents";
+import { getPdfIframeAllow, getPdfViewerStyles } from "packages/utils/transaction/documents";
 export type PdfModalContentProps = {
   optimizedPdfUrl: string | null;
   reportId?: string | null;
@@ -23,7 +19,6 @@ export type PdfModalContentProps = {
 };
 export const PdfModalContent: React.FC<PdfModalContentProps> = ({
   optimizedPdfUrl,
-  reportId,
   isMobile,
   onLoad,
   onError,
@@ -73,7 +68,6 @@ export const PdfModalContent: React.FC<PdfModalContentProps> = ({
         className="h-full w-full border-0"
         title={t("pdf.viewer_title")}
         allow={getPdfIframeAllow()}
-        {...(reportId ? {} : { sandbox: getPdfIframeSandbox(false) })}
         referrerPolicy="no-referrer"
         onLoad={onLoad}
         onError={onError}

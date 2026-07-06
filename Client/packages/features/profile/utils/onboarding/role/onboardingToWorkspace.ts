@@ -2,39 +2,26 @@ import type { Workspace } from "packages/utils/product/workspace";
 
 import type { PrimaryOnboardingRole } from "./onboardingRoleSelection";
 
-export type PostOnboardingTarget = {
-  workspace: Workspace;
-  path: string;
-};
-
-const PLACEHOLDER_SHELL_ROLES = new Set<PrimaryOnboardingRole>([
-  "seller",
-  "brokerage",
-  "integration_partner",
-]);
-
 /**
- * Post-onboarding route and workspace for a resolved primary onboarding role.
- * Placeholder shells land on /dashboard; buyer and agent keep /search.
+ * Active workspace after onboarding for a resolved primary onboarding role.
  */
-export function postOnboardingTargetForPrimaryRole(
+export function postOnboardingWorkspaceForPrimaryRole(
   role: PrimaryOnboardingRole | undefined
-): PostOnboardingTarget {
+): Workspace {
   if (role === "seller") {
-    return { workspace: "seller", path: "/dashboard" };
+    return "seller";
+  }
+  if (role === "renter") {
+    return "renter";
   }
   if (role === "brokerage") {
-    return { workspace: "brokerage", path: "/dashboard" };
+    return "brokerage";
   }
   if (role === "integration_partner") {
-    return { workspace: "integration_partner", path: "/dashboard" };
+    return "integration_partner";
   }
   if (role === "agent") {
-    return { workspace: "agent", path: "/search" };
+    return "agent";
   }
-  return { workspace: "buyer", path: "/search" };
-}
-
-export function isPlaceholderShellOnboardingRole(role: PrimaryOnboardingRole | undefined): boolean {
-  return role !== undefined && PLACEHOLDER_SHELL_ROLES.has(role);
+  return "buyer";
 }

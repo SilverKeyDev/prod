@@ -41,6 +41,11 @@ permissions = {
             "https://www.googleapis.com/auth/calendar",
         ],
     },
+    "calendar_calendarlist": {
+        "field_name": "has_calendar_calendarlist",
+        "scope_url": "https://www.googleapis.com/auth/calendar.calendarlist",
+        "description": "See, add, and remove Google calendars you're subscribed to so SilverKey can find existing app calendars.",
+    },
     # Full Calendar access — not requested on new OAuth connects (sensitive scope / verification).
     # Legacy tokens may still list this in token.scopes; virtual check via check_permission("calendar").
     "calendar": {

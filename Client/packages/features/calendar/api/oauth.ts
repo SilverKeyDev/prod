@@ -25,11 +25,6 @@ export async function revokeAccess(): Promise<RevokeResponse> {
   }
 }
 
-export async function startOAuthWithFullScope(): Promise<void> {
-  const win = getWindow();
-  if (win) win.location.href = "/api/v1/google/oauth/start?full_scope=true";
-}
-
 export async function isConnected(): Promise<boolean> {
   try {
     const response = await apiGet<ConnectionStatusResponse>("/api/v1/google/connection-status");

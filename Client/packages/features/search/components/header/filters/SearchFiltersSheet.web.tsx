@@ -3,10 +3,8 @@ import React from "react";
 import { useLocalization } from "packages/contexts";
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile";
 import type { OnboardingData } from "packages/features/profile";
-import { SearchDisplayPanelWeb } from "packages/features/search/components/header/display/SearchDisplayPanel.web";
 import { Box } from "packages/ui/components/structure/primitives";
 import { Transition } from "packages/ui/components/system/adapters/headless";
-import { TOUR_TARGETS_MOBILE } from "packages/utils/transaction/tour/tourTargets";
 
 import { AccessibleDialog, CloseButton, Title } from "@/components/ui";
 import SearchPreferencesContent from "@/features/search/components/filters/SearchPreferencesContent.web";
@@ -21,10 +19,10 @@ export type SearchFiltersSheetProps = {
   onClientChange?: (clientId: string | null) => void;
   patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
   onAgentSyncPreferencesFetched?: (onboarding: Partial<OnboardingData>) => void;
-  onClientChange?: (clientId: string | null) => void;
   replaceFormData?: (next: Partial<OnboardingData>) => void;
   cancelPendingSave?: () => void;
   onAfterClear?: () => void | Promise<void>;
+  saveStatus?: "idle" | "saving" | "saved";
 };
 
 export default function SearchFiltersSheet({
@@ -40,6 +38,7 @@ export default function SearchFiltersSheet({
   replaceFormData,
   cancelPendingSave,
   onAfterClear,
+  saveStatus = "idle",
 }: SearchFiltersSheetProps): React.ReactElement {
   const { t } = useLocalization();
 
@@ -94,16 +93,9 @@ export default function SearchFiltersSheet({
                   replaceFormData={replaceFormData}
                   cancelPendingSave={cancelPendingSave}
                   onAfterClear={onAfterClear}
+                  menuPortalStack="modal"
+                  saveStatus={saveStatus}
                 />
-                <Box
-                  id={TOUR_TARGETS_MOBILE.displayControl}
-                  className="border-border mt-6 border-t pt-6"
-                >
-                  <Title size="sm" as="h3" className="mb-4">
-                    {t("search.display")}
-                  </Title>
-                  <SearchDisplayPanelWeb menuPortalStack="modal" />
-                </Box>
               </Box>
             </AccessibleDialog.Panel>
           </Transition.Child>

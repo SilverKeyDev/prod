@@ -16,8 +16,14 @@ const STEP_TITLES: Record<ProfileStepId, string> = {
   availability: SECTION_TITLES.AVAILABILITY,
   privacy_data: "Privacy & data",
   seller_shell_setup: "Seller setup",
+  renter_shell_setup: "Renter setup",
   brokerage_shell_setup: "Brokerage setup",
   integration_partner_shell_setup: "Partner setup",
+  renter_budget: "Budget",
+  renter_location: "Areas",
+  renter_move_timeline: "Timeline",
+  renter_household: "Household",
+  renter_amenities: "Amenities",
 };
 
 export function profileStepFromId(id: ProfileStepId): ProfileStep {

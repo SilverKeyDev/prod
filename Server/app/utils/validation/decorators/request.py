@@ -31,16 +31,16 @@ def validate_request(schema: type[BaseModel]) -> Callable[[F], F]:
     Validate request body against OpenAPI Pydantic schema.
 
     Modes (via OPENAPI_VALIDATION_MODE env var):
-    - gradual: Log validation failures but accept request (default)
+    - gradual: Log validation failures but pass unvalidated body via model_construct
     - strict: Reject invalid requests with 400 error
     """
 
     def decorator(f: F) -> F:
         @wraps(f)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
+            raw = request.get_json(silent=True)
+            json_data = coerce_json_body_for_schema(schema, raw)
             try:
-                raw = request.get_json(silent=True)
-                json_data = coerce_json_body_for_schema(schema, raw)
                 validated_data = schema(**json_data)
                 return f(*args, data=validated_data, **kwargs)
 
@@ -68,7 +68,7 @@ def validate_request(schema: type[BaseModel]) -> Callable[[F], F]:
                     f"Gradual mode: accepting request despite validation failure [{error_id}]",
                     {"route": request.path},
                 )
-                return f(*args, data=None, **kwargs)
+                return f(*args, data=schema.model_construct(**json_data), **kwargs)
 
             except Exception as e:
                 error_id = SecureErrorHandler.generate_error_id()
@@ -98,16 +98,20 @@ def validate_form_request(
     def decorator(f: F) -> F:
         @wraps(f)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
+            payload: dict[str, Any] = {}
             try:
                 if form_key is not None:
                     raw_value = request.form.get(form_key)
                     if parse_json:
                         if not raw_value:
-                            validated_data = schema.model_validate({})
+                            payload = {}
                         else:
-                            validated_data = schema.model_validate_json(raw_value)
+                            parsed = json.loads(raw_value)
+                            payload = parsed if isinstance(parsed, dict) else {}
+                        validated_data = schema.model_validate(payload)
                     else:
-                        validated_data = schema.model_validate({form_key: raw_value})
+                        payload = {form_key: raw_value}
+                        validated_data = schema.model_validate(payload)
                 else:
                     field_names = list(schema.model_fields.keys())
                     payload = {
@@ -139,7 +143,7 @@ def validate_form_request(
                     f"Gradual mode: accepting form despite validation failure [{error_id}]",
                     {"route": request.path},
                 )
-                return f(*args, data=None, **kwargs)
+                return f(*args, data=schema.model_construct(**payload), **kwargs)
 
             except json.JSONDecodeError as e:
                 error_id = SecureErrorHandler.generate_error_id()

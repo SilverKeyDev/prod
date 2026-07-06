@@ -10,11 +10,14 @@ Backend (Python/Flask) canonical docs. Lightweight module READMEs stay under `Se
 |-----|-------------|
 | [ops/postgres.md](./ops/postgres.md) | PostgreSQL local setup and schema pointers |
 | [ops/redis-celery.md](./ops/redis-celery.md) | Redis broker, Celery workers, troubleshooting |
+| [ops/prod-web-rollback.md](./ops/prod-web-rollback.md) | One-command prod web rollback to a prior immutable SHA tag |
+| [ops/monitoring-alerts.md](./ops/monitoring-alerts.md) | PostHog error tracking plus Slack health and 5xx alerting |
 | [ops/scaling-playbook.md](./ops/scaling-playbook.md) | Capacity tuning, env vars, multi-instance checklist |
 | [ops/posthog-capacity-queries.md](./ops/posthog-capacity-queries.md) | HogQL templates for `api_request` latency and volume |
 | [ops/posthog-api-error-semantics.md](./ops/posthog-api-error-semantics.md) | `error_kind`, `expected_client_error`, and SLO vs 4xx noise |
 | [ops/posthog-dead-routes-table.md](./ops/posthog-dead-routes-table.md) | PostHog insight/table for CI `endpoint_dead_route` events |
 | [ops/scripts-guide.md](./ops/scripts-guide.md) | Master script inventory, caller map, naming conventions, add/deprecate guide |
+| [ops/ses-cognito-onboarding.md](./ops/ses-cognito-onboarding.md) | SES domain/DKIM, Cognito auth email, sandbox exit (SIL-46) |
 
 ### Architecture and API
 

@@ -84,6 +84,7 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
     )
     if comm:
         out["communication_frequency"] = comm.communication_frequency
+        out["preferred_contact_method"] = getattr(comm, "preferred_contact_method", None)
         out["information_detail_level"] = comm.information_detail_level
         out["has_buyers_agent"] = comm.has_buyers_agent
         out["looking_for_buyers_agent"] = comm.looking_for_buyers_agent

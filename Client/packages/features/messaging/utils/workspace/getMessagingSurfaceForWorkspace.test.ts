@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { getMessagingSurfaceForWorkspace } from "./getMessagingSurfaceForWorkspace";
 
 describe("getMessagingSurfaceForWorkspace", () => {
-  it("maps buyer and seller to agent_client stack", () => {
+  it("maps buyer, seller, and renter to agent_client stack", () => {
     expect(getMessagingSurfaceForWorkspace("buyer")).toEqual({
       stack: "agent_client",
       clientPersona: "buyer",
@@ -11,6 +11,10 @@ describe("getMessagingSurfaceForWorkspace", () => {
     expect(getMessagingSurfaceForWorkspace("seller")).toEqual({
       stack: "agent_client",
       clientPersona: "seller",
+    });
+    expect(getMessagingSurfaceForWorkspace("renter")).toEqual({
+      stack: "agent_client",
+      clientPersona: "renter",
     });
   });
 

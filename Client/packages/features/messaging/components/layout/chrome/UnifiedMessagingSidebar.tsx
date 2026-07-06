@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import type { AgentClient, AgentConversation } from "packages/api";
 import { useLocalization } from "packages/contexts";
-import type { AgentClientSortMode } from "packages/features/agent";
+import type { AgentClientSortMode } from "packages/features/agent/utils/agentClientListSort";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import { Box } from "packages/ui/components/structure/primitives";
 
@@ -63,7 +63,7 @@ export default function UnifiedMessagingSidebar({
     <aside
       className={`${
         isSidebarExpanded
-          ? "z-sidebar absolute inset-0 flex xl:relative xl:inset-auto xl:z-0 xl:w-80"
+          ? "z-sidebar absolute inset-y-0 left-0 flex w-80 max-w-[85vw] shadow-xl xl:relative xl:inset-auto xl:z-0 xl:w-80 xl:max-w-none xl:shadow-none"
           : "hidden xl:flex xl:w-80"
       } flex-col transition-transform duration-300 ease-in-out xl:rounded-l-xl`}
     >

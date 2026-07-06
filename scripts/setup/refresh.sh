@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Refresh after git pull: clear stale caches, Client deps, Server pip (existing venv).
-# Usage: ./scripts/setup/refresh.sh [--ci] [--secrets] [--no-install] [--no-clean] [--aggressive-clean]
+# Usage: ./scripts/setup/refresh.sh [--ci] [--secrets] [--reset-db] [--no-install] [--no-clean] [--aggressive-clean]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -10,17 +10,19 @@ NO_INSTALL=false
 RUN_CLEAN=true
 AGGRESSIVE_CLEAN=false
 RUN_SECRETS=false
+RESET_DB=false
 BOOTSTRAP_CI=false
 for arg in "$@"; do
   case "$arg" in
     --secrets) RUN_SECRETS=true ;;
+    --reset-db) RESET_DB=true ;;
     --ci) BOOTSTRAP_CI=true ;;
     --no-install) NO_INSTALL=true ;;
     --no-clean) RUN_CLEAN=false ;;
     --aggressive-clean) AGGRESSIVE_CLEAN=true ;;
     *)
       echo "Unknown option: $arg" >&2
-      echo "Usage: $0 [--ci] [--secrets] [--no-install] [--no-clean] [--aggressive-clean]" >&2
+      echo "Usage: $0 [--ci] [--secrets] [--reset-db] [--no-install] [--no-clean] [--aggressive-clean]" >&2
       exit 1
       ;;
   esac
@@ -64,7 +66,13 @@ bash Server/scripts/bootstrap-venv.sh "${bootstrap_args[@]}"
 
 if [[ "$RUN_SECRETS" == true ]]; then
   echo "==> Server: secrets"
-  bash Server/scripts/secrets.sh "${AWS_REGION:-us-east-2}" "${AWS_PROFILE:-}"
+  sh Server/scripts/secrets.sh "${AWS_REGION:-us-east-2}" "${AWS_PROFILE:-}"
+fi
+
+if [[ "$RESET_DB" == true ]]; then
+  echo "==> Local dev database: reset and migrate"
+  make db-reset
+  make migrate
 fi
 
 echo "refresh: done"

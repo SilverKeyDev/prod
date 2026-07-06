@@ -2,18 +2,17 @@ import React from "react";
 
 import Input from "@ui/form/Input";
 
-import { Pressable } from "packages/ui/components/structure/primitives";
-import { Box } from "packages/ui/components/structure/primitives";
-import { Text } from "packages/ui/components/structure/primitives";
-
 import {
   FIELD_LABELS,
   INTENDED_USE_OPTIONS,
   type OnboardingData,
-  RENOVATION_OPTIONS,
+  RENOVATION_PREFERENCE_OPTIONS,
   SECTION_TITLES,
   WALKABILITY_OPTIONS,
-} from "@/features/profile/utils";
+} from "packages/features/profile/utils";
+import { Pressable } from "packages/ui/components/structure/primitives";
+import { Box } from "packages/ui/components/structure/primitives";
+import { Text } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -32,7 +31,7 @@ export function HousingStepDetails({ formData, updateFormData }: Props) {
           {FIELD_LABELS.RENOVATION_PREFERENCE}
         </Text>
         <Box className="flex flex-row flex-wrap gap-2">
-          {RENOVATION_OPTIONS.map((option) => {
+          {RENOVATION_PREFERENCE_OPTIONS.map((option) => {
             const selected = formData.renovation_preference === option.value;
             return (
               <Pressable

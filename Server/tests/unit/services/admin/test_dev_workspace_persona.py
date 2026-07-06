@@ -33,6 +33,7 @@ class TestApplyDevWorkspacePersona:
         [
             (DevWorkspacePersona.buyer, False, {"buyer"}),
             (DevWorkspacePersona.seller, False, {"seller"}),
+            (DevWorkspacePersona.renter, False, {"renter"}),
             (DevWorkspacePersona.agent, True, {"agent"}),
             (DevWorkspacePersona.brokerage, False, {"brokerage_admin"}),
             (DevWorkspacePersona.integration_partner, False, {"integration_partner"}),

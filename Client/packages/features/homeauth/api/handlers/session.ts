@@ -14,7 +14,7 @@ import type { UserProfile } from "@/features/homeauth/types";
 
 const apiRequestOptions = {
   includeCredentials: true,
-  includeAuth: false,
+  includeAuth: true,
   useCors: false,
 } as unknown as ApiRequestOptions;
 

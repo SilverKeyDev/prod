@@ -75,6 +75,7 @@ export const CHECKLISTS_TRANSLATIONS: Record<string, string> = {
   "checklists.roadmap.complete_via_step": "Complete this step using the form below.",
   "checklists.roadmap.signature_pending": "Completes when agreements are signed.",
   "checklists.roadmap.expand_step": "Expand step",
+  "checklists.roadmap.toggle_step": "Toggle step",
   "checklists.partner_agent.intro":
     "Search for an agent to send a connection request. After they accept, they appear under Connected agents and you can submit this step.",
   "checklists.partner_agent.connected_section_title": "Connected agents",

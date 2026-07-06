@@ -1,12 +1,19 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useResumePendingAgentPublicConnect } from "./useResumePendingAgentPublicConnect";
-
 const createRequestAsInitiator = vi.fn();
 const enqueueToast = vi.fn();
-const navigate = vi.fn();
-const getCurrentRoute = vi.fn(() => ({ pathname: "/dashboard" }));
+
+const mockUserData = vi.hoisted(() => ({
+  userProfile: { id: "client-1", roles: [] as string[], has_preferences: true },
+  userProfileLoading: false,
+}));
+
+const mockAuthStore = vi.hoisted(() => ({
+  authReady: true,
+  isAuthenticated: true,
+  user: { has_preferences: true },
+}));
 
 vi.mock("./useConnectionRequests", () => ({
   useConnectionRequests: () => ({ createRequestAsInitiator }),
@@ -17,20 +24,17 @@ vi.mock("packages/contexts", () => ({
 }));
 
 vi.mock("packages/hooks/data/user/useUserData", () => ({
-  useUserData: () => ({
-    userProfile: { id: "client-1", roles: [] },
-    userProfileLoading: false,
-  }),
-}));
-
-vi.mock("packages/navigation", () => ({
-  ROUTES: { ONBOARDING: "/onboarding" },
-  useNavigation: () => ({ getCurrentRoute, navigate }),
+  useUserData: () => mockUserData,
 }));
 
 vi.mock("packages/store", () => ({
-  useAuthStore: (selector: (s: { authReady: boolean; isAuthenticated: boolean }) => unknown) =>
-    selector({ authReady: true, isAuthenticated: true }),
+  useAuthStore: (
+    selector: (s: {
+      authReady: boolean;
+      isAuthenticated: boolean;
+      user: { has_preferences: boolean };
+    }) => unknown
+  ) => selector(mockAuthStore),
   useUIStore: (selector: (s: { enqueueToast: typeof enqueueToast }) => unknown) =>
     selector({ enqueueToast }),
 }));
@@ -45,11 +49,18 @@ import {
   peekPendingPublicAgentConnect,
 } from "packages/utils/growth/agent";
 
+import { useResumePendingAgentPublicConnect } from "./useResumePendingAgentPublicConnect";
+
 describe("useResumePendingAgentPublicConnect", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(peekPendingPublicAgentConnect).mockReturnValue(null);
     createRequestAsInitiator.mockResolvedValue({ alreadyPending: false });
+    mockUserData.userProfile = { id: "client-1", roles: [], has_preferences: true };
+    mockUserData.userProfileLoading = false;
+    mockAuthStore.authReady = true;
+    mockAuthStore.isAuthenticated = true;
+    mockAuthStore.user = { has_preferences: true };
   });
 
   it("does nothing when there is no pending public connect intent", async () => {
@@ -73,8 +84,19 @@ describe("useResumePendingAgentPublicConnect", () => {
       );
     });
     expect(clearPendingPublicAgentConnect).toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith("DASHBOARD", undefined, { replace: true });
     expect(enqueueToast).toHaveBeenCalledWith(expect.objectContaining({ type: "success" }));
+  });
+
+  it("does not resume connect before onboarding is complete", async () => {
+    vi.mocked(peekPendingPublicAgentConnect).mockReturnValue("agent-99");
+    mockUserData.userProfile = { id: "client-1", roles: [], has_preferences: false };
+    mockAuthStore.user = { has_preferences: false };
+
+    renderHook(() => useResumePendingAgentPublicConnect());
+
+    await waitFor(() => {
+      expect(createRequestAsInitiator).not.toHaveBeenCalled();
+    });
   });
 
   it("clears pending intent when it matches the current user id", async () => {

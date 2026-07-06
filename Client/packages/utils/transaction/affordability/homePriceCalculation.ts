@@ -35,6 +35,8 @@ export const mapCreditScoreToNumber = (creditScoreRange?: string): number => {
       return 725;
     case "fair": // 650-699
       return 675;
+    case "working_on_it":
+      return 620;
     case "poor": // 600-649
       return 625;
     case "very-poor": // <600

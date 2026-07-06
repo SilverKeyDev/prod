@@ -99,6 +99,7 @@ export default function SavedHomesHeader({
           showViewToggle={showLibraryViewToggle}
           librarySortKey={librarySortKey}
           onLibrarySortChange={onLibrarySortChange}
+          embeddedInMobileHeader
         />
       </Box>
     );

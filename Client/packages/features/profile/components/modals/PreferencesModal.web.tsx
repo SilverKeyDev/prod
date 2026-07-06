@@ -1,0 +1,55 @@
+import React, { useCallback, useRef } from "react";
+
+import PreferencesFormContent, {
+  type PreferencesFormContentRef,
+} from "packages/features/profile/components/settings/inputs/PreferencesFormContent.web";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
+
+type PreferencesModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onPreferencesChanged?: () => void | Promise<void>;
+};
+
+const PreferencesModal: React.FC<PreferencesModalProps> = ({
+  isOpen,
+  onClose,
+  onPreferencesChanged,
+}) => {
+  const formContentRef = useRef<PreferencesFormContentRef | null>(null);
+  const initialFormDataRef = useRef<string>("");
+
+  const handleInitialSnapshot = useCallback((formData: Partial<OnboardingData>) => {
+    initialFormDataRef.current = JSON.stringify(formData);
+  }, []);
+
+  const handleClose = useCallback(async () => {
+    const current = formContentRef.current;
+    const currentStr = current ? JSON.stringify(current.formData) : "";
+    const hasChanged = currentStr !== initialFormDataRef.current;
+    onClose();
+    if (hasChanged && onPreferencesChanged) {
+      await onPreferencesChanged();
+    }
+  }, [onClose, onPreferencesChanged]);
+
+  return (
+    <BaseModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Preferences"
+      size="xl"
+      className="max-h-[90vh]"
+    >
+      <PreferencesFormContent
+        key={isOpen ? "open" : "closed"}
+        formContentRef={formContentRef}
+        showErrorToastOnError={false}
+        onInitialSnapshot={handleInitialSnapshot}
+      />
+    </BaseModal>
+  );
+};
+
+export default PreferencesModal;

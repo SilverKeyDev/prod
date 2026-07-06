@@ -192,15 +192,20 @@ export default function ClientChecklists({
         }
         renderItemAgentFooter={
           isAgentWorkspace
-            ? (item) =>
-                activeItemIds.includes(item.id) ? (
+            ? (item) => {
+                const hasSuggestedForms = (item.suggestedFormIds?.length ?? 0) > 0;
+                if (!activeItemIds.includes(item.id) || !hasSuggestedForms) {
+                  return null;
+                }
+                return (
                   <ChecklistStepForms
                     transactionId={transactionId}
                     section={checklistType}
                     itemId={item.id}
                     isAgent={isAgentWorkspace}
                   />
-                ) : null
+                );
+              }
             : undefined
         }
       />

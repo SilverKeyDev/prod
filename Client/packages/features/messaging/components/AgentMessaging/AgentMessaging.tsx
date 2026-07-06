@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 
-import type { ReactNode, UIEvent } from "react";
+import type { ReactNode } from "react";
 
 import type { AgentClient } from "packages/api";
 import { getMessagingConfig } from "packages/features/agent/components/messaging/screen/messagingConfig";
@@ -11,6 +11,7 @@ import MessagingModals from "packages/features/messaging/components/layout/chrom
 import UnifiedMessageInput from "packages/features/messaging/components/layout/input/UnifiedMessageInput";
 import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
 import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
+import { useAgentChatsSse } from "packages/features/messaging/hooks/data/useAgentChatsSse";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
 import { useMessagingComposerStoreIntegration } from "packages/features/messaging/hooks/store/useMessagingComposerStoreIntegration";
@@ -23,7 +24,7 @@ import { Box } from "packages/ui/components/structure/primitives";
 import { screenUp } from "packages/ui/types/screens";
 import { logMessagingCheckpointSinceLatestShellMark } from "packages/utils/core/perf/messagingRoutePerf";
 import { traceLazyImport } from "packages/utils/core/perf/shellRouteLoadTiming";
-import { getDocument, getWindow } from "packages/utils/core/platform";
+import { getDocument } from "packages/utils/core/platform";
 
 import { Region } from "@/components/ui";
 import AgentMessagingClientList from "@/features/agent/components/messaging/chrome/AgentMessagingClientList";
@@ -40,6 +41,8 @@ type AgentMessagingProps = {
 export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagingProps) {
   useMessagingComposerStoreIntegration();
   useFirstRenderCommitTimer("MESSAGES", "AgentMessaging");
+  // SIL-180: Subscribe to agent SSE stream so new messages appear without refresh
+  useAgentChatsSse(true);
 
   const { clients, isLoading: isLoadingClients } = useAgentClients();
   const agentChats = useAgentChats();
@@ -168,26 +171,11 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
     sendSharedDocument,
   });
 
-  const { messagesEndRef } = useMessageScroll(
+  const { messagesEndRef, handleMessageListScroll } = useMessageScroll(
     localMessages,
     activeConversationId,
-    isLoadingHistory
-  );
-
-  const loadOlderGuardRef = useRef(false);
-  const handleMessageListScroll = useCallback(
-    (e: UIEvent<HTMLDivElement>) => {
-      if (!hasMoreOlder || isLoadingOlder) return;
-      if (e.currentTarget.scrollTop > 120) return;
-      if (loadOlderGuardRef.current) return;
-      loadOlderGuardRef.current = true;
-      void loadOlderMessages().finally(() => {
-        getWindow()?.setTimeout(() => {
-          loadOlderGuardRef.current = false;
-        }, 400);
-      });
-    },
-    [hasMoreOlder, isLoadingOlder, loadOlderMessages]
+    isLoadingHistory,
+    { hasMoreOlder, isLoadingOlder, loadOlderMessages }
   );
   const config = getMessagingConfig("agent");
   const isXlUp = useMediaQuery(screenUp("xl"));
@@ -210,8 +198,6 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
   useEffect(() => {
     if (!setMobileHeaderActions) return;
 
-    // When sidebar is expanded on mobile, the sidebar's own internal header takes over.
-    // Clear the mobile shell header to avoid duplicate controls.
     if (isSidebarExpanded) {
       headerContentKeyRef.current = null;
       setMobileHeaderActions(null);
@@ -259,6 +245,7 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
       <Box className="relative flex h-full w-full overflow-hidden">
         <MessagingSidebarShell
           isSidebarExpanded={isSidebarExpanded}
+          onOverlayDismiss={() => setIsSidebarExpanded(false)}
           header={
             <UnifiedMessagingHeader
               mode="clients"

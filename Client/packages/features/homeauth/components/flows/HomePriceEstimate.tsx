@@ -58,9 +58,11 @@ export function HomePriceEstimate({
       >
         <Box className="pt-2">
           {homePriceLoading ? (
-            <Box className="flex items-center justify-center py-3 sm:py-4">
+            <Box className="flex items-center justify-center gap-2 py-3 sm:py-4">
               <Box className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-200 border-b-neutral-700 sm:h-6 sm:w-6"></Box>
-              Calculating affordability...
+              <BodyText as="span" size="sm" muted>
+                Calculating affordability...
+              </BodyText>
             </Box>
           ) : homePriceError ? (
             <Box className="text-responsive-xs space-y-2 py-2 text-black">
@@ -204,8 +206,7 @@ export function HomePriceEstimate({
           ) : (
             <Box className="text-responsive-xs px-2 py-2 text-black sm:px-0">
               <BodyText as="p">
-                Enter your income, zip code, and other financial details to see your estimated home
-                affordability.
+                Enter your financial details to see your estimated budget. affordability.
               </BodyText>
             </Box>
           )}

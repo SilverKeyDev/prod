@@ -58,9 +58,6 @@ export { useCountdown, type UseCountdownReturn } from "./core";
 export { usePreActionSnapshot, type UsePreActionSnapshotReturn } from "./core";
 export { useWhyRender } from "./core";
 export { useHealthCheck } from "./core";
-export { useModal, type UseModalReturn } from "./core";
-export { useOnceEffect } from "./core";
 
 // Error reporting and logging (architecture: components use hooks, not services directly)
 export { useErrorReporting } from "./useErrorReporting";
-export { useUserFacingErrorMessage } from "./useUserFacingErrorMessage";

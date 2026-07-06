@@ -20,7 +20,6 @@ import * as scheduling from "./scheduling";
 export const googleCalendarApi = {
   startOAuth: oauth.startOAuth,
   revokeAccess: oauth.revokeAccess,
-  startOAuthWithFullScope: oauth.startOAuthWithFullScope,
   isConnected: oauth.isConnected,
   clearConnectionStatus: oauth.clearConnectionStatus,
   listCalendars: calendars.listCalendars,

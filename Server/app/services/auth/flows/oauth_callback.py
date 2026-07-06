@@ -225,12 +225,7 @@ def handle_google_oauth_callback(
             },
         )
         return cast(Response, redirect(f"{Config.FRONTEND_URL}/login?error=token_creation_failed"))
-    if is_new_signup:
-        redirect_path = "/onboarding"
-    elif user_is_agent(user):
-        redirect_path = "/dashboard"
-    else:
-        redirect_path = "/search"
+    redirect_path = "/onboarding" if is_new_signup else "/dashboard"
     log.info(
         "AUTH",
         "GOOGLE_AUTH_REDIRECT",
@@ -238,7 +233,6 @@ def handle_google_oauth_callback(
             "request_id": request_id,
             "user_id": str(user.id),
             "is_new_signup": is_new_signup,
-            "has_agent_role": user_is_agent(user),
             "redirect_to": redirect_path,
         },
     )

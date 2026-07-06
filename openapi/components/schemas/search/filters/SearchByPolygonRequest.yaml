@@ -35,6 +35,12 @@ properties:
     type: boolean
     nullable: true
     description: When true, return previously materialized results only without hitting upstream MLS.
+  hydrateListings:
+    type: boolean
+    nullable: true
+    description: |
+      When true with `onlyCached`, refresh listing snapshots (price, status, beds, etc.) from Slipstream
+      using each persisted home_id before responding. Does not re-run search or change match scores.
   preferences_user_id:
     type: string
     nullable: true
@@ -56,3 +62,4 @@ example:
   perBucketPages: 10
   forceSearch: false
   onlyCached: false
+  hydrateListings: false

@@ -42,6 +42,7 @@ export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
     homePriceResult,
     isAffordabilityCollapsed,
     setIsAffordabilityCollapsed,
+    resolvedZipCode,
   } = useOnboardingAffordability(core.formData, core.currentStep, core.steps);
 
   const { isLoaded: googleMapsLoaded, error: googleMapsError } = useGoogleMaps();
@@ -66,6 +67,7 @@ export function useOnboardingForm(_options?: UseOnboardingFormOptions) {
     homePriceResult,
     isAffordabilityCollapsed,
     setIsAffordabilityCollapsed,
+    resolvedZipCode,
     isDesktop: isMdUp,
   };
 }

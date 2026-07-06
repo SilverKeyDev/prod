@@ -1,5 +1,5 @@
 ---
-paths:
-  - "Client/**/*.{ts,tsx}"
+alwaysApply: false
+paths: Client/**/*.{ts,tsx}
 ---
 @../../.cursor/rules/frontend/react-hooks.mdc

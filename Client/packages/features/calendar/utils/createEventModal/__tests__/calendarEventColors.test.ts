@@ -6,6 +6,8 @@ import type { GoogleCalendar } from "@/features/calendar/api/types";
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import {
   calendarColorForEvent,
+  calendarEventChipStyle,
+  calendarMonthEventChipStyle,
   hexToRgba,
 } from "@/features/calendar/utils/createEventModal/calendarEventColors";
 import { CALENDAR_EVENT_KINDS } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
@@ -93,5 +95,29 @@ describe("hexToRgba", () => {
     const hsl = color(CALENDAR_EVENT_KINDS.agent_consultation.uiColorPath);
     expect(hexToRgba(hsl, 0.18)).toMatch(/^rgba\(\d+,\d+,\d+,0\.18\)$/);
     expect(hexToRgba(hsl, 0.18)).not.toBe("rgba(0,0,0,0.18)");
+  });
+});
+
+describe("calendarEventChipStyle", () => {
+  it("uses a stronger tint and left stripe so muted hues do not wash to gray", () => {
+    const eventColor = color(CALENDAR_EVENT_KINDS.meeting.uiColorPath);
+    const style = calendarEventChipStyle(eventColor);
+    expect(style.borderLeftWidth).toBe(3);
+    expect(style.borderLeftColor).toBe(eventColor);
+    expect(style.backgroundColor).toMatch(/^rgba\(\d+,\d+,\d+,0\.28\)$/);
+    expect(style.backgroundColor).not.toBe("rgba(0,0,0,0.28)");
+  });
+});
+
+describe("calendarMonthEventChipStyle", () => {
+  it("uses a light event tint, pink outline, and colored left stripe", () => {
+    const eventColor = color(CALENDAR_EVENT_KINDS.meeting.uiColorPath);
+    const style = calendarMonthEventChipStyle(eventColor);
+    expect(style.backgroundColor).toMatch(/^rgba\(\d+,\d+,\d+,0\.1\)$/);
+    expect(style.backgroundColor).not.toBe("rgba(0,0,0,0.1)");
+    expect(style.borderWidth).toBe(1);
+    expect(style.borderColor).toBe(color("rose.100"));
+    expect(style.borderLeftWidth).toBe(3);
+    expect(style.borderLeftColor).toBe(eventColor);
   });
 });

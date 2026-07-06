@@ -56,9 +56,6 @@ tags:
     description: Property research and comparison tasks (routes under /api/v1/research).
   - name: Tasks
     description: Unified transaction task checklists (transaction-scoped routes).
-  - name: HomeMatching
-    description: Background home-matching tasks (routes under /api/home-matching;
-      JWT session cookie or bearer token).
   - name: Transactions
     description: Saved transaction address and checklist-linked documents
       (/api/v1/transactions).
@@ -73,8 +70,6 @@ components:
   schemas:
     ActionPlanResponse:
       $ref: "./components/schemas/preferences/ActionPlanResponse.yaml"
-    AddAgentResponse:
-      $ref: "./components/schemas/preferences/AddAgentResponse.yaml"
     AddCalendarACLRequest:
       $ref: "./components/schemas/calendar/AddCalendarACLRequest.yaml"
     AddCalendarACLResponse:
@@ -163,6 +158,18 @@ components:
       $ref: "./components/schemas/shared/core/AuthSessionUser.yaml"
     BulkUpdateFavoritesRequest:
       $ref: "./components/schemas/auth/BulkUpdateFavoritesRequest.yaml"
+    BrokerageSkySlopeCredential:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredential.yaml"
+    BrokerageSkySlopeCredentialCreateRequest:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialCreateRequest.yaml"
+    BrokerageSkySlopeCredentialUpdateRequest:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialUpdateRequest.yaml"
+    BrokerageSkySlopeCredentialResponse:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialResponse.yaml"
+    BrokerageSkySlopeCredentialStatus:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialStatus.yaml"
+    BrokerageSkySlopeCredentialTestResponse:
+      $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialTestResponse.yaml"
     ChatbotHistoryMessage:
       $ref: "./components/schemas/shared/chatbot/ChatbotHistoryMessage.yaml"
     ChatbotHistoryResponse:
@@ -389,8 +396,6 @@ components:
       $ref: "./components/schemas/search/results/FeedListing.yaml"
     FeedResponse:
       $ref: "./components/schemas/feed/FeedResponse.yaml"
-    FindMatchesRequest:
-      $ref: "./components/schemas/search/filters/FindMatchesRequest.yaml"
     ForgotPasswordData:
       $ref: "./components/schemas/auth/ForgotPasswordData.yaml"
     ForgotPasswordResponse:
@@ -559,8 +564,6 @@ components:
       $ref: "./components/schemas/search/properties/PropertyResponse.yaml"
     PropertySearchResult:
       $ref: "./components/schemas/search/results/PropertySearchResult.yaml"
-    RemoveAgentResponse:
-      $ref: "./components/schemas/preferences/RemoveAgentResponse.yaml"
     RemoveFavoriteRequest:
       $ref: "./components/schemas/user/favorites/RemoveFavoriteRequest.yaml"
     RemoveNotInterestedRequest:
@@ -590,8 +593,6 @@ components:
       $ref: "./components/schemas/calendar/RevokeResponse.yaml"
     SavedHome:
       $ref: "./components/schemas/user/favorites/SavedHome.yaml"
-    SearchAgentsPreferencesResponse:
-      $ref: "./components/schemas/preferences/SearchAgentsPreferencesResponse.yaml"
     AgentSearchQueryParams:
       $ref: "./components/schemas/agent/AgentSearchQueryParams.yaml"
     AgentRecommendQueryParams:
@@ -697,6 +698,10 @@ components:
       $ref: "./components/schemas/admin/SetCurrentUserDevWorkspaceRequest.yaml"
     SetCurrentUserDevWorkspaceResponse:
       $ref: "./components/schemas/admin/SetCurrentUserDevWorkspaceResponse.yaml"
+    ExchangeDevAccountSessionRequest:
+      $ref: "./components/schemas/admin/ExchangeDevAccountSessionRequest.yaml"
+    MintDevAccountSessionResponse:
+      $ref: "./components/schemas/admin/MintDevAccountSessionResponse.yaml"
     UpdateChecklistDispatchAutomationRequest:
       $ref: "./components/schemas/checklists/UpdateChecklistDispatchAutomationRequest.yaml"
     UpdateChecklistRequest:
@@ -732,8 +737,6 @@ components:
       $ref: "./components/schemas/agreements/documents/UploadResponse.yaml"
     User:
       $ref: "./components/schemas/user/profile/User.yaml"
-    UserAgentsResponse:
-      $ref: "./components/schemas/preferences/UserAgentsResponse.yaml"
     UserId:
       $ref: "./components/schemas/user/profile/UserId.yaml"
     UserPreferencesData:
@@ -3221,84 +3224,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/preferences/add:
-    get:
-      tags: [ Preferences ]
-      summary: Set current user as agent
-      operationId: setCurrentUserAsAgent
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AddAgentResponse"
-        "401":
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "400":
-          description: Missing agent_id
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Agents cannot assign themselves as clients
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: User or agent not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "409":
-          description: Agent relationship already exists
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: HTTP 500
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/preferences/agents:
-    get:
-      tags: [ Preferences ]
-      summary: Search agents for preferences UI
-      operationId: getPreferencesAgents
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SearchAgentsPreferencesResponse"
-        "401":
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: HTTP 500
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/preferences/clients:
     get:
       tags: [ Preferences ]
@@ -3316,57 +3241,6 @@ paths:
                 $ref: "#/components/schemas/ClientsPreferencesResponse"
         "401":
           description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: HTTP 500
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/preferences/remove:
-    get:
-      tags: [ Preferences ]
-      summary: Remove agent relationship
-      operationId: removeAgentRelationship
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RemoveAgentResponse"
-        "401":
-          description: HTTP 401
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "400":
-          description: Missing agent_id
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Agents cannot remove themselves as clients
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: User or agent not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "409":
-          description: Agent relationship does not exist
           content:
             application/json:
               schema:
@@ -3405,33 +3279,6 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: HTTP 403
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: HTTP 500
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/preferences/users_agents:
-    get:
-      tags: [ Preferences ]
-      summary: List agents linked to the current user
-      operationId: getUserAgents
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserAgentsResponse"
-        "401":
-          description: HTTP 401
           content:
             application/json:
               schema:
@@ -3843,83 +3690,6 @@ paths:
       tags: [ Research ]
       summary: Celery task status for research/compare
       operationId: getResearchTaskStatus
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      parameters:
-        - name: task_id
-          in: path
-          required: true
-          schema: { type: string }
-      responses:
-        "200":
-          description: HTTP 200
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TaskStatusResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Forbidden (task owned by another user)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: HTTP 500
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/home-matching/find-matches:
-    post:
-      tags: [ HomeMatching ]
-      summary: Queue home matching task
-      operationId: homeMatchingFindMatches
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/FindMatchesRequest"
-      responses:
-        "202":
-          description: HTTP 202
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TaskStatusResponse"
-        "400":
-          description: HTTP 400
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: HTTP 500
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/home-matching/task-status/{task_id}:
-    get:
-      tags: [ HomeMatching ]
-      summary: Home matching Celery task status
-      operationId: getHomeMatchingTaskStatus
       security:
         - sessionCookie: []
         - bearerAuth: []
@@ -6040,6 +5810,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/dev-accounts/session:
+    post:
+      tags: [ Admin ]
+      summary: Mint one-time dev account session token (admin)
+      operationId: adminMintDevAccountSession
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetCurrentUserDevWorkspaceRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MintDevAccountSessionResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/dev-accounts/session/exchange:
+    post:
+      tags: [ Admin ]
+      summary: Exchange one-time dev account session token
+      operationId: adminExchangeDevAccountSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExchangeDevAccountSessionRequest"
+      responses:
+        "200":
+          description: HTTP 200
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: HTTP 400
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: HTTP 403
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/users/gate-roles:
     get:
       tags: [ Admin ]
@@ -7246,59 +7079,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/v1/agent/chats/messages:
-    post:
-      tags:
-        - Agent
-      summary: Send message
-      description: Send a message in a conversation
-      operationId: sendMessage
-      security:
-        - sessionCookie: []
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SendMessageRequest"
-      responses:
-        "200":
-          description: Message sent
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SendMessageResponse"
-        "400":
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Access denied
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Conversation not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/admin/partners:
     get:
       tags:
@@ -7480,6 +7260,161 @@ paths:
                 $ref: "#/components/schemas/RevShareAnalyticsResponse"
         "404":
           description: Partner not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope:
+    get:
+      tags:
+        - Admin
+      summary: Get SkySlope integration metadata for a brokerage (admin only)
+      operationId: getAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Credential metadata (no secret values)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialResponse"
+        "404":
+          description: Credential or brokerage not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Admin
+      summary: Store encrypted SkySlope API key for a brokerage (admin only)
+      operationId: createAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrokerageSkySlopeCredentialCreateRequest"
+      responses:
+        "201":
+          description: Credential stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialResponse"
+        "404":
+          description: Brokerage not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Credential already exists for this brokerage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - Admin
+      summary: Update SkySlope integration credentials for a brokerage (admin only)
+      operationId: updateAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrokerageSkySlopeCredentialUpdateRequest"
+      responses:
+        "200":
+          description: Credential updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialResponse"
+        "404":
+          description: Credential or brokerage not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Admin
+      summary: Delete SkySlope integration credentials for a brokerage (admin only)
+      operationId: deleteAdminBrokerageSkySlopeCredential
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Credential deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: Credential not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope/test-connection:
+    post:
+      tags:
+        - Admin
+      summary: Verify stored SkySlope credentials decrypt successfully (admin only)
+      operationId: testAdminBrokerageSkySlopeConnection
+      security:
+        - sessionCookie: []
+        - bearerAuth: []
+      parameters:
+        - name: brokerage_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Connection test result (safe message only)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerageSkySlopeCredentialTestResponse"
+        "404":
+          description: Credential not found
           content:
             application/json:
               schema:

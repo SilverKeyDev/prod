@@ -13,6 +13,9 @@ export function resolveTemplateId(ctx: ProfileFlowContext): FlowTemplateId {
   if (primaryRole === "seller") {
     return "seller_onboarding";
   }
+  if (primaryRole === "renter") {
+    return "renter_onboarding";
+  }
   if (primaryRole === "brokerage") {
     return "brokerage_onboarding";
   }

@@ -4,12 +4,6 @@ from .google_oauth import google_oauth_callback, google_oauth_start
 from .login import login
 from .password import forgot_password, reset_password
 from .preferences.preferences_action_plan import generate_client_action_plan
-from .preferences.preferences_agents import (
-    get_agents,
-    get_user_agents,
-    remove_agent_relationship,
-    set_as_agent,
-)
 from .preferences.preferences_preferences import (
     create_or_update_preferences,
     delete_preferences,
@@ -50,10 +44,6 @@ __all__ = [
     "get_preferences",
     "get_user_preferences_by_id",
     "get_clients_preferences",
-    "get_agents",
-    "set_as_agent",
-    "get_user_agents",
-    "remove_agent_relationship",
     "generate_client_action_plan",
     "get_search_display",
     "patch_search_display",

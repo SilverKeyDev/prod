@@ -18,7 +18,6 @@ export {
 } from "packages/features/agent/hooks/data/public/usePublicAgentProfile";
 export { useAgentSearchShareBundleDock } from "packages/features/agent/hooks/data/share/useAgentSearchShareBundleDock";
 export { useAgentSearchShareBundleSend } from "packages/features/agent/hooks/data/share/useAgentSearchShareBundleSend";
-export { useChecklistFormSendContext } from "packages/features/agent/hooks/data/share/useChecklistFormSendContext";
 export { useGoogleMaps } from "packages/features/search/hooks/data/map/useGoogleMaps";
 export { useMonthlyCostEstimates } from "packages/features/search/hooks/data/map/useMonthlyCostEstimates";
 export {

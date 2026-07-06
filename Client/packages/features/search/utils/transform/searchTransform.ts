@@ -60,10 +60,17 @@ export function transformPropertySearchResult(
 
   const lat = property.location.latitude ?? fallbackCenter?.lat ?? 0;
   const lng = property.location.longitude ?? fallbackCenter?.lng ?? 0;
-  const zpidNum = /^\d+$/.test(property.id) ? parseInt(property.id, 10) : undefined;
+  const listingId = property.id;
+  const homeId =
+    "home_id" in property && typeof property.home_id === "string" && property.home_id.trim()
+      ? property.home_id.trim()
+      : undefined;
+  const zpidSource = listingId ?? homeId ?? "";
+  const zpidNum = /^\d+$/.test(zpidSource) ? parseInt(zpidSource, 10) : undefined;
 
   return {
-    id: property.id || `${Date.now()}-${index}`,
+    id: homeId ?? listingId ?? `${Date.now()}-${index}`,
+    ...(homeId ? { home_id: homeId } : {}),
     address: property.location.address || "Address not available",
     price: formatPropertySearchListingPrice({
       price: property.financials?.price ?? undefined,
@@ -102,7 +109,7 @@ export function transformSearchResponse(
   const seen = new Set<string>();
   const deduped: SearchResult[] = [];
   mapped.forEach((row, index) => {
-    const key = String(row.id ?? row.zpid ?? "") || `anon_${index}`;
+    const key = String(row.home_id ?? row.id ?? row.zpid ?? "") || `anon_${index}`;
     if (seen.has(key)) {
       return;
     }

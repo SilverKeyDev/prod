@@ -7,8 +7,8 @@ import { LOGO } from "packages/ui/components/media/asset";
 import { Box, Image } from "packages/ui/components/structure/primitives";
 
 import Card from "@/components/layout/Card.web";
-import { NavigationButtons, SkipButton } from "@/components/ui";
-import OnboardingHeader from "@/features/profile/components/onboarding/Header.web";
+import { NavigationButtons } from "@/components/ui";
+import OnboardingHeader from "@/features/profile/components/onboarding/header/Header.web";
 
 export function OnboardingFeature() {
   const {
@@ -24,6 +24,12 @@ export function OnboardingFeature() {
     scriptsReady,
     loadError,
     handleSubmit,
+    homePriceLoading,
+    homePriceError,
+    homePriceResult,
+    isAffordabilityCollapsed,
+    setIsAffordabilityCollapsed,
+    resolvedZipCode,
   } = useOnboardingForm();
 
   const currentStepId = (steps[currentStep]?.id ?? "") as ProfileStepId;
@@ -36,8 +42,6 @@ export function OnboardingFeature() {
     0,
     progressStepEntries.findIndex(({ index }) => index === currentStep)
   );
-  const showSkipForNow = currentStep < steps.length - 1 && currentStepId !== "";
-
   const roleStepNeedsSelection =
     currentStepId === "onboarding_role" && !isOnboardingStepComplete(formData, "onboarding_role");
 
@@ -49,6 +53,7 @@ export function OnboardingFeature() {
           <Box className="flex items-center">
             <Image src={LOGO} alt="SilverKey Logo" className="h-6 sm:h-8 md:h-10" />
           </Box>
+          {/* Skip for now — temporarily disabled
           <Box className="flex items-center gap-4">
             {showSkipForNow ? (
               <SkipButton
@@ -59,6 +64,7 @@ export function OnboardingFeature() {
               />
             ) : null}
           </Box>
+          */}
         </Box>
 
         {/* Role intro is a standalone first page outside normal onboarding progress. */}
@@ -85,6 +91,12 @@ export function OnboardingFeature() {
                 patchBuyerPreferenceExtensions,
                 scriptsReady,
                 loadError,
+                homePriceLoading,
+                homePriceError,
+                homePriceResult,
+                isAffordabilityCollapsed,
+                setIsAffordabilityCollapsed,
+                resolvedZipCode,
               })}
             </PersonalizationSectionLayoutProvider>
 
@@ -101,6 +113,7 @@ export function OnboardingFeature() {
                 layout="centered"
                 size="md"
               />
+              {/* Skip for now — temporarily disabled
               {showSkipForNow ? (
                 <Box className="mt-6 flex justify-center">
                   <SkipButton
@@ -111,6 +124,7 @@ export function OnboardingFeature() {
                   />
                 </Box>
               ) : null}
+              */}
             </Box>
           </Card>
         </Box>

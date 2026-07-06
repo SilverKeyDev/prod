@@ -15,7 +15,6 @@ export {
   debounce,
   generateOptimizedPdfUrl,
   getPdfIframeAllow,
-  getPdfIframeSandbox,
   getPdfViewerStyles,
   shouldApplyPdfOptimizations,
 } from "./pdfViewer";

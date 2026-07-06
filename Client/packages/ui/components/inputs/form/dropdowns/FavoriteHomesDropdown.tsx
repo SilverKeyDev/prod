@@ -132,7 +132,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
                   } ${index === favoriteHomes.length - 1 ? "last:rounded-b-lg" : ""} ${
                     selectedHome?.address === home.address
                       ? "bg-primary-muted text-primary"
-                      : "hover:bg-accent-muted text-text-primary"
+                      : "text-text-primary hover:bg-neutral-100"
                   }`}
                   iconName="heart"
                 >

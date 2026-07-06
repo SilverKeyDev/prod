@@ -1,12 +1,13 @@
 import React from "react";
 
-import BudgetRangeSlider from "packages/features/profile/components/settings/inputs/sliders/BudgetRangeSlider";
 import {
   BATHROOMS_TICK_VALUES,
   BEDROOMS_TICK_VALUES,
   FIELD_LABELS,
   type OnboardingData,
 } from "packages/features/profile/utils";
+import { BudgetRangeSlider } from "packages/ui";
+import { ResponsiveEqualColumns } from "packages/ui/components/structure/layout";
 import { Box } from "packages/ui/components/structure/primitives";
 import { Text } from "packages/ui/components/structure/primitives";
 
@@ -18,7 +19,7 @@ export function HousingNumberFields({
   updateFormData: (field: keyof OnboardingData, value: unknown) => void;
 }) {
   return (
-    <>
+    <ResponsiveEqualColumns>
       <Box>
         <Text className="text-text-secondary mb-2 text-sm font-medium">
           {FIELD_LABELS.PREFERRED_BEDROOMS}
@@ -35,7 +36,7 @@ export function HousingNumberFields({
           }}
           formatValue={(v) => `${v} bed${v !== 1 ? "s" : ""}`}
           formatPrefix=""
-          minGap={1}
+          allowSingleValue
         />
       </Box>
       <Box>
@@ -55,9 +56,9 @@ export function HousingNumberFields({
           }}
           formatValue={(v) => `${v} bath${v !== 1 ? "s" : ""}`}
           formatPrefix=""
-          minGap={1}
+          allowSingleValue
         />
       </Box>
-    </>
+    </ResponsiveEqualColumns>
   );
 }

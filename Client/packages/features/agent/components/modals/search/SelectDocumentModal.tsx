@@ -78,7 +78,7 @@ export default function SelectDocumentModal({
                 className={`h-auto min-h-0 w-full justify-start rounded-lg border p-3 text-left ${
                   selectedDocumentId === document.id
                     ? "border-border bg-primary-muted"
-                    : "border-border hover:border-border hover:bg-primary-muted"
+                    : "border-border hover:border-border hover:bg-neutral-100"
                 }`}
               >
                 <Box className="flex w-full items-start gap-3">

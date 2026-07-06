@@ -3,7 +3,6 @@ Celery tasks module.
 
 This module imports all task definitions to ensure they are registered with Celery.
 Tasks are organized into separate files by category:
-- home_matching: Home matching related tasks
 - property_research: Property research and comparison tasks
 - weight_training: Weight training tasks
 """
@@ -15,12 +14,14 @@ from .docusign import (
     send_envelope_task,
     sync_templates_task,
 )
-from .home_matching import find_best_matches_task
 from .property_research import compare_property_task, research_property_task
+from .skyslope import (
+    sync_all_brokerages_incremental_task,
+    sync_brokerage_transactions_task,
+)
 from .weight_training import train_all_eligible_users_task, train_user_weights_task
 
 __all__ = [
-    "find_best_matches_task",
     "research_property_task",
     "compare_property_task",
     "train_user_weights_task",
@@ -29,4 +30,6 @@ __all__ = [
     "process_webhook_task",
     "fetch_completed_documents_task",
     "sync_templates_task",
+    "sync_brokerage_transactions_task",
+    "sync_all_brokerages_incremental_task",
 ]

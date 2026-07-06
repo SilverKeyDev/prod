@@ -9,6 +9,8 @@ export type FetchCachedPolygonSearchResultsOptions = {
   verboseLog?: boolean;
   /** When set, forwarded as `preferences_user_id` for server-side preference resolution (agents). */
   preferencesUserId?: string | null;
+  /** When true, server refreshes listing snapshots from Slipstream before responding. */
+  hydrateListings?: boolean;
 };
 
 /**
@@ -26,6 +28,7 @@ export async function fetchCachedPolygonSearchResults(
     const response = await searchApi.searchByPolygon({
       perBucketPages: 20,
       onlyCached: true,
+      ...(options?.hydrateListings ? { hydrateListings: true } : {}),
       ...(options?.preferencesUserId != null && options.preferencesUserId !== ""
         ? { preferences_user_id: options.preferencesUserId }
         : {}),

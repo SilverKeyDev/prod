@@ -14,6 +14,10 @@ import { useAuthStore } from "packages/store";
 
 import { useAgentAutoSelectClient } from "@/features/agent/hooks/ui/useAgentAutoSelectClient";
 import type { ChatMessage } from "@/features/messaging/hooks/data/messaging/types";
+import {
+  getFirstMessageId,
+  isOlderMessagesPrepend,
+} from "@/features/messaging/hooks/ui/messageScrollHelpers";
 
 export function useMessagingScreenNativeController() {
   const authReady = useAuthStore((s) => s.authReady);
@@ -164,32 +168,43 @@ export function useMessagingScreenNativeController() {
     }, [acknowledgeActiveConversationAsRead])
   );
 
-  const prevListLenRef = useRef(0);
-  const prevFirstMessageIdRef = useRef<string | undefined>(undefined);
+  const previousConversationIdRef = useRef<string | undefined>(undefined);
+  const previousMessageCountRef = useRef(0);
+  const previousFirstMessageIdRef = useRef<string | undefined>(undefined);
+  const initialScrollSettledRef = useRef(false);
 
   useEffect(() => {
-    const len = localMessages.length;
-    const firstId = localMessages[0]?.id;
-    const prevLen = prevListLenRef.current;
-    const prevFirst = prevFirstMessageIdRef.current;
+    const conversationChanged = previousConversationIdRef.current !== activeConversationId;
+    if (conversationChanged || isLoadingHistory) {
+      previousConversationIdRef.current = activeConversationId;
+      previousMessageCountRef.current = 0;
+      previousFirstMessageIdRef.current = undefined;
+      initialScrollSettledRef.current = false;
+    }
 
-    const isPrepend =
-      len > prevLen &&
-      prevLen > 0 &&
-      firstId !== undefined &&
-      prevFirst !== undefined &&
-      firstId !== prevFirst;
+    const currentCount = localMessages.length;
+    const previousCount = previousMessageCountRef.current;
+    const currentFirstId = getFirstMessageId(localMessages);
+    const previousFirstId = previousFirstMessageIdRef.current;
 
-    prevListLenRef.current = len;
-    prevFirstMessageIdRef.current = firstId;
-
-    if (isPrepend) {
+    if (isOlderMessagesPrepend(currentCount, previousCount, currentFirstId, previousFirstId)) {
+      previousMessageCountRef.current = currentCount;
+      previousFirstMessageIdRef.current = currentFirstId;
       return;
     }
-    if (len > 0) {
-      listRef.current?.scrollToEnd({ animated: true });
+
+    if (currentCount > 0 && !isLoadingHistory) {
+      listRef.current?.scrollToEnd({ animated: false });
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          initialScrollSettledRef.current = true;
+        });
+      });
     }
-  }, [localMessages]);
+
+    previousMessageCountRef.current = currentCount;
+    previousFirstMessageIdRef.current = currentFirstId;
+  }, [activeConversationId, isLoadingHistory, localMessages]);
 
   const conversationMap = useMemo(
     () => new Map(conversations.map((conv) => [conv.client_id, conv])),
@@ -224,6 +239,7 @@ export function useMessagingScreenNativeController() {
     refreshChats,
     selectedClient,
     listRef,
+    initialScrollSettledRef,
     localMessages,
     isLoadingHistory,
     formatTime,

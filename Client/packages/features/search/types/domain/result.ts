@@ -42,7 +42,10 @@ export type PropertyDetails = {
 
 /** Shared SearchResult type for consistent usage across the application */
 export type SearchResult = {
+  /** Stable PropertyCache UUID when provided by the server; otherwise listing id. */
   id: string;
+  /** PropertyCache UUID when distinct from Slipstream listing id. */
+  home_id?: string;
   address: string;
   price: string;
   bedrooms: number;

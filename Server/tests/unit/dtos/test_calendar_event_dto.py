@@ -23,6 +23,8 @@ def _calendar_row(**overrides):
     row.google_event_id = overrides.get("google_event_id", "event-123")
     row.itinerary = overrides.get("itinerary")
     row.event_type = overrides.get("event_type")
+    row.meet_url = overrides.get("meet_url")
+    row.conference_status = overrides.get("conference_status")
     return row
 
 
@@ -35,6 +37,28 @@ class TestCalendarEventDTOToResponse:
         assert result["silverKeyEventType"] == "property_viewing"
         assert result["summary"] == "Test Event"
         assert "itinerary" not in result
+
+    def test_overlays_virtual_meeting_and_meet_url(self):
+        row = _calendar_row(
+            meet_url="https://meet.google.com/abc-defg-hij",
+            conference_status="success",
+        )
+
+        result = CalendarEventDTO.to_response(_google_event(), calendar_event_row=row)
+
+        assert result["silverKeyVirtualMeetingEnabled"] is True
+        assert result["hangoutLink"] == "https://meet.google.com/abc-defg-hij"
+
+    def test_virtual_meeting_disabled_when_db_cleared(self):
+        row = _calendar_row(meet_url=None, conference_status=None)
+
+        result = CalendarEventDTO.to_response(
+            _google_event(hangoutLink="https://meet.google.com/stale-link"),
+            calendar_event_row=row,
+        )
+
+        assert result["silverKeyVirtualMeetingEnabled"] is False
+        assert result["hangoutLink"] == "https://meet.google.com/stale-link"
 
     def test_preserves_google_metadata_keys(self):
         google = _google_event(

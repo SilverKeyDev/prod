@@ -7,10 +7,7 @@ from unittest.mock import Mock, patch
 
 import numpy as np
 
-from app.services.search.home_matching.config.match import (
-    find_best_matches,
-    score_single_match,
-)
+from app.services.search.home_matching.config.match import find_best_matches
 from app.services.search.home_matching.postprocessing.blend_scores import EnsembleScorer
 from app.services.search.home_matching.utils.feature_engineering import FeatureEngineer
 from app.services.search.home_matching.utils.preprocessing import DataPreprocessor
@@ -108,24 +105,6 @@ class TestMatchingSystem(unittest.TestCase):
         self.assertEqual(matches[0]["final_score"], 0.85)
         self.assertEqual(matches[0]["rank"], 1)
         mock_ensemble.rank_homes_for_user.assert_called_once()
-
-    @patch("app.services.search.home_matching.config.match.EnsembleScorer")
-    def test_score_single_match(self, mock_ensemble_class):
-        """Test score_single_match function."""
-        mock_ensemble = Mock()
-        mock_ensemble.score_user_home_pair.return_value = {
-            "user_id": self.user["user_id"],
-            "home_id": self.home["home_id"],
-            "final_score": 0.75,
-            "scores": {"embedding": 0.8, "tabular": 0.7, "llm": 0.6},
-        }
-        mock_ensemble_class.return_value = mock_ensemble
-
-        result = score_single_match(self.user, self.home)
-        self.assertEqual(result["final_score"], 0.75)
-        self.assertIn("scores", result)
-        self.assertEqual(result["scores"]["embedding"], 0.8)
-        mock_ensemble.score_user_home_pair.assert_called_once()
 
 
 class TestErrorHandling(unittest.TestCase):

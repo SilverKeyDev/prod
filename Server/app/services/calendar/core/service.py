@@ -106,6 +106,9 @@ class GoogleCalendarService:
     def validate_state(self, state: str, session_state: str | None = None) -> bool:
         return self._oauth_facade.validate_state(state, session_state)
 
+    def validate_state_and_get_user_id(self, state: str) -> str | None:
+        return self._oauth_facade.validate_state_and_get_user_id(state)
+
     def build_auth_url(
         self, user_id: str, request_additional_scopes: list[str] | None = None
     ) -> tuple[str, str]:
@@ -208,7 +211,13 @@ class GoogleCalendarService:
         )
 
     def update_event(
-        self, user_id: str, event_id: str, event_data: dict[str, Any], calendar_id: str = "primary"
+        self,
+        user_id: str,
+        event_id: str,
+        event_data: dict[str, Any],
+        calendar_id: str = "primary",
+        *,
+        add_google_meet: bool = False,
     ) -> dict[str, Any]:
         """Update an existing event in user's Google calendar"""
         return update_event(
@@ -221,6 +230,7 @@ class GoogleCalendarService:
             self.token_endpoint,
             self.scopes,
             self._resolve_calendar_id,
+            add_google_meet=add_google_meet,
         )
 
     def delete_event(self, user_id: str, event_id: str, calendar_id: str = "primary") -> bool:

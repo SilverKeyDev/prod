@@ -35,13 +35,6 @@ const BrokerageDashboardPage = lazy(
     () => import("@/pages/workspace/BrokerageDashboardPage")
   )
 );
-const BrokerageAnalyticsPage = lazy(
-  traceLazyImport(
-    "DASHBOARD",
-    "lazy:BrokerageAnalyticsPage",
-    () => import("@/pages/workspace/BrokerageAnalyticsPage")
-  )
-);
 const IntegrationPartnerDashboardPage = lazy(
   traceLazyImport(
     "DASHBOARD",
@@ -54,6 +47,13 @@ const SellerDashboardPage = lazy(
     "DASHBOARD",
     "lazy:SellerDashboardPage",
     () => import("@/pages/workspace/SellerDashboardPage")
+  )
+);
+const RenterDashboardPage = lazy(
+  traceLazyImport(
+    "DASHBOARD",
+    "lazy:RenterDashboardPage",
+    () => import("@/pages/workspace/RenterDashboardPage")
   )
 );
 const DashboardPage = lazy(
@@ -69,9 +69,6 @@ const AgreementSigningCompletePage = lazy(
     "lazy:AgreementSigningCompletePage",
     () => import("@/pages/workspace/AgreementSigningCompletePage")
   )
-);
-const FindAgentsPage = lazy(
-  traceLazyImport("ROUTING", "lazy:FindAgentsPage", () => import("@/pages/misc/FindAgentsPage"))
 );
 const AgentPage = lazy(
   traceLazyImport("MESSAGES", "lazy:AgentPage", () => import("@/pages/workspace/AgentPage"))
@@ -106,7 +103,9 @@ function ReportingSuspenseFallback({ variant }: { variant: DashboardRouteFallbac
   useEffect(() => {
     const tVisible = performance.now();
     const cat = logCategoryForSuspenseVariant(variant);
-    log.info(cat, "[PERF] Suspense fallback visible (lazy chunk loading)", { variant });
+    log.info(cat, "[PERF] Suspense fallback visible (lazy chunk loading)", {
+      variant,
+    });
     return () => {
       log.info(cat, "[PERF] Suspense fallback hidden (chunk resolved or navigated away)", {
         variant,
@@ -140,8 +139,8 @@ export function DashboardContent({
     route.isProfile ||
     route.isLibrary ||
     route.isFindAgents ||
-    route.isAgreementSigningComplete ||
-    route.isAnalytics;
+    route.isAnalytics ||
+    route.isAgreementSigningComplete;
 
   const searchHeightClass =
     isSearch && isMobile
@@ -153,7 +152,7 @@ export function DashboardContent({
   const wrapperClass = isSearch
     ? searchHeightClass
     : isMessaging
-      ? "relative mx-0 flex max-h-full min-h-0 w-full flex-1 flex-col overflow-hidden"
+      ? "relative mx-0 flex min-h-0 w-full flex-1 flex-col overflow-hidden"
       : `mx-auto ${MOBILE_SIDE_PX} md:px-0 ${
           contentTopMargin ? "pt-4 md:pt-8" : ""
         } ${contentBottomMargin ? "pb-4 sm:pb-6 md:pb-8" : ""}`;
@@ -213,14 +212,6 @@ export function DashboardContent({
         </Suspense>
       </PageErrorBoundary>
     )
-  ) : activeKey === "analytics" ? (
-    activeWorkspace === "brokerage" ? (
-      <Suspense fallback={loadingFallback}>
-        <BrokerageAnalyticsPage />
-      </Suspense>
-    ) : (
-      <WorkspacePlaceholderPage workspace={activeWorkspace} />
-    )
   ) : activeKey === "dashboard" ? (
     <Suspense fallback={loadingFallback}>
       {activeWorkspace === "brokerage" ? (
@@ -229,16 +220,12 @@ export function DashboardContent({
         <IntegrationPartnerDashboardPage />
       ) : activeWorkspace === "seller" ? (
         <SellerDashboardPage />
+      ) : activeWorkspace === "renter" ? (
+        <RenterDashboardPage />
       ) : (
         <DashboardPage setMobileHeaderActions={setMobileHeaderActions} />
       )}
     </Suspense>
-  ) : activeKey === "find_agents" ? (
-    <PageErrorBoundary key="find-agents" pageLabel="Find agents">
-      <Suspense fallback={loadingFallback}>
-        <FindAgentsPage setMobileHeaderActions={setMobileHeaderActions} />
-      </Suspense>
-    </PageErrorBoundary>
   ) : activeKey === "agreement_signing_complete" ? (
     <PageErrorBoundary key="agreement-signing-complete" pageLabel="Signing">
       <Suspense fallback={loadingFallback}>

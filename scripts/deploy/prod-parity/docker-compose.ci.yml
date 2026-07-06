@@ -1,0 +1,41 @@
+# CI overlay for prod-parity compose: ephemeral Postgres + DATABASE_URL wiring.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: silverkey_ci
+      POSTGRES_USER: silverkey
+      POSTGRES_PASSWORD: silverkey
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U silverkey -d silverkey_ci"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  app:
+    environment:
+      DATABASE_URL: postgresql://silverkey:silverkey@postgres:5432/silverkey_ci
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    environment:
+      DATABASE_URL: postgresql://silverkey:silverkey@postgres:5432/silverkey_ci
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  beat:
+    environment:
+      DATABASE_URL: postgresql://silverkey:silverkey@postgres:5432/silverkey_ci
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy

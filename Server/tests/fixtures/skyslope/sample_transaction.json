@@ -1,0 +1,22 @@
+{
+  "transactionId": "SS-1001",
+  "status": "closed",
+  "createdDate": "2024-03-01T10:00:00Z",
+  "closedDate": "2024-05-15T16:30:00Z",
+  "cancelledDate": null,
+  "isCancelled": false,
+  "salePrice": 525000,
+  "listPrice": 549000,
+  "propertyAddress": "123 Main St",
+  "city": "Austin",
+  "state": "TX",
+  "zip": "78701",
+  "latitude": 30.2672,
+  "longitude": -97.7431,
+  "side": "buyer",
+  "propertyType": "residential",
+  "titleCompany": "Example Title Co",
+  "lender": "Example Lender",
+  "escrow": "Example Escrow",
+  "hasHomeWarranty": true
+}

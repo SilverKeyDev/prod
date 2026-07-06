@@ -98,6 +98,10 @@ export function runHistoryEffect(
 
   const currentLastMessageAt = currentConversationLastMessageAt;
   const conversationChanged = lastConversationIdRef.current !== activeConversationId;
+  if (conversationChanged) {
+    setLocalMessages([]);
+    setHasMoreOlder(false);
+  }
   const hasNewMessages = currentLastMessageAt > lastKnownMessageTimestampRef.current;
   const messageTimestampChanged = currentLastMessageAt !== lastMessageAtRef.current;
   const isInitialLoad =

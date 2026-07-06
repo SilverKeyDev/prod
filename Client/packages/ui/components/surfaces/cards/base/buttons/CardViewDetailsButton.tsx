@@ -70,7 +70,7 @@ function CardViewDetailsButton({
   // Variant styles
   const variantStyles = {
     primary: "bg-primary text-white hover:bg-primary-hover border-border",
-    secondary: "bg-background-surface text-primary border-border hover:bg-primary-muted",
+    secondary: "bg-background-surface text-primary border-border hover:bg-neutral-200",
     muted: "muted-button-primary",
     unlock: "bg-primary text-white hover:bg-primary-hover border-border",
     negotiate: "bg-accent text-white hover:bg-accent-hover border-border",

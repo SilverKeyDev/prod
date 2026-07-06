@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 
+import type { UpdateTodoRequest } from "packages/features/agent/api/agent";
 import type { AgendaTodoDTO } from "packages/features/calendar/types/agenda";
 import { useDocumentsData } from "packages/features/documents";
 import {
@@ -19,8 +20,10 @@ import { useAgentTodos } from "./useAgentTodos";
 export function useClientHubAgendaTodos(clientId: string): {
   agendaTodos: AgendaTodoDTO[];
   onToggleAgendaTodo: (id: string) => Promise<void>;
+  updateAgendaTodo: (id: string, data: UpdateTodoRequest) => Promise<void>;
+  deleteAgendaTodo: (id: string) => Promise<void>;
 } {
-  const { todos, updateTodo } = useAgentTodos(true);
+  const { todos, updateTodo, deleteTodo } = useAgentTodos(true);
   const { documents } = useDocumentsData(clientId);
 
   const clientTodos = useMemo(
@@ -52,5 +55,37 @@ export function useClientHubAgendaTodos(clientId: string): {
     [clientTodos, updateTodo]
   );
 
-  return { agendaTodos, onToggleAgendaTodo };
+  const updateAgendaTodo = useCallback(
+    async (id: string, data: UpdateTodoRequest) => {
+      const todo = clientTodos.find((t) => t.id === id);
+      if (!todo) {
+        return;
+      }
+      try {
+        await updateTodo(id, data);
+      } catch (error) {
+        log.error("DASHBOARD", "Failed to update client agenda to-do", error);
+        throw error;
+      }
+    },
+    [clientTodos, updateTodo]
+  );
+
+  const deleteAgendaTodo = useCallback(
+    async (id: string) => {
+      const todo = clientTodos.find((t) => t.id === id);
+      if (!todo) {
+        return;
+      }
+      try {
+        await deleteTodo(id);
+      } catch (error) {
+        log.error("DASHBOARD", "Failed to delete client agenda to-do", error);
+        throw error;
+      }
+    },
+    [clientTodos, deleteTodo]
+  );
+
+  return { agendaTodos, onToggleAgendaTodo, updateAgendaTodo, deleteAgendaTodo };
 }

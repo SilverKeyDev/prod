@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import type { UpdateTodoRequest } from "packages/features/agent/api/agent";
 import { AllAgendaEventsModal } from "packages/features/calendar/components/view/agenda/AllAgendaEventsModal";
 import { EventList } from "packages/features/calendar/components/view/agenda/EventList";
 import { UpcomingAgendaList } from "packages/features/calendar/components/view/agenda/UpcomingAgendaList";
@@ -10,7 +11,10 @@ import Card from "packages/ui/components/surfaces/cards/Card";
 
 import { useUpcomingEventsData } from "@/features/calendar/hooks/data/core/useUpcomingEventsData";
 import type { AgendaTodoDTO } from "@/features/calendar/types/agenda";
-import { mergeUpcomingAgendaItems } from "@/features/calendar/utils/agenda/mergeUpcomingAgenda";
+import {
+  AGENDA_TODAY_EMPTY_MESSAGE,
+  mergeUpcomingAgendaItems,
+} from "@/features/calendar/utils/agenda/mergeUpcomingAgenda";
 
 import { UpcomingEventsSection } from "./UpcomingEventsSection";
 
@@ -27,6 +31,8 @@ type UpcomingEventsProps = {
   agendaTodos?: AgendaTodoDTO[];
   onToggleAgendaTodo?: (id: string) => void;
   canEditAgendaTodos?: boolean;
+  updateAgendaTodo?: (id: string, data: UpdateTodoRequest) => Promise<void>;
+  deleteAgendaTodo?: (id: string) => Promise<void>;
   onSigningAgendaPress?: (agreementId: string) => void;
   headerActions?: ReactNode;
   /** Agent client hub: show this user's calendar in the agenda. */
@@ -40,6 +46,8 @@ export function UpcomingEvents({
   agendaTodos,
   onToggleAgendaTodo,
   canEditAgendaTodos = false,
+  updateAgendaTodo,
+  deleteAgendaTodo,
   onSigningAgendaPress,
   headerActions,
   clientUserId = null,
@@ -50,6 +58,8 @@ export function UpcomingEvents({
     agendaTodos,
     onToggleAgendaTodo,
     canEditAgendaTodos,
+    updateAgendaTodo,
+    deleteAgendaTodo,
     onSigningAgendaPress,
     headerActions,
     clientUserId,
@@ -75,6 +85,8 @@ export function UpcomingEvents({
       calendars={d.agendaListProps.calendars}
       onToggleAgendaTodo={d.onToggleAgendaTodo}
       canEditAgendaTodos={d.canEditAgendaTodos}
+      updateAgendaTodo={d.updateAgendaTodo}
+      deleteAgendaTodo={d.deleteAgendaTodo}
       onSigningAgendaPress={d.onSigningAgendaPress}
       isAgendaEventComplete={d.isAgendaEventComplete}
       onToggleAgendaEventComplete={d.onToggleAgendaEventComplete}
@@ -185,7 +197,11 @@ export function UpcomingEvents({
           padding="sm"
           hover={false}
         >
-          <CalendarConnectionPrompt onConnect={d.handleConnect} isLoading={d.calendarsLoading} />
+          <CalendarConnectionPrompt
+            onConnect={d.handleConnect}
+            isLoading={d.calendarsLoading}
+            variant={d.connectionPromptVariant}
+          />
         </Card>
       );
       return wrap(promptCard);
@@ -194,7 +210,11 @@ export function UpcomingEvents({
     const disconnectedBody = (
       <Box className={sectionTitle ? "w-full gap-4" : "mt-4 w-full gap-4"}>
         <Card border="charcoal" className="w-full" padding="sm" hover={false}>
-          <CalendarConnectionPrompt onConnect={d.handleConnect} isLoading={d.calendarsLoading} />
+          <CalendarConnectionPrompt
+            onConnect={d.handleConnect}
+            isLoading={d.calendarsLoading}
+            variant={d.connectionPromptVariant}
+          />
         </Card>
         <UpcomingAgendaList
           items={mergeUpcomingAgendaItems([], d.agendaTodosIncompleteInRange)}
@@ -214,7 +234,7 @@ export function UpcomingEvents({
         <EventList
           events={d.upcomingEvents}
           title={AGENDA_TITLE}
-          emptyMessage="No upcoming events, to-dos, or signatures in the next week"
+          emptyMessage={AGENDA_TODAY_EMPTY_MESSAGE}
           headerActions={d.eventListHeaderActions}
           embedInListHeader={d.embedInListHeader}
           border="light"

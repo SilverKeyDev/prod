@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "env": "production",
+  "baseUrls": {
+    "web": "https://app.usesilverkey.com",
+    "api": "https://api.usesilverkey.com"
+  },
+  "sharedPassword": "SilverKeyQA!2026",
+  "inbox": "silverkeyqa@gmail.com",
+  "plusAddressing": true,
+  "mfaDisabled": true,
+  "signIn": {
+    "method": "email_password_form",
+    "webLoginPath": "/login",
+    "webVerificationPath": "/verification",
+    "apiLoginPath": "/api/v1/auth/login",
+    "avoidGoogleOAuthForAutomation": true
+  },
+  "emailOtp": {
+    "strategy": "plus_addressing",
+    "catchAllInbox": "silverkeyqa@gmail.com",
+    "plusAddressPattern": "silverkeyqa+{role}@gmail.com",
+    "notes": "All verification emails land in the shared inbox. Read the 6-digit code from the latest SilverKey message for the alias you signed up with."
+  },
+  "disposableSignupPattern": "silverkeyqa+signup{N}@gmail.com",
+  "accounts": [
+    {
+      "role": "buyer",
+      "email": "silverkeyqa+buyer@gmail.com",
+      "workspace": "buyer",
+      "personaSwitch": false,
+      "seeded": "1 saved search"
+    },
+    {
+      "role": "agent",
+      "email": "silverkeyqa+agent@gmail.com",
+      "workspace": "agent",
+      "personaSwitch": false,
+      "seeded": "1 linked buyer (silverkeyqa+buyer@gmail.com)"
+    },
+    {
+      "role": "seller",
+      "email": "silverkeyqa+seller@gmail.com",
+      "workspace": "seller",
+      "personaSwitch": false
+    },
+    {
+      "role": "brokerage",
+      "email": "silverkeyqa+brokerage@gmail.com",
+      "workspace": "brokerage",
+      "personaSwitch": false,
+      "seeded": "1 linked agent (silverkeyqa+agent@gmail.com)"
+    },
+    {
+      "role": "integration_partner",
+      "email": "silverkeyqa+partner@gmail.com",
+      "workspace": "integration_partner",
+      "personaSwitch": false,
+      "provisionNotes": "Sign up, verify, then grant integration_partner role via super_admin when the role ships; no dedicated onboarding flow in-repo yet."
+    }
+  ]
+}

@@ -55,6 +55,12 @@ properties:
       (e.g. `property_viewing`, `meeting`, `open_house`). Not sent to Google; attached by the
       server when listing or getting events. Used for UI coloring when the title no longer
       matches a known template label.
+  silverKeyVirtualMeetingEnabled:
+    type: boolean
+    nullable: true
+    description: >
+      True when this SilverKey-managed event was saved with virtual meeting requested
+      (derived from DB conference_status / meet_url). Omitted for events not in our DB.
 example:
   id: "evt-google-a1b2c3d4e5f6"
   summary: "Home tour — 742 Evergreen Terrace"

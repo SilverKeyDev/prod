@@ -1,12 +1,33 @@
 #!/usr/bin/env bash
 # ec2-deploy.sh — executed on EC2 by CI after scp.
 # Required env: ACCOUNT_ID, AWS_REGION, IMAGE_TAG, REPO, DB_URL_SECRET_ID
-# Optional env: IMAGE_DIGEST (sha256:… from ECR; preferred over tag), DEPLOY_LOG_LINES (default 500)
+# Optional env: IMAGE_DIGEST (sha256:… from ECR; preferred over tag)
+# DEPLOY_LOG_LINES — log tail on failure (default 200)
+# DEPLOY_VERBOSE_LOGS=1 — full container logs + host df on success path
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ "$SCRIPT_DIR" = "/tmp/deploy" ] && [ -d /tmp/deploy ]; then
+  chmod 700 /tmp/deploy 2>/dev/null || sudo chmod 700 /tmp/deploy 2>/dev/null || true
+fi
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/_secrets-env.sh"
+
+redact_stream() {
+  bash "$SCRIPT_DIR/redact-ci-log.sh" "$@" || true
+}
+
+redact_and_print_logs() {
+  sudo docker logs "$1" 2>&1 | redact_stream || true
+}
+
+error_log_highlights() {
+  sudo docker logs "$1" 2>&1 | redact_stream --highlights || true
+}
+
+redact_inspect_line() {
+  redact_stream <<<"$1"
+}
 
 # Timestamps for deploy phases (secrets merge, docker pull, health waits). Set to 0 to silence extra lines.
 export DEPLOY_LOG_TIMING="${DEPLOY_LOG_TIMING:-1}"
@@ -23,13 +44,16 @@ ROLLBACK_WAS_TEARDOWN=0
 ROLLBACK_IMAGE=""
 ROLLBACK_ENV_FILE="/root/.deploy_env.rollback"
 ROLLBACK_IMAGE_FILE="/root/.deploy_rollback_image_ref"
-DEPLOY_LOG_LINES="${DEPLOY_LOG_LINES:-500}"
+DEPLOY_LOG_LINES="${DEPLOY_LOG_LINES:-200}"
+DEPLOY_VERBOSE_LOGS="${DEPLOY_VERBOSE_LOGS:-0}"
 DEPLOY_DEBUG="${DEPLOY_DEBUG:-0}"
 STACK_IMAGE=""
 ENV_FILE=""
 DEPLOY_ENV_FILE="/root/.deploy_env"
 NETWORK_NAME="cre_network"
-STACK_CONTAINER_NAMES=(cre_app cre_worker cre_beat cre_worker_heavy redis)
+STATELESS_CONTAINER_NAMES=(cre_app cre_worker cre_beat cre_worker_heavy)
+STATEFUL_CONTAINER_NAMES=(redis)
+STACK_CONTAINER_NAMES=("${STATELESS_CONTAINER_NAMES[@]}" "${STATEFUL_CONTAINER_NAMES[@]}")
 
 scale_env_docker_flags() {
   local image_tag="${1:-}"
@@ -52,9 +76,16 @@ cleanup_deploy_temp_files() {
   rm -f "${ENV_BUILD:-}" "${DEPLOY_ENV_EXAMPLE:-}" 2>/dev/null || true
 }
 
-# Full diagnostics on failure — all output goes to stdout for CI (no host log files).
+cleanup_deploy_staging_dir() {
+  if [ -d /tmp/deploy ]; then
+    sudo rm -rf /tmp/deploy 2>/dev/null || rm -rf /tmp/deploy 2>/dev/null || true
+  fi
+}
+
+# Failure diagnostics — error highlights first, then inspect, then log tail (secrets redacted).
 dump_container_diagnostics() {
   local name="${1:?container name required}"
+  local full_logs exit_code image_cmd health_log
 
   echo ""
   echo "══════════════════════════════════════════════════════════════"
@@ -68,9 +99,10 @@ dump_container_diagnostics() {
       2>/dev/null || true
     echo "--- docker inspect (health) ---"
     sudo docker inspect "$name" --format 'Health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}}' 2>/dev/null || true
-    if sudo docker inspect "$name" --format='{{if .State.Health}}{{range .State.Health.Log}}  {{.Start}} exit={{.ExitCode}} output={{.Output}}{{end}}{{end}}' 2>/dev/null | grep -q .; then
-      echo "--- docker healthcheck log ---"
-      sudo docker inspect "$name" --format='{{if .State.Health}}{{range .State.Health.Log}}  {{.Start}} exit={{.ExitCode}} output={{.Output}}{{end}}{{end}}' 2>/dev/null || true
+    health_log="$(sudo docker inspect "$name" --format='{{if .State.Health}}{{range .State.Health.Log}}  {{.Start}} exit={{.ExitCode}} output={{.Output}}{{end}}{{end}}' 2>/dev/null || true)"
+    if [ -n "$health_log" ]; then
+      echo "--- docker healthcheck log (redacted) ---"
+      redact_inspect_line "$health_log"
     fi
     echo "--- docker inspect (image + cmd) ---"
     sudo docker inspect "$name" --format 'Image={{.Config.Image}} ImageID={{.Image}} Cmd={{json .Config.Cmd}} Entrypoint={{json .Config.Entrypoint}}' 2>/dev/null || true
@@ -78,14 +110,18 @@ dump_container_diagnostics() {
     echo "Container $name not found (may have been removed)."
   fi
 
-  echo "--- docker logs (last ${DEPLOY_LOG_LINES} lines) ---"
-  sudo docker logs "$name" 2>&1 | tail -n "$DEPLOY_LOG_LINES" || true
+  echo "--- error highlights (grep, redacted) ---"
+  error_log_highlights "$name"
 
-  echo "--- docker logs (complete; streamed to CI stdout) ---"
-  local full_logs exit_code image_cmd
-  full_logs=$(sudo docker logs "$name" 2>&1 || true)
-  printf '%s\n' "$full_logs"
+  echo "--- docker logs (last ${DEPLOY_LOG_LINES} lines, redacted) ---"
+  redact_and_print_logs "$name" | tail -n "$DEPLOY_LOG_LINES" || true
 
+  if [ "$DEPLOY_VERBOSE_LOGS" = "1" ]; then
+    echo "--- docker logs (full, redacted; DEPLOY_VERBOSE_LOGS=1) ---"
+    redact_and_print_logs "$name"
+  fi
+
+  full_logs="$(redact_and_print_logs "$name")"
   exit_code=$(sudo docker inspect --format='{{.State.ExitCode}}' "$name" 2>/dev/null || echo "?")
   image_cmd=$(sudo docker inspect --format='{{json .Config.Cmd}}' "$name" 2>/dev/null || echo "?")
   if [ "$exit_code" = "0" ] && echo "$full_logs" | grep -q 'alembic'; then
@@ -101,6 +137,13 @@ dump_container_diagnostics() {
 
 print_deploy_failure_report() {
   local headline="${1:?headline required}"
+  shift || true
+  local focus=("$@")
+  local c state health exit_code
+  if [ ${#focus[@]} -eq 0 ]; then
+    focus=("${STACK_CONTAINER_NAMES[@]}")
+  fi
+
   echo ""
   echo "══════════════ DEPLOY FAILURE REPORT ══════════════"
   echo "SilverKey deploy failure — $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
@@ -109,15 +152,23 @@ print_deploy_failure_report() {
   echo "IMAGE_DIGEST=${IMAGE_DIGEST:-}"
   echo "STACK_IMAGE=${STACK_IMAGE:-}"
   echo "ROLLBACK_IMAGE=${ROLLBACK_IMAGE:-}"
+  echo "Triage: search this job for 'error highlights' and 'DIAGNOSTICS:' sections."
   echo ""
-  local c
+
   for c in "${STACK_CONTAINER_NAMES[@]}"; do
+    if ! sudo docker inspect "$c" >/dev/null 2>&1; then
+      continue
+    fi
+    state=$(sudo docker inspect --format='{{.State.Status}}' "$c" 2>/dev/null || echo "missing")
+    exit_code=$(sudo docker inspect --format='{{.State.ExitCode}}' "$c" 2>/dev/null || echo "?")
+    health=$(sudo docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}}' "$c" 2>/dev/null || echo "n/a")
+    echo "• $c status=$state exit=$exit_code health=$health"
+  done
+  echo ""
+
+  for c in "${focus[@]}"; do
     if sudo docker inspect "$c" >/dev/null 2>&1; then
-      echo "--- $c (inspect) ---"
-      sudo docker inspect "$c" --format 'status={{.State.Status}} exit={{.State.ExitCode}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}n/a{{end}} cmd={{json .Config.Cmd}}' 2>/dev/null || true
-      echo "--- $c (docker logs, complete) ---"
-      sudo docker logs "$c" 2>&1 || true
-      echo ""
+      dump_container_diagnostics "$c"
     fi
   done
   echo "════════════════════════════════════════════════════"
@@ -212,21 +263,40 @@ capture_rollback_snapshot() {
   fi
 }
 
-stop_app_stack() {
-  deploy_phase "BEGIN stop running stack"
-  for name in "${STACK_CONTAINER_NAMES[@]}"; do
+stop_stateless_stack() {
+  deploy_phase "BEGIN stop stateless app containers"
+  for name in "${STATELESS_CONTAINER_NAMES[@]}"; do
     sudo docker rm -f "$name" >/dev/null 2>&1 || true
   done
-  sudo docker network rm "$NETWORK_NAME" >/dev/null 2>&1 || true
-  deploy_phase "END stop running stack"
+  deploy_phase "END stop stateless app containers"
 }
 
 ensure_app_network() {
-  sudo docker network rm "$NETWORK_NAME" >/dev/null 2>&1 || true
+  if sudo docker network inspect "$NETWORK_NAME" >/dev/null 2>&1; then
+    return 0
+  fi
   sudo docker network create "$NETWORK_NAME" >/dev/null 2>&1
 }
 
 start_redis_container() {
+  local redis_state
+  redis_state=$(sudo docker inspect --format='{{.State.Status}}' redis 2>/dev/null || echo "missing")
+  if [ "$redis_state" = "running" ]; then
+    echo "✅ Redis already running; preserving stateful container."
+    sudo docker network connect --alias redis "$NETWORK_NAME" redis >/dev/null 2>&1 || true
+    return 0
+  fi
+  if [ "$redis_state" != "missing" ]; then
+    echo "⚠️ Redis exists but is not running (status: $redis_state); starting existing container."
+    sudo docker start redis >/dev/null
+    sudo docker network connect --alias redis "$NETWORK_NAME" redis >/dev/null 2>&1 || true
+    redis_state=$(sudo docker inspect --format='{{.State.Status}}' redis 2>/dev/null || echo "missing")
+    if [ "$redis_state" = "running" ]; then
+      echo "✅ Existing Redis container started."
+      return 0
+    fi
+  fi
+
   echo "🚀 Starting Redis..."
   sudo docker run -d \
     --name redis \
@@ -240,7 +310,6 @@ start_redis_container() {
   echo "⏳ Waiting for Redis to start..."
   sleep 3
 
-  local redis_state
   redis_state=$(sudo docker inspect --format='{{.State.Status}}' redis 2>/dev/null || echo "missing")
   if [ "$redis_state" != "running" ]; then
     echo "❌ Redis container is not running! Status: $redis_state"
@@ -285,7 +354,7 @@ start_app_container() {
     if [ "$app_state" = "exited" ] || [ "$app_state" = "dead" ]; then
       echo "❌ App container exited during startup! Status: $app_state"
       dump_container_diagnostics cre_app
-      print_deploy_failure_report "cre_app exited during startup (${app_state})"
+      print_deploy_failure_report "cre_app exited during startup (${app_state})" cre_app
       return 1
     fi
     if [ "$app_state" = "running" ]; then
@@ -298,7 +367,7 @@ start_app_container() {
   if [ "$app_state" != "running" ]; then
     echo "❌ App container is not running after ${waited}s! Status: $app_state"
     dump_container_diagnostics cre_app
-    print_deploy_failure_report "cre_app not running after startup poll"
+    print_deploy_failure_report "cre_app not running after startup poll" cre_app
     return 1
   fi
 
@@ -316,7 +385,7 @@ start_app_container() {
       echo "❌ App health check failed or timed out"
     fi
     dump_container_diagnostics cre_app
-    print_deploy_failure_report "cre_app health wait failed or container exited"
+    print_deploy_failure_report "cre_app health wait failed or container exited" cre_app
     return 1
   fi
   sleep 3
@@ -324,7 +393,7 @@ start_app_container() {
   if [ "$app_state" != "running" ]; then
     echo "❌ App exited after health check (status: $app_state)"
     dump_container_diagnostics cre_app
-    print_deploy_failure_report "cre_app exited after passing health check (status: $app_state)"
+    print_deploy_failure_report "cre_app exited after passing health check (status: $app_state)" cre_app
     return 1
   fi
   deploy_phase "END App Docker health wait"
@@ -446,11 +515,10 @@ start_application_stack() {
 
 prune_docker_after_success() {
   deploy_phase "BEGIN post-success docker prune"
-  echo "🗑️ Pruning unused Docker resources after successful deploy..."
-  sudo docker system prune -af --volumes >/dev/null 2>&1 || true
+  echo "🗑️ Pruning unused Docker images/build cache after successful deploy (volumes preserved)..."
+  sudo docker system prune -af >/dev/null 2>&1 || true
   sudo docker builder prune -af >/dev/null 2>&1 || true
   sudo docker image prune -af >/dev/null 2>&1 || true
-  sudo docker volume prune -f >/dev/null 2>&1 || true
   deploy_phase "END post-success docker prune"
 }
 
@@ -475,7 +543,7 @@ try_rollback_on_failure() {
 
   echo "🔄 Deploy failed after stopping the previous stack — restoring $ROLLBACK_IMAGE ..."
   set +e
-  stop_app_stack
+  stop_stateless_stack
   if start_application_stack "$ROLLBACK_IMAGE" "$ROLLBACK_ENV_FILE"; then
     sudo cp "$ROLLBACK_ENV_FILE" "$DEPLOY_ENV_FILE"
     sudo chmod 600 "$DEPLOY_ENV_FILE"
@@ -489,17 +557,26 @@ try_rollback_on_failure() {
 deploy_exit_trap() {
   local exit_code=$?
   if [ "$exit_code" != "0" ]; then
-    echo "❌ Deploy failed (exit $exit_code). Full diagnostics are in this CI job log above."
+    echo "❌ Deploy failed (exit $exit_code)."
+    echo "   Triage: search this job log for 'DEPLOY FAILURE REPORT', 'DIAGNOSTICS:', and 'error highlights'."
+    if [ "$DEPLOY_VERBOSE_LOGS" != "1" ]; then
+      echo "   Set DEPLOY_VERBOSE_LOGS=1 on the SSH step for full redacted container logs."
+    fi
+    echo "📊 Disk usage at failure:"
+    df -h || true
+    docker system df || true
   fi
   try_rollback_on_failure
   cleanup_deploy_temp_files
+  cleanup_deploy_staging_dir
   exit "$exit_code"
 }
 
 trap deploy_exit_trap EXIT
 
+# Command tracing prints env vars and secret paths into CI logs — never enable in deploy scripts.
 if [ "$DEPLOY_DEBUG" = "1" ]; then
-  set -x
+  echo "WARN: DEPLOY_DEBUG is disabled (would leak secrets into CI logs). Use host-only troubleshooting without set -x." >&2
 fi
 
 echo "🕒 $(date -u +'%Y-%m-%dT%H:%M:%SZ') Starting EC2 deployment..."
@@ -533,15 +610,18 @@ ACCOUNT_ID="${ACCOUNT_ID:?ACCOUNT_ID must be set}"
 ECR_BASE="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO"
 pin_rollback_from_local_web_prod
 
-echo "📊 Disk usage before deploy:"
-df -h || true
-docker system df || true
+if [ "$DEPLOY_VERBOSE_LOGS" = "1" ]; then
+  echo "📊 Disk usage before deploy:"
+  df -h || true
+  docker system df || true
+fi
 
 echo "🧽 Light host cleanup (containers left running until new image is ready)..."
 sudo apt-get clean >/dev/null 2>&1 || true
 sudo rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* >/dev/null 2>&1 || true
 sudo journalctl --vacuum-time=3d >/dev/null 2>&1 || true
-sudo rm -rf ~/.cache /root/.cache /tmp/* /var/tmp/* >/dev/null 2>&1 || true
+find /tmp -mindepth 1 -maxdepth 1 ! -name deploy -exec rm -rf {} + >/dev/null 2>&1 || true
+sudo rm -rf ~/.cache /root/.cache /var/tmp/* >/dev/null 2>&1 || true
 
 if ! aws --version 2>/dev/null | grep -q aws-cli; then
   curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -620,7 +700,7 @@ ENV_FILE="$DEPLOY_ENV_FILE"
 
 # New image is pulled and env is validated — safe to replace the running stack.
 ROLLBACK_WAS_TEARDOWN=1
-stop_app_stack
+stop_stateless_stack
 start_application_stack "$STACK_IMAGE" "$ENV_FILE"
 
 echo "📦 Syncing static frontend to /var/www/html (bounded)..."
@@ -689,11 +769,12 @@ fi
 
 if [ ${#FAILED_CONTAINERS[@]} -gt 0 ]; then
   echo "❌ Deployment failed! Unhealthy containers: ${FAILED_CONTAINERS[*]}"
-  print_deploy_failure_report "final health check failed: ${FAILED_CONTAINERS[*]}"
+  print_deploy_failure_report "final health check failed: ${FAILED_CONTAINERS[*]}" "${FAILED_CONTAINERS[@]}"
   exit 1
 fi
 
 DEPLOY_SUCCEEDED=1
 prune_docker_after_success
+cleanup_deploy_staging_dir
 
 echo "✅ Deployment complete! All containers are healthy."

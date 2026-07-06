@@ -1,5 +1,5 @@
 /**
- * Hook and layout parameter types for search (bootstrap, isochrone flow, layout props).
+ * Hook and layout parameter types for search (isochrone flow, layout props).
  */
 
 import type { IsochroneData } from "@/features/search/types/isochrone";
@@ -33,14 +33,6 @@ export type SearchFilters = {
   maxSqft?: number;
   propertyTypes?: PropertyType[];
   listingStatus?: ListingStatus[];
-};
-
-export type UseSearchBootstrapParams = {
-  env: { apiBaseUrl: string };
-  setSearchResults: (results: PropertyDetails[]) => void;
-  setHasSearched: (searched: boolean) => void;
-  setCurrentPage: (page: number) => void;
-  setShowPropertyModals: (show: boolean) => void;
 };
 
 export type UseIsochroneFlowParams = {

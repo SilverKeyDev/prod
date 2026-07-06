@@ -55,7 +55,7 @@ export default function ClientSelector({
         contentAlign="start"
         label={triggerLabel}
         onClick={() => setIsOpen(!isOpen)}
-        className={`focus:border-input-variant-focus-border border-border bg-background-surface text-text-primary hover:bg-accent-muted flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-neutral-400 ${HEADER_ROW_CONTROL_HEIGHT}`}
+        className={`focus:border-input-variant-focus-border border-border bg-background-surface text-text-primary flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-400 ${HEADER_ROW_CONTROL_HEIGHT}`}
         icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
       >
         <>
@@ -158,10 +158,7 @@ export default function ClientSelector({
                         {client.name}
                       </BodyText>
                       {client.email && (
-                        <BodyText
-                          as="span"
-                          className="text-text-secondary w-full truncate text-left text-xs"
-                        >
+                        <BodyText as="span" size="xs" muted className="w-full truncate text-left">
                           {client.email}
                         </BodyText>
                       )}

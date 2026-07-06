@@ -1,9 +1,0 @@
-allOf:
-  - $ref: '../shared/core/SuccessResponse.yaml'
-  - type: object
-    properties:
-      agents:
-        type: array
-        items:
-          $ref: '../user/profile/User.yaml'
-        nullable: true

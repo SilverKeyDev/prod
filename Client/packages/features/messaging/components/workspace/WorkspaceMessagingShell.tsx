@@ -11,6 +11,7 @@ import {
   useWorkspaceMessaging,
   useWorkspaceMessagingSse,
 } from "packages/features/messaging/hooks/data/workspace";
+import { useMessageScroll } from "packages/features/messaging/hooks/ui";
 import type { WorkspaceMessagingPersonaId } from "packages/features/messaging/types/workspace/personas";
 import { eligibleContactKindsForPersona } from "packages/features/messaging/types/workspace/personas";
 import { getWorkspaceMessagingPersona } from "packages/features/messaging/utils/workspace/personasRegistry";
@@ -47,6 +48,12 @@ export default function WorkspaceMessagingShell({
   const { localMessages, isLoadingHistory, isSending, sendMessage } = useWorkspaceMessaging(
     activeConversationId,
     userProfile?.id
+  );
+
+  const { messagesEndRef } = useMessageScroll(
+    localMessages,
+    activeConversationId,
+    isLoadingHistory
   );
 
   const contactNameById = useMemo(() => {
@@ -142,20 +149,25 @@ export default function WorkspaceMessagingShell({
                     No messages yet. Send the first message below.
                   </BodyText>
                 ) : (
-                  localMessages.map((msg) => (
-                    <Box
-                      key={msg.id}
-                      className={`mb-3 flex ${msg.isOwn ? "justify-end" : "justify-start"}`}
-                    >
+                  <>
+                    {localMessages.map((msg) => (
                       <Box
-                        className={`max-w-[85%] rounded-lg px-3 py-2 ${
-                          msg.isOwn ? "bg-primary text-white" : "bg-primary-muted text-text-primary"
-                        }`}
+                        key={msg.id}
+                        className={`mb-3 flex ${msg.isOwn ? "justify-end" : "justify-start"}`}
                       >
-                        <BodyText size="sm">{msg.message}</BodyText>
+                        <Box
+                          className={`max-w-[85%] rounded-lg px-3 py-2 ${
+                            msg.isOwn
+                              ? "bg-primary text-white"
+                              : "bg-primary-muted text-text-primary"
+                          }`}
+                        >
+                          <BodyText size="sm">{msg.message}</BodyText>
+                        </Box>
                       </Box>
-                    </Box>
-                  ))
+                    ))}
+                    <Box ref={messagesEndRef} />
+                  </>
                 )}
               </Box>
               <Box className="border-border border-t p-3">

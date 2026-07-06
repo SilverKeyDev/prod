@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 import { useActiveWorkspace, useIsAgent } from "packages/features/homeauth";
-import { getMessagingSurfaceForWorkspace } from "packages/features/messaging";
+import { getMessagingSurfaceForWorkspace } from "packages/features/messaging/utils/workspace/getMessagingSurfaceForWorkspace";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";

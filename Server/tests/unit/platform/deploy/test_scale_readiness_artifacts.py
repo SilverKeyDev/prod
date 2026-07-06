@@ -27,6 +27,32 @@ def test_ec2_deploy_starts_beat_and_passes_scale_env():
     assert "-Q default,heavy,docusign" in script
 
 
+def test_ec2_deploy_preserves_stateful_containers_and_volumes():
+    script = (REPO_ROOT / ".github/scripts/ec2-deploy.sh").read_text()
+    assert "STATELESS_CONTAINER_NAMES=(cre_app cre_worker cre_beat cre_worker_heavy)" in script
+    assert "STATEFUL_CONTAINER_NAMES=(redis)" in script
+    assert "stop_stateless_stack" in script
+    assert 'sudo docker rm -f "$name"' in script
+    assert 'sudo docker network rm "$NETWORK_NAME"' not in script
+    assert "docker volume prune" not in script
+    assert "Redis already running; preserving stateful container." in script
+
+
+def test_prod_web_workflow_supports_prior_sha_rollback_input():
+    workflow = (REPO_ROOT / ".github/workflows/ci_web.yml").read_text()
+    assert "image_tag:" in workflow
+    assert "Rollback/redeploy requested for existing image tag" in workflow
+    assert "Resolve existing rollback image digest" in workflow
+    assert "github.event.inputs.image_tag != ''" in workflow
+
+
+def test_prod_web_rollback_helper_dispatches_workflow_tag():
+    script_path = REPO_ROOT / "scripts/deploy/rollback-prod-web.sh"
+    script = script_path.read_text()
+    assert "gh workflow run ci_web.yml" in script
+    assert '-f image_tag="$IMAGE_TAG"' in script
+
+
 def test_docker_compose_prod_parity_includes_core_services():
     compose = (REPO_ROOT / "scripts/deploy/prod-parity/docker-compose.yml").read_text()
     for service in ("redis", "app", "worker", "beat"):

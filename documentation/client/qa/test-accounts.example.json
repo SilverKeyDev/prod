@@ -1,0 +1,62 @@
+{
+  "$comment": "Committed shape for SIL-145 / SIL-126 step 1. Real credentials live in test-accounts.json.",
+  "version": 1,
+  "env": "production",
+  "baseUrls": {
+    "web": "https://app.usesilverkey.com",
+    "api": "https://api.usesilverkey.com"
+  },
+  "sharedPassword": "REPLACE_WITH_SHARED_PASSWORD",
+  "inbox": "REPLACE_WITH_CATCH_ALL_INBOX@gmail.com",
+  "plusAddressing": true,
+  "mfaDisabled": true,
+  "signIn": {
+    "method": "email_password_form",
+    "webLoginPath": "/login",
+    "webVerificationPath": "/verification",
+    "apiLoginPath": "/api/v1/auth/login",
+    "avoidGoogleOAuthForAutomation": true
+  },
+  "emailOtp": {
+    "strategy": "plus_addressing",
+    "catchAllInbox": "REPLACE_WITH_CATCH_ALL_INBOX@gmail.com",
+    "plusAddressPattern": "{inbox-local}+{role}@gmail.com",
+    "notes": "Verification codes arrive in the shared inbox; use the alias matching the account under test."
+  },
+  "disposableSignupPattern": "{inbox-local}+signup{N}@gmail.com",
+  "accounts": [
+    {
+      "role": "buyer",
+      "email": "REPLACE+buyer@gmail.com",
+      "workspace": "buyer",
+      "personaSwitch": false,
+      "seeded": "1 saved search"
+    },
+    {
+      "role": "agent",
+      "email": "REPLACE+agent@gmail.com",
+      "workspace": "agent",
+      "personaSwitch": false,
+      "seeded": "1 linked buyer"
+    },
+    {
+      "role": "seller",
+      "email": "REPLACE+seller@gmail.com",
+      "workspace": "seller",
+      "personaSwitch": false
+    },
+    {
+      "role": "brokerage",
+      "email": "REPLACE+brokerage@gmail.com",
+      "workspace": "brokerage",
+      "personaSwitch": false,
+      "seeded": "1 linked agent"
+    },
+    {
+      "role": "integration_partner",
+      "email": "REPLACE+partner@gmail.com",
+      "workspace": "integration_partner",
+      "personaSwitch": false
+    }
+  ]
+}

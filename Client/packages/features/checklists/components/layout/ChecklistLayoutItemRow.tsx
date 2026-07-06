@@ -9,7 +9,11 @@ import {
 import { useChecklistIntegrationCompleteHandler } from "packages/features/checklists/hooks/useChecklistIntegrationCompleteHandler";
 import type { ChecklistCloseLayoutCheckboxItem } from "packages/features/checklists/types/checklistCloseLayout";
 import type { ChecklistTab } from "packages/features/checklists/types/checklists";
-import { checklistCheckboxRowClassNames } from "packages/features/checklists/utils/presentation/checklistCheckboxPresentation";
+import {
+  checklistCheckboxRowClassNames,
+  checklistRowShellClassNames,
+  getChecklistItemLabelClass,
+} from "packages/features/checklists/utils/presentation/checklistCheckboxPresentation";
 import { CHECKLIST_ROW_INTERACTIVE_SELECTOR } from "packages/features/checklists/utils/presentation/checklistRowInteractiveSelector";
 import type { ChecklistItemToggleEligibility } from "packages/features/checklists/utils/rules/checklistRules";
 import { ChecklistCheckbox } from "packages/ui";
@@ -19,7 +23,7 @@ import { ConfirmationDialog } from "packages/ui/components/surfaces/modals";
 
 import { IconButton } from "@/components/ui";
 
-const { checkboxContainer, itemLabel, itemExplanation } = checklistCheckboxRowClassNames;
+const { checkboxContainer, itemExplanation } = checklistCheckboxRowClassNames;
 
 export type ChecklistLayoutItemRowKind =
   | "flat_item"
@@ -115,6 +119,17 @@ function ChecklistLayoutItemRowInner({
   }, [expanded, item.id, toggleExpand]);
 
   const expandRowAccessibilityLabel = `${item.label}. Expand step`;
+  const toggleRowAccessibilityLabel = `${item.label}. Toggle step`;
+
+  const ignoreNestedRowPress = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    return Boolean(target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR));
+  }, []);
+
+  const itemLabelClass = getChecklistItemLabelClass({
+    checked: rowChecked,
+    disabled: checkboxDisabled,
+  });
 
   const checklistItem: ChecklistCloseLayoutCheckboxItem = {
     id: item.id,
@@ -126,7 +141,7 @@ function ChecklistLayoutItemRowInner({
     optional: item.optional ?? undefined,
   };
 
-  const headerRow = (
+  const headerRowContent = (
     <Box className="flex flex-row items-start gap-2">
       <Box className="min-w-0 flex-1">
         <ChecklistCheckbox
@@ -134,7 +149,8 @@ function ChecklistLayoutItemRowInner({
           checked={rowChecked}
           onToggle={handleCheckboxToggle}
           disabled={checkboxDisabled}
-          itemLabelClass={itemLabel}
+          deferInteractionToParent
+          itemLabelClass={itemLabelClass}
           itemExplanationClass={itemExplanation}
           checkboxContainerClass={checkboxContainer}
           number={globalIndex + 1}
@@ -155,24 +171,35 @@ function ChecklistLayoutItemRowInner({
     </Box>
   );
 
-  const collapsedHeaderRow = (
+  const headerRow = expanded ? (
+    <TouchableBox
+      label={toggleRowAccessibilityLabel}
+      onPress={handleCheckboxToggle}
+      className="w-full text-left"
+      onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+        if (ignoreNestedRowPress(e)) {
+          return;
+        }
+        e.stopPropagation();
+        handleCheckboxToggle();
+      }}
+    >
+      {headerRowContent}
+    </TouchableBox>
+  ) : (
     <TouchableBox
       label={expandRowAccessibilityLabel}
       onPress={handleExpandRowPress}
       className="w-full text-left"
       onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-        const target = e.target as HTMLElement;
-        if (target.closest(CHECKLIST_ROW_INTERACTIVE_SELECTOR)) {
+        if (ignoreNestedRowPress(e)) {
           return;
-        }
-        if (target.closest("label")) {
-          e.preventDefault();
         }
         e.stopPropagation();
         handleExpandRowPress();
       }}
     >
-      {headerRow}
+      {headerRowContent}
     </TouchableBox>
   );
 
@@ -188,13 +215,13 @@ function ChecklistLayoutItemRowInner({
         onCancel={handleCancelConfirm}
       />
       <Box
-        className={`w-full rounded-lg px-3 py-2 ${DOTTED_BORDER_LIGHT_GRAY} ${
+        className={`${checklistRowShellClassNames.fullWidth} rounded-lg ${checklistRowShellClassNames.innerPadding} ${DOTTED_BORDER_LIGHT_GRAY} ${
           isActive
             ? "ring-gold relative z-10 overflow-visible shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1"
             : ""
         }`}
       >
-        {expanded ? headerRow : collapsedHeaderRow}
+        {headerRow}
         <ChecklistStepAttachments
           item={item}
           expanded={expanded}

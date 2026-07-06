@@ -6,7 +6,7 @@ import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
 
 import Label from "@/components/ui/text/Label.web";
 import type { CreateEventMutualAvailability } from "@/features/calendar/hooks/data/createEvent/useCreateEventMutualAvailability";
-import type { Calendar } from "@/features/calendar/types/calendar";
+import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { CalendarEventKindId } from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 
 import { CreateEventModalFormFields } from "./CreateEventModalFormFields";
@@ -50,6 +50,7 @@ export type CreateEventModalFormProps = {
   addGoogleMeet: boolean;
   onAddGoogleMeetChange: (next: boolean) => void;
   showGoogleMeetOption: boolean;
+  existingEvent?: ExtendedGoogleEvent;
   mutualSchedule: CreateEventMutualAvailability | null;
   onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
   registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
@@ -99,6 +100,7 @@ export function CreateEventModalFormCore(props: CreateEventModalFormCoreProps) {
     addGoogleMeet,
     onAddGoogleMeetChange,
     showGoogleMeetOption,
+    existingEvent,
     mutualSchedule,
     onCalendarTimedSlotPick,
     registerOutsideClickSafeTarget,
@@ -146,6 +148,7 @@ export function CreateEventModalFormCore(props: CreateEventModalFormCoreProps) {
         addGoogleMeet={addGoogleMeet}
         onAddGoogleMeetChange={onAddGoogleMeetChange}
         showGoogleMeetOption={showGoogleMeetOption}
+        existingEvent={existingEvent}
         mutualSchedule={mutualSchedule}
         onCalendarTimedSlotPick={onCalendarTimedSlotPick}
         registerOutsideClickSafeTarget={registerOutsideClickSafeTarget}

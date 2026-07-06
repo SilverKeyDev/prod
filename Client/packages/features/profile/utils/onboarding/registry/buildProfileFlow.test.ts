@@ -11,6 +11,9 @@ describe("resolveTemplateId", () => {
     expect(resolveTemplateId({ surface: "onboarding", primaryRole: "seller" })).toBe(
       "seller_onboarding"
     );
+    expect(resolveTemplateId({ surface: "onboarding", primaryRole: "renter" })).toBe(
+      "renter_onboarding"
+    );
     expect(resolveTemplateId({ surface: "onboarding", primaryRole: "brokerage" })).toBe(
       "brokerage_onboarding"
     );
@@ -49,6 +52,21 @@ describe("buildOnboardingFlowFromOptions", () => {
       excludeFinancial: true,
     }).map((s) => s.id);
     expect(ids).toEqual(["onboarding_role", "seller_shell_setup"]);
+  });
+
+  it("renter flow includes renter preference steps", () => {
+    const ids = buildOnboardingFlowFromOptions({
+      primaryRole: "renter",
+      excludeFinancial: true,
+    }).map((s) => s.id);
+    expect(ids).toEqual([
+      "onboarding_role",
+      "renter_budget",
+      "renter_location",
+      "renter_move_timeline",
+      "renter_household",
+      "renter_amenities",
+    ]);
   });
 
   it("brokerage flow includes shell setup step", () => {

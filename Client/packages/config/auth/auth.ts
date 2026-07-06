@@ -139,6 +139,7 @@ export const AUTH_CONFIG = {
     "/terms",
     "/about",
     "/contact",
+    "/dev/session",
     "/agent-profile",
     "/a",
     "/property",
@@ -147,7 +148,6 @@ export const AUTH_CONFIG = {
   // Routes that require authentication
   PROTECTED_ROUTES: [
     "/dashboard",
-    "/find-agents",
     "/search",
     "/library",
     "/saved",
@@ -165,11 +165,11 @@ export const AUTH_CONFIG = {
 
   // Default redirect routes
   REDIRECTS: {
-    AFTER_LOGIN: "/search",
+    AFTER_LOGIN: "/dashboard",
     AFTER_LOGOUT: "/login",
     AFTER_SIGNUP: "/verification",
-    AFTER_VERIFICATION: "/search",
-    AFTER_ONBOARDING: "/search",
+    AFTER_VERIFICATION: "/onboarding",
+    AFTER_ONBOARDING: "/dashboard",
     UNAUTHORIZED: "/login",
   },
 } as const;

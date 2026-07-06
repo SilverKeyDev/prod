@@ -1,9 +1,13 @@
+import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 import type { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 export const DROPDOWN_OPTION_ROW_HEIGHT_PX = 52;
 export const DROPDOWN_SEARCH_HEADER_ESTIMATE_PX = 58;
 export const DROPDOWN_MENU_CHROME_PX = 12;
 export const MAX_VISIBLE_OPTIONS_CAP = 25;
+
+/** Matches `.mobile-input` padding in components.css without applying that class (avoids double px/py). */
+const DROPDOWN_SHELL_PADDING = "px-3 py-2 sm:px-4 sm:py-2.5 md:px-5 md:py-3.5 lg:px-6 lg:py-4";
 
 export function getDropdownVariantStyles(
   variant: "default" | "mobile" | "compact",
@@ -12,20 +16,20 @@ export function getDropdownVariantStyles(
 ) {
   const variantStyles = {
     default:
-      "border border-border bg-background-surface hover:border-border focus:ring-neutral-400 focus:border-input-variant-focus-border",
+      "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
     mobile:
-      "mobile-input border border-border bg-background-surface hover:border-border focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
+      "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly",
     compact:
-      "border border-border bg-background-surface hover:border-border focus:ring-neutral-400 focus:border-input-variant-focus-border",
+      "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
   };
 
   const noBorderVariantStyles = {
     default:
-      "border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent",
+      "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent",
     mobile:
-      "mobile-input border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent touch-friendly",
+      "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent touch-friendly",
     compact:
-      "border-0 bg-background-surface hover:bg-neutral-100/80 focus:ring-accent-muted focus:border-transparent",
+      "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent",
   };
 
   const triggerVariantStyles =
@@ -34,17 +38,48 @@ export function getDropdownVariantStyles(
   return triggerVariantStyles;
 }
 
-export function getDropdownSizeStyles(size: "sm" | "md" | "lg") {
+export function getDropdownShellClasses(variant: "default" | "mobile" | "compact") {
+  if (variant === "compact") {
+    return "flex items-center cursor-pointer";
+  }
+  return "flex items-center cursor-pointer touch-friendly";
+}
+
+export function getDropdownTextStyles(
+  variant: "default" | "mobile" | "compact",
+  getSharedInputTextStylesFn: typeof getSharedInputTextStyles
+) {
+  if (variant === "compact") {
+    return "text-gray-600 text-sm text-left leading-tight disabled:text-gray-400";
+  }
+  return (getSharedInputTextStylesFn as () => string)();
+}
+
+export function getDropdownSizeStyles(
+  size: "sm" | "md" | "lg",
+  variant: "default" | "mobile" | "compact" = "default"
+) {
+  if (variant === "compact") {
+    const compactSizeStyles = {
+      sm: `${HEADER_ROW_CONTROL_HEIGHT} px-3`,
+      md: `${HEADER_ROW_CONTROL_HEIGHT} px-4`,
+      lg: "h-12 min-h-12 max-h-12 px-5",
+    };
+    return compactSizeStyles[size];
+  }
+
   const sizeStyles = {
-    sm: "h-auto min-h-9 px-3",
-    md: "h-auto min-h-12 px-4",
-    lg: "h-auto min-h-14 px-5",
+    sm: `min-h-9 ${DROPDOWN_SHELL_PADDING}`,
+    md: `min-h-12 ${DROPDOWN_SHELL_PADDING}`,
+    lg: `min-h-14 ${DROPDOWN_SHELL_PADDING}`,
   };
   return sizeStyles[size];
 }
 
 export function getDropdownErrorStyles(error?: string) {
-  return error ? "border-neutral-600 focus:border-neutral-700 focus:ring-neutral-400" : "";
+  return error
+    ? "border-neutral-600 focus-within:border-neutral-700 focus-within:ring-neutral-400"
+    : "";
 }
 
 export function getDropdownDisabledStyles(disabled?: boolean) {
@@ -61,15 +96,17 @@ export function buildDropdownButtonClasses(
   className?: string
 ) {
   const triggerVariantStyles = getDropdownVariantStyles(variant, noBorder, error);
-  const sizeStyles = getDropdownSizeStyles(size);
+  const shellClasses = getDropdownShellClasses(variant);
+  const textStyles = getDropdownTextStyles(variant, getSharedInputTextStylesFn);
+  const sizeStyles = getDropdownSizeStyles(size, variant);
   const errorStyles = getDropdownErrorStyles(error);
   const disabledStyles = getDropdownDisabledStyles(disabled);
 
   return [
-    "w-full rounded-lg transition-all duration-200 focus:outline-none focus:ring-2",
-    "flex items-center cursor-pointer touch-friendly mobile-input",
+    "group w-full rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2",
+    shellClasses,
     "disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed",
-    (getSharedInputTextStylesFn as () => string)(),
+    textStyles,
     triggerVariantStyles,
     sizeStyles,
     errorStyles,

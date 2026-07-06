@@ -62,9 +62,7 @@ export default function KeyTurnLoader({
       <Animated.View style={[styles.keyContainer, { transform: [{ rotate }] }]}>
         <Text style={[styles.key, isGray ? styles.keyGray : styles.keyDefault]}>🔑</Text>
       </Animated.View>
-      {showMessage ? (
-        <Text style={[styles.message, isGray && styles.messageGray]}>{trimmedMessage}</Text>
-      ) : null}
+      {showMessage ? <Text style={styles.message}>{trimmedMessage}</Text> : null}
     </View>
   );
 }
@@ -95,9 +93,6 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 14,
-    color: color("neutral.50"),
-  },
-  messageGray: {
     color: color("neutral.500"),
   },
 });

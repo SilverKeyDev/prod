@@ -163,25 +163,25 @@ export const WEB_FORM_SIZE_STYLES_LEGACY: Record<InputSize, string> = {
 /** `Input.web` — `focus:` on the control. */
 export const WEB_FORM_VARIANT_STYLES_INPUT_FOCUS: Record<InputVariant, string> = {
   default:
-    "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border",
   mobile:
-    "mobile-input border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
+    "mobile-input border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border touch-friendly",
   compact:
-    "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border",
   search:
-    "border-border bg-background-surface hover:bg-accent-muted focus:ring-neutral-400 focus:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus:ring-neutral-400 focus:border-input-variant-focus-border",
 };
 
 /** `FieldShell` — `focus-within:` on the wrapper. */
 export const WEB_FORM_VARIANT_STYLES_SHELL_FOCUS_WITHIN: Record<InputVariant, string> = {
   default:
-    "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
   mobile:
-    "mobile-input border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly autofill-parent",
+    "mobile-input border-border bg-background-surface hover:bg-neutral-100 focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly autofill-parent",
   compact:
-    "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
   search:
-    "border-border bg-background-surface hover:bg-accent-muted focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
+    "border-border bg-background-surface hover:bg-neutral-100 focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
 };
 
 const WEB_INPUT_CONTROL_BASE =

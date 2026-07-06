@@ -1,11 +1,13 @@
 /** Mirrors server `extended_buyer_preferences` v1 sections (whitelist-validated on write). */
 
+import type { BuyerAboutMePrefs } from "packages/features/profile/types/buyerAboutMe";
+import type { BuyerPriceFinancingPrefs } from "packages/features/profile/types/buyerFinancing";
+
 export const BUYER_PREFERENCE_EXTENSIONS_VERSION = 1 as const;
 
-export type BuyerPriceFinancing = {
-  hoa_ok?: boolean;
-  hoa_fee_max_monthly?: number;
-};
+export type BuyerPriceFinancing = BuyerPriceFinancingPrefs;
+
+export type BuyerAboutMe = BuyerAboutMePrefs;
 
 export type BuyerLocationPrefs = {
   flood_importance?: string;
@@ -74,6 +76,7 @@ export type BuyerAvailabilityPrefs = {
 
 export type BuyerPreferenceExtensions = {
   v: typeof BUYER_PREFERENCE_EXTENSIONS_VERSION;
+  buyer_about_me?: BuyerAboutMe;
   price_financing?: BuyerPriceFinancing;
   location_prefs?: BuyerLocationPrefs;
   physical?: BuyerPhysicalPrefs;
@@ -84,6 +87,7 @@ export type BuyerPreferenceExtensions = {
 };
 
 const EXT_SECTION_KEYS = [
+  "buyer_about_me",
   "price_financing",
   "location_prefs",
   "physical",

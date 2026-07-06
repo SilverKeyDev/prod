@@ -1,19 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
 
+import type { UpdateTodoRequest } from "packages/features/agent/api/agent";
 import { Dropdown, type DropdownOption } from "packages/ui";
 import { Box, Text } from "packages/ui/components/structure/primitives";
 import Title from "packages/ui/components/structure/text/Title";
-import Cover from "packages/ui/components/surfaces/modals/cover";
+import BaseModal from "packages/ui/components/surfaces/modals/BaseModal";
 
-import type { Calendar } from "@/features/calendar/types/calendar";
-import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
+import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
+import type { UpcomingAgendaItem } from "@/features/calendar/types/upcomingAgenda";
 import {
   AGENDA_ALL_DISPLAY_OPTIONS,
   type AgendaAllDisplayMode,
   applyAgendaAllDisplayMode,
 } from "@/features/calendar/utils/agenda/agendaAllDisplay";
-import type { UpcomingAgendaItem } from "@/features/calendar/utils/agenda/mergeUpcomingAgenda";
 
 import { EventCard } from "./EventCard";
 import { TodoAgendaRow } from "./TodoAgendaRow";
@@ -39,6 +39,8 @@ type AllAgendaEventsModalProps = {
   calendars?: Calendar[];
   onToggleAgendaTodo?: (id: string) => void;
   canEditAgendaTodos?: boolean;
+  updateAgendaTodo?: (id: string, data: UpdateTodoRequest) => Promise<void>;
+  deleteAgendaTodo?: (id: string) => Promise<void>;
   onSigningAgendaPress?: (agreementId: string) => void;
   isAgendaEventComplete?: (event: ExtendedGoogleEvent) => boolean;
   onToggleAgendaEventComplete?: (event: ExtendedGoogleEvent) => void;
@@ -57,23 +59,24 @@ export function AllAgendaEventsModal({
   calendars = [],
   onToggleAgendaTodo,
   canEditAgendaTodos = false,
+  updateAgendaTodo,
+  deleteAgendaTodo,
   onSigningAgendaPress,
   isAgendaEventComplete,
   onToggleAgendaEventComplete,
   completedEventKeys,
 }: AllAgendaEventsModalProps) {
-  const [displayMode, setDisplayMode] = useState<AgendaAllDisplayMode>("chronological");
+  const [displayMode, setDisplayMode] = useState<AgendaAllDisplayMode>("future_only");
 
   useEffect(() => {
     if (!isOpen) {
-      setDisplayMode("chronological");
+      setDisplayMode("future_only");
     }
   }, [isOpen]);
 
-  const displayedItems = useMemo(
-    () => applyAgendaAllDisplayMode(items, displayMode, { completedEventKeys }),
-    [items, displayMode, completedEventKeys]
-  );
+  const displayedItems = useMemo(() => {
+    return applyAgendaAllDisplayMode(items, displayMode, { completedEventKeys });
+  }, [items, displayMode, completedEventKeys]);
 
   const sortOptions = useMemo((): DropdownOption<AgendaAllDisplayMode>[] => {
     return AGENDA_ALL_DISPLAY_OPTIONS.map((o) => ({
@@ -92,34 +95,33 @@ export function AllAgendaEventsModal({
         >
           All agenda items
         </Title>
-        <Box className="w-full shrink-0 sm:max-w-[min(100%,280px)]">
-          <Dropdown<AgendaAllDisplayMode>
-            options={sortOptions}
-            value={displayMode}
-            onChange={setDisplayMode}
-            label="Sort"
-            hideLabel
-            variant="compact"
-            size="sm"
-            menuInPortal
-            menuPortalStack="modal"
-            maxVisibleOptions={5}
-            className="w-full"
-          />
-        </Box>
+        <Dropdown<AgendaAllDisplayMode>
+          options={sortOptions}
+          value={displayMode}
+          onChange={setDisplayMode}
+          label="Sort"
+          hideLabel
+          variant="compact"
+          size="sm"
+          menuInPortal
+          menuPortalStack="modal"
+          maxVisibleOptions={5}
+          className="w-full min-w-0 shrink-0 sm:max-w-[280px]"
+        />
       </Box>
     ),
     [displayMode, sortOptions]
   );
 
   return (
-    <Cover
+    <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       headerContent={headerContent}
       showCloseButton
       showHeaderBorder
-      animation="slideFromRight"
+      size="2xl"
+      panelLayout="fixed"
     >
       {loading ? (
         <Box className="py-6">
@@ -134,7 +136,7 @@ export function AllAgendaEventsModal({
           {displayedItems.length === 0 ? (
             <Box className="py-2">
               <Text className="text-text-secondary text-sm">
-                Nothing matches this view. Try a different sort in the header.
+                No items match this sort. Try a different sort option.
               </Text>
             </Box>
           ) : (
@@ -164,6 +166,8 @@ export function AllAgendaEventsModal({
                     todo={item.todo}
                     onToggleComplete={(id) => onToggleAgendaTodo?.(id)}
                     canEditComplete={Boolean(canEditAgendaTodos && onToggleAgendaTodo)}
+                    updateTodo={updateAgendaTodo}
+                    deleteTodo={deleteAgendaTodo}
                     onSigningPress={onSigningAgendaPress}
                   />
                 )}
@@ -172,6 +176,6 @@ export function AllAgendaEventsModal({
           )}
         </Box>
       )}
-    </Cover>
+    </BaseModal>
   );
 }

@@ -19,9 +19,7 @@ from app.schemas.generated import (
     SearchByPolygonResponse,
     TaskStatusResponse,
 )
-from app.schemas.generated import (
-    User as UserOpenApi,
-)
+from app.schemas.generated import UserModel as UserOpenApi
 
 MOCK_POLYGON_AUTH = "app.routes.search.search.get_authenticated_user"
 MOCK_RUN_POLYGON_SEARCH = "app.routes.search.search.run_polygon_search"

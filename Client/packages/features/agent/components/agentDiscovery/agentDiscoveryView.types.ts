@@ -6,7 +6,7 @@ export type AgentDiscoveryViewProps = {
   isActive?: boolean;
   /**
    * `external`: open public profile in a new tab / system browser (checklist partner step).
-   * `navigate`: in-app profile route (Find agents page).
+   * `navigate`: in-app profile route.
    */
   profileTarget?: AgentDiscoveryProfileTarget;
   /** When set, overrides default profile open behavior for the given `profileTarget`. */
@@ -14,4 +14,6 @@ export type AgentDiscoveryViewProps = {
   /** Called after a connection request is sent from the search section. */
   onConnectionSuccess?: () => void;
   className?: string;
+  /** When true, renders nothing while recommendations load (embedded checklist rows). */
+  suppressRecommendationsLoading?: boolean;
 };

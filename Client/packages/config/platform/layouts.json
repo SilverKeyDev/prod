@@ -24,6 +24,22 @@
     "category": "layout"
   },
   {
+    "id": "landing-nav",
+    "description": "Public landing fixed header with section navigation",
+    "webPath": "packages/features/homeauth/components/homepage/landing/nav/LandingNav.web.tsx",
+    "nativePath": "packages/features/homeauth/components/homepage/landing/nav/LandingNav.native.tsx",
+    "reason": "Web adds a bottom-sheet mobile menu with hash scroll and auth CTAs below md; native keeps compact header without in-page section nav.",
+    "category": "navigation"
+  },
+  {
+    "id": "landing-nav-mobile-menu",
+    "description": "Landing mobile web navigation drawer",
+    "webPath": "packages/features/homeauth/components/homepage/landing/nav/LandingNavMobileMenu.web.tsx",
+    "nativePath": null,
+    "reason": "Web-only bottom sheet for collapsed landing nav on viewports below md; uses AccessibleDialog and DOM hash scroll.",
+    "category": "responsive-layout"
+  },
+  {
     "id": "reels-view-implementation",
     "description": "Video reels viewing experience with platform-specific gestures",
     "webPath": "packages/features/feed/components/Reels/DesktopReelsViewImpl.web.tsx",
@@ -78,6 +94,14 @@
     "nativePath": "packages/features/homeauth/components/core/AuthPageLayout.native.tsx",
     "reason": "Native uses SafeAreaView; web uses standard layout.",
     "category": "layout"
+  },
+  {
+    "id": "lot-size-home-age-slider-layout",
+    "description": "Lot size and home age slider row layout on profile housing preferences",
+    "webPath": "packages/features/profile/components/layout/lotSizeHomeAgeSliderLayout.web.tsx",
+    "nativePath": "packages/features/profile/components/layout/lotSizeHomeAgeSliderLayout.tsx",
+    "reason": "Web uses AlignedRow for container-aware even columns; native uses a simpler vertical stack layout.",
+    "category": "responsive-layout"
   },
   {
     "id": "static-page-layout",
@@ -306,8 +330,8 @@
   {
     "id": "account-privacy-data-section-layout",
     "description": "Privacy & data section: web modal + file download vs native mailto/links",
-    "webPath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.web.tsx",
-    "nativePath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.native.tsx",
+    "webPath": "packages/features/profile/components/profileScreen/tabs/privacy/AccountPrivacyDataSection.web.tsx",
+    "nativePath": "packages/features/profile/components/profileScreen/tabs/privacy/AccountPrivacyDataSection.native.tsx",
     "reason": "Web uses BaseModal and programmatic JSON download. Native uses simpler RN layout and Linking without DOM or download APIs.",
     "category": "layout"
   },
@@ -316,7 +340,7 @@
     "description": "Account personalization settings: web-only scroll + sidebar nav (no native account settings screen yet)",
     "webPath": "packages/features/profile/components/settings/PersonalizationSettingsScreen.web.tsx",
     "nativePath": null,
-    "reason": "Web account settings uses DOM scroll-spy, dashboard mobile header injection, and web-only profile section components. Native account settings are not implemented; thin apps/web SettingsPage composes this screen.",
+    "reason": "Web account settings uses DOM scroll-spy, dashboard mobile header injection, and web-only profile section components. Native account settings are not implemented; ProfilePage composes PersonalizationSettingsScreen.web.",
     "category": "layout"
   },
   {

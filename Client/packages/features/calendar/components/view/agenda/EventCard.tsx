@@ -1,9 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { CreateEventModal } from "packages/features/calendar/components/view/eventModal/CreateEventModal";
-import { Button, CancelButton } from "packages/ui";
 import { Box, Text, TouchableBox } from "packages/ui/components/structure/primitives";
 import DeleteModal from "packages/ui/components/surfaces/modals/standalone/DeleteModal";
+import {
+  isEventMeetLinkPending,
+  isVirtualMeetingEnabled,
+  resolveEventMeetLink,
+} from "packages/utils/comms/calendar/parsing/eventMeetLink";
 import {
   getEventEndDate,
   getEventStartDate,
@@ -14,7 +18,9 @@ import {
 } from "packages/utils/core/date";
 
 import type { GoogleCalendar } from "@/features/calendar/api/types";
+import { EventVirtualMeetLink } from "@/features/calendar/components/eventForm/EventVirtualMeetLink";
 import { AgendaCompleteControl } from "@/features/calendar/components/view/agenda/AgendaCompleteControl";
+import { AgendaItemEditActions } from "@/features/calendar/components/view/agenda/AgendaItemEditActions";
 import type { Calendar, ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
 import { calendarColorForEvent } from "@/features/calendar/utils/createEventModal/calendarEventColors";
@@ -112,26 +118,40 @@ export function EventCard({
 
   const showAgendaComplete = Boolean(onToggleAgendaComplete);
 
-  const eventBody = (
+  const titleClassName = `text-left text-sm font-semibold leading-snug ${
+    agendaComplete ? "text-text-disabled line-through" : "text-text-primary"
+  }`;
+
+  const eventTitle = <Text className={titleClassName}>{event.summary || "Untitled Event"}</Text>;
+
+  const showVirtualMeet = isVirtualMeetingEnabled(event);
+
+  const eventDetails = (
     <>
-      <Text
-        className={`text-left text-sm font-semibold ${
-          agendaComplete ? "text-text-disabled line-through" : "text-text-primary"
-        }`}
-      >
-        {event.summary || "Untitled Event"}
-      </Text>
       {dateRange ? (
         <Text className="text-text-secondary text-left text-xs sm:text-sm">{dateRange}</Text>
       ) : null}
       {event.location ? (
         <Text className="text-text-secondary text-left text-xs sm:text-sm">{event.location}</Text>
       ) : null}
+      {showVirtualMeet ? (
+        <EventVirtualMeetLink
+          meetLink={resolveEventMeetLink(event)}
+          pending={isEventMeetLinkPending(event)}
+        />
+      ) : null}
       {event.description ? (
         <Text className="text-text-secondary line-clamp-2 text-left text-xs sm:text-sm">
           {event.description}
         </Text>
       ) : null}
+    </>
+  );
+
+  const eventBody = (
+    <>
+      {eventTitle}
+      {eventDetails}
     </>
   );
 
@@ -143,15 +163,31 @@ export function EventCard({
             <Box className="w-1 shrink-0" style={{ backgroundColor: stripeColor }} />
             <Box className="min-w-0 flex-1 p-3 text-left">
               <Box className="flex flex-row items-start gap-2">
-                {showAgendaComplete ? (
-                  <AgendaCompleteControl
-                    completed={agendaComplete}
-                    canToggle={canToggleAgendaComplete}
-                    onToggle={() => onToggleAgendaComplete?.()}
-                  />
-                ) : null}
                 <Box className="min-w-0 flex-1">
-                  {onClick ? (
+                  {showAgendaComplete ? (
+                    <Box className="space-y-1">
+                      <Box className="flex flex-row items-center gap-2">
+                        <AgendaCompleteControl
+                          completed={agendaComplete}
+                          canToggle={canToggleAgendaComplete}
+                          onToggle={() => onToggleAgendaComplete?.()}
+                        />
+                        {onClick ? (
+                          <TouchableBox
+                            onPress={onClick}
+                            className="min-w-0 flex-1 text-left outline-none"
+                          >
+                            {eventTitle}
+                          </TouchableBox>
+                        ) : (
+                          <Box className="min-w-0 flex-1">{eventTitle}</Box>
+                        )}
+                      </Box>
+                      {dateRange || event.location || showVirtualMeet || event.description ? (
+                        <Box className="space-y-1 pl-8">{eventDetails}</Box>
+                      ) : null}
+                    </Box>
+                  ) : onClick ? (
                     <TouchableBox onPress={onClick} className="space-y-1 text-left outline-none">
                       {eventBody}
                     </TouchableBox>
@@ -160,14 +196,7 @@ export function EventCard({
                   )}
                 </Box>
                 {showEditActions ? (
-                  <Box className="flex flex-shrink-0 flex-row flex-wrap justify-end gap-2">
-                    <Button variant="outline" size="sm" onPress={handleEdit} iconName="pencil">
-                      Edit
-                    </Button>
-                    <CancelButton size="sm" onPress={handleCancel}>
-                      Cancel
-                    </CancelButton>
-                  </Box>
+                  <AgendaItemEditActions onEdit={handleEdit} onCancel={handleCancel} />
                 ) : null}
               </Box>
             </Box>

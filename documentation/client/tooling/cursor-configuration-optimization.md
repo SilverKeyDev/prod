@@ -39,3 +39,7 @@ Do not enable both for the same service at the same time.
 - Re-audit MCP surface and rule payload after major tooling changes.
 - Update `documentation/internal/cursor-audit-latest.md` when rule/skill/agent inventory changes.
 - Run `make check-docs` when adding or moving documentation.
+
+## See also
+
+- [Claude Code configuration](./claude-code-configuration.md) — Claude-specific entrypoint, memory, subagents, and MCP

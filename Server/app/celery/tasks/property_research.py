@@ -1,5 +1,7 @@
 import os
 import time
+import traceback
+import uuid
 
 from app.celery.celery_worker import celery
 from logger import log
@@ -40,17 +42,14 @@ def research_property_task(self, params, address=None, skip_pros_cons=False, res
                 "status_code": 503,
             }
 
-        # Update task progress
         self.update_state(
             state="PROGRESS", meta={"status": "Initializing property research", "progress": 5}
         )
 
-        # Import the research pipeline function
         from ...services.research.property.property_research_pipeline import (
             handle_property_request_non_streaming,
         )
 
-        # Update progress
         self.update_state(
             state="PROGRESS", meta={"status": "Processing property data", "progress": 30}
         )
@@ -65,7 +64,6 @@ def research_property_task(self, params, address=None, skip_pros_cons=False, res
             research_body=research_body,
         )
 
-        # Update progress
         self.update_state(state="PROGRESS", meta={"status": "Finalizing results", "progress": 95})
 
         elapsed = time.time() - start_time
@@ -83,11 +81,28 @@ def research_property_task(self, params, address=None, skip_pros_cons=False, res
         }
 
     except Exception as e:
-        log.error("ERRORS", "Property research Celery task failed", e)
+        error_id = str(uuid.uuid4())
+        log.error(
+            "ERRORS",
+            "Property research Celery task failed",
+            {
+                "error_id": error_id,
+                "error": str(e),
+                "traceback": traceback.format_exc(),
+                "params": {k: v for k, v in (params or {}).items() if k != "api_key"},
+                "address": address,
+            },
+        )
         return {
             "success": False,
             "error": str(e),
-            "response_data": {"success": False, "error": "TASK_ERROR", "message": str(e)},
+            "error_id": error_id,
+            "response_data": {
+                "success": False,
+                "error": "TASK_ERROR",
+                "message": str(e),
+                "error_id": error_id,
+            },
             "status_code": 500,
         }
 
@@ -125,17 +140,14 @@ def compare_property_task(self, params, address=None, research_body=None):
                 "status_code": 503,
             }
 
-        # Update task progress
         self.update_state(
             state="PROGRESS", meta={"status": "Initializing property comparison", "progress": 5}
         )
 
-        # Import the research pipeline function
         from ...services.research.property.property_research_pipeline import (
             handle_property_request_non_streaming,
         )
 
-        # Update progress
         self.update_state(
             state="PROGRESS", meta={"status": "Processing property data", "progress": 30}
         )
@@ -150,7 +162,6 @@ def compare_property_task(self, params, address=None, research_body=None):
             research_body=research_body,
         )
 
-        # Update progress
         self.update_state(state="PROGRESS", meta={"status": "Finalizing results", "progress": 95})
 
         elapsed = time.time() - start_time
@@ -168,10 +179,27 @@ def compare_property_task(self, params, address=None, research_body=None):
         }
 
     except Exception as e:
-        log.error("ERRORS", "Property compare Celery task failed", e)
+        error_id = str(uuid.uuid4())
+        log.error(
+            "ERRORS",
+            "Property compare Celery task failed",
+            {
+                "error_id": error_id,
+                "error": str(e),
+                "traceback": traceback.format_exc(),
+                "params": {k: v for k, v in (params or {}).items() if k != "api_key"},
+                "address": address,
+            },
+        )
         return {
             "success": False,
             "error": str(e),
-            "response_data": {"success": False, "error": "TASK_ERROR", "message": str(e)},
+            "error_id": error_id,
+            "response_data": {
+                "success": False,
+                "error": "TASK_ERROR",
+                "message": str(e),
+                "error_id": error_id,
+            },
             "status_code": 500,
         }

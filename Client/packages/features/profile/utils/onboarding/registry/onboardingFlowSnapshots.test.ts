@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
-
 import {
   getOnboardingSteps,
   getOnboardingStepsMobile,
 } from "packages/features/profile/utils/onboarding/steps/steps";
-
 import { buildOnboardingFlowFromOptions } from "./buildProfileFlow";
 
 function stepSnapshot(steps: { id: string; title: string }[]) {
@@ -21,7 +19,7 @@ const BUYER_WEB_SNAPSHOT = [
   { id: "financial", title: "Finance" },
 ];
 
-const BUYER_MOBILE_SNAPSHOT = BUYER_WEB_SNAPSHOT.filter((s) => s.id !== "financial");
+const BUYER_MOBILE_SNAPSHOT = BUYER_WEB_SNAPSHOT;
 
 const AGENT_SNAPSHOT = [
   { id: "onboarding_role", title: "Who I am" },
@@ -29,6 +27,15 @@ const AGENT_SNAPSHOT = [
   { id: "agent_brokerage", title: "Brokerage" },
   { id: "agent_licensing", title: "Licensing" },
   { id: "agent_profile", title: "Territory" },
+];
+
+const RENTER_SNAPSHOT = [
+  { id: "onboarding_role", title: "Who I am" },
+  { id: "renter_budget", title: "Budget" },
+  { id: "renter_location", title: "Areas" },
+  { id: "renter_move_timeline", title: "Timeline" },
+  { id: "renter_household", title: "Household" },
+  { id: "renter_amenities", title: "Amenities" },
 ];
 
 describe("onboarding flow snapshots (buyer and agent parity)", () => {
@@ -53,7 +60,6 @@ describe("onboarding flow snapshots (buyer and agent parity)", () => {
       stepSnapshot(
         buildOnboardingFlowFromOptions({
           primaryRole: "buyer",
-          excludeFinancial: true,
           platform: "mobile",
         })
       )
@@ -86,6 +92,22 @@ describe("onboarding flow snapshots (buyer and agent parity)", () => {
   it("seller web — shell onboarding snapshot", () => {
     expect(stepSnapshot(getOnboardingSteps({ primaryRole: "seller" }))).toEqual(
       SHELL_FLOW_SNAPSHOT
+    );
+  });
+
+  it("renter web — full onboarding snapshot", () => {
+    expect(stepSnapshot(getOnboardingSteps({ primaryRole: "renter" }))).toEqual(RENTER_SNAPSHOT);
+  });
+
+  it("renter web — registry builder matches snapshot", () => {
+    expect(
+      stepSnapshot(buildOnboardingFlowFromOptions({ primaryRole: "renter", platform: "web" }))
+    ).toEqual(RENTER_SNAPSHOT);
+  });
+
+  it("renter mobile — public API matches snapshot", () => {
+    expect(stepSnapshot(getOnboardingStepsMobile({ primaryRole: "renter" }))).toEqual(
+      RENTER_SNAPSHOT
     );
   });
 

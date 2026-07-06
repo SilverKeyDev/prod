@@ -53,6 +53,7 @@ export const FIELD_LABELS = {
     "Choose the option that best describes you. We use this only to personalize your experience—details can live in your profile later.",
   ONBOARDING_ROLE_BUYER: "Buyer",
   ONBOARDING_ROLE_SELLER: "Seller",
+  ONBOARDING_ROLE_RENTER: "Renter",
   ONBOARDING_ROLE_AGENT: "Real estate agent",
   ONBOARDING_ROLE_INTEGRATION_PARTNER: "Integration partner",
   ONBOARDING_ROLE_BROKERAGE: "Brokerage",

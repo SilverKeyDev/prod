@@ -73,6 +73,51 @@ def validate_state(state: str, session_state: str | None = None) -> bool:
     return False
 
 
+def validate_state_and_get_user_id(state: str) -> str | None:
+    """
+    Validate calendar OAuth state and return the user that started the flow.
+
+    Calendar OAuth callbacks may arrive on a different origin (for example an
+    ngrok callback URL), so they cannot rely on the browser sending normal app
+    auth headers/cookies. The DB-backed OAuth state is the callback authority.
+    """
+    global _validation_count
+    if not state:
+        return None
+    _validation_count += 1
+    if _validation_count % 10 == 0:
+        try:
+            deleted = OAuthState.cleanup_expired(older_than_hours=1)
+            if deleted > 0:
+                log.debug("CALENDAR", f"Cleaned up {deleted} expired/used OAuth states")
+        except Exception as e:
+            log.warn("CALENDAR", f"Error during OAuth state cleanup: {str(e)}")
+    try:
+        state_record = db.session.scalar(
+            select(OAuthState).where(
+                OAuthState.state == state,
+                OAuthState.oauth_type == "calendar",
+                OAuthState.used.is_(False),
+            )
+        )
+        if not state_record:
+            return None
+        if state_record.is_expired():
+            log.warn("CALENDAR", f"OAuth state expired: {state[:20]}...")
+            return None
+        if not state_record.user_id:
+            log.warn("CALENDAR", f"Calendar OAuth state missing user_id: {state[:20]}...")
+            return None
+        user_id = str(state_record.user_id)
+        state_record.used = True
+        db.session.commit()
+        return user_id
+    except Exception as e:
+        db.session.rollback()
+        log.warn("CALENDAR", f"Error validating calendar OAuth state from DB: {str(e)}")
+        return None
+
+
 def build_auth_url(
     client_id: str,
     client_secret: str,
@@ -82,11 +127,13 @@ def build_auth_url(
     user_id: str,
     request_additional_scopes: list[str] | None = None,
 ) -> tuple[str, str]:
-    """Build Google OAuth authorization URL with incremental authorization.
+    """Build Google OAuth authorization URL.
 
     Requests scopes from permissions.constants where include_in_oauth_request is true
     (virtual full Calendar scope is never requested).
-    The include_granted_scopes parameter ensures existing permissions are preserved.
+
+    Initial calendar connect requests only the current scope set. Incremental enhance
+    (`request_additional_scopes`) sets include_granted_scopes so existing grants are kept.
     """
     state = generate_state(user_id)
     try:
@@ -119,9 +166,10 @@ def build_auth_url(
         "scope": " ".join(requested_scopes),
         "access_type": "offline",
         "prompt": "consent",
-        "include_granted_scopes": "true",
         "state": state,
     }
+    if request_additional_scopes:
+        params["include_granted_scopes"] = "true"
     log.info(
         "CALENDAR",
         "GOOGLE_AUTH_URL_GENERATED",

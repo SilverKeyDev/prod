@@ -57,7 +57,7 @@ def sanitize_last_search_context(raw: Any) -> dict[str, Any] | None:
     zoom = out.get("map_zoom")
     if zoom is not None:
         try:
-            out["map_zoom"] = max(1, min(22, int(zoom)))
+            out["map_zoom"] = max(1.0, min(22.0, float(zoom)))
         except (TypeError, ValueError):
             out.pop("map_zoom", None)
     return out if out else None

@@ -1,6 +1,14 @@
 # Deploy Scripts
 
-**Canonical prod deploy:** [`.github/workflows/ci_web.yml`](../../.github/workflows/ci_web.yml) runs [`.github/scripts/ec2-deploy.sh`](../../.github/scripts/ec2-deploy.sh) on the EC2 host via SSH. That script orchestrates Redis, app, Celery worker, Celery Beat, optional heavy worker, and frontend sync.
+**Canonical prod deploy:** [`.github/workflows/ci_web.yml`](../../.github/workflows/ci_web.yml) runs [`.github/scripts/ec2-deploy.sh`](../../.github/scripts/ec2-deploy.sh) on the EC2 host via SSH. That script preserves Redis, replaces stateless app/worker containers, and syncs the frontend.
+
+**Prod rollback:** redeploy a prior immutable SHA tag with:
+
+```bash
+scripts/deploy/rollback-prod-web.sh <prior-12-char-sha-tag>
+```
+
+See [documentation/server/ops/prod-web-rollback.md](../../documentation/server/ops/prod-web-rollback.md).
 
 ## Scaling env vars (EC2 deploy)
 
@@ -30,6 +38,8 @@ make prod-parity-smoke
 ```
 
 Smoke waits for the app container healthcheck (`/livez`), then curls `/livez` and `/readyz` (DB + Redis). Run before merging `Dockerfile.web` or deploy-script changes.
+
+**CI does-it-run (every PR):** GitHub Actions runs lightweight frontend + backend smoke on every PR; full Docker smoke runs automatically when deploy/Docker paths change (see [`docker-compose.ci.yml`](./prod-parity/docker-compose.ci.yml) Postgres overlay). Local equivalent: `make does-it-run` or `DOES_IT_RUN_MODE=docker make does-it-run`.
 
 On `build`, [`prod-parity/compose.sh`](./prod-parity/compose.sh) passes every `Client/.env` entry as a Docker `--build-arg` (no hardcoded keys in compose YAML). `up` uses `Client/.env` only for compose interpolation.
 

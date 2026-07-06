@@ -14,6 +14,7 @@ import type {
 } from "packages/types/domain/api";
 
 import { extractViewportRingFromIsochroneGeometry } from "@/features/search/utils/map/extractViewportRingFromIsochroneGeometry";
+import { shouldClearLoadingOnSearchAbort } from "@/features/search/utils/searchAbortController";
 
 import { handlePolygonSearchResponse } from "./polygonPropertySearchResponse";
 import {
@@ -121,8 +122,10 @@ export const searchPropertiesInIsochrone = async (
     );
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {
-      setIsSearching(false);
-      setSearchStage("");
+      if (shouldClearLoadingOnSearchAbort()) {
+        setIsSearching(false);
+        setSearchStage("");
+      }
       return;
     }
     log.error("ERRORS", "Error in automatic isochrone property search", error);
@@ -207,8 +210,10 @@ export const searchPropertiesInViewport = async (
     );
   } catch (error: unknown) {
     if (error instanceof Error && error.name === "AbortError") {
-      setIsSearching(false);
-      setSearchStage("");
+      if (shouldClearLoadingOnSearchAbort()) {
+        setIsSearching(false);
+        setSearchStage("");
+      }
       return;
     }
     log.error("ERRORS", "Error in viewport property search", error);

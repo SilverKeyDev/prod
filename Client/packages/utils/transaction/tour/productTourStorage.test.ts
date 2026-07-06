@@ -57,14 +57,12 @@ describe("productTourStorage", () => {
     );
   });
 
-  it("tracks each spotlight independently", () => {
-    const d1 = "search.desktop.preferences";
-    const d2 = "search.desktop.display";
-    expect(isSearchProductTourStepCompleted(d1)).toBe(false);
-    markSearchProductTourStepCompleted(d1);
-    expect(isSearchProductTourStepCompleted(d1)).toBe(true);
+  it("marks desktop tour complete when the preferences step is done", () => {
+    const preferencesStep = "search.desktop.preferences";
+    expect(isSearchProductTourStepCompleted(preferencesStep)).toBe(false);
     expect(hasIncompleteSearchProductTourSteps("desktop")).toBe(true);
-    markSearchProductTourStepCompleted(d2);
+    markSearchProductTourStepCompleted(preferencesStep);
+    expect(isSearchProductTourStepCompleted(preferencesStep)).toBe(true);
     expect(hasIncompleteSearchProductTourSteps("desktop")).toBe(false);
   });
 });

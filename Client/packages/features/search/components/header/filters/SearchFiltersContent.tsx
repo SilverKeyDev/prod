@@ -9,11 +9,12 @@ import {
   type LotSizeHomeAgeSearchOverridesPatch,
   MUST_HAVE_OPTIONS,
 } from "packages/features/profile";
+import { SearchStrictPreferencesControlNative } from "packages/features/search/components/filters/SearchStrictPreferencesControl.native";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
 import {
   ARCHITECTURAL_STYLE_OPTIONS,
   PROPERTY_USE_OPTIONS,
-  RENOVATION_OPTIONS,
+  RENOVATION_PREFERENCE_OPTIONS,
   WALKABILITY_OPTIONS,
 } from "packages/features/search/types/otherFilterOptions";
 import type { SearchFiltersFormData } from "packages/features/search/types/searchFiltersForm";
@@ -284,6 +285,7 @@ export function SearchFiltersContent({
             formData={formData}
             updateFormData={(field, value) => update(field as keyof SearchFiltersFormData, value)}
             onSearchFilterOverridesPatch={onSearchFilterOverridesPatch}
+            layout="responsive-row"
           />
         </Box>
         <FilterChipRow
@@ -294,7 +296,7 @@ export function SearchFiltersContent({
         />
         <FilterChipRow
           label="Renovation preference"
-          options={RENOVATION_OPTIONS}
+          options={RENOVATION_PREFERENCE_OPTIONS}
           value={formData.renovation_preference}
           onChange={(v) => update("renovation_preference", v)}
         />
@@ -312,6 +314,8 @@ export function SearchFiltersContent({
           className="mb-4"
         />
       </Box>
+
+      <SearchStrictPreferencesControlNative />
 
       {trailingSlot ? (
         <Box className="border-border mt-4 border-t pt-6">

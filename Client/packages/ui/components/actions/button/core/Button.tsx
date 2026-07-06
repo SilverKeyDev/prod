@@ -40,7 +40,7 @@ export type { ButtonProps, ButtonVariant } from "./actions/button/buttonTypes";
 
 // ----- Design decisions (locked) -----
 // - cancel variant: alias to ghost (recommended for cancel actions).
-// - outline/ghost hover: tint only (bg-neutral-100), never full fill.
+// - outline/ghost hover: GHOST_INTERACTION_CLASSES (neutral-100/200), never brand tint or full fill.
 // - primary + tertiary: always white text; filled buttons use subtle darken on hover (/90).
 // - Disabled: pointer-events-none in base; no disabled:hover:* in variants (they never trigger).
 // ----- Button group guidance -----

@@ -106,6 +106,7 @@ export function Calendar({
         <CalendarConnectionPrompt
           onConnect={screen.handleConnect}
           isLoading={screen.calendarsLoading}
+          variant={screen.connectionPromptVariant}
         />
       </Card>
     );

@@ -1,14 +1,11 @@
 import { useEffect } from "react";
-
 import type { ReactNode } from "react";
-
 import { useLocalization } from "packages/contexts";
+import { AgentDiscoveryView } from "packages/features/agent/components/agentDiscovery/AgentDiscoveryView";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { useNavigation } from "packages/navigation";
 import { Box } from "packages/ui/components/structure/primitives";
-
 import { BodyText, Title } from "@/components/ui";
-import { AgentDiscoveryView } from "@/features/agent/components/agentDiscovery/AgentDiscoveryView";
 
 type FindAgentsPageProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;

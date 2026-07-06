@@ -33,16 +33,7 @@ export default function ChooseAreasSection({ onComplete }: ChooseAreasSectionPro
   const { isLoaded: googleMapsLoaded } = useGoogleMaps();
 
   if (!googleMapsLoaded) {
-    return (
-      <Card border="dotted" padding="md" className="mb-2">
-        <Box className="gap-4">
-          <BodyText size="sm" className="text-text-secondary">
-            Loading map...
-          </BodyText>
-          <ChecklistStepSubmitFooter disabled onSubmit={() => {}} />
-        </Box>
-      </Card>
-    );
+    return null;
   }
 
   return (

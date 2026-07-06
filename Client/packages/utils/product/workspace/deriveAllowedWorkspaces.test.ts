@@ -15,6 +15,14 @@ describe("deriveAllowedWorkspaces", () => {
     expect(deriveAllowedWorkspaces({ roles: ["seller"] })).toEqual(["seller"]);
   });
 
+  it("includes renter when user_roles has renter", () => {
+    expect(deriveAllowedWorkspaces({ roles: ["renter"] })).toEqual(["renter"]);
+  });
+
+  it("renter-only persona allows renter without buyer fallback", () => {
+    expect(deriveAllowedWorkspaces({ roles: ["renter"] })).toEqual(["renter"]);
+  });
+
   it("includes buyer and seller for dual client roles", () => {
     const list = deriveAllowedWorkspaces({ roles: ["buyer", "seller"] });
     expect(list).toContain("buyer");

@@ -311,7 +311,7 @@ export function CalendarStyleDateRangePicker({
             aria-expanded={open}
             aria-haspopup="dialog"
             aria-controls={panelId}
-            className="border-border bg-background-surface hover:bg-accent-muted focus:border-input-variant-focus-border h-12 w-full min-w-0 rounded-lg border px-3 text-left font-normal focus:ring-neutral-400"
+            className="border-border bg-background-surface focus:border-input-variant-focus-border h-12 w-full min-w-0 rounded-lg border px-3 text-left font-normal hover:bg-neutral-100 focus:ring-neutral-400"
           >
             <Box className="flex min-h-0 min-w-0 flex-1 items-center gap-2">
               <Icon name="calendar" className="text-text-secondary h-4 w-4 shrink-0" />

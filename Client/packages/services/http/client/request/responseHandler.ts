@@ -1,5 +1,6 @@
 import { log } from "packages/logger";
 import { isAuthEndpoint } from "packages/services/http/client/auth/authRecovery";
+import { isNonSession401Error } from "packages/services/http/client/auth/nonSession401Errors";
 import { AuthenticationError, HttpError } from "packages/services/http/client/errors";
 import { dateNow } from "packages/utils/core/date";
 import { asError } from "packages/utils/core/errorHandling/error";
@@ -94,20 +95,16 @@ export function handleHttpResponse<T>(
             log.error("HTTP", "❌ AUTH_ERROR_401", logPayload);
           }
 
-          const credentialsIncluded = requestOptions.credentials === "include";
-          const isKnownAuthError =
+          const isIntegrationAuthError = isNonSession401Error(errorBody.error);
+          const isKnownSessionAuthError =
             authErrorCodes.includes(errorBody.error) ||
             errorBody.error === "ACCESS_TOKEN_MISSING" ||
             errorBody.error === "Authentication required" ||
-            errorBody.error === "Unauthorized" ||
-            (credentialsIncluded &&
-              !isAuthEndpoint(url) &&
-              typeof errorBody.error === "string" &&
-              errorBody.error.length > 0);
-          if (isKnownAuthError) {
-            // Auth endpoints (e.g. /api/v1/user/profile during bootstrap): throw HttpError
-            // so callers can return { success: false } without triggering global logout/redirect
-            if (isAuthEndpoint(url)) {
+            errorBody.error === "Unauthorized";
+          if (isIntegrationAuthError || isKnownSessionAuthError) {
+            // Auth endpoints and integration 401s: throw HttpError so callers handle locally
+            // without triggering global logout/redirect
+            if (isAuthEndpoint(url) || isIntegrationAuthError) {
               throw new HttpError(response.status, url, responseText.slice(0, 600), parsedBody);
             }
             throw new AuthenticationError(

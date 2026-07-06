@@ -14,11 +14,41 @@ import type {
 } from "@/features/calendar/types/googleEvent";
 
 import {
-  copyTextToClipboard,
   isGoogleMeetProvisioningPending,
   pollGoogleMeetHangoutLink,
 } from "./googleMeetAfterCreate";
 import { showGoogleMeetToggleForCreate } from "./googleMeetCreateEligibility";
+
+async function finalizeGoogleMeetAfterSave(params: {
+  applyGoogleMeet: boolean;
+  calendarIdForMeet: string | undefined | null;
+  fallbackEventId?: string;
+  response: GoogleEventCreateResponse;
+  enqueueToast: RunCreateEventModalSubmitParams["enqueueToast"];
+}): Promise<void> {
+  if (!params.applyGoogleMeet || !params.calendarIdForMeet) {
+    return;
+  }
+
+  let meetLink =
+    typeof params.response.hangoutLink === "string" && params.response.hangoutLink.length > 0
+      ? params.response.hangoutLink
+      : null;
+  const eventId = params.response.id ?? params.fallbackEventId;
+  if (!meetLink && eventId && isGoogleMeetProvisioningPending(params.response)) {
+    params.enqueueToast({
+      type: "info",
+      message: "Meet link generating…",
+    });
+    meetLink = await pollGoogleMeetHangoutLink(eventId, params.calendarIdForMeet);
+  }
+  if (!meetLink) {
+    params.enqueueToast({
+      type: "error",
+      message: "Couldn't add Meet; you can add a link manually.",
+    });
+  }
+}
 
 export type RunCreateEventModalSubmitParams = {
   mode: "create" | "edit";
@@ -149,14 +179,13 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
   try {
     const titleHint = detectEventTypeFromTitle(p.eventTitle.trim());
     const eventType = p.explicitEventType ?? titleHint;
-    const applyGoogleMeet =
-      Boolean(p.addGoogleMeet) &&
-      showGoogleMeetToggleForCreate({
-        mode: p.mode,
-        startDate: p.startDate,
-        endDate: p.endDate,
-        isAllDay: p.isAllDay,
-      });
+    const meetEligible = showGoogleMeetToggleForCreate({
+      mode: p.mode,
+      startDate: p.startDate,
+      endDate: p.endDate,
+      isAllDay: p.isAllDay,
+    });
+    const applyGoogleMeet = meetEligible && Boolean(p.addGoogleMeet);
     const eventData: GoogleCalendarEventCreateBody = {
       summary: p.eventTitle.trim(),
       description: p.eventDescription.trim() || undefined,
@@ -171,56 +200,42 @@ export async function runCreateEventModalSubmit(p: RunCreateEventModalSubmitPara
       eventData.target_user_id = p.selectedClientId;
     }
 
-    if (applyGoogleMeet) {
-      eventData.addGoogleMeet = true;
+    if (meetEligible) {
+      eventData.addGoogleMeet = applyGoogleMeet;
     }
 
+    const calendarIdForMeet =
+      p.mode === "edit"
+        ? (p.existingEvent?.calendarId ?? p.selectedCalendarId)
+        : calendarIdForCreate;
+
     if (p.mode === "edit" && p.existingEvent?.id && p.updateEvent) {
-      await p.updateEvent(p.existingEvent.id, eventData, p.existingEvent.calendarId);
+      const updated = (await p.updateEvent(
+        p.existingEvent.id,
+        eventData,
+        p.existingEvent.calendarId
+      )) as GoogleEventCreateResponse;
       p.enqueueToast({
         type: "success",
         message: "Event updated successfully",
       });
+
+      await finalizeGoogleMeetAfterSave({
+        applyGoogleMeet,
+        calendarIdForMeet,
+        fallbackEventId: p.existingEvent.id,
+        response: updated,
+        enqueueToast: p.enqueueToast,
+      });
     } else {
       const created = (await p.createEvent(eventData)) as GoogleEventCreateResponse;
-      const wantsMeetFlow = applyGoogleMeet && Boolean(calendarIdForCreate);
 
-      if (wantsMeetFlow) {
-        let meetLink =
-          typeof created.hangoutLink === "string" && created.hangoutLink.length > 0
-            ? created.hangoutLink
-            : null;
-        if (!meetLink && created.id && isGoogleMeetProvisioningPending(created)) {
-          p.enqueueToast({
-            type: "info",
-            message: "Meet link generating…",
-          });
-          meetLink = await pollGoogleMeetHangoutLink(created.id, calendarIdForCreate);
-        }
-        p.enqueueToast({
-          type: "success",
-          message: "Added to calendar",
-        });
-        if (meetLink) {
-          const copied = await copyTextToClipboard(meetLink);
-          if (copied) {
-            p.enqueueToast({
-              type: "info",
-              message: "Meet link copied to clipboard.",
-            });
-          }
-        } else {
-          p.enqueueToast({
-            type: "error",
-            message: "Couldn't add Meet; you can add a link manually.",
-          });
-        }
-      } else {
-        p.enqueueToast({
-          type: "success",
-          message: "Added to calendar",
-        });
-      }
+      await finalizeGoogleMeetAfterSave({
+        applyGoogleMeet,
+        calendarIdForMeet: calendarIdForCreate,
+        response: created,
+        enqueueToast: p.enqueueToast,
+      });
     }
 
     p.onEventCreated?.();

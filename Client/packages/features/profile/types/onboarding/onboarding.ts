@@ -1,6 +1,6 @@
 // Shared types and interfaces for onboarding and personalization
 
-import type { BuyerPreferenceExtensions } from "@/features/profile/types/sections/buyerPreferenceExtensions";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 
 import type { ProfileStepId } from "./profileStepIds";
 
@@ -13,6 +13,7 @@ export type OnboardingData = {
   primary_onboarding_role?:
     | "buyer"
     | "seller"
+    | "renter"
     | "agent"
     | "brokerage"
     | "integration_partner"
@@ -79,9 +80,39 @@ export type OnboardingData = {
 
   // Communication
   communication_frequency?: string;
+  preferred_contact_method?: string;
   information_detail_level?: string;
   has_buyers_agent?: string; // 'yes' | 'no'
   looking_for_buyers_agent?: boolean;
+
+  // Buyer About Me (SIL-182) — flat form keys; persisted via buyer_about_me ext + comm prefs
+  buyer_about_moving_with?: string[];
+  buyer_about_kids_ages?: string;
+  buyer_about_has_pets?: boolean;
+  buyer_about_pet_types?: string[];
+  buyer_about_move_motivation?: string;
+
+  // Renter preferences (SIL-226)
+  renter_budget_min?: number; // monthly rent min
+  renter_budget_max?: number; // monthly rent max
+  renter_move_in_timeline?: string; // e.g. "immediately" | "1_month" | "3_months" | "6_months"
+  renter_household_size?: number;
+  renter_has_pets?: boolean;
+  renter_pet_types?: string[];
+  renter_amenities?: string[]; // e.g. ["in_unit_laundry", "parking", "gym", "pet_friendly"]
+  renter_preferred_areas?: string[];
+
+  // Buyer Financing (SIL-182) — flat form keys; persisted via price_financing ext + user_financials
+  lender_status?: string;
+  lender_name?: string;
+  want_lender_connection?: boolean;
+  loan_type?: string;
+  down_payment_band?: string;
+  first_home?: string;
+  max_monthly_payment?: number;
+  rent_or_own?: string;
+  need_to_sell_first?: string;
+  move_timeline?: string;
 
   // Agent profile (only when user has agent role / primary_onboarding_role is agent)
   agent_physical_mailing_address?: string;

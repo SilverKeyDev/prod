@@ -3,12 +3,19 @@
  * Server remains source of truth; this only mirrors what the client may present.
  */
 
-export type Workspace = "buyer" | "seller" | "agent" | "brokerage" | "integration_partner";
+export type Workspace =
+  | "buyer"
+  | "seller"
+  | "renter"
+  | "agent"
+  | "brokerage"
+  | "integration_partner";
 
 /** All UX shells — used by admin dev preview; identity may allow fewer in production. */
 export const ALL_WORKSPACES: readonly Workspace[] = [
   "buyer",
   "seller",
+  "renter",
   "agent",
   "brokerage",
   "integration_partner",
@@ -70,12 +77,20 @@ export function deriveAllowedWorkspaces(input: DeriveAllowedWorkspacesInput): Wo
   if (!isAgent) {
     if (roleSet.has("buyer")) out.add("buyer");
     if (roleSet.has("seller")) out.add("seller");
-    if (!roleSet.has("buyer") && !roleSet.has("seller") && !hasBrokerage && !hasPartner) {
+    if (roleSet.has("renter")) out.add("renter");
+    if (
+      !roleSet.has("buyer") &&
+      !roleSet.has("seller") &&
+      !roleSet.has("renter") &&
+      !hasBrokerage &&
+      !hasPartner
+    ) {
       out.add("buyer");
     }
   } else {
     if (roleSet.has("buyer")) out.add("buyer");
     if (roleSet.has("seller")) out.add("seller");
+    if (roleSet.has("renter")) out.add("renter");
   }
 
   if (hasBrokerage) {
@@ -95,6 +110,7 @@ export function isWorkspace(value: string | null | undefined): value is Workspac
   return (
     value === "buyer" ||
     value === "seller" ||
+    value === "renter" ||
     value === "agent" ||
     value === "brokerage" ||
     value === "integration_partner"

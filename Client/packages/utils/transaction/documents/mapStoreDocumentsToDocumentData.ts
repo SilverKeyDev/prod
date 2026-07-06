@@ -1,4 +1,4 @@
-import type { DocumentData } from "packages/ui/components/surfaces/cards/document/DocumentCard";
+import type { DocumentData } from "packages/ui/components/surfaces/cards/document/types";
 
 /**
  * Minimal shape of a document from the documents store (avoids importing from features).

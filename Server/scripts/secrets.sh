@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 # Fetch AWS Secrets Manager items and rewrite Server/.env for local dev.
 # Usage (from repo root):
-#   bash Server/scripts/secrets.sh [region] [profile]
+#   sh Server/scripts/secrets.sh [region] [profile]
 #
 # Behavior:
 # - Profile/region: optional [profile] arg, then shell AWS_* env, then Server/config/.aws-sso
 #   (copy aws-sso.example → .aws-sso; gitignored). SSO still lives in ~/.aws/config.
-# - Expired SSO on an interactive terminal: runs `aws sso login` automatically (same as make setup).
+# - Expired SSO on an interactive terminal: runs `aws sso login` automatically (same as make setup-dev).
 #   Set AWS_SSO_NO_AUTO_LOGIN=1 to only print the command (CI / non-TTY).
 # - Lists every secret in the account for the chosen region (paginated); no hardcoded names.
 # - Each secret may be:
@@ -15,6 +15,7 @@
 #     (c) scalar -> falls back to SECRET_NAME=<value>
 # - Rewrites ./.env (real values) and ./.env.example (same keys, empty placeholder values)
 # - Moves EXPO_PUBLIC_* keys into ../../Client/.env and Client/.env.example (see scripts/lib/client-env-from-secrets.sh)
+# - DATABASE_URL: fetched from Secrets Manager (e.g. db_url) by default. Set USE_LOCAL_DATABASE=1 for local Docker URL.
 
 set -eu
 
@@ -25,33 +26,98 @@ cd "$SERVER_DIR" || exit 1
 
 # shellcheck source=../../scripts/lib/aws-sso-env.sh
 . "$ROOT/scripts/lib/aws-sso-env.sh"
+# shellcheck source=../../scripts/lib/secrets-database-url.sh
+. "$ROOT/scripts/lib/secrets-database-url.sh"
 aws_sso_source_repo_config "$ROOT"
 
 REGION="${1:-${AWS_REGION:-us-east-2}}"
 PROFILE="${2:-${AWS_PROFILE:-}}"
+LOCAL_DATABASE_URL="${LOCAL_DATABASE_URL:-postgresql://silverkey:silverkey@localhost:5432/silverkey_dev}"
+USE_LOCAL_DATABASE="${USE_LOCAL_DATABASE:-0}"
 
 log() { printf '%s\n' "$*" >&2; }
 die() { printf 'Error: %s\n' "$*" >&2; exit 1; }
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
+have_cmd sh || die "sh not found (required to run secrets.sh)"
+
 # ---- parsing helpers ----
 
-# jq JSON -> KEY=VALUE lines (flat object)
-json_to_env_lines() {
-  if have_cmd jq; then
-    jq -r 'if type=="object" then to_entries[]|"\(.key)=\"\(.value|tostring)\"" else empty end'
-  else
-    python3 - <<'PY'
-import sys,json
-try:
-    obj=json.load(sys.stdin)
-except Exception:
-    sys.exit(0)
-if isinstance(obj, dict):
-    for k,v in obj.items():
-        print(f'{k}="{v}"')
+# python-dotenv-compatible KEY=VALUE (single-quote when possible; else double-quote).
+format_env_line() {
+  FORMAT_ENV_KEY="$1" FORMAT_ENV_VAL="$2" python3 - <<'PY'
+import os
+
+
+def format_env_line(key: str, val: str) -> str:
+    val = str(val)
+    if val and all(c.isalnum() or c in "._:/-@" for c in val):
+        return f"{key}={val}"
+    if "'" not in val:
+        return f"{key}='{val}'"
+    escaped = val.replace("\\", "\\\\").replace('"', '\\"')
+    return f'{key}="{escaped}"'
+
+
+print(format_env_line(os.environ["FORMAT_ENV_KEY"], os.environ["FORMAT_ENV_VAL"]))
 PY
-  fi
+}
+
+# JSON object -> KEY=VALUE lines (flat object, dotenv-safe)
+json_to_env_lines() {
+  SECRETS_JSON_PAYLOAD="$1" python3 - <<'PY'
+import json
+import os
+
+
+def format_env_line(key: str, val: str) -> str:
+    val = str(val)
+    if val and all(c.isalnum() or c in "._:/-@" for c in val):
+        return f"{key}={val}"
+    if "'" not in val:
+        return f"{key}='{val}'"
+    escaped = val.replace("\\", "\\\\").replace('"', '\\"')
+    return f'{key}="{escaped}"'
+
+
+try:
+    obj = json.loads(os.environ["SECRETS_JSON_PAYLOAD"])
+except Exception:
+    raise SystemExit(0)
+if isinstance(obj, dict):
+    for k, v in obj.items():
+        print(format_env_line(k, str(v)))
+PY
+}
+
+# dotenv text -> dotenv-safe KEY=VALUE lines
+dotenv_to_env_lines() {
+  SECRETS_DOTENV_PAYLOAD="$1" python3 - <<'PY'
+import os
+
+
+def format_env_line(key: str, val: str) -> str:
+    val = str(val)
+    if val and all(c.isalnum() or c in "._:/-@" for c in val):
+        return f"{key}={val}"
+    if "'" not in val:
+        return f"{key}='{val}'"
+    escaped = val.replace("\\", "\\\\").replace('"', '\\"')
+    return f'{key}="{escaped}"'
+
+
+for line in os.environ["SECRETS_DOTENV_PAYLOAD"].splitlines():
+    line = line.strip()
+    if not line or line.startswith("#"):
+        continue
+    if "=" not in line:
+        continue
+    key, _, val = line.partition("=")
+    val = val.strip()
+    if len(val) >= 2 and val[0] == val[-1] and val[0] in ('"', "'"):
+        val = val[1:-1]
+    print(format_env_line(key, val))
+PY
 }
 
 # Extract SecretString or SecretBinary from AWS response
@@ -65,6 +131,7 @@ extract_secret_payload() {
 import sys,json
 j=json.load(sys.stdin)
 if j.get('SecretString') is not None:
+
     print(j['SecretString'])
 elif j.get('SecretBinary') is not None:
     print(j['SecretBinary'])
@@ -98,6 +165,36 @@ env_lines_to_example_template() {
     key="${line%%=*}"
     printf '%s\n' "${key}=\"\""
   done
+}
+
+# Warn when multiple secrets define the same KEY= (python-dotenv uses first occurrence).
+secrets_warn_duplicate_keys() {
+  file="$1"
+  awk '
+    /^# From secret: / {
+      current = $0
+      sub(/^# From secret: /, "", current)
+    }
+    /^[A-Za-z_][A-Za-z0-9_]*=/ {
+      key = $0
+      sub(/=.*/, "", key)
+      if (key in count) {
+        count[key]++
+        last[key] = current
+      } else {
+        count[key] = 1
+        first[key] = current
+        last[key] = current
+      }
+    }
+    END {
+      for (k in count) {
+        if (count[k] > 1) {
+          printf "Warning: duplicate env key %s (first: %s; last redefinition: %s). python-dotenv uses the first occurrence.\n", k, first[k], last[k] > "/dev/stderr"
+        }
+      }
+    }
+  ' "$file"
 }
 
 # List all secret names (paginated). Uses jq when available; otherwise Python + AWS CLI.
@@ -182,10 +279,19 @@ stamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   echo
 } > "$tmp_env"
 {
-  echo "# Regenerated by Server/scripts/secrets.sh on $stamp (placeholder values only — run bash Server/scripts/secrets.sh for real credentials)"
+  echo "# Regenerated by Server/scripts/secrets.sh on $stamp (placeholder values only — run sh Server/scripts/secrets.sh for real credentials)"
   echo "# Region: $REGION"
   echo
 } > "$tmp_example"
+
+database_url_to_write="$LOCAL_DATABASE_URL"
+if [ "$USE_LOCAL_DATABASE" = "1" ]; then
+  existing_database_url="$(secrets_env_file_value DATABASE_URL .env || printf '')"
+  if [ -n "$existing_database_url" ] && secrets_is_local_database_url "$existing_database_url"; then
+    database_url_to_write="$existing_database_url"
+    log "Preserving local DATABASE_URL from existing Server/.env."
+  fi
+fi
 
 if ! list_secret_names > "$tmp_names"; then
   die "Failed to list secrets (check region, credentials, and secretsmanager:ListSecrets permission)"
@@ -195,6 +301,11 @@ if [ ! -s "$tmp_names" ]; then
 fi
 
 for SECRET_ID in $(sort -u "$tmp_names"); do
+  if [ "$USE_LOCAL_DATABASE" = "1" ] && secrets_is_database_secret_name "$SECRET_ID"; then
+    log "Skipping database secret (USE_LOCAL_DATABASE=1): $SECRET_ID"
+    continue
+  fi
+
   log "Fetching secret: $SECRET_ID"
   if ! out="$(aws secretsmanager get-secret-value --secret-id "$SECRET_ID" $AWS_ARGS 2>/dev/null)"; then
     die "Failed to fetch $SECRET_ID (check name, region, credentials)"
@@ -215,7 +326,7 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
   payload="$(unescape_backslashes "$payload")"
 
   if looks_like_json_object "$payload"; then
-    lines="$(printf '%s' "$payload" | json_to_env_lines || printf '')"
+    lines="$(json_to_env_lines "$payload" || printf '')"
     [ -n "$lines" ] || die "Secret $SECRET_ID parsed to no key/values (ensure flat JSON)"
     {
       echo "# From secret: $SECRET_ID (json)"
@@ -227,18 +338,7 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
       echo
     } >> "$tmp_example"
   elif looks_like_dotenv "$payload"; then
-    normalized="$(
-      printf '%s\n' "$payload" | awk 'NF && $0 !~ /^[[:space:]]*#/ {
-        if (match($0, /^([^=]+)=(.*)$/, arr)) {
-          key = arr[1]
-          val = arr[2]
-          gsub(/^["'\'']|["'\'']$/, "", val)
-          print key "=\"" val "\""
-        } else {
-          print
-        }
-      }'
-    )"
+    normalized="$(dotenv_to_env_lines "$payload")"
     {
       echo "# From secret: $SECRET_ID (dotenv)"
       printf '%s\n' "$normalized"
@@ -253,7 +353,7 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
     key="$(printf '%s' "$SECRET_ID" | tr ' ' '_' )"
     {
       echo "# From secret: $SECRET_ID (scalar)"
-      echo "${key}=\"${payload}\""
+      format_env_line "$key" "$payload"
       echo
     } >> "$tmp_env"
     {
@@ -263,6 +363,25 @@ for SECRET_ID in $(sort -u "$tmp_names"); do
     } >> "$tmp_example"
   fi
 done
+
+secrets_warn_duplicate_keys "$tmp_env"
+
+if ! grep -q '^DATABASE_URL=' "$tmp_env"; then
+  if [ "$USE_LOCAL_DATABASE" = "1" ]; then
+    {
+      echo "# Local dev database (USE_LOCAL_DATABASE=1; not fetched from Secrets Manager)"
+      format_env_line DATABASE_URL "$database_url_to_write"
+      echo
+    } >> "$tmp_env"
+    {
+      echo "# Local dev database (placeholder only)"
+      echo "DATABASE_URL=\"\""
+      echo
+    } >> "$tmp_example"
+  else
+    die "DATABASE_URL missing after secrets fetch. Check db_url (or equivalent) in Secrets Manager, or set USE_LOCAL_DATABASE=1 for local Docker."
+  fi
+fi
 
 # ---- split EXPO_PUBLIC_* to Client, then rewrite Server .env files ----
 # shellcheck source=../../scripts/lib/client-env-from-secrets.sh

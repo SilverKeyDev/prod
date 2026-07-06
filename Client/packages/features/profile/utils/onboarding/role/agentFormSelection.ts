@@ -1,4 +1,4 @@
-import type { PrimaryOnboardingRole } from "./onboardingRoleSelection";
+import type { PrimaryOnboardingRole } from "./onboardingRoleTypes";
 
 /** True when draft primary onboarding role is agent (aligns with `user_roles` / `useIsAgent`). */
 export function isAgentFormSelection(primaryRole: PrimaryOnboardingRole | undefined): boolean {

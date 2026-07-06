@@ -180,7 +180,7 @@ export default function ShareHomeModal({
                     className={`w-full rounded-lg border p-3 text-left transition-colors ${
                       selectedClientId === client.id
                         ? "border-border bg-primary-muted"
-                        : "border-border hover:border-border hover:bg-accent-muted"
+                        : "border-border hover:border-border hover:bg-neutral-100"
                     }`}
                   >
                     <Box className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Pre-Docker-build: assert required bundle env vars are non-empty (AWS SM primary; GitHub fallback in ci_web).
+ * Pre-Docker-build: assert required bundle env vars are non-empty (AWS SM only in ci_web).
  * Reads Client/config/required-bundle-env.json — logs lengths only, never secret values.
  */
 import path from "path";
@@ -16,10 +16,12 @@ const manifestPath = process.env.BUNDLE_ENV_MANIFEST || defaultManifestPath(clie
 const manifest = loadBundleEnvManifest(manifestPath);
 const { ok, errors } = assertBundleSecretsPresentWithValidation(process.env, manifest);
 
-for (const spec of manifest.variables.filter((v) => v.required)) {
+for (const spec of manifest.variables) {
+  if (!spec.key) continue;
   const len = String(process.env[spec.key] ?? "").trim().length;
   if (len > 0) {
-    console.log(`assert-bundle-secrets: ${spec.key} is set (length ${len})`);
+    const tag = spec.required ? "required" : "optional";
+    console.log(`assert-bundle-secrets: ${spec.key} is set (${tag}, length ${len})`);
   }
 }
 

@@ -23,8 +23,8 @@ def validate_query(schema: type[BaseModel]) -> Callable[[F], F]:
     def decorator(f: F) -> F:
         @wraps(f)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
+            raw_args = dict(request.args.items())
             try:
-                raw_args = dict(request.args.items())
                 validated_query = schema.model_validate(raw_args)
                 return f(*args, query=validated_query, **kwargs)
 
@@ -55,7 +55,7 @@ def validate_query(schema: type[BaseModel]) -> Callable[[F], F]:
                     f"Gradual mode: accepting query despite validation failure [{error_id}]",
                     {"route": request.path},
                 )
-                return f(*args, query=None, **kwargs)
+                return f(*args, query=schema.model_construct(**raw_args), **kwargs)
 
             except Exception as e:
                 error_id = SecureErrorHandler.generate_error_id()

@@ -34,6 +34,8 @@
     "@headlessui/react": "^2.2.0",
     "@tanstack/react-query": "^5.90.21",
     "driver.js": "^1.4.0",
+    "echarts": "^6.1.0",
+    "echarts-for-react": "^3.0.6",
     "embla-carousel-react": "^8.5.1",
     "framer-motion": "^12.23.12",
     "hls.js": "^1.6.15",

@@ -46,6 +46,20 @@ def clear_agent_role(user_id: str) -> None:
     remove_user_role(str(user_id), "agent")
 
 
+def seed_renter(db_session, *, user_id: str, email: str) -> User:
+    """Create user with renter client hat."""
+    user = create_user_with_roles(
+        db_session,
+        roles=("renter",),
+        id=user_id,
+        cognito_id=f"renter-{user_id}",
+        email=email,
+        name="Renter",
+        is_active=True,
+    )
+    return user
+
+
 def seed_brokerage_admin(db_session, *, user_id: str, org_id: str, email: str) -> User:
     """Create user with brokerage org admin membership (workspace messaging tests)."""
     from app.models import UserOrgMembership

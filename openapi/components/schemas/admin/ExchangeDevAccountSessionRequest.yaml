@@ -1,0 +1,8 @@
+type: object
+required:
+  - token
+properties:
+  token:
+    type: string
+    minLength: 1
+    description: One-time dev session token minted by an admin for a target dev test account.

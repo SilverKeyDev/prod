@@ -13,10 +13,17 @@ from app import db
 from app.models import CalendarEvent
 from logger import log
 
+from .creation import meet_fields_from_google_response
 from .google_event_datetime import extract_event_datetimes
 
 
-def sync_event_to_db(event_id: str, google_event: dict, user_id: str) -> CalendarEvent | None:
+def sync_event_to_db(
+    event_id: str,
+    google_event: dict,
+    user_id: str,
+    *,
+    add_google_meet: bool | None = None,
+) -> CalendarEvent | None:
     """
     Update CalendarEvent in database from Google Calendar event data.
 
@@ -53,6 +60,19 @@ def sync_event_to_db(event_id: str, google_event: dict, user_id: str) -> Calenda
         calendar_event.attendees = google_event.get("attendees")
         calendar_event.reminders = google_event.get("reminders")
         calendar_event.status = google_event.get("status", "confirmed")
+
+        if add_google_meet is False:
+            calendar_event.meet_url = None
+            calendar_event.conference_status = None
+        else:
+            meet_requested = add_google_meet is True or calendar_event.conference_status is not None
+            meet_url, conference_status = meet_fields_from_google_response(
+                google_event, meet_requested
+            )
+            if add_google_meet is True or calendar_event.conference_status is not None:
+                calendar_event.meet_url = meet_url
+                calendar_event.conference_status = conference_status
+
         calendar_event.calculate_duration()
         calendar_event.is_synced = True
         calendar_event.last_synced_at = datetime.now(timezone.utc)

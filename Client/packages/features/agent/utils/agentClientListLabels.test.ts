@@ -11,6 +11,7 @@ describe("agentClientKindTranslationKey", () => {
   it("maps each client_kind to its feature key", () => {
     expect(agentClientKindTranslationKey("buyer")).toBe("agent.client_kind.buyer");
     expect(agentClientKindTranslationKey("seller")).toBe("agent.client_kind.seller");
+    expect(agentClientKindTranslationKey("renter")).toBe("agent.client_kind.renter");
     expect(agentClientKindTranslationKey("investor")).toBe("agent.client_kind.investor");
   });
 

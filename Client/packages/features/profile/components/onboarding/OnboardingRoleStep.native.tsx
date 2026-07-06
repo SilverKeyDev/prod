@@ -1,15 +1,14 @@
 import React from "react";
 
-import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
-import { ONBOARDING_ROLE_PICKER_OPTIONS } from "packages/utils/product/domain/profile/onboardingRolePicker";
-
 import {
   applyOnboardingRoleSelection,
   FIELD_LABELS,
   type OnboardingData,
   type PrimaryOnboardingRole,
   primaryOnboardingRoleFromForm,
-} from "@/features/profile/utils";
+} from "packages/features/profile/utils";
+import { Box, Pressable, Text } from "packages/ui/components/structure/primitives";
+import { ONBOARDING_ROLE_PICKER_OPTIONS } from "packages/utils/product/domain/profile/onboardingRolePicker";
 
 type OnboardingRoleStepProps = {
   formData: OnboardingData;
@@ -61,3 +60,4 @@ export function OnboardingRoleStep({ formData, updateFormData }: OnboardingRoleS
     </Box>
   );
 }
+

@@ -9,8 +9,8 @@ import MapView, {
   type Region,
 } from "react-native-maps";
 
-import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
+import { useFeature } from "packages/hooks/store/featureFlags/useFeature";
 import { log } from "packages/logger";
 import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";

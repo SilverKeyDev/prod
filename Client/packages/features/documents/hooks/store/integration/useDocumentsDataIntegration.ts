@@ -85,13 +85,17 @@ export function useDocumentsDataIntegration(
     });
   }, []);
 
-  const openAgreementPdfViewer = useCallback((agreementId: string, documentName: string) => {
-    const name = documentName.trim();
-    setViewSignedAgreement({
-      agreementId,
-      title: name.length > 0 ? name : "Agreement document",
-    });
-  }, []);
+  const openAgreementPdfViewer = useCallback(
+    (agreementId: string, documentName: string) => {
+      const row = documents.find((d) => d.id === agreementId && d.library_kind === "agreement");
+      const name = (row?.filename ?? documentName).trim();
+      setViewSignedAgreement({
+        agreementId,
+        title: name.length > 0 ? name : "Agreement document",
+      });
+    },
+    [documents]
+  );
 
   const onAgreementSigningComplete = useCallback(() => {
     setAgreementSigningSession(null);

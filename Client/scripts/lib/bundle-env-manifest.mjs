@@ -265,6 +265,23 @@ export function formatDockerBuildArgs(env, manifest) {
 }
 
 /**
+ * BuildKit secret mounts — values are not written to image history or plain build logs.
+ * @param {NodeJS.ProcessEnv} env
+ * @param {BundleEnvManifest} manifest
+ * @returns {string[]}
+ */
+export function formatDockerBuildSecrets(env, manifest) {
+  const args = [];
+  for (const spec of manifest.variables) {
+    if (!spec.dockerBuildArg || !spec.key) continue;
+    const value = String(env[spec.key] ?? "").trim();
+    if (!value) continue;
+    args.push(`--secret id=${spec.key},env=${spec.key}`);
+  }
+  return args;
+}
+
+/**
  * @param {string | undefined} suffix
  */
 export function maskValueSuffix(suffix) {

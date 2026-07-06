@@ -47,6 +47,7 @@ export function UnifiedMessageThreadRow({
   t,
   openSharedHomeDetails,
   onRetryMessage,
+  sharedDocumentActionHandlers,
 }: UnifiedMessageThreadRowProps) {
   const messageConfig =
     msg.role === "agent" ? config.messageStyles.agent : config.messageStyles.user;
@@ -123,6 +124,7 @@ export function UnifiedMessageThreadRow({
           onAcceptEventRequest={onAcceptEventRequest}
           onCancelEventRequest={onCancelEventRequest}
           acceptingEventRequestId={acceptingEventRequestId}
+          sharedDocumentActionHandlers={sharedDocumentActionHandlers}
         />
 
         <UnifiedMessageThreadRowStatusFooter

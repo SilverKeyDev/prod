@@ -119,6 +119,7 @@ export {
 } from "./filters.slice";
 // Ephemeral search context: anchor, location bar, filter overrides, feed cursor
 export {
+  requestOpenSearchPreferencesPanel,
   type SearchContextAnchor,
   type SearchFilterOverrides,
   useSearchContextStore,

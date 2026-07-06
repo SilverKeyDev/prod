@@ -5,16 +5,10 @@ import { TOUR_TARGETS_DESKTOP, TOUR_TARGETS_MOBILE } from "./tourTargets";
 const SEARCH_PRODUCT_TOUR_COPY: Record<string, string> = {
   "search.product_tour.desktop.preferences_title": "Preferences",
   "search.product_tour.desktop.preferences_description":
-    "Open Preferences for budgets, beds and baths, commute and important locations, and the other fields that shape your matches. Changes save to your profile.",
-  "search.product_tour.desktop.display_title": "Display",
-  "search.product_tour.desktop.display_description":
-    "Open Display to change how results are ordered and sorted, toggle show commute area on the map, and turn match all preferences strictly on or off.",
+    "Open Preferences for budgets, beds and baths, commute and important locations, how results are ordered and shown on the map, and the other fields that shape your matches. Changes save to your profile.",
   "search.product_tour.mobile.preferences_title": "Filters",
   "search.product_tour.mobile.preferences_description":
-    "Open Filters for the same preference controls as on desktop: budget, home details, commute and locations, and more. They stay in sync with your profile.",
-  "search.product_tour.mobile.display_title": "Display",
-  "search.product_tour.mobile.display_description":
-    "Open Display for order by, sort direction, show commute area, and match all preferences strictly: the same options as on larger screens.",
+    "Open Filters for the same preference controls as on desktop: budget, home details, commute and locations, result ordering, and more. They stay in sync with your profile.",
 };
 
 export type SearchProductTourLayout = "desktop" | "mobile";
@@ -58,16 +52,6 @@ export function getSearchProductTourSteps(
           align: "start",
         },
       },
-      {
-        stepId: "search.desktop.display",
-        element: sel(d.displayControl),
-        popover: {
-          title: tourCopy("search.product_tour.desktop.display_title"),
-          description: tourCopy("search.product_tour.desktop.display_description"),
-          side: "bottom",
-          align: "start",
-        },
-      },
     ];
   }
 
@@ -78,16 +62,6 @@ export function getSearchProductTourSteps(
       popover: {
         title: tourCopy("search.product_tour.mobile.preferences_title"),
         description: tourCopy("search.product_tour.mobile.preferences_description"),
-        side: "bottom",
-        align: "start",
-      },
-    },
-    {
-      stepId: "search.mobile.display",
-      element: sel(m.displayControl),
-      popover: {
-        title: tourCopy("search.product_tour.mobile.display_title"),
-        description: tourCopy("search.product_tour.mobile.display_description"),
         side: "bottom",
         align: "start",
       },

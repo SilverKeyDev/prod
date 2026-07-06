@@ -1,7 +1,6 @@
 // Mock data service for agent dashboard
 // This will be replaced with real API calls when backend is ready
 import type { AgentClient } from "packages/api";
-import type { TodoItem } from "packages/features/agent/api/agent";
 import type {
   AgentNote,
   ClientDealInfo,
@@ -14,45 +13,6 @@ import type {
 } from "packages/schemas/agent";
 import type { UrgentAlert } from "packages/types/domain/ui";
 import { dateNow } from "packages/utils/core/date";
-
-/**
- * Generate mock todos for a client or all clients
- */
-export function generateMockTodos(clients: AgentClient[], clientId?: string): TodoItem[] {
-  const todos: TodoItem[] = [];
-  const now = dateNow();
-
-  clients.forEach((client) => {
-    if (clientId && client.id !== clientId) return;
-
-    // Add some sample todos
-    todos.push({
-      id: `todo-${client.id}-1`,
-      agent_id: "mock-agent-id",
-      title: `Follow up with ${client.name}`,
-      due_date: now.add(24, "hour").toISOString(),
-      client_id: client.id,
-      type: "follow_up",
-      completed: false,
-      created_at: now.toISOString(),
-      updated_at: now.toISOString(),
-    });
-
-    todos.push({
-      id: `todo-${client.id}-2`,
-      agent_id: "mock-agent-id",
-      title: `Review offer for ${client.name}`,
-      due_date: now.add(3, "hour").toISOString(),
-      client_id: client.id,
-      type: "offer_expiration",
-      completed: false,
-      created_at: now.toISOString(),
-      updated_at: now.toISOString(),
-    });
-  });
-
-  return todos;
-}
 
 /**
  * Generate mock urgent alerts

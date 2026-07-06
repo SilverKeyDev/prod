@@ -116,7 +116,7 @@ export default function ClientSearchModal({ isOpen, onClose }: ClientSearchModal
                   className={`rounded-lg border p-3 transition-colors ${
                     selectedClientId === client.id
                       ? "border-border bg-primary-muted"
-                      : "border-border hover:bg-accent-muted"
+                      : "border-border hover:bg-neutral-100"
                   }`}
                 >
                   {selectedClientId === client.id ? (

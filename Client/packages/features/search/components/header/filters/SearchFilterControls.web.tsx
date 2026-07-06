@@ -61,7 +61,7 @@ export default function SearchFilterControls({
     onPopoverClose?.();
   }, [onPopoverClose]);
 
-  const priceMin = formData.home_budget_min ?? 100_000;
+  const priceMin = formData.home_budget_min ?? 0;
   const priceMax = formData.home_budget_max ?? 2_000_000;
   const minBeds = formData.preferred_bedrooms_min ?? 0;
   const maxBeds = formData.preferred_bedrooms_max ?? 8;

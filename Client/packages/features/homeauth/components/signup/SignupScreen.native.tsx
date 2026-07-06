@@ -11,6 +11,7 @@ import { StyleSheet, View } from "react-native";
 import { color } from "packages/design-tokens";
 import { GoogleSignInButton } from "packages/features/homeauth/components/auth";
 import AuthPageLayoutNative from "packages/features/homeauth/components/core/AuthPageLayout.native";
+import { AuthTermsDisclaimer } from "packages/features/homeauth/components/core/AuthTermsDisclaimer";
 import AuthDivider from "packages/features/homeauth/components/core/Divider";
 import AuthLink from "packages/features/homeauth/components/core/Link";
 import { useSignup } from "packages/features/homeauth/hooks/data/useAuthActions";
@@ -33,7 +34,6 @@ export function SignupScreenNative() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [agencyName, setAgencyName] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const { navigate } = useNavigation();
   const { signup, isLoading, error: signupError, clearError } = useSignup();
   const { isValid: isPasswordValid, errors: passwordErrors } = usePasswordValidation(password);
@@ -43,7 +43,6 @@ export function SignupScreenNative() {
 
   const handleSubmit = async () => {
     clearError();
-    if (!acceptedTerms) return;
     if (!isPasswordValid) return;
     const result = await signup(getSignupPayload({ name, email, password, phone, agencyName }));
     if (result.success) {
@@ -106,28 +105,6 @@ export function SignupScreenNative() {
 
       <PasswordValidation password={password} showValidation={password.length > 0} />
 
-      <Pressable
-        onPress={() => {
-          setAcceptedTerms((v) => !v);
-        }}
-        style={styles.termsRow}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: acceptedTerms }}
-      >
-        <Text style={styles.termsGlyph}>{acceptedTerms ? "☑" : "☐"}</Text>
-        <Text style={styles.termsText}>
-          I agree to the Terms and Privacy Policy. Tap to toggle, or open{" "}
-          <Text onPress={() => navigate("Terms")} style={styles.termsLink}>
-            Terms
-          </Text>{" "}
-          /{" "}
-          <Text onPress={() => navigate("Privacy")} style={styles.termsLink}>
-            Privacy
-          </Text>{" "}
-          for the full text. Google sign-in is covered by the same agreement when you continue.
-        </Text>
-      </Pressable>
-
       <Box style={styles.field}>
         <Text style={styles.label}>Agency Name (optional)</Text>
         <Input
@@ -141,12 +118,12 @@ export function SignupScreenNative() {
 
       <Pressable
         onPress={handleSubmit}
-        disabled={isLoading || !isPasswordValid || !acceptedTerms}
+        disabled={isLoading || !isPasswordValid}
         accessibilityRole="button"
         accessibilityState={{ busy: isLoading }}
         style={[
           styles.primaryButton,
-          (isLoading || !isPasswordValid || !acceptedTerms) && styles.primaryButtonDisabled,
+          (isLoading || !isPasswordValid) && styles.primaryButtonDisabled,
         ]}
       >
         {isLoading ? (
@@ -158,7 +135,9 @@ export function SignupScreenNative() {
 
       <AuthDivider />
 
-      <GoogleSignInButton text="Sign up with Google" disabled={!acceptedTerms} />
+      <GoogleSignInButton text="Sign up with Google" />
+
+      <AuthTermsDisclaimer flow="signup" />
 
       <View style={styles.links}>
         <AuthLink to="/login">
@@ -170,26 +149,6 @@ export function SignupScreenNative() {
 }
 
 const styles = StyleSheet.create({
-  termsRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    marginBottom: 16,
-  },
-  termsGlyph: {
-    fontSize: 18,
-    lineHeight: 22,
-  },
-  termsText: {
-    flex: 1,
-    fontSize: 13,
-    color: color("neutral.600"),
-    lineHeight: 18,
-  },
-  termsLink: {
-    color: color("brand.accent"),
-    fontWeight: "600",
-  },
   field: {
     marginBottom: 16,
   },

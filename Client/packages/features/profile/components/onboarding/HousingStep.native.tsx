@@ -1,7 +1,7 @@
 import React from "react";
 
 import type { PatchBuyerPreferenceExtensions } from "packages/features/profile/components/profileScreen/searchPreferences/types";
-import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/sections/search/ProfileSearchPropertySection";
+import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/tabs/search/ProfileSearchPropertySection";
 import { type OnboardingData } from "packages/features/profile/utils";
 import { Box } from "packages/ui/components/structure/primitives";
 

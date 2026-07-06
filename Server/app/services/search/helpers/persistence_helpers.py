@@ -69,6 +69,7 @@ def persist_and_prune_search_results(user_id: str, properties: list[dict[str, An
                     user_id=str(user_id), home=prop_data, set_liked=False, ranking=ranking
                 )
                 link_record.current = True
+                prop_data["home_id"] = str(link_record.property_id)
                 if not pre_exists:
                     created_count += 1
             except Exception as e:

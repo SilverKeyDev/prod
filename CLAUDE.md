@@ -2,48 +2,43 @@
 
 @AGENTS.md
 
-## Stack
+@.cursor/rules/shared/security.mdc
+@.cursor/rules/shared/thin-app-architecture.mdc
+@.cursor/rules/shared/linting.mdc
+@.cursor/rules/shared/documentation.mdc
+@.cursor/rules/shared/silverkey-context.mdc
+@.cursor/rules/shared/code-style.mdc
+@.cursor/rules/shared/env-vars-minimal.mdc
 
-- Client: pnpm 9, Node 20+, React web and React Native, TypeScript, Zustand, Vitest
-- Server: Python 3.10 to 3.13, Flask, SQLAlchemy, Celery, Redis, pytest, ruff, mypy
-- Contract: OpenAPI 3.1 in `openapi/` with generated client and server types
+@.cursor/memory/projectbrief.md
 
-## Key Commands
+When continuing an in-flight workstream, read `.cursor/memory/activeContext.md` and `.cursor/memory/progress.md` (see `.cursor/rules/shared/agent-memory.mdc`).
 
-- Setup: `make setup`
-- Refresh after pull: `make refresh`
-- Run full stack: `make dev`
-- Run web only: `make dev-web`
-- Run backend only: `make dev-backend`
-- Run mobile: `make mobile`
-- Client gate: `make check-client`
-- Client typecheck: `make typecheck`
-- Server tests: `make test-be`
-- Repo lint: `make lint`
-- OpenAPI regenerate: `make openapi`
-- OpenAPI verify: `make openapi-verify`
-- Docs checks: `make check-docs`
+## Claude-specific paths
 
-## Repository Layout
+| Path | Purpose |
+| ---- | ------- |
+| [`.claude/rules/`](.claude/rules/) | Scoped rule adapters → [`.cursor/rules/`](.cursor/rules/) (lazy-load; always-on rules live here in `@` includes only) |
+| [`.claude/agents/`](.claude/agents/) | Subagent personas (default: `silverkey-engineer`) |
+| [`.claude/skills/`](.claude/skills/) | Procedure adapters → [`.cursor/skills/`](.cursor/skills/) |
+| [`.claude/settings.json`](.claude/settings.json) | Team permissions config |
+| [`mcp.example.json`](mcp.example.json) | Claude daily MCP — copy to gitignored `mcp.json` at repo root |
+| [`.cursor/mcp.example.json`](.cursor/mcp.example.json) | Cursor daily MCP — copy to gitignored `.cursor/mcp.json` |
 
-- `Client/`: thin app entrypoints in `apps/*`, shared product logic in `packages/*`
-- `Server/`: Flask application, services, models, routes, tests
-- `openapi/`: API contract source, downstream generation entrypoint
-- `documentation/`: canonical long-form documentation
-- `.claude/`: Claude Code adapter (stubs → `.cursor/`)
-- `.codex/`, `.agents/skills/`: Codex adapter (`rules/`, TOML subagents, repo skills → `.cursor/`)
+Full guide: [documentation/client/tooling/claude-code-configuration.md](documentation/client/tooling/claude-code-configuration.md).
 
-## Documentation
+## Default persona and MCP
 
-- Index: [documentation/README.md](documentation/README.md)
-- Client: [documentation/client/README.md](documentation/client/README.md)
-- Server: [documentation/server/README.md](documentation/server/README.md)
+- **Default subagent:** [`.claude/agents/silverkey-engineer.md`](.claude/agents/silverkey-engineer.md) (Linear-first, RESPA-aware, MCP-backed).
+- **Daily MCP:** `github`, `linear`, `slack` from [`mcp.example.json`](mcp.example.json). Enable add-ons (PostHog, AWS, Mercury, etc.) only when the task needs them — same dedupe policy as [cursor-configuration-optimization.md](documentation/client/tooling/cursor-configuration-optimization.md).
+- **Edit `.cursor/` first;** sync [`.claude/`](.claude/) stubs when rules, agents, or skills change (see [`.claude/README.md`](.claude/README.md)).
 
-## Universal Conventions
+## On-demand context (not loaded every session)
 
-- Keep business logic in shared packages and services, not in thin app shells.
-- Edit OpenAPI source files, then regenerate derived types. Do not hand edit generated outputs.
-- Treat lint and type errors as blocking.
-- Use centralized logging utilities, not ad hoc `console.*` or `print`.
-- Do not add new `.env` keys unless a new integration or deployment surface requires it.
-- Do not commit secrets or credentials.
+| Task | Reference |
+| ---- | --------- |
+| Continue workstream | `@.cursor/memory/activeContext.md`, `@.cursor/memory/progress.md` |
+| CI / PR gates | `@.cursor/rules/shared/ci-gates.mdc` |
+| Partner / RESPA | `@.cursor/rules/shared/respa-compliance.mdc` |
+| OpenAPI contract | `@.cursor/rules/shared/openapi-workflow.mdc` |
+| QA persona flows | `@.claude/rules/shared-qa-test-accounts.md` |

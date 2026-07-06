@@ -3,7 +3,7 @@ import {
   formatFilenameToAddress,
 } from "packages/features/search/types/search/formatters/address";
 import { useAuthStore } from "packages/store";
-import { extractReportTitleFromPath } from "packages/utils/transaction/documents";
+import { extractReportTitleFromPath } from "packages/utils/transaction/documents/extractReportTitleFromPath";
 
 import BaseCard from "@/components/cards/BaseCard";
 

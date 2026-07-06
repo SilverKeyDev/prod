@@ -28,6 +28,8 @@ export type ResolvedSearchArea = {
   center: { lat: number; lng: number };
   isochroneData: IsochroneData | null;
   warnings: SearchAreaWarning[];
+  /** When true, search must not proceed (geolocation permission denied). */
+  blocked?: boolean;
 };
 
 export type ResolveSearchAreaInput = {
@@ -37,7 +39,7 @@ export type ResolveSearchAreaInput = {
   /** When set (native), used instead of browser geolocation. */
   requestLocation?: () => Promise<DeviceLocationResult>;
   fetchIsochrone: () => Promise<IsochroneData | null>;
-  /** Optional map bounds fallback when geolocation fails (web). */
+  /** Optional map bounds fallback when geolocation is unavailable (not denied). */
   mapBoundsRing?: ViewportPolygonPoint[] | null;
 };
 
@@ -73,23 +75,10 @@ function ringFromIsochrone(isochroneData: IsochroneData): ViewportPolygonPoint[]
   return null;
 }
 
-async function resolveGeolocationOrDefault(
-  requestLocation: () => Promise<DeviceLocationResult>,
-  mapBoundsRing?: ViewportPolygonPoint[] | null
-): Promise<Pick<ResolvedSearchArea, "mode" | "viewportRing" | "center" | "warnings">> {
-  const loc = await requestLocation();
-  if (loc.status === "granted" && isSupportedServiceAreaCoordinates(loc)) {
-    const ring = viewportRingFromGeolocation(loc.lat, loc.lng);
-    return {
-      mode: "geolocation",
-      viewportRing: ring,
-      center: { lat: loc.lat, lng: loc.lng },
-      warnings: [],
-    };
-  }
-
-  const warnings: SearchAreaWarning[] =
-    loc.status === "denied" ? ["geolocation_denied"] : ["geolocation_unavailable"];
+function resolveUnavailableGeolocationFallback(
+  mapBoundsRing: ViewportPolygonPoint[] | null | undefined
+): Pick<ResolvedSearchArea, "mode" | "viewportRing" | "center" | "warnings"> {
+  const warnings: SearchAreaWarning[] = ["geolocation_unavailable"];
 
   if (mapBoundsRing && mapBoundsRing.length >= 4) {
     return {
@@ -111,7 +100,8 @@ async function resolveGeolocationOrDefault(
 
 /**
  * Resolve which search area to use before polygon search.
- * Priority: location bar ring → important locations isochrone → geolocation → default pilot market.
+ * Priority: location bar ring → important locations isochrone → geolocation → fallback market.
+ * Geolocation denied is the only case that blocks search entirely.
  */
 export async function resolveSearchArea(
   input: ResolveSearchAreaInput
@@ -144,10 +134,35 @@ export async function resolveSearchArea(
   }
 
   const requestLocation = input.requestLocation ?? requestDeviceLocationForSearch;
-  const geoResolved = await resolveGeolocationOrDefault(requestLocation, input.mapBoundsRing);
+  const loc = await requestLocation();
 
+  if (loc.status === "granted" && isSupportedServiceAreaCoordinates(loc)) {
+    const ring = viewportRingFromGeolocation(loc.lat, loc.lng);
+    return {
+      mode: "geolocation",
+      searchSource: "location",
+      viewportRing: ring,
+      center: { lat: loc.lat, lng: loc.lng },
+      isochroneData: null,
+      warnings: [],
+    };
+  }
+
+  if (loc.status === "denied") {
+    return {
+      mode: "geolocation",
+      searchSource: "location",
+      viewportRing: [],
+      center: { lat: 0, lng: 0 },
+      isochroneData: null,
+      warnings: ["geolocation_denied"],
+      blocked: true,
+    };
+  }
+
+  const fallback = resolveUnavailableGeolocationFallback(input.mapBoundsRing);
   return {
-    ...geoResolved,
+    ...fallback,
     searchSource: "location",
     isochroneData: null,
   };

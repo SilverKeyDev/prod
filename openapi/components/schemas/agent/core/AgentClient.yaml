@@ -39,10 +39,11 @@ properties:
     type: string
     nullable: true
     description: |
-      Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/investor role is set.
+      Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/renter/investor role is set.
     enum:
       - buyer
       - seller
+      - renter
       - investor
       - unknown
   pipeline_stage:

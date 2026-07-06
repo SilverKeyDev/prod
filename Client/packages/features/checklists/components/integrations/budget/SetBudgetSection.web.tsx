@@ -7,8 +7,8 @@ import { useLocalization } from "packages/contexts";
 import { ChecklistStepSubmitFooter } from "packages/features/checklists/components/steps/ChecklistStepSubmitFooter";
 import { isSetBudgetStepComplete } from "packages/features/checklists/utils/integration/checklistIntegrationCompleteness";
 import {
+  FinancialSection,
   type OnboardingData,
-  ProfileFinancialSection,
   userPreferencesToOnboardingData,
 } from "packages/features/profile";
 import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
@@ -40,11 +40,7 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
     // refetch that re-runs remote sync and can wipe in-progress field edits.
   }, [queryClient]);
 
-  const {
-    updateFormData: updateFormDataWithAutoSave,
-    autoSave,
-    flushSave,
-  } = useAutoSavePreferences({
+  const { updateFormData: updateFormDataWithAutoSave, flushSave } = useAutoSavePreferences({
     refreshUserPreferences,
     showErrorToastOnError: true,
     showSuccessToastOnSave: false,
@@ -127,24 +123,6 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
     [formData, updateFormDataWithAutoSave]
   );
 
-  const patchBuyerPreferenceExtensions = useCallback(
-    (
-      fn: (
-        prev: OnboardingData["buyerPreferenceExtensions"]
-      ) => NonNullable<OnboardingData["buyerPreferenceExtensions"]>
-    ) => {
-      setFormData((prev) => {
-        const next = {
-          ...prev,
-          buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
-        } as OnboardingData;
-        autoSave(next);
-        return next;
-      });
-    },
-    [autoSave]
-  );
-
   const stepComplete = useMemo(() => isSetBudgetStepComplete(formData), [formData]);
 
   const handleSubmitStep = useCallback(() => {
@@ -171,11 +149,10 @@ export default function SetBudgetSection({ onComplete }: SetBudgetSectionProps) 
   return (
     <Card border="dotted" padding="md" className="mb-2">
       <Box className="gap-4">
-        <ProfileFinancialSection
+        <FinancialSection
           formData={formData as OnboardingData}
           isEditMode={true}
           updateField={updateField}
-          patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
           homePriceResult={homePriceResult}
           homePriceLoading={homePriceLoading}
           homePriceError={homePriceError}

@@ -1,5 +1,7 @@
+export { AdminAnalyticsSection } from "./analytics/AdminAnalyticsSection";
 export { AdminDevPersonaSection } from "./devPersona/AdminDevPersonaSection";
 export { DevPersonaActiveBanner } from "./devPersona/DevPersonaActiveBanner";
+export { AdminIntegrationsSection } from "./integrations/AdminIntegrationsSection";
 export { AdminLoggingSections } from "./logging/AdminLoggingSections";
 export { AdminPartnersSection } from "./partners/AdminPartnersSection";
 export { AdminPlaceholderSection } from "./shared/AdminPlaceholderSection";

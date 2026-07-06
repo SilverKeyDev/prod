@@ -29,6 +29,7 @@ export {
   useSyncAgentPreferencesFromClient,
   type UseSyncAgentPreferencesFromClientReturn,
 } from "./hooks/data/search/useSyncAgentPreferencesFromClient";
+export { useAgentAutoSelectClient } from "./hooks/ui/useAgentAutoSelectClient";
 export { type AgentDashboardState, useAgentDashboardStore } from "./store";
 export { AGENT_TRANSLATIONS } from "./types/translations";
 export {

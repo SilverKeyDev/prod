@@ -1,7 +1,7 @@
 import type { WorkspaceMessagingPersonaId } from "packages/features/messaging/types/workspace/personas";
 import type { Workspace } from "packages/utils/product/workspace";
 
-export type AgentClientPersona = "buyer" | "seller";
+export type AgentClientPersona = "buyer" | "seller" | "renter";
 
 export type MessagingSurface =
   | { stack: "agent_client"; clientPersona: AgentClientPersona }
@@ -19,6 +19,9 @@ export function getMessagingSurfaceForWorkspace(workspace: Workspace): Messaging
   }
   if (workspace === "seller") {
     return { stack: "agent_client", clientPersona: "seller" };
+  }
+  if (workspace === "renter") {
+    return { stack: "agent_client", clientPersona: "renter" };
   }
   const persona = WORKSPACE_TO_PERSONA[workspace];
   if (persona) {

@@ -45,14 +45,6 @@ export const generateOptimizedPdfUrl = (
   return `${baseUrl}#${params.toString()}`;
 };
 
-export const getPdfIframeSandbox = (isSameOrigin: boolean = true): string | undefined => {
-  if (isSameOrigin) {
-    return undefined;
-  }
-
-  return "allow-same-origin allow-scripts allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation";
-};
-
 export const getPdfIframeAllow = (): string => {
   return "fullscreen; clipboard-read; clipboard-write";
 };

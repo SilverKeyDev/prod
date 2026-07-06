@@ -19,7 +19,12 @@ export function TimeSlotPicker({
   onSelectSlot,
   isLoading,
 }: TimeSlotPickerProps): ReactNode {
-  if (isLoading) return <BodyText as="span">Loading availability...</BodyText>;
+  if (isLoading)
+    return (
+      <BodyText as="span" muted>
+        Loading availability...
+      </BodyText>
+    );
   return (
     <Box className="space-y-2">
       {slots.map((slot, i) => (

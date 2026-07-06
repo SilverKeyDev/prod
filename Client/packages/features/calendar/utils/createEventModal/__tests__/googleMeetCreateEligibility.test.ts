@@ -36,7 +36,7 @@ describe("showGoogleMeetToggleForCreate", () => {
     ).toBe(true);
   });
 
-  it("is false in edit mode even with schedule", () => {
+  it("is true in edit mode with schedule and not all-day", () => {
     expect(
       showGoogleMeetToggleForCreate({
         mode: "edit",
@@ -44,6 +44,6 @@ describe("showGoogleMeetToggleForCreate", () => {
         endDate: "2026-06-01",
         isAllDay: false,
       })
-    ).toBe(false);
+    ).toBe(true);
   });
 });

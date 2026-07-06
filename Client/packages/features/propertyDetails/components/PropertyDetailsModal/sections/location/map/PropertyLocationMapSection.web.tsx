@@ -143,7 +143,7 @@ export function PropertyLocationMapSection({
           </BodyText>
         ) : (
           <Box className="gap-3">
-            <Box className="border-border-card-subtle bg-background-surface aspect-square overflow-hidden rounded-lg border">
+            <Box className="border-border-card-subtle bg-background-surface relative aspect-[4/3] max-h-[50vh] w-full overflow-hidden rounded-lg border">
               <Box className="relative h-full w-full">
                 <Box ref={setMapHost} className="absolute inset-0" />
                 <Box

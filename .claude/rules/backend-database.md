@@ -1,5 +1,5 @@
 ---
-paths:
-  - "Server/**"
+alwaysApply: false
+paths: Server/**
 ---
 @../../.cursor/rules/backend/database.mdc

@@ -7,6 +7,7 @@ Runtime validation of Flask request bodies against Pydantic schemas generated fr
 | Variable | Values | Behavior |
 | -------- | ------ | -------- |
 | `OPENAPI_VALIDATION_MODE` | `strict` (default in code and production) | Logged on failures; invalid bodies always return 400 |
+| Gradual fallback | Non-strict paths in `gradual` mode | Handlers receive `schema.model_construct(**payload)`, not `None` |
 | `OPENAPI_VALIDATION_STRICT_DOMAINS` | Comma-separated path prefixes | Historical incremental soak only; decorators are strict-only after rollout |
 
 Configure in deployment environment (not required in `Server/.env.example`). Defaults in code: global `strict`; empty strict domains list.

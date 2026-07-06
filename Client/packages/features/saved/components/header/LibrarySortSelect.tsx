@@ -31,6 +31,7 @@ export function LibrarySortSelect({ viewType, value, onChange }: LibrarySortSele
         placeholder={t("saved.library_sort_label")}
         label={t("saved.library_sort_label")}
         hideLabel
+        variant="compact"
         size="sm"
         menuInPortal
         className="min-w-44 max-w-xs sm:min-w-52"

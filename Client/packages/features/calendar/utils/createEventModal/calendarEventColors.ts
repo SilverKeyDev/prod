@@ -179,3 +179,48 @@ export function hexToRgba(colorValue: string, alpha: number): string {
   }
   return `rgba(${rgb.r},${rgb.g},${rgb.b},${alpha})`;
 }
+
+/** Month/week chip tint — high enough to read event hue on white cells (0.18 washed out to gray). */
+export const CALENDAR_EVENT_CHIP_TINT_ALPHA = 0.28;
+
+export const CALENDAR_EVENT_CHIP_CONTINUATION_TINT_ALPHA = 0.14;
+
+/** Shared surface for week timed blocks: left stripe + tinted fill. */
+export function calendarEventChipStyle(
+  eventColor: string,
+  alpha: number = CALENDAR_EVENT_CHIP_TINT_ALPHA
+): {
+  backgroundColor: string;
+  borderLeftWidth: number;
+  borderLeftColor: string;
+  overflow: "hidden";
+} {
+  return {
+    backgroundColor: hexToRgba(eventColor, alpha),
+    borderLeftWidth: 3,
+    borderLeftColor: eventColor,
+    overflow: "hidden",
+  };
+}
+
+/** Month grid chips — lighter than week blocks so hues stay visible without reading gray. */
+export const CALENDAR_MONTH_EVENT_CHIP_TINT_ALPHA = 0.1;
+
+/** Month grid chips: very light event tint, pink outline, colored left stripe. */
+export function calendarMonthEventChipStyle(eventColor: string): {
+  backgroundColor: string;
+  borderWidth: number;
+  borderColor: string;
+  borderLeftWidth: number;
+  borderLeftColor: string;
+  overflow: "hidden";
+} {
+  return {
+    backgroundColor: hexToRgba(eventColor, CALENDAR_MONTH_EVENT_CHIP_TINT_ALPHA),
+    borderWidth: 1,
+    borderColor: color("rose.100"),
+    borderLeftWidth: 3,
+    borderLeftColor: eventColor,
+    overflow: "hidden",
+  };
+}

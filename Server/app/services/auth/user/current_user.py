@@ -6,9 +6,7 @@ import time
 
 from flask import current_app, request
 from jose.exceptions import ExpiredSignatureError, JWTClaimsError
-from sqlalchemy import select
 
-from app import db
 from app.models import User
 from app.utils.security import SecurityError
 from app.utils.security.security import log_security_event
@@ -50,12 +48,17 @@ def _verify_minimal_token(token: str, start_time: float | None = None) -> User:
     if not user_id:
         log_security_event("auth_minimal_token_missing_sub")
         raise SecurityException(SecurityError.INVALID_TOKEN)
+
+    from .user_fetch import fetch_user_by_email, fetch_user_by_id
+
+    # Find user by ID (minimal tokens use database ID as sub)
     try:
-        user = db.session.scalar(select(User).where(User.id == user_id))
+        user = fetch_user_by_id(str(user_id))
         if not user:
             user_email = claims.get("email")
             if user_email:
-                user = db.session.scalar(select(User).where(User.email == user_email))
+                user = fetch_user_by_email(user_email)
+                # Do not mutate User.id; PK changes break referential integrity.
     except InvalidRequestError as e:
         log.error("ERRORS", f"SQLAlchemy mapper init failed during auth: {e}")
         raise

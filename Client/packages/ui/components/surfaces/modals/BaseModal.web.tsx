@@ -4,6 +4,7 @@ import { Z_LAYERS } from "packages/design-tokens";
 import CloseButton from "packages/ui/components/actions/button/core/CloseButton";
 import { Portal } from "packages/ui/components/structure/portal";
 import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
 import {
   Dialog,
   DialogBackdrop,
@@ -21,8 +22,11 @@ const SIZE_STYLES: Record<NonNullable<BaseModalProps["size"]>, string> = {
   md: "max-w-md sm:max-w-lg mx-responsive-md",
   lg: "max-w-lg sm:max-w-xl mx-responsive-md",
   xl: "max-w-xl sm:max-w-2xl mx-responsive-lg",
+  "2xl": "max-w-2xl sm:max-w-4xl lg:max-w-5xl mx-responsive-lg",
   full: "max-w-full mx-responsive-sm",
 };
+
+const PANEL_VIEWPORT_HEIGHT = "min(90vh, 90dvh)";
 
 type BaseModalPanelProps = Omit<BaseModalProps, "isOpen" | "zIndex"> & {
   titleId: string;
@@ -32,6 +36,7 @@ function BaseModalPanel({
   onClose,
   title,
   size,
+  panelLayout = "auto",
   showCloseButton,
   className,
   children,
@@ -41,12 +46,17 @@ function BaseModalPanel({
   contentBackground,
   titleId,
 }: BaseModalPanelProps) {
+  const fixedPanel = panelLayout === "fixed";
+
   return (
     <DialogPanel
       className={`relative flex min-h-0 w-full max-w-full transform flex-col overflow-hidden rounded-lg text-left shadow-xl transition-all sm:rounded-xl ${
         contentBackground === "off-white" ? "bg-background-base" : "bg-background-base"
       } ${SIZE_STYLES[size ?? "md"]} ${className ?? ""}`}
-      style={{ maxHeight: "min(90vh, 90dvh)" }}
+      style={{
+        maxHeight: PANEL_VIEWPORT_HEIGHT,
+        ...(fixedPanel ? { height: PANEL_VIEWPORT_HEIGHT } : {}),
+      }}
     >
       {(title ?? headerContent ?? showCloseButton) && (
         <Box
@@ -60,11 +70,14 @@ function BaseModalPanel({
           >
             {headerContent ??
               (title && (
-                <DialogTitle
-                  id={titleId}
-                  className="text-text-primary truncate text-sm font-semibold leading-snug"
-                >
-                  {title}
+                <DialogTitle id={titleId} className="min-w-0">
+                  <Title
+                    as="span"
+                    size="sm"
+                    className="text-text-primary truncate font-sans font-medium leading-snug"
+                  >
+                    {title}
+                  </Title>
                 </DialogTitle>
               ))}
           </Box>

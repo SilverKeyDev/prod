@@ -14,14 +14,14 @@ import { useAuthVerification } from "packages/features/homeauth/hooks/data/useAu
 import { useCountdown } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { ROUTES } from "packages/navigation/types/routes";
+import { getPostAuthDestination } from "packages/navigation/postAuthDestination";
 import { Box } from "packages/ui/components/structure/primitives";
 import { Pressable } from "packages/ui/components/structure/primitives";
 import { Text } from "packages/ui/components/structure/primitives";
 import { performVerify } from "packages/utils/auth/verification";
 import { getSessionStorage } from "packages/utils/core/storage";
 
-type RouteState = { email?: string; fromLogin?: boolean };
+type RouteState = { email?: string; fromLogin?: boolean; returnPath?: string };
 
 export function VerificationScreenNative() {
   const { verify, resendCode } = useAuthVerification();
@@ -86,7 +86,12 @@ export function VerificationScreenNative() {
           session.removeItem("signupPassword");
         },
         (path) => navigateToPath(path),
-        { postSuccessPath: routeState?.fromLogin ? ROUTES.SEARCH : "/onboarding" }
+        {
+          postSuccessPath: getPostAuthDestination({
+            flow: routeState?.fromLogin ? "login" : "signup",
+            returnPath: routeState?.returnPath,
+          }),
+        }
       );
     } catch (err: unknown) {
       log.error("AUTH", "Verification error", err);

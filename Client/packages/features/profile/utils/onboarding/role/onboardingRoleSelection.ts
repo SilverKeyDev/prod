@@ -1,21 +1,49 @@
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
-import {
-  isSelectableOnboardingRolePickerValue,
-  type OnboardingRolePickerValue,
-} from "packages/utils/product/domain/profile/onboardingRolePicker";
+import { isSelectableOnboardingRolePickerValue } from "packages/utils/product/domain/profile/onboardingRolePicker";
 
-/** Values accepted by onboarding role picker; maps to `why_joining_silverkey` and role sync. */
-export type PrimaryOnboardingRole = OnboardingRolePickerValue;
+import { isAgentFormSelection } from "./agentFormSelection";
+import type { PrimaryOnboardingRole } from "./onboardingRoleTypes";
+
+export type { PrimaryOnboardingRole } from "./onboardingRoleTypes";
 
 /** Canonical WHY_JOIN tags when role is buyer / seller (legacy investor tag still read). */
 export const WHY_JOIN_FOR_ROLE = {
   buyer: "buying_house",
   seller: "selling_house",
+  renter: "renting_house",
   investor: "investor",
 } as const;
 
 export function isSelectableOnboardingRole(role: PrimaryOnboardingRole): boolean {
   return isSelectableOnboardingRolePickerValue(role);
+}
+
+/** True when onboarding should use buyer About Me / Financing UI (not agent or shell roles). */
+export function isBuyerOnboardingRole(
+  formData: OnboardingData,
+  options?: { roles?: readonly string[] }
+): boolean {
+  const role = primaryOnboardingRoleFromForm(formData, options);
+  if (role === "buyer") return true;
+  if (
+    role === "agent" ||
+    role === "seller" ||
+    role === "renter" ||
+    role === "brokerage" ||
+    role === "integration_partner"
+  ) {
+    return false;
+  }
+  if (options?.roles?.includes("agent")) return false;
+  const w = formData.why_joining_silverkey;
+  if (
+    Array.isArray(w) &&
+    w.includes(WHY_JOIN_FOR_ROLE.buyer) &&
+    !w.includes(WHY_JOIN_FOR_ROLE.seller)
+  ) {
+    return true;
+  }
+  return formData.primary_onboarding_role === "buyer";
 }
 
 /**
@@ -42,6 +70,9 @@ export function applyOnboardingRoleSelection(
     case "seller":
       updateFormData("why_joining_silverkey", [WHY_JOIN_FOR_ROLE.buyer, WHY_JOIN_FOR_ROLE.seller]);
       break;
+    case "renter":
+      updateFormData("why_joining_silverkey", [WHY_JOIN_FOR_ROLE.renter]);
+      break;
     case "brokerage":
       updateFormData("why_joining_silverkey", []);
       break;
@@ -63,6 +94,7 @@ export function primaryOnboardingRoleFromForm(
   if (
     fromDraft === "buyer" ||
     fromDraft === "seller" ||
+    fromDraft === "renter" ||
     fromDraft === "agent" ||
     fromDraft === "brokerage" ||
     fromDraft === "integration_partner"
@@ -75,7 +107,19 @@ export function primaryOnboardingRoleFromForm(
   const w = formData.why_joining_silverkey;
   if (!Array.isArray(w)) return undefined;
   if (w.includes(WHY_JOIN_FOR_ROLE.seller)) return "seller";
+  if (w.includes(WHY_JOIN_FOR_ROLE.renter)) return "renter";
   if (w.includes(WHY_JOIN_FOR_ROLE.buyer)) return "buyer";
   if (w.includes(WHY_JOIN_FOR_ROLE.investor)) return "buyer";
   return undefined;
+}
+
+/** Buyer SIL-182 UI (About Me / Financing) — not agent shell or agent-with-buyer-prefs path. */
+export function shouldShowBuyerOnboardingUi(
+  formData: OnboardingData,
+  options?: { roles?: readonly string[] }
+): boolean {
+  return (
+    isBuyerOnboardingRole(formData, options) &&
+    !isAgentFormSelection(primaryOnboardingRoleFromForm(formData, options))
+  );
 }

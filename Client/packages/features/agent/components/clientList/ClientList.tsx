@@ -6,7 +6,8 @@ import type { AgentClient } from "packages/api";
 import { useLocalization } from "packages/contexts";
 import { ClientSearchModal } from "packages/features/agent/components/modals";
 import Card from "packages/ui/components/structure/layout/Card.web";
-import { Box, ScrollView } from "packages/ui/components/structure/primitives";
+import { SCROLL_PANEL_MAX, ScrollPanel } from "packages/ui/components/structure/layout/ScrollPanel";
+import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 import { useAgentClients } from "@/features/agent/hooks/data/clients/useAgentClients";
@@ -24,7 +25,6 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
   const { t } = useLocalization();
   const { clients, isLoading } = useAgentClients();
   const { conversations } = useAgentChats();
-  const [refreshing, setRefreshing] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
 
   const conversationMap = useMemo(
@@ -40,12 +40,7 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
     [clients, conversationMap]
   );
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    setRefreshing(false);
-  };
-
-  if (isLoading && !refreshing && !sortedClients.length) {
+  if (isLoading && !sortedClients.length) {
     return (
       <Box className="py-5 text-center">
         <BodyText as="p" size="sm" className="text-text-secondary">
@@ -88,26 +83,27 @@ const ClientList: React.FC<ClientListProps> = ({ onClientClick }) => {
         {t("agent.clients")}
       </Title>
 
-      <ScrollView refreshing={refreshing} onRefresh={handleRefresh}>
-        <Box className="gap-3">
+      <ScrollPanel maxHeight={SCROLL_PANEL_MAX.clients}>
+        <Box className="gap-2.5">
           {sortedClients.map((client) => (
             <Card
               key={client.id}
               border="light"
               hover
-              className="cursor-pointer p-0"
+              padding="none"
+              className="cursor-pointer"
               onClick={() => onClientClick?.(client)}
             >
               <AgentClientListRow
                 client={client}
                 conversation={conversationMap.get(client.id)}
                 variant="card"
-                rowClassName="p-4"
+                rowClassName="px-3 py-3"
               />
             </Card>
           ))}
         </Box>
-      </ScrollView>
+      </ScrollPanel>
     </Box>
   );
 };

@@ -1,6 +1,6 @@
 import { useLocalization } from "packages/contexts";
+import { useGoogleMaps } from "packages/features/search/hooks/data/map/useGoogleMaps";
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
-import { useGoogleMaps } from "packages/hooks/data";
 import { Box } from "packages/ui/components/structure/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT, HEADER_ROW_HEIGHT } from "packages/ui/constants/layout";
 
@@ -29,7 +29,7 @@ type SearchHeaderProps = {
   onToggleMode?: () => void;
   onBeforeSwitchToReels?: () => void;
   hasSearched?: boolean;
-  /** When false, preferences Search is disabled until user adds an important location */
+  /** Display-only: whether saved important locations exist (empty-state UI, not search gating). */
   hasLocations?: boolean;
   fitMapToBounds: (bounds: google.maps.LatLngBounds) => void;
   onPreciseStreetAddressSelected?: (payload: PreciseStreetAddressPayload) => void;

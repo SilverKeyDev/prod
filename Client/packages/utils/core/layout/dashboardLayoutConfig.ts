@@ -11,10 +11,10 @@ export const PATH_PREFIXES = {
   search: "/search",
   dashboard: "/dashboard",
   analytics: "/analytics",
+  find_agents: "/find-agents",
   profile: "/profile",
   library: "/library",
   messaging: "/messaging",
-  find_agents: "/find-agents",
 } as const;
 
 export type PathPrefix = keyof typeof PATH_PREFIXES;
@@ -23,9 +23,9 @@ export type PathPrefix = keyof typeof PATH_PREFIXES;
 const DASHBOARD_ROUTE_ORDER: PathPrefix[] = [
   "search",
   "messaging",
-  "find_agents",
   "dashboard",
   "analytics",
+  "find_agents",
   "library",
   "profile",
 ];
@@ -67,11 +67,11 @@ export const PATH_WIDTH_PERCENT: Record<PathPrefix, number> = {
   search: 100,
   dashboard: 90,
   analytics: 90,
+  find_agents: 90,
   profile: 90,
   /** Match dashboard/profile content width; inset comes from SavedPageLayout (see DashboardScreen `px-4`). */
   library: 90,
   messaging: 100,
-  find_agents: 90,
 };
 
 export function pathMatches(pathname: string): {

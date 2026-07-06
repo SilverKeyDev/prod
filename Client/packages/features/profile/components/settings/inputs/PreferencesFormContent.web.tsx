@@ -1,30 +1,29 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+/**
+ * Embedded preferences form with autosave for checklists, search filters, and modals.
+ * For full profile/settings with explicit save, use PersonalizationSettingsScreen or ProfileScreen
+ * via renderProfileSectionContent + useProfilePersonalizationModel.
+ */
+import React from "react";
 
 import { useLocalization } from "packages/contexts";
-import HousingSection from "packages/features/profile/components/sections/housing/HousingSection";
-import LocationSection from "packages/features/profile/components/sections/LocationSection";
+import HousingSection from "packages/features/profile/components/formSections/housing/HousingSection";
+import LocationSection from "packages/features/profile/components/formSections/LocationSection";
+import { useEmbeddedPreferencesForm } from "packages/features/profile/hooks/useEmbeddedPreferencesForm";
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
-import { useGoogleMaps } from "packages/hooks/data";
-import { useAutoSavePreferences } from "packages/hooks/data/auth/useAutoSavePreferences";
-import { useUserData, useUserPreferences } from "packages/hooks/data/auth/useUserData";
+import type { OnboardingData } from "packages/features/profile/utils";
 import { useResponsive } from "packages/hooks/ui";
-import { log } from "packages/logger";
 import Box from "packages/ui/components/structure/primitives/box/Box";
-import { getWindow } from "packages/utils/core/platform";
 
-import type { OnboardingData } from "@/features/profile/utils";
-import { userPreferencesToOnboardingData } from "@/features/profile/utils";
-
+import type {
+  PreferencesFormActionsRef,
+  PreferencesFormContentRef,
+} from "./preferencesFormContentTypes";
 import PreferencesSaveStatusRow from "./PreferencesSaveStatusRow";
 
-export type PreferencesFormContentRef = {
-  formData: Partial<OnboardingData>;
-};
-
-/** Imperative actions for parents (e.g. search filters) to replace form state without field-by-field updates. */
-export type PreferencesFormActionsRef = {
-  replaceFormData: (next: Partial<OnboardingData>) => void;
-};
+export type {
+  PreferencesFormActionsRef,
+  PreferencesFormContentRef,
+} from "./preferencesFormContentTypes";
 
 type PreferencesFormContentProps = {
   /** Optional ref for parent to read current form state (e.g. on close for dirty check) */
@@ -50,8 +49,9 @@ type PreferencesFormContentProps = {
     cancelPendingSave: () => void;
   }) => React.ReactNode;
   /**
-   * When set, loads that user's preferences for display/editing in the form.
-   * Saves still go to the authenticated user only (`POST /preferences`); agents cannot persist changes to the client's account.
+   * When set, loads that user's preferences for display in the form (e.g. agent viewing a client in Search).
+   * Saves always go to the authenticated user (`POST /preferences`). Client selection is for independent
+   * search context only — we never POST preference edits to the client's account.
    */
   preferencesSubjectUserId?: string | null;
   /** When set, parent can call `replaceFormData` to apply a full preferences snapshot (e.g. agent sync preview). */
@@ -62,6 +62,7 @@ type PreferencesFormContentProps = {
    */
   autoSaveDebounceMs?: number;
 };
+
 export default function PreferencesFormContent({
   formContentRef,
   showErrorToastOnError = false,
@@ -72,162 +73,27 @@ export default function PreferencesFormContent({
   preferencesFormActionsRef,
   autoSaveDebounceMs = 0,
 }: PreferencesFormContentProps): React.ReactElement {
-  const hasReportedInitialRef = useRef(false);
-  const appliedRemoteSyncKeyRef = useRef<string | null>(null);
   const { t } = useLocalization();
-  const { userProfile } = useUserData();
-  const { userPreferences, refreshUserPreferences } = useUserPreferences({
-    preferencesSubjectUserId,
-  });
-  const { isLoaded: googleMapsLoaded } = useGoogleMaps();
   const { isMdUp } = useResponsive();
   const isDesktop = isMdUp;
-  const [formData, setFormData] = useState<Partial<OnboardingData>>({});
-  const formDataRef = useRef(formData);
-  formDataRef.current = formData;
-  const scriptsReady = (() => {
-    const win = getWindow();
-    return (
-      !!googleMapsLoaded &&
-      !!win &&
-      !!(
-        win as unknown as {
-          google?: {
-            maps?: {
-              places?: unknown;
-            };
-          };
-        }
-      ).google?.maps?.places
-    );
-  })();
+
   const {
+    formData,
     saveStatus,
-    updateFormData: updateFormDataWithAutoSave,
-    autoSave,
+    scriptsReady,
+    updateFormData,
+    patchBuyerPreferenceExtensions,
+    flushPreferencesSave,
     cancelPendingSave,
-    flushSave,
-  } = useAutoSavePreferences({
-    refreshUserPreferences,
+  } = useEmbeddedPreferencesForm({
+    formContentRef,
     showErrorToastOnError,
-    showSuccessToastOnSave: false,
-    onAfterSave: onPreferencesSaved,
-    debounceMs: autoSaveDebounceMs,
+    onInitialSnapshot,
+    onPreferencesSaved,
+    preferencesSubjectUserId,
+    preferencesFormActionsRef,
+    autoSaveDebounceMs,
   });
-  useEffect(() => {
-    hasReportedInitialRef.current = false;
-    appliedRemoteSyncKeyRef.current = null;
-    // Avoid showing the previous subject's preferences while the new GET is in flight.
-    setFormData({});
-  }, [preferencesSubjectUserId]);
-
-  useEffect(() => {
-    if (!preferencesFormActionsRef) {
-      return;
-    }
-    preferencesFormActionsRef.current = {
-      replaceFormData: (next: Partial<OnboardingData>) => {
-        setFormData(next);
-        appliedRemoteSyncKeyRef.current = null;
-      },
-    };
-    return () => {
-      preferencesFormActionsRef.current = null;
-    };
-  }, [preferencesFormActionsRef]);
-
-  useEffect(() => {
-    if (!userPreferences) return;
-    const subjectKey =
-      preferencesSubjectUserId != null && preferencesSubjectUserId !== ""
-        ? preferencesSubjectUserId
-        : "self";
-    const version = userPreferences.preferences_version ?? "";
-    // Do not include profile name in syncKey: when the profile loads or name updates, a full reset
-    // from GET preferences would race local edits (e.g. clearing important_locations) and restore
-    // stale server data before the save+refetch completes.
-    const syncKey = `${subjectKey}:${String(version)}`;
-    const remoteIl = userPreferences.important_locations;
-    const skipped = appliedRemoteSyncKeyRef.current === syncKey;
-    log.info("PROFILE_PREFERENCES", "preferencesFormContent.remoteSync", {
-      syncKey,
-      skipped,
-      remoteImportantLocationsLen: Array.isArray(remoteIl) ? remoteIl.length : null,
-    });
-    if (skipped) {
-      return;
-    }
-    appliedRemoteSyncKeyRef.current = syncKey;
-    const nextForm = userPreferencesToOnboardingData(
-      userPreferences as Record<string, unknown>,
-      userProfile ?? undefined
-    );
-    log.info("PROFILE_PREFERENCES", "preferencesFormContent.remoteSync.apply", {
-      formImportantLocationsLen: Array.isArray(nextForm.important_locations)
-        ? nextForm.important_locations.length
-        : null,
-    });
-    setFormData(nextForm);
-  }, [userPreferences, userProfile, preferencesSubjectUserId]);
-
-  /** Keep form name in sync with auth profile without resetting the whole preferences form. */
-  useEffect(() => {
-    const nameFromProfile =
-      userProfile != null && typeof userProfile.name === "string" && userProfile.name.trim() !== ""
-        ? userProfile.name.trim()
-        : undefined;
-    if (!nameFromProfile) return;
-    setFormData((prev) =>
-      prev.name === nameFromProfile ? prev : { ...prev, name: nameFromProfile }
-    );
-  }, [userProfile]);
-  useEffect(() => {
-    if (formContentRef) {
-      formContentRef.current = {
-        formData,
-      };
-    }
-  }, [formContentRef, formData]);
-  useEffect(() => {
-    if (onInitialSnapshot && !hasReportedInitialRef.current && Object.keys(formData).length > 0) {
-      hasReportedInitialRef.current = true;
-      onInitialSnapshot(formData);
-    }
-  }, [formData, onInitialSnapshot]);
-  const updateFormData = useCallback(
-    (field: keyof OnboardingData, value: unknown) => {
-      if (field === "important_locations") {
-        const nextLocations = Array.isArray(value)
-          ? (value as NonNullable<OnboardingData["important_locations"]>)
-          : [];
-        log.info("PROFILE_PREFERENCES", "preferencesFormContent.updateImportantLocations", {
-          nextLen: nextLocations.length,
-        });
-        updateFormDataWithAutoSave(formData, setFormData, field, nextLocations);
-        return;
-      }
-      updateFormDataWithAutoSave(formData, setFormData, field, value);
-    },
-    [formData, updateFormDataWithAutoSave]
-  );
-
-  const patchBuyerPreferenceExtensions = useCallback(
-    (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {
-      setFormData((prev) => {
-        const next = {
-          ...prev,
-          buyerPreferenceExtensions: fn(prev.buyerPreferenceExtensions),
-        };
-        autoSave(next);
-        return next;
-      });
-    },
-    [autoSave]
-  );
-
-  const flushPreferencesSave = useCallback(async () => {
-    await flushSave(formDataRef.current);
-  }, [flushSave]);
 
   if (renderContent) {
     return (
@@ -258,7 +124,7 @@ export default function PreferencesFormContent({
       <LocationSection
         formData={formData as OnboardingData}
         isEditMode={true}
-        updateFormData={updateFormData}
+        updateField={updateFormData}
         scriptsReady={scriptsReady}
         patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
       />

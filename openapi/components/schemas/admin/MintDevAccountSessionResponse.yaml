@@ -1,0 +1,15 @@
+allOf:
+  - $ref: '../shared/core/SuccessResponse.yaml'
+  - type: object
+    required:
+      - token
+      - role
+      - user
+    properties:
+      token:
+        type: string
+        description: One-time token for tab-scoped dev account session exchange.
+      role:
+        $ref: './DevWorkspacePersona.yaml'
+      user:
+        $ref: '../user/profile/User.yaml'

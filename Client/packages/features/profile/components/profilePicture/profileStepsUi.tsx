@@ -2,10 +2,7 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
-import type { NavItem } from "packages/navigation";
-import type { IconName } from "packages/ui/types/icons";
-
-import type { OnboardingData } from "@/features/profile/types/onboarding/onboarding";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import {
   getOnboardingSteps,
   getPersonalizationSteps,
@@ -13,7 +10,9 @@ import {
   primaryOnboardingRoleFromForm,
   type ProfileStep,
   type ProfileStepId,
-} from "@/features/profile/utils";
+} from "packages/features/profile/utils";
+import type { NavItem } from "packages/navigation";
+import type { IconName } from "packages/ui/types/icons";
 
 type StepWithIcon = ProfileStep & {
   icon: React.ComponentType<{ size?: number; className?: string }> | undefined;
@@ -47,6 +46,30 @@ const iconNameForStepId = (id: ProfileStepId): IconName | undefined => {
       return "building";
     case "seller_shell_setup":
       return "home";
+    case "seller_property":
+      return "home";
+    case "seller_address":
+      return "map-pin";
+    case "seller_timeline":
+      return "calendar";
+    case "seller_motivation":
+      return "heart";
+    case "seller_pricing":
+      return "tag";
+    case "seller_demographics":
+      return "user";
+    case "renter_shell_setup":
+      return "home";
+    case "renter_budget":
+      return "wallet";
+    case "renter_location":
+      return "map-pin";
+    case "renter_move_timeline":
+      return "calendar";
+    case "renter_household":
+      return "users";
+    case "renter_amenities":
+      return "sparkles";
     case "brokerage_shell_setup":
       return "building-2";
     case "integration_partner_shell_setup":
@@ -61,6 +84,7 @@ const iconForStepId = (id: ProfileStepId): StepWithIcon["icon"] => {
   if (!name) return undefined;
   return (props) => <Icon name={name} {...props} />;
 };
+
 const withIcons = (steps: ProfileStep[]): StepWithIcon[] =>
   steps.map((step) => ({ ...step, icon: iconForStepId(step.id) }));
 
@@ -68,7 +92,8 @@ const withIcons = (steps: ProfileStep[]): StepWithIcon[] =>
 export const getOnboardingStepsUi = (formData?: OnboardingData): StepWithIcon[] => {
   const primaryRole = formData ? primaryOnboardingRoleFromForm(formData) : undefined;
   const isAgent = primaryRole === "agent";
-  return withIcons(getOnboardingSteps({ excludeFinancial: true, isAgent, primaryRole }));
+  const excludeFinancial = primaryRole !== "buyer";
+  return withIcons(getOnboardingSteps({ excludeFinancial, isAgent, primaryRole }));
 };
 
 /** Personalization steps; pass isAgent true to include Brokerage, Licensing, Profile tabs. */

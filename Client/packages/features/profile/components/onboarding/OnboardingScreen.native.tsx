@@ -3,10 +3,10 @@ import React from "react";
 import KeyTurnLoader from "@ui/asset/loading/KeyTurnLoader";
 import { KeyboardAvoidingView, Pressable, StyleSheet, View } from "react-native";
 
-import { useFeature } from "packages/contexts";
 import { color } from "packages/design-tokens";
 import { useOnboardingForm } from "packages/features/homeauth/hooks/data/onboarding/useOnboardingForm";
 import { isOnboardingStepComplete } from "packages/features/profile/utils";
+import { useFeature } from "packages/hooks/store/featureFlags/useFeature";
 import { Box } from "packages/ui/components/structure/primitives";
 import { Text } from "packages/ui/components/structure/primitives";
 import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";
@@ -33,6 +33,12 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
     goToStep,
     loading,
     handleSubmit,
+    homePriceLoading,
+    homePriceError,
+    homePriceResult,
+    isAffordabilityCollapsed,
+    setIsAffordabilityCollapsed,
+    resolvedZipCode,
   } = useOnboardingForm({ onSubmitSuccess });
 
   const step = steps[currentStep];
@@ -56,6 +62,12 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       formData,
       updateFormData,
       patchBuyerPreferenceExtensions,
+      homePriceLoading,
+      homePriceError,
+      homePriceResult,
+      isAffordabilityCollapsed,
+      setIsAffordabilityCollapsed,
+      resolvedZipCode,
     });
   };
 
@@ -100,6 +112,7 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
       </ScrollView>
 
       <View style={styles.footer}>
+        {/* Skip for now — temporarily disabled
         {!isLastStep && step?.id !== "demographics" && step?.id !== "onboarding_role" ? (
           <Pressable
             onPress={handleSubmit}
@@ -116,6 +129,7 @@ export function OnboardingScreenNative({ onSubmitSuccess }: OnboardingScreenNati
             </Text>
           </Pressable>
         ) : null}
+        */}
         <View style={styles.footerRow}>
           {currentStep > 0 ? (
             <Pressable onPress={prevStep} style={styles.backButton}>

@@ -2,8 +2,8 @@ import { type MouseEvent, type ReactNode, useCallback } from "react";
 
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { scrollToLandingSection } from "packages/features/homeauth/utils/landingScroll";
 import { ROUTES } from "packages/navigation/types/routes";
-import { getDocument } from "packages/utils/core/platform";
 
 export type HomeHashLinkProps = {
   /** Target element `id` on the home landing page (e.g. `agents` for `id="agents"`). */
@@ -27,13 +27,7 @@ export function HomeHashLink({ sectionId, className, children, title }: HomeHash
       e.preventDefault();
       const onHome = pathname === ROUTES.HOME || pathname === "";
       if (onHome) {
-        getDocument()
-          ?.getElementById(sectionId)
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-        void navigate(
-          { pathname: ROUTES.HOME, hash: sectionId },
-          { replace: true, preventScrollReset: true }
-        );
+        scrollToLandingSection(sectionId);
         return;
       }
       void navigate({ pathname: ROUTES.HOME, hash: sectionId });

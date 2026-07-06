@@ -51,8 +51,8 @@ export function warnSearchServerOrTimeout(error: unknown): void {
   warnSearchFailed(error);
 }
 
-export function warnGeolocationDeniedUsingDefaultMarket(): void {
-  showWarningToast(translation("search.geolocation_denied_default_market"));
+export function warnGeolocationDeniedBlocksSearch(): void {
+  showWarningToast(translation("search.geolocation_denied_blocks_search"));
 }
 
 export function warnGeolocationUnavailableUsingDefaultMarket(): void {
@@ -63,7 +63,7 @@ export function warnSearchAreaWarnings(
   warnings: Array<"geolocation_denied" | "geolocation_unavailable">
 ): void {
   if (warnings.includes("geolocation_denied")) {
-    warnGeolocationDeniedUsingDefaultMarket();
+    warnGeolocationDeniedBlocksSearch();
     return;
   }
   if (warnings.includes("geolocation_unavailable")) {

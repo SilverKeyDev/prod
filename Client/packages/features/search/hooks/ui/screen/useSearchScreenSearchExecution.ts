@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 
 import { searchPropertiesInViewport } from "packages/features/search/api/propertySearch";
 import { searchApi } from "packages/features/search/api/search";
@@ -12,9 +12,15 @@ import {
 } from "packages/features/search/utils/outcomes/searchOutcomeToast";
 import { usePreActionSnapshot } from "packages/hooks/ui";
 import { log } from "packages/logger";
-import type { SearchFilterOverrides } from "packages/store";
+import { type SearchFilterOverrides, useSearchContextStore } from "packages/store";
 import type { IsochroneData } from "packages/types/domain/api";
 
+import {
+  abortActiveSearch,
+  beginSearchAbortScope,
+  endSearchAbortScope,
+  isActiveSearchController,
+} from "@/features/search/utils/searchAbortController";
 import {
   resolveSearchArea,
   viewportRingFromMapRegion,
@@ -68,8 +74,8 @@ export function useSearchScreenSearchExecution({
   setCurrentPage,
   setShowPropertyModals,
 }: UseSearchScreenSearchExecutionParams) {
-  const searchAbortControllerRef = useRef<AbortController | null>(null);
   const mapPreviewSearchLifecycle = useSearchMapPreviewSearchLifecycle();
+  const flushPreferencesSave = useSearchContextStore((s) => s.flushPreferencesSave);
 
   const { snapshot: snapshotPreSearch, restore: restorePreSearch } = usePreActionSnapshot<{
     results: SearchResult[];
@@ -86,9 +92,7 @@ export function useSearchScreenSearchExecution({
       searchStage,
     });
 
-    const controller = new AbortController();
-    searchAbortControllerRef.current?.abort();
-    searchAbortControllerRef.current = controller;
+    const controller = beginSearchAbortScope();
 
     setIsSearching(true);
     setSearchStage("Preparing search...");
@@ -96,6 +100,9 @@ export function useSearchScreenSearchExecution({
     log.info("SEARCH", "Mobile unified search start", {});
 
     try {
+      if (flushPreferencesSave) {
+        await flushPreferencesSave();
+      }
       const mapBoundsRing = lastMapRegion ? viewportRingFromMapRegion(lastMapRegion) : null;
       if (!locationPlaceViewportRing?.length) {
         clearLocationPlaceSearchArea();
@@ -116,6 +123,13 @@ export function useSearchScreenSearchExecution({
           return null;
         },
       });
+
+      if (resolved.blocked) {
+        warnSearchAreaWarnings(resolved.warnings);
+        setSearchStage("");
+        setIsSearching(false);
+        return;
+      }
 
       warnSearchAreaWarnings(resolved.warnings);
       setSearchSource(resolved.searchSource);
@@ -147,8 +161,11 @@ export function useSearchScreenSearchExecution({
       warnSearchServerOrTimeout(error);
       log.error("SEARCH", "Mobile unified search failed", error);
     } finally {
-      searchAbortControllerRef.current = null;
-      setIsSearching(false);
+      const wasActive = isActiveSearchController(controller);
+      endSearchAbortScope(controller);
+      if (wasActive) {
+        setIsSearching(false);
+      }
     }
   }, [
     currentPage,
@@ -172,6 +189,7 @@ export function useSearchScreenSearchExecution({
     setLocationSearchOverlayData,
     selectedClientId,
     mapPreviewSearchLifecycle,
+    flushPreferencesSave,
   ]);
 
   const runMapAreaSearch = useCallback(async () => {
@@ -181,7 +199,7 @@ export function useSearchScreenSearchExecution({
 
   const handleCancelSearch = useCallback(() => {
     if (!isSearching) return;
-    searchAbortControllerRef.current?.abort();
+    abortActiveSearch();
     const restored = restorePreSearch();
     if (restored) {
       setSearchResults(restored.results);

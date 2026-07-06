@@ -1,5 +1,9 @@
 /**
  * Messaging feature barrel file - centralized exports for messaging functionality
+ *
+ * Workspace-scoped messaging lives under components/workspace/, hooks/data/workspace/,
+ * and utils/workspace/ (persona registry + surface routing) — intentional subpaths, not
+ * a separate feature package.
  */
 
 // API

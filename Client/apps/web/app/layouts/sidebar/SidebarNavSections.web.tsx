@@ -8,8 +8,8 @@ import Region from "packages/ui/components/system/accessibility/Region";
 import { BodyText } from "@/components/ui";
 import type { UserProfile } from "@/features/homeauth/types";
 
-import { type NavCategory, type SidebarNavItem } from "./sidebarNav.web";
-import { SidebarNavCategory } from "./SidebarNavCategory.web";
+import { type NavigationStructure } from "./sidebarNav.web";
+import { SidebarNavSingleLink } from "./SidebarNavSingleLink.web";
 
 export function SidebarHeader({
   expanded,
@@ -55,28 +55,25 @@ export function SidebarHeader({
     </Box>
   );
 }
+
 export function SidebarFooter({ expanded, onLogout }: { expanded: boolean; onLogout: () => void }) {
   return <AccountLogoutAction variant="sidebar" expanded={expanded} onLogout={onLogout} />;
 }
+
 type SidebarNavProps = {
-  navigation: Record<string, NavCategory>;
+  navigation: NavigationStructure;
   expanded: boolean;
   isActive: (href: string) => boolean;
-  isCategoryActive: (items: SidebarNavItem[]) => boolean;
-  toggleCategory: (category: string) => void;
-  openCategories: Record<string, boolean>;
   onLinkClick?: () => void;
   unreadCount: number;
   isLoaded: boolean;
   onPrefetchHref: (href: string) => void;
 };
+
 export function SidebarNav({
   navigation,
   expanded,
   isActive,
-  isCategoryActive,
-  toggleCategory,
-  openCategories,
   onLinkClick,
   unreadCount,
   isLoaded,
@@ -84,19 +81,16 @@ export function SidebarNav({
 }: SidebarNavProps) {
   return (
     <Region as="nav" label="Primary navigation" className="mt-4 pb-4">
-      {Object.entries(navigation).map(([categoryKey, category]) => (
+      {Object.entries(navigation).map(([categoryKey, item]) => (
         <Box key={categoryKey}>
-          <SidebarNavCategory
+          <SidebarNavSingleLink
             categoryKey={categoryKey}
-            category={category}
+            item={item}
             expanded={expanded}
-            isActive={isActive}
-            isCategoryActive={isCategoryActive}
-            toggleCategory={toggleCategory}
-            openCategories={openCategories}
-            onLinkClick={onLinkClick}
+            isActive={isActive(item.href)}
             unreadCount={unreadCount}
             isLoaded={isLoaded}
+            onLinkClick={onLinkClick}
             onPrefetchHref={onPrefetchHref}
           />
         </Box>

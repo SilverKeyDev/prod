@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getInsetNavItemClasses,
   sidebarInsetListRowClass,
   sidebarInsetListRowSelectedProps,
   SK_INSET_ROW_SELECTED_CLASS,
@@ -23,6 +24,8 @@ describe("sidebarInsetListRowClass", () => {
   it("omits selection chrome when not selected", () => {
     const unselected = sidebarInsetListRowClass(false);
     expect(unselected).not.toContain(SK_INSET_ROW_SELECTED_CLASS);
+    expect(unselected).toContain("hover:bg-neutral-100");
+    expect(unselected).not.toContain("hover:bg-primary-muted");
   });
 
   it("exposes data attribute for CSS ::before olive stripe", () => {
@@ -30,5 +33,21 @@ describe("sidebarInsetListRowClass", () => {
       [SK_INSET_ROW_SELECTED_DATA_ATTR]: "true",
     });
     expect(sidebarInsetListRowSelectedProps(false)).toEqual({});
+  });
+});
+
+describe("getInsetNavItemClasses", () => {
+  it("uses neutral selected fill, not primary-muted olive", () => {
+    const active = getInsetNavItemClasses({ active: true });
+    expect(active).toContain("!bg-neutral-100");
+    expect(active).toContain("hover:!bg-neutral-200");
+    expect(active).not.toContain("primary-muted");
+  });
+
+  it("keeps inactive hover on surface without olive or gray wash", () => {
+    const inactive = getInsetNavItemClasses({ active: false });
+    expect(inactive).toContain("hover:!bg-background-surface");
+    expect(inactive).not.toContain("primary-muted");
+    expect(inactive).not.toContain("hover:!bg-neutral-100");
   });
 });

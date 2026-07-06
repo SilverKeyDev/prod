@@ -4,15 +4,19 @@ import { Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { color } from "packages/design-tokens";
 import CloseButton from "packages/ui/components/actions/button/core/CloseButton";
-import { Text } from "packages/ui/components/structure/primitives";
+import ScrollView from "packages/ui/components/structure/primitives/scroll/ScrollView";
+import Title from "packages/ui/components/structure/text/Title";
 
 import type { BaseModalProps } from "./BaseModalTypes";
+
+const NATIVE_PANEL_HEIGHT = "85%";
 
 const BaseModal: React.FC<BaseModalProps> = (props) => {
   const {
     isOpen,
     onClose,
     title,
+    panelLayout = "auto",
     showCloseButton = true,
     closeOnBackdropClick = true,
     children,
@@ -20,6 +24,8 @@ const BaseModal: React.FC<BaseModalProps> = (props) => {
     footerContent,
     showHeaderBorder = true,
   } = props;
+
+  const fixedPanel = panelLayout === "fixed";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -47,7 +53,7 @@ const BaseModal: React.FC<BaseModalProps> = (props) => {
       >
         <Pressable style={styles.centered} onPress={(e) => e.stopPropagation()}>
           <View
-            style={styles.panel}
+            style={[styles.panel, fixedPanel && styles.panelFixed]}
             accessibilityViewIsModal
             accessibilityLabel={modalLabel}
             accessibilityRole="none"
@@ -57,12 +63,13 @@ const BaseModal: React.FC<BaseModalProps> = (props) => {
                 <View style={styles.headerContent}>
                   {headerContent ??
                     (title ? (
-                      <Text
-                        accessibilityRole="header"
-                        className="text-text-primary text-sm font-semibold leading-snug"
+                      <Title
+                        as="h2"
+                        size="sm"
+                        className="text-text-primary font-sans font-medium leading-snug"
                       >
                         {title}
-                      </Text>
+                      </Title>
                     ) : null)}
                 </View>
                 {showCloseButton && (
@@ -70,7 +77,17 @@ const BaseModal: React.FC<BaseModalProps> = (props) => {
                 )}
               </View>
             )}
-            <View style={styles.body}>{children}</View>
+            {fixedPanel ? (
+              <ScrollView
+                style={styles.bodyFixed}
+                contentContainerStyle={styles.bodyContent}
+                keyboardShouldPersistTaps="handled"
+              >
+                {children}
+              </ScrollView>
+            ) : (
+              <View style={styles.body}>{children}</View>
+            )}
             {footerContent && <View style={styles.footer}>{footerContent}</View>}
           </View>
         </Pressable>
@@ -97,6 +114,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     minWidth: 280,
     maxHeight: "90%",
+    width: "100%",
+    flexDirection: "column",
+  },
+  panelFixed: {
+    height: NATIVE_PANEL_HEIGHT,
+    maxHeight: "90%",
   },
   header: {
     flexDirection: "row",
@@ -116,6 +139,13 @@ const styles = StyleSheet.create({
   body: {
     padding: 16,
     maxHeight: 400,
+  },
+  bodyFixed: {
+    flex: 1,
+    minHeight: 0,
+  },
+  bodyContent: {
+    padding: 16,
   },
   footer: {
     padding: 16,

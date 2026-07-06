@@ -6,8 +6,8 @@ import { Icon } from "@ui/icons";
 import DeleteModal from "@ui/modals/standalone/DeleteModal";
 
 import { useLocalization } from "packages/contexts";
-import PdfModal from "packages/features/documents/components/pdf/PdfModalBridge";
 import { useDocumentActions } from "packages/features/documents/hooks/data/useDocumentActions";
+import { showErrorToast } from "packages/hooks/ui";
 import { Portal } from "packages/ui/components/structure/portal";
 import { Box } from "packages/ui/components/structure/primitives";
 
@@ -50,9 +50,7 @@ export default function AgreementCardActions({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const internal = useDocumentActions();
 
-  const handleViewDocument = externalActionHandlers
-    ? externalActionHandlers.handleViewDocument
-    : internal.handleViewDocument;
+  const handleViewDocument = externalActionHandlers?.handleViewDocument;
   const handleDownloadDocument = externalActionHandlers
     ? externalActionHandlers.handleDownloadDocument
     : internal.handleDownloadDocument;
@@ -62,7 +60,22 @@ export default function AgreementCardActions({
   const handleSignNow = externalActionHandlers?.handleSignNow;
   const handleViewSignedAgreement = externalActionHandlers?.handleViewSignedAgreement;
 
-  const showInlinePdfModal = !externalActionHandlers && internal.currentPdf;
+  const openAgreementViewer = () => {
+    if (showViewSigned) {
+      if (handleViewSignedAgreement) {
+        handleViewSignedAgreement(doc);
+        return;
+      }
+      if (handleViewDocument) {
+        handleViewDocument(doc.id, doc.filename);
+        return;
+      }
+    } else if (handleViewDocument) {
+      handleViewDocument(doc.id, doc.filename);
+      return;
+    }
+    showErrorToast("Unable to open agreement viewer. Refresh and try again.");
+  };
 
   const handleDeleteConfirm = () => {
     onDelete?.(doc);
@@ -117,11 +130,7 @@ export default function AgreementCardActions({
             <Button
               variant="success"
               size="sm"
-              onClick={() =>
-                handleViewSignedAgreement
-                  ? handleViewSignedAgreement(doc)
-                  : handleViewDocument(doc.id, doc.filename)
-              }
+              onClick={openAgreementViewer}
               icon={<Icon name="check-circle" size={16} />}
               fullWidth={!isList}
               className={primaryBtnClass}
@@ -132,7 +141,7 @@ export default function AgreementCardActions({
             <Button
               variant="primary"
               size="sm"
-              onClick={() => handleViewDocument(doc.id, doc.filename)}
+              onClick={openAgreementViewer}
               icon={<Icon name="eye" size={16} />}
               fullWidth={!isList}
               className={primaryBtnClass}
@@ -176,17 +185,6 @@ export default function AgreementCardActions({
           )}
         </Box>
       </Box>
-
-      {showInlinePdfModal ? (
-        <Portal>
-          <PdfModal
-            currentPdf={internal.currentPdf}
-            currentReportAddress={internal.currentDocumentName}
-            reportId={doc.id}
-            onClose={internal.closePdfModal}
-          />
-        </Portal>
-      ) : null}
 
       {showDelete && onDelete && (
         <Portal>

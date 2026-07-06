@@ -4,14 +4,14 @@ import { useAuthVerification } from "packages/hooks/data/auth/useAuthVerificatio
 import { useCountdown } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import { useNavigation } from "packages/navigation";
-import { ROUTES } from "packages/navigation/types/routes";
+import { getPostAuthDestination } from "packages/navigation/postAuthDestination";
 import { performVerify } from "packages/utils/auth/verification";
 import { dateNow } from "packages/utils/core/date";
 import { getSessionStorage } from "packages/utils/core/storage";
 
 import { VerificationForm, type VerificationStep } from "./VerificationForm";
 
-type LocationState = { email?: string; fromLogin?: boolean };
+type LocationState = { email?: string; fromLogin?: boolean; returnPath?: string };
 
 export function VerificationFeature() {
   const { verify, resendCode } = useAuthVerification();
@@ -89,7 +89,12 @@ export function VerificationFeature() {
           session.removeItem("signupPassword");
         },
         navigateToPath,
-        { postSuccessPath: locationState?.fromLogin ? ROUTES.SEARCH : "/onboarding" }
+        {
+          postSuccessPath: getPostAuthDestination({
+            flow: locationState?.fromLogin ? "login" : "signup",
+            returnPath: locationState?.returnPath,
+          }),
+        }
       );
     } catch (err: unknown) {
       log.error("AUTH", "Verification error", err);

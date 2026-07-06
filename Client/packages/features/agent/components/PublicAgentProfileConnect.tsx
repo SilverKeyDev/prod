@@ -90,8 +90,7 @@ export function PublicAgentProfileConnect({
   const handleSignIn = useCallback(() => {
     setPendingPublicAgentConnect(agentId, { name: agentName, photoUrl: agentPhotoUrl });
     setAuthModalOpen(false);
-    // Navigate directly to login with no return path — the resume hook will handle
-    // sending the connection request after auth and navigate to DASHBOARD cleanly.
+    // Navigate to login; pending intent is completed after onboarding via useResumePendingAgentPublicConnect.
     navigate("LOGIN");
   }, [agentId, agentName, agentPhotoUrl, navigate]);
 

@@ -35,13 +35,17 @@ def test_api_telemetry_skips_options_preflight(client):
 
 def test_api_telemetry_skips_unmatched_404(client):
     with patch(CAPTURE_PATH) as mock_capture:
-        client.get("/no-such-route-xyz-404")
+        response = client.get("/no-such-route-xyz-404")
+        response.get_data()
+        response.close()
     mock_capture.assert_not_called()
 
 
 def test_api_telemetry_skips_spa_catch_all(client):
     with patch(CAPTURE_PATH) as mock_capture:
-        client.get("/login")
+        response = client.get("/login")
+        response.get_data()
+        response.close()
     mock_capture.assert_not_called()
 
 

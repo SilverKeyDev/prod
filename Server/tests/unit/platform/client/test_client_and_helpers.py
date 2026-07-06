@@ -203,8 +203,6 @@ class TestDataModuleBarrel:
             get_property_images,
             normalize_listing,
             normalize_listings,
-            search_active_listings,
-            search_inactive_listings,
             slipstream_get,
             slipstream_post,
             validate_token,
@@ -212,8 +210,6 @@ class TestDataModuleBarrel:
 
         assert SLIPSTREAM_BASE == "https://slipstream.homejunction.com"
         assert SLIPSTREAM_MARKET == "GAMLS"
-        assert callable(search_active_listings)
-        assert callable(search_inactive_listings)
         assert callable(get_property_detail)
         assert callable(get_property_images)
         assert callable(get_property_comps)

@@ -24,6 +24,7 @@ properties:
       enum:
         - buyer
         - seller
+        - renter
         - agent
         - brokerage
         - integration_partner

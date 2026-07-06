@@ -966,40 +966,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/preferences/add": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Set current user as agent */
-        get: operations["setCurrentUserAsAgent"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/preferences/agents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Search agents for preferences UI */
-        get: operations["getPreferencesAgents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/preferences/clients": {
         parameters: {
             query?: never;
@@ -1017,23 +983,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/preferences/remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Remove agent relationship */
-        get: operations["removeAgentRelationship"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/preferences/user/{userId}": {
         parameters: {
             query?: never;
@@ -1043,23 +992,6 @@ export interface paths {
         };
         /** Get preferences by user id (scoped) */
         get: operations["getUserPreferencesById"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/preferences/users_agents": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List agents linked to the current user */
-        get: operations["getUserAgents"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1214,40 +1146,6 @@ export interface paths {
         };
         /** Celery task status for research/compare */
         get: operations["getResearchTaskStatus"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/home-matching/find-matches": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Queue home matching task */
-        post: operations["homeMatchingFindMatches"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/home-matching/task-status/{task_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Home matching Celery task status */
-        get: operations["getHomeMatchingTaskStatus"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2152,6 +2050,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/dev-accounts/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mint one-time dev account session token (admin) */
+        post: operations["adminMintDevAccountSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dev-accounts/session/exchange": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange one-time dev account session token */
+        post: operations["adminExchangeDevAccountSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users/gate-roles": {
         parameters: {
             query?: never;
@@ -2703,26 +2635,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/agent/chats/messages": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Send message
-         * @description Send a message in a conversation
-         */
-        post: operations["sendMessage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/admin/partners": {
         parameters: {
             query?: never;
@@ -2810,6 +2722,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get SkySlope integration metadata for a brokerage (admin only) */
+        get: operations["getAdminBrokerageSkySlopeCredential"];
+        /** Update SkySlope integration credentials for a brokerage (admin only) */
+        put: operations["updateAdminBrokerageSkySlopeCredential"];
+        /** Store encrypted SkySlope API key for a brokerage (admin only) */
+        post: operations["createAdminBrokerageSkySlopeCredential"];
+        /** Delete SkySlope integration credentials for a brokerage (admin only) */
+        delete: operations["deleteAdminBrokerageSkySlopeCredential"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope/test-connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify stored SkySlope credentials decrypt successfully (admin only) */
+        post: operations["testAdminBrokerageSkySlopeConnection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/partners/placements": {
         parameters: {
             query?: never;
@@ -2870,9 +2819,6 @@ export interface components {
             plan?: {
                 [key: string]: unknown;
             } | null;
-        };
-        AddAgentResponse: components["schemas"]["SuccessResponse"] & {
-            agent?: components["schemas"]["User"];
         };
         AddCalendarACLRequest: {
             /**
@@ -3043,10 +2989,10 @@ export interface components {
             /** @description ISO 8601 timestamp when the client relationship or row was created. */
             created_at?: string | null;
             /**
-             * @description Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/investor role is set.
+             * @description Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/renter/investor role is set.
              * @enum {string|null}
              */
-            client_kind?: "buyer" | "seller" | "investor" | "unknown" | null;
+            client_kind?: "buyer" | "seller" | "renter" | "investor" | "unknown" | null;
             /**
              * @description Checklist area with the most recent completed task activity for this client (preview only).
              *     `search` when there are no completed checklist tasks yet or activity cannot be determined.
@@ -3472,6 +3418,59 @@ export interface components {
             /** @description Replaces the user's favorites; each element is a home object passed to add_or_update_home_basic (same flexible shape as add-favorite). */
             favorites: components["schemas"]["FavoriteHomePayload"][];
         };
+        BrokerageSkySlopeCredential: {
+            /** @description Brokerage org id (brokerage_orgs.id) */
+            brokerage_id: string;
+            /**
+             * @description Integration provider identifier
+             * @enum {string}
+             */
+            provider: "skyslope";
+            /** @description Last four characters of the API key (masked display only) */
+            key_last4?: string | null;
+            /** @description Optional SkySlope organization identifier */
+            skyslope_org_id?: string | null;
+            status: components["schemas"]["BrokerageSkySlopeCredentialStatus"];
+            /**
+             * Format: date-time
+             * @description When connection was last verified successfully
+             */
+            last_verified_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        BrokerageSkySlopeCredentialCreateRequest: {
+            /** @description Per-brokerage SkySlope AccessKey (write-only; never returned by GET) */
+            api_key: string;
+            /** @description Per-brokerage SkySlope AccessSecret (write-only; required for live API calls) */
+            access_secret?: string;
+            /** @description Optional SkySlope organization identifier */
+            skyslope_org_id?: string | null;
+        };
+        BrokerageSkySlopeCredentialUpdateRequest: {
+            /** @description Replacement SkySlope AccessKey (write-only) */
+            api_key?: string;
+            /** @description Replacement SkySlope AccessSecret (write-only) */
+            access_secret?: string;
+            skyslope_org_id?: string | null;
+            status?: components["schemas"]["BrokerageSkySlopeCredentialStatus"];
+        };
+        BrokerageSkySlopeCredentialResponse: {
+            success: boolean;
+            data: components["schemas"]["BrokerageSkySlopeCredential"];
+        };
+        /**
+         * @description SkySlope integration credential health status
+         * @enum {string}
+         */
+        BrokerageSkySlopeCredentialStatus: "active" | "invalid" | "pending";
+        BrokerageSkySlopeCredentialTestResponse: {
+            success: boolean;
+            /** @description Safe, non-secret connection test result */
+            message: string;
+        };
         ChatbotHistoryMessage: {
             id: string;
             /** @enum {string} */
@@ -3862,6 +3861,26 @@ export interface components {
         };
         /** @description Create or update user preferences */
         CreatePreferencesRequest: {
+            /** @description Buyer communication preference — text, call, or email (user_communication_prefs) */
+            preferred_contact_method?: string;
+            /** @description Update cadence — as_things_come_up, weekly_check_in, or daily */
+            communication_frequency?: string;
+            /** @description Versioned buyer preference extensions (v1 JSON) */
+            extended_buyer_preferences?: {
+                /** @description SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation */
+                buyer_about_me?: {
+                    [key: string]: unknown;
+                };
+                /** @description SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc. */
+                price_financing?: {
+                    [key: string]: unknown;
+                };
+            } & {
+                [key: string]: unknown;
+            };
+            /** @description Intent attribute — true when buyer pays cash */
+            paying_cash?: boolean;
+        } & {
             [key: string]: unknown;
         };
         CreateRevisionResponse: components["schemas"]["SuccessResponse"] & {
@@ -4416,22 +4435,6 @@ export interface components {
             hasMore: boolean;
             cursor?: string | null;
         };
-        FindMatchesRequest: {
-            /** @description User preferences and profile data */
-            user_data: {
-                [key: string]: unknown;
-            };
-            /** @description Array of home data objects */
-            homes_data: {
-                [key: string]: unknown;
-            }[];
-            /** @description Number of top matches to return (default 10) */
-            top_k?: number | null;
-            /** @description Include match explanations (default false) */
-            include_explanations?: boolean | null;
-            /** @description Embedding provider to use (default sentence_transformer) */
-            embedding_provider?: string | null;
-        };
         ForgotPasswordData: {
             /**
              * Format: email
@@ -4733,6 +4736,8 @@ export interface components {
             colorId?: string | null;
             /** @description SilverKey scheduling category from the app database when this event was created in-app (e.g. `property_viewing`, `meeting`, `open_house`). Not sent to Google; attached by the server when listing or getting events. Used for UI coloring when the title no longer matches a known template label. */
             silverKeyEventType?: string | null;
+            /** @description True when this SilverKey-managed event was saved with virtual meeting requested (derived from DB conference_status / meet_url). Omitted for events not in our DB. */
+            silverKeyVirtualMeetingEnabled?: boolean | null;
         };
         GoogleEventAttendee: {
             /** Format: email */
@@ -5031,6 +5036,26 @@ export interface components {
         };
         /** @description User search preferences */
         PreferencesResponse: {
+            /** @description Buyer communication preference — text, call, or email */
+            preferred_contact_method?: string;
+            /** @description Update cadence — as_things_come_up, weekly_check_in, or daily */
+            communication_frequency?: string;
+            /** @description Versioned buyer preference extensions (v1 JSON) */
+            extended_buyer_preferences?: {
+                /** @description SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation */
+                buyer_about_me?: {
+                    [key: string]: unknown;
+                };
+                /** @description SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc. */
+                price_financing?: {
+                    [key: string]: unknown;
+                };
+            } & {
+                [key: string]: unknown;
+            };
+            /** @description Intent attribute — true when buyer pays cash */
+            paying_cash?: boolean;
+        } & {
             [key: string]: unknown;
         };
         UpsertPreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
@@ -5560,8 +5585,10 @@ export interface components {
          *     }
          */
         PropertySearchResult: {
-            /** @description Property ID (ZPID or internal) */
+            /** @description Slipstream listing key (ZPID or MLS id) */
             id: string;
+            /** @description Stable PropertyCache UUID for this listing in SilverKey (use for saves, feed, and refresh). */
+            home_id?: string | null;
             /** @description Core property characteristics */
             essentials: {
                 bedrooms: number;
@@ -5601,9 +5628,6 @@ export interface components {
             score?: number | null;
             /** @description Position in search results */
             ranking?: number | null;
-        };
-        RemoveAgentResponse: components["schemas"]["SuccessResponse"] & {
-            removed?: boolean;
         };
         RemoveFavoriteRequest: {
             address: string;
@@ -5772,9 +5796,6 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
-        SearchAgentsPreferencesResponse: components["schemas"]["SuccessResponse"] & {
-            agents?: components["schemas"]["User"][] | null;
-        };
         AgentSearchQueryParams: {
             /** @default  */
             q: string;
@@ -5835,7 +5856,8 @@ export interface components {
          *       "preferences_strict_filter": false,
          *       "perBucketPages": 10,
          *       "forceSearch": false,
-         *       "onlyCached": false
+         *       "onlyCached": false,
+         *       "hydrateListings": false
          *     }
          */
         SearchByPolygonRequest: {
@@ -5854,6 +5876,11 @@ export interface components {
             forceSearch?: boolean | null;
             /** @description When true, return previously materialized results only without hitting upstream MLS. */
             onlyCached?: boolean | null;
+            /**
+             * @description When true with `onlyCached`, refresh listing snapshots (price, status, beds, etc.) from Slipstream
+             *     using each persisted home_id before responding. Does not re-run search or change match scores.
+             */
+            hydrateListings?: boolean | null;
             /**
              * @description Optional subject for preference scoring (agents: must be a linked client id; buyers are always scoped to self).
              *     Resolved server-side via `resolve_preferences_user_id_for_research`.
@@ -5950,7 +5977,10 @@ export interface components {
                     /** Format: double */
                     lng?: number;
                 } | null;
-                /** @description Map zoom level at the time of the last search. */
+                /**
+                 * Format: double
+                 * @description Map zoom level at the time of the last search.
+                 */
                 map_zoom?: number | null;
                 /**
                  * Format: date-time
@@ -6431,13 +6461,23 @@ export interface components {
          * @description Dev-only workspace persona for admin self-impersonation (local QA).
          * @enum {string}
          */
-        DevWorkspacePersona: "buyer" | "seller" | "agent" | "brokerage" | "integration_partner";
+        DevWorkspacePersona: "buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner";
         SetCurrentUserDevWorkspaceRequest: {
             /** @description Exclusive workspace persona to apply to the signed-in user. */
             workspace: components["schemas"]["DevWorkspacePersona"];
         };
         SetCurrentUserDevWorkspaceResponse: components["schemas"]["SuccessResponse"] & {
             user?: components["schemas"]["User"];
+        };
+        ExchangeDevAccountSessionRequest: {
+            /** @description One-time dev session token minted by an admin for a target dev test account. */
+            token: string;
+        };
+        MintDevAccountSessionResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description One-time token for tab-scoped dev account session exchange. */
+            token: string;
+            role: components["schemas"]["DevWorkspacePersona"];
+            user: components["schemas"]["User"];
         };
         UpdateChecklistDispatchAutomationRequest: {
             enabled: boolean;
@@ -6614,9 +6654,6 @@ export interface components {
             /** @description Brokerage organization ids from `user_org_memberships` for attribution and admin scope. */
             brokerage_org_ids?: string[] | null;
         };
-        UserAgentsResponse: components["schemas"]["SuccessResponse"] & {
-            agents?: components["schemas"]["User"][] | null;
-        };
         /**
          * @description User identifier (UUID or string)
          * @example 123e4567-e89b-12d3-a456-426614174000
@@ -6701,7 +6738,7 @@ export interface components {
             /** @description Checklist step references (section:item_id), e.g. closing:13 */
             step_ids: string[];
             /** @description Workspaces that may see this placement */
-            target_roles: ("buyer" | "seller" | "agent" | "brokerage" | "integration_partner")[];
+            target_roles: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
             /**
              * @description Whether payout is attributed per click or per closed transaction
              * @enum {string}
@@ -6768,7 +6805,7 @@ export interface components {
             description?: string | null;
             /** @description Required when target_roles includes buyer or seller */
             step_ids?: string[];
-            target_roles: ("buyer" | "seller" | "agent" | "brokerage" | "integration_partner")[];
+            target_roles: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
             /** @enum {string} */
             payout_type: "on_click" | "on_close";
             payout_per_conversion?: number | null;
@@ -6788,7 +6825,7 @@ export interface components {
             logo_url?: string | null;
             description?: string | null;
             step_ids?: string[];
-            target_roles?: ("buyer" | "seller" | "agent" | "brokerage" | "integration_partner")[];
+            target_roles?: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
             /** @enum {string} */
             payout_type?: "on_click" | "on_close";
             payout_per_conversion?: number | null;
@@ -6828,7 +6865,7 @@ export interface components {
         PartnerPlacementsQueryParams: {
             step_id: string;
             /** @enum {string} */
-            workspace: "buyer" | "seller" | "agent" | "brokerage" | "integration_partner";
+            workspace: "buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner";
             /** @description Optional; used only to fill embed URL placeholders when the partner template includes them */
             transaction_id?: string;
         };
@@ -9950,118 +9987,6 @@ export interface operations {
             };
         };
     };
-    setCurrentUserAsAgent: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AddAgentResponse"];
-                };
-            };
-            /** @description Missing agent_id */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Agents cannot assign themselves as clients */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description User or agent not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Agent relationship already exists */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getPreferencesAgents: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchAgentsPreferencesResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     getPreferencesClients: {
         parameters: {
             query?: never;
@@ -10082,80 +10007,6 @@ export interface operations {
             };
             /** @description HTTP 401 */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    removeAgentRelationship: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RemoveAgentResponse"];
-                };
-            };
-            /** @description Missing agent_id */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Agents cannot remove themselves as clients */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description User or agent not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Agent relationship does not exist */
-            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10205,44 +10056,6 @@ export interface operations {
             };
             /** @description HTTP 403 */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getUserAgents: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserAgentsResponse"];
-                };
-            };
-            /** @description HTTP 401 */
-            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10775,106 +10588,6 @@ export interface operations {
         };
     };
     getResearchTaskStatus: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description HTTP 200 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskStatusResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden (task owned by another user) */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    homeMatchingFindMatches: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FindMatchesRequest"];
-            };
-        };
-        responses: {
-            /** @description HTTP 202 */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaskStatusResponse"];
-                };
-            };
-            /** @description HTTP 400 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description HTTP 500 */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    getHomeMatchingTaskStatus: {
         parameters: {
             query?: never;
             header?: never;
@@ -13549,6 +13262,90 @@ export interface operations {
             };
         };
     };
+    adminMintDevAccountSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MintDevAccountSessionResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminExchangeDevAccountSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExchangeDevAccountSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     adminListGateRoleUsers: {
         parameters: {
             query?: never;
@@ -15054,75 +14851,6 @@ export interface operations {
             };
         };
     };
-    sendMessage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SendMessageRequest"];
-            };
-        };
-        responses: {
-            /** @description Message sent */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SendMessageResponse"];
-                };
-            };
-            /** @description Invalid request body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not authenticated */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Access denied */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Conversation not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Server error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
     listAdminPartners: {
         parameters: {
             query?: never;
@@ -15298,6 +15026,178 @@ export interface operations {
                 };
             };
             /** @description Partner not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Credential metadata (no secret values) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
+                };
+            };
+            /** @description Credential or brokerage not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrokerageSkySlopeCredentialUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Credential updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
+                };
+            };
+            /** @description Credential or brokerage not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrokerageSkySlopeCredentialCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Credential stored */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
+                };
+            };
+            /** @description Brokerage not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Credential already exists for this brokerage */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Credential deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Credential not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    testAdminBrokerageSkySlopeConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Connection test result (safe message only) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialTestResponse"];
+                };
+            };
+            /** @description Credential not found */
             404: {
                 headers: {
                     [name: string]: unknown;

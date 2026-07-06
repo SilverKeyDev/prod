@@ -95,6 +95,18 @@ describe("transformPropertySearchResult", () => {
     expect(result._score).toBe(0);
   });
 
+  it("prefers home_id as SearchResult id when provided", () => {
+    const stableId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+    const result = transformPropertySearchResult(
+      openApiProperty({ id: "99999", home_id: stableId }),
+      0
+    );
+
+    expect(result.id).toBe(stableId);
+    expect(result.home_id).toBe(stableId);
+    expect(result.zpid).toBe(99999);
+  });
+
   it("preserves distinct fractional scores on OpenAPI rows", () => {
     const a = transformPropertySearchResult(openApiProperty({ score: 53.2, id: "1" }), 0);
     const b = transformPropertySearchResult(openApiProperty({ score: 54.8, id: "2" }), 1);

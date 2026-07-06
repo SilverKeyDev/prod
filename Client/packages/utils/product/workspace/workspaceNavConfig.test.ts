@@ -19,24 +19,14 @@ describe("getWorkspaceNavTabs", () => {
     expect(keys).toContain("agent");
   });
 
-  it("brokerage shows analytics tab on desktop", () => {
-    const tabs = getWorkspaceNavTabs("brokerage", false);
-    const keys = tabs.map((t) => t.key);
-    expect(keys).toContain("analytics");
-    expect(tabs.find((t) => t.key === "analytics")?.labelKey).toBe(
-      "workspace.nav.analytics.brokerage"
-    );
+  it("brokerage shows same desktop nav tabs as buyer (no separate analytics tab)", () => {
+    const keys = getWorkspaceNavTabs("brokerage", false).map((t) => t.key);
+    expect(keys).toEqual(["dashboard", "search", "decide", "agent", "profile"]);
+    expect(keys).not.toContain("analytics");
   });
 
-  it("buyer and agent hide analytics tab", () => {
-    for (const ws of ["buyer", "agent", "seller", "integration_partner"] as const) {
-      const keys = getWorkspaceNavTabs(ws, false).map((t) => t.key);
-      expect(keys).not.toContain("analytics");
-    }
-  });
-
-  it("seller, brokerage, and integration_partner show full desktop nav (no longer placeholders)", () => {
-    for (const ws of ["seller", "brokerage", "integration_partner"] as const) {
+  it("seller, renter, brokerage, and integration_partner show full desktop nav (no longer placeholders)", () => {
+    for (const ws of ["seller", "renter", "brokerage", "integration_partner"] as const) {
       const keys = getWorkspaceNavTabs(ws, false).map((t) => t.key);
       expect(keys).toContain("dashboard");
       expect(keys).toContain("search");
@@ -46,11 +36,21 @@ describe("getWorkspaceNavTabs", () => {
   });
 
   it("graduated workspaces use workspace-specific dashboard and messaging label keys", () => {
-    const tabs = getWorkspaceNavTabs("seller", false);
-    expect(tabs.find((t) => t.key === "dashboard")?.labelKey).toBe(
+    const sellerTabs = getWorkspaceNavTabs("seller", false);
+    expect(sellerTabs.find((t) => t.key === "dashboard")?.labelKey).toBe(
       "workspace.nav.dashboard.seller"
     );
-    expect(tabs.find((t) => t.key === "agent")?.labelKey).toBe("workspace.nav.messaging.seller");
+    expect(sellerTabs.find((t) => t.key === "agent")?.labelKey).toBe(
+      "workspace.nav.messaging.seller"
+    );
+
+    const renterTabs = getWorkspaceNavTabs("renter", false);
+    expect(renterTabs.find((t) => t.key === "dashboard")?.labelKey).toBe(
+      "workspace.nav.dashboard.renter"
+    );
+    expect(renterTabs.find((t) => t.key === "agent")?.labelKey).toBe(
+      "workspace.nav.messaging.renter"
+    );
   });
 
   it("shows full mobile nav including profile for buyer and agent", () => {

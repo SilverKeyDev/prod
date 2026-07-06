@@ -5,7 +5,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { env } from "packages/config";
 import { calculatePropertyScore } from "packages/features/search/types/search/scoring/calculatePropertyScore";
 import { useGoogleMaps } from "packages/hooks/data";
-import { useActiveWorkspace } from "packages/hooks/store";
 import { useFiltersStore, useSearchContextStore } from "packages/store";
 import type { IsochroneData, UserPreferencesData } from "packages/types/domain/api";
 import { getWindow } from "packages/utils/core/platform";
@@ -68,8 +67,7 @@ export function useSearchPageMap(params: UseSearchPageMapParams) {
     saveLastSearchContext,
   } = params;
 
-  const isAgentWorkspace = useActiveWorkspace() === "agent";
-  const shouldPrimeIsochrone = !isAgentWorkspace || hasSearched;
+  const shouldPrimeIsochrone = true;
 
   const queryClient = useQueryClient();
   const {

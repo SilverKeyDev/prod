@@ -1,9 +1,10 @@
+import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
 import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
 import type { IconName } from "packages/ui/types/icons";
 import { ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
 export type MessagingMode = "client" | "agent";
-export type ClientPersona = "buyer" | "seller";
+export type ClientPersona = "buyer" | "seller" | "renter";
 export type MessageRole = "user" | "agent";
 export type MessagingConfig = {
   mode: MessagingMode;
@@ -224,6 +225,39 @@ export const getMessagingConfig = (
           title: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_AGENT_TITLE,
           message: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_AGENT_MESSAGE,
           actionLabel: SELLER_TRANSLATIONS.SELLER_MESSAGING_NO_AGENT_ACTION,
+        },
+      },
+    };
+  }
+  if (options?.clientPersona === "renter") {
+    return {
+      ...CLIENT_MESSAGING_CONFIG,
+      sidebar: {
+        ...CLIENT_MESSAGING_CONFIG.sidebar,
+        title: RENTER_TRANSLATIONS.RENTER_MESSAGING_SIDEBAR_TITLE,
+        emptyTitle: RENTER_TRANSLATIONS.RENTER_MESSAGING_EMPTY_TITLE,
+        emptyMessage: RENTER_TRANSLATIONS.RENTER_MESSAGING_EMPTY_MESSAGE,
+      },
+      header: {
+        ...CLIENT_MESSAGING_CONFIG.header,
+        chatTitle: RENTER_TRANSLATIONS.RENTER_MESSAGING_HEADER_CHAT,
+        noSelectionTitle: RENTER_TRANSLATIONS.RENTER_MESSAGING_NO_SELECTION_TITLE,
+        noSelectionMessage: RENTER_TRANSLATIONS.RENTER_MESSAGING_NO_SELECTION_MESSAGE,
+      },
+      emptyStates: {
+        ...CLIENT_MESSAGING_CONFIG.emptyStates,
+        noSelection: {
+          title: RENTER_TRANSLATIONS.RENTER_MESSAGING_NO_SELECTION_TITLE,
+          message: RENTER_TRANSLATIONS.RENTER_MESSAGING_NO_SELECTION_MESSAGE,
+        },
+        noMessages: {
+          title: RENTER_TRANSLATIONS.RENTER_MESSAGING_NO_MESSAGES_TITLE,
+          message: RENTER_TRANSLATIONS.RENTER_MESSAGING_NO_MESSAGES_MESSAGE,
+        },
+        noAgent: {
+          title: RENTER_TRANSLATIONS.RENTER_MESSAGING_NO_AGENT_TITLE,
+          message: RENTER_TRANSLATIONS.RENTER_MESSAGING_NO_AGENT_MESSAGE,
+          actionLabel: RENTER_TRANSLATIONS.RENTER_MESSAGING_NO_AGENT_ACTION,
         },
       },
     };

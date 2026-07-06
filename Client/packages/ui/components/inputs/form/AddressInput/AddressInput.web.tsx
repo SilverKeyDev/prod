@@ -9,7 +9,7 @@ import Button from "packages/ui/components/actions/button/Button";
 import {
   placeFromAutocompleteSuggestion,
   resolveGooglePlaceToAddressData,
-} from "packages/ui/components/inputs/form/resolveGooglePlaceToAddressData";
+} from "packages/ui/components/inputs/form/GooglePlacesAutocompleteField/resolveGooglePlaceToAddressData";
 import { LOCATION_INPUT_CONTAINER } from "packages/ui/components/inputs/form/styles/fileUploadStyles";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
@@ -196,7 +196,7 @@ function AddressInputAutocomplete({
                 size="sm"
                 onClick={() => void handleSelect(s)}
                 className={`w-full cursor-pointer !justify-start px-3 py-2 text-sm [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start ${
-                  highlightedIndex === idx ? "bg-primary-muted" : "hover:bg-primary-muted"
+                  highlightedIndex === idx ? "bg-neutral-200" : "hover:bg-neutral-100"
                 }`}
               >
                 <Box className="flex w-full items-center justify-start gap-2 text-left">

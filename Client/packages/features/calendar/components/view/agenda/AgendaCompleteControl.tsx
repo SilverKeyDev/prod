@@ -15,7 +15,7 @@ export function AgendaCompleteControl({
     <Pressable
       onPress={() => (canToggle ? onToggle() : undefined)}
       disabled={!canToggle}
-      className={`mt-0.5 h-6 w-6 flex-shrink-0 items-center justify-center rounded border-2 ${
+      className={`h-6 w-6 flex-shrink-0 items-center justify-center rounded border-2 ${
         completed
           ? "border-primary bg-primary"
           : canToggle

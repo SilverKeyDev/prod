@@ -242,8 +242,11 @@ export function AppRoutes({ user, handleLogout }: AppRoutesProps) {
               {/* Protected Routes */}
               {DynamicRoutes({ user, handleLogout })}
 
-              {/* Canonical shortcut: /app → buyer search */}
-              <Route path={ROUTES.APP} element={<Navigate to={ROUTES.SEARCH} replace />} />
+              {/* Canonical shortcut: /app → dashboard */}
+              <Route
+                path={ROUTES.APP}
+                element={<Navigate to={ROUTES.DASHBOARD.replace(/\/\*$/, "")} replace />}
+              />
 
               {/* 404 catch-all */}
               <Route path="*" element={<NotFoundPage />} />

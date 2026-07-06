@@ -64,25 +64,20 @@ def get_isochrone(query: IsochroneQueryParams | None = None):
 
         important_locations, loc_error = parse_important_locations(user_preferences or {})
         if loc_error:
-            log.info(
+            log.warn(
                 "POLYGON_SEARCH",
-                "isochrone_no_locations_parse_failed",
+                "isochrone_locations_parse_invalid",
                 {
                     "prefs_user_id": str(resolved_prefs_uid),
                     "requested_preferences_user_id": requested,
-                    "parse_error": loc_error,
                 },
             )
-            return _no_locations_response()
+            return standardize_error_response(
+                loc_error,
+                status_code=400,
+                error_code="INVALID_LOCATIONS",
+            )
         if not important_locations:
-            log.info(
-                "POLYGON_SEARCH",
-                "isochrone_no_locations_empty_list",
-                {
-                    "prefs_user_id": str(resolved_prefs_uid),
-                    "requested_preferences_user_id": requested,
-                },
-            )
             return _no_locations_response()
 
         addresses_and_minutes = []

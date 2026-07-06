@@ -17,7 +17,7 @@ export type PdfModalHeaderProps = {
 };
 
 const headerButtonClass =
-  "text-text-secondary hover:bg-accent-muted hover:text-text-primary flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 transition-colors duration-200 touch-manipulation";
+  "text-text-secondary hover:bg-neutral-100 hover:text-text-primary flex min-h-11 min-w-11 items-center justify-center rounded-md p-2 transition-colors duration-200 touch-manipulation";
 
 const HeaderIconButton = ({
   icon,

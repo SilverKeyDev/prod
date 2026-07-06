@@ -1,0 +1,28 @@
+---
+description: Keep local dev database reset/init separate from secrets retrieval and deployment
+globs:
+  - "Makefile"
+  - "docker-compose*.yml"
+  - "Server/scripts/secrets.sh"
+  - "scripts/setup/*.sh"
+  - "scripts/lib/setup-verify.sh"
+  - "documentation/server/ops/postgres.md"
+alwaysApply: false
+---
+
+# Local Dev Database
+
+Default `make secrets` / `make setup-dev` use `DATABASE_URL` from AWS Secrets Manager (prod RDS). Local Docker is opt-in only.
+
+Local database reset/init belongs in explicit local tooling:
+
+- Use `make dev-db-init` for local Docker reset + `USE_LOCAL_DATABASE=1` secrets + migrations.
+- Use `USE_LOCAL_DATABASE=1 make secrets` for local `DATABASE_URL` without Docker reset.
+- Use `make db-reset` only for the local Docker Postgres volume.
+- Keep `make dev` and `make dev-backend` non-destructive.
+
+Do not put database reset, migrations, or Docker volume changes in default `secrets.sh` runs, Flask startup, `.github/scripts/*`, or deployment scripts.
+
+`Server/scripts/secrets.sh` writes a local `DATABASE_URL` only when `USE_LOCAL_DATABASE=1`; it must not mutate database state. Deploy and CI database credentials remain owned by `.github/scripts/*`.
+
+Long-form workflow: `documentation/server/ops/postgres.md`.

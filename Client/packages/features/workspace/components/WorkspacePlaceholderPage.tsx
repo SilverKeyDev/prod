@@ -16,7 +16,7 @@ function placeholderTestId(workspace: Workspace): string {
 }
 
 /**
- * Minimal shell for seller, brokerage, and integration_partner workspaces.
+ * Minimal shell for seller, renter, brokerage, and integration_partner workspaces.
  * Product tabs and flows are added incrementally per workspace.
  */
 export function WorkspacePlaceholderPage({ workspace }: WorkspacePlaceholderPageProps) {

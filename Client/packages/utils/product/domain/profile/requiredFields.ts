@@ -1,14 +1,32 @@
 // Required fields mapping - used to determine if a field needs RequiredLabel or OptionalLabel
 // Base required fields for onboarding (only About You / agent fields required; housing/location optional)
 export const REQUIRED_FIELDS_ONBOARDING: Record<string, boolean> = {
-  // Demographics
+  // Demographics (legacy agent path)
   name: false,
-  age: true,
+  age: false,
   why_joining_silverkey: false,
   marital_status: false,
-  children_count: true,
+  children_count: false,
 
-  // Financial
+  // Buyer About Me (SIL-182) — validated via buyerStepValidation when role is buyer
+  buyer_about_moving_with: false,
+  buyer_about_kids_ages: false,
+  buyer_about_has_pets: false,
+  buyer_about_pet_types: false,
+  buyer_about_move_motivation: false,
+  preferred_contact_method: false,
+
+  // Buyer Financing (SIL-182)
+  lender_status: false,
+  lender_name: false,
+  want_lender_connection: false,
+  loan_type: false,
+  down_payment_band: false,
+  first_home: false,
+  max_monthly_payment: false,
+  rent_or_own: false,
+  need_to_sell_first: false,
+  move_timeline: false,
   paying_cash: false,
   gross_income: false,
   home_budget_min: false,

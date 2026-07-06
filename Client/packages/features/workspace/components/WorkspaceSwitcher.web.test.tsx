@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const mockSetActive = vi.fn();
 const mockAllowed = vi.fn(
-  () => ["buyer", "seller", "agent", "brokerage", "integration_partner"] as const
+  () => ["buyer", "seller", "renter", "agent", "brokerage", "integration_partner"] as const
 );
 const mockActive = vi.fn(() => "buyer" as const);
 

@@ -46,7 +46,6 @@ celery.conf.update(
         "worker_pool": _celery_worker_pool,
         "worker_concurrency": _celery_concurrency,
         "task_routes": {
-            "tasks.find_best_matches_task": {"queue": "heavy"},
             "tasks.research_property_task": {"queue": "heavy"},
             "tasks.compare_property_task": {"queue": "heavy"},
             "tasks.train_user_weights_task": {"queue": "heavy"},
@@ -55,6 +54,8 @@ celery.conf.update(
             "docusign.fetch_completed_documents": {"queue": "docusign"},
             "docusign.process_webhook": {"queue": "default"},
             "docusign.sync_templates": {"queue": "default"},
+            "skyslope.sync_brokerage_transactions": {"queue": "default"},
+            "skyslope.sync_all_brokerages_incremental": {"queue": "default"},
         },
         # Celery Beat schedule for periodic tasks
         "beat_schedule": {
@@ -64,6 +65,10 @@ celery.conf.update(
                     hour="2", minute="0"
                 ),  # Run daily at 2:00 AM (str for type stub)
                 "kwargs": {"limit": 100},  # Process up to 100 users per run
+            },
+            "skyslope-incremental-sync-nightly": {
+                "task": "skyslope.sync_all_brokerages_incremental",
+                "schedule": crontab(hour="3", minute="30"),
             },
         },
         "timezone": "UTC",

@@ -252,6 +252,13 @@
     "reason": "Native uses Google Sign-In SDK; web uses OAuth flow."
   },
   {
+    "id": "auth-terms-disclaimer",
+    "description": "Auth terms and privacy disclaimer copy with platform-specific link handling.",
+    "webPath": "packages/features/homeauth/components/core/AuthTermsDisclaimer.tsx",
+    "nativePath": "packages/features/homeauth/components/core/AuthTermsDisclaimer.native.tsx",
+    "reason": "Web uses react-router AuthLink; native uses react-navigation Text onPress with StyleSheet."
+  },
+  {
     "id": "auth-page-layout",
     "description": "Auth page layout with platform-specific structure.",
     "webPath": "packages/features/homeauth/components/core/AuthPageLayout.tsx",
@@ -271,6 +278,48 @@
     "webPath": "packages/features/homeauth/components/homepage/HomeFeature.web.tsx",
     "nativePath": "packages/features/homeauth/components/homepage/HomeScreenNative.native.tsx",
     "reason": "Native home screen uses full-screen vertical stack; web uses different composition."
+  },
+  {
+    "id": "landing-reveal-hook",
+    "description": "Landing scroll reveal — IntersectionObserver on web, immediate on native.",
+    "webPath": "packages/features/homeauth/hooks/useLandingReveal.web.ts",
+    "nativePath": "packages/features/homeauth/hooks/useLandingReveal.native.ts",
+    "reason": "IntersectionObserver is web-only."
+  },
+  {
+    "id": "landing-active-section-hook",
+    "description": "Landing nav scroll-spy — IntersectionObserver on web, no-op on native.",
+    "webPath": "packages/features/homeauth/hooks/useLandingActiveSection.web.ts",
+    "nativePath": "packages/features/homeauth/hooks/useLandingActiveSection.native.ts",
+    "reason": "Hash scroll-spy nav is web-only."
+  },
+  {
+    "id": "landing-nav",
+    "description": "Landing fixed header — mobile bottom-sheet menu on web, inline nav on native.",
+    "webPath": "packages/features/homeauth/components/homepage/landing/nav/LandingNav.web.tsx",
+    "nativePath": "packages/features/homeauth/components/homepage/landing/nav/LandingNav.native.tsx",
+    "reason": "Web mobile menu uses AccessibleDialog, hash scroll, and scrollToLandingSection; native keeps compact header without in-page section nav."
+  },
+  {
+    "id": "landing-counter-hook",
+    "description": "Landing stat counter animation on web; static value on native.",
+    "webPath": "packages/features/homeauth/hooks/useAnimatedCounter.web.ts",
+    "nativePath": "packages/features/homeauth/hooks/useAnimatedCounter.native.ts",
+    "reason": "requestAnimationFrame counter is web-only."
+  },
+  {
+    "id": "landing-scroll",
+    "description": "Scroll to landing section — DOM on web, ScrollView ref on native.",
+    "webPath": "packages/features/homeauth/utils/landingScroll.ts",
+    "nativePath": "packages/features/homeauth/utils/landingScroll.native.ts",
+    "reason": "Web uses getElementById; native uses registered ScrollView."
+  },
+  {
+    "id": "landing-analytics",
+    "description": "Landing PostHog capture helpers — web only.",
+    "webPath": "packages/hooks/analytics/trackLandingAnalytics.web.ts",
+    "nativePath": "packages/hooks/analytics/trackLandingAnalytics.native.ts",
+    "reason": "PostHog slider/CTA events are web-only."
   },
   {
     "id": "contact-us-screen",
@@ -386,10 +435,10 @@
   },
   {
     "id": "search-display-sheet",
-    "description": "Search display settings: desktop web uses Popover dropdown; mobile web embeds panel in filters sheet; native embeds SearchDisplaySection in filters modal.",
-    "webPath": "packages/features/search/components/header/display/SearchDisplayDropdown.web.tsx",
+    "description": "Search display settings embedded in preferences: web uses SearchDisplayPanelWeb inside filters popover/sheet; native uses SearchDisplaySection in filters modal.",
+    "webPath": "packages/features/search/components/header/display/SearchDisplayPanel.web.tsx",
     "nativePath": "packages/features/search/components/header/display/SearchDisplaySection.native.tsx",
-    "reason": "Web desktop uses Headless UI Popover with SearchDisplayPanelWeb; mobile surfaces merge display into filters; native uses RN controls inside filters sheet."
+    "reason": "Web embeds SearchDisplayPanelWeb in preferences dropdown/sheet; native uses RN controls inside filters modal."
   },
   {
     "id": "reels-view",
@@ -415,7 +464,7 @@
   {
     "id": "search-location-bar-suggestion-effects",
     "description": "Web-only Slipstream and Google Places suggestion fetching for the search location bar.",
-    "webPath": "packages/features/search/components/header/location-bar/useSearchLocationBarSuggestionEffects.web.ts",
+    "webPath": "packages/features/search/hooks/ui/useSearchLocationBarSuggestionEffects.web.ts",
     "nativePath": null,
     "reason": "Uses Google Places AutocompleteSessionToken and browser globals; native search location UI does not use this hook."
   },
@@ -856,8 +905,8 @@
   {
     "id": "account-privacy-data-section",
     "description": "Account privacy & data export: DOM download on web vs Linking on native.",
-    "webPath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.web.tsx",
-    "nativePath": "packages/features/profile/components/profileScreen/sections/privacy/AccountPrivacyDataSection.native.tsx",
+    "webPath": "packages/features/profile/components/profileScreen/tabs/privacy/AccountPrivacyDataSection.web.tsx",
+    "nativePath": "packages/features/profile/components/profileScreen/tabs/privacy/AccountPrivacyDataSection.native.tsx",
     "reason": "Web triggers JSON download via document/window APIs and modals. Native uses React Native Linking and has no DOM download path."
   },
   {
@@ -880,5 +929,12 @@
     "webPath": "packages/navigation/router/NavigationOutlet.web.tsx",
     "nativePath": null,
     "reason": "Re-exports react-router-dom Outlet; React Navigation uses screen components instead of DOM outlets."
+  },
+  {
+    "id": "search-strict-preferences-control",
+    "description": "Strict preferences toggle: web OliveCheckbox vs native Switch.",
+    "webPath": "packages/features/search/components/filters/SearchStrictPreferencesControl.web.tsx",
+    "nativePath": "packages/features/search/components/filters/SearchStrictPreferencesControl.native.tsx",
+    "reason": "Web uses design-system OliveCheckbox. Native uses React Native Switch and StyleSheet for row layout."
   }
 ]

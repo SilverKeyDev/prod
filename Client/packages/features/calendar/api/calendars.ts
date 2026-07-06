@@ -48,8 +48,11 @@ export async function addCalendarAcl(
 export async function getOrCreateSilverKeyCalendar(
   buyerName?: string
 ): Promise<GoogleCalendarApiResponse<GoogleCalendar>> {
-  return apiPost<GoogleCalendarApiResponse<GoogleCalendar>>(
-    "/api/v1/google/me/silverkey-calendar",
-    { buyerName }
+  return wrapGoogleCalendarError(
+    () =>
+      apiPost<GoogleCalendarApiResponse<GoogleCalendar>>("/api/v1/google/me/silverkey-calendar", {
+        buyerName,
+      }),
+    "Failed to load SilverKey calendar"
   );
 }

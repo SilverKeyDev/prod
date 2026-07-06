@@ -1,8 +1,8 @@
 import React from "react";
 
+import { renderProfileSectionContent } from "packages/features/profile/components/formSections/renderProfileSectionContent";
 import { PersonalizationSectionPanel } from "packages/features/profile/components/layout";
-import { AgentPublicProfileShareRow } from "packages/features/profile/components/profileScreen/sections/privacy/AgentPublicProfileShareRow";
-import { renderProfileFeatureSectionContent } from "packages/features/profile/components/settings/profileFeatureSectionContent";
+import { AgentPublicProfileShareRow } from "packages/features/profile/components/profileScreen/tabs/privacy/AgentPublicProfileShareRow";
 import type { OnboardingData } from "packages/features/profile/utils";
 
 import type { ProfileAgentSubject } from "./profileFeatureTypes";
@@ -72,11 +72,12 @@ export function ProfileFeatureSectionPanels({
           screenReaderHeading={step.title}
           showVisibleHeading={step.id !== "location"}
         >
-          {renderProfileFeatureSectionContent({
+          {renderProfileSectionContent({
             sectionId: step.id,
+            surface: "settings",
             formData,
             isEditMode: effectiveEditMode,
-            updateFormData,
+            updateField: updateFormData,
             patchBuyerPreferenceExtensions,
             scriptsReady,
             loadError,

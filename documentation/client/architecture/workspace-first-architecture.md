@@ -76,7 +76,7 @@ Canonical routes are shared; **nav visibility**, **labels**, **onboarding**, and
 | **Nav (mobile)** | Dashboard, Search, Library, Messaging (profile via header) |
 | **Dashboard (`/dashboard`)** | `DashboardPage` → `DashboardFeature`: calendar, checklists, transaction widgets |
 | **Other routes** | `/search`, `/library` (saved), `/messaging`, `/profile` — full buyer/agent-shared features |
-| **Post-onboarding** | `/search` |
+| **Post-onboarding** | `/dashboard` |
 
 ### Agent — **Implemented**
 
@@ -89,7 +89,7 @@ Canonical routes are shared; **nav visibility**, **labels**, **onboarding**, and
 | **Nav (mobile)** | Same tab keys as buyer; messaging label **Clients** |
 | **Dashboard (`/dashboard`)** | `DashboardPage` → `DashboardFeature` with `activeWorkspace === "agent"` branches (client hub, agent calendar) |
 | **Messaging** | `AgentPage` / Client Hub surfaces |
-| **Post-onboarding** | `/search` |
+| **Post-onboarding** | `/dashboard` |
 | **API identity** | `useIsAgent()` — agent role in `user.roles` for agent-only endpoints |
 
 ### Seller — **Placeholder (shell only)**
