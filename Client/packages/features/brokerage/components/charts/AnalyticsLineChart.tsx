@@ -1,4 +1,5 @@
 import ReactECharts from 'echarts-for-react';
+import { color } from 'packages/design-tokens';
 
 export interface LineDataPoint {
   label: string;
@@ -17,9 +18,10 @@ interface Props {
 export function AnalyticsLineChart({
   data,
   height = 240,
-  color = '#2a78d6',
+  color: colorOverride,
   showConfidenceBand = true,
 }: Props) {
+  const lineColor = colorOverride ?? color("chart.1");
   const labels = data.map((d) => d.label);
   const values = data.map((d) => d.value);
   const hasBand =
@@ -40,9 +42,9 @@ export function AnalyticsLineChart({
     });
     series.push({
       type: 'line',
-      data: data.map((d) => d.hiBound! - d.loBound!),
+      data: data.map((d) => (d.hiBound ?? 0) - (d.loBound ?? 0)),
       lineStyle: { opacity: 0 },
-      areaStyle: { color: `${color}18` },
+      areaStyle: { color: `${lineColor}18` },
       symbol: 'none',
       stack: 'confidence',
       silent: true,
@@ -54,8 +56,8 @@ export function AnalyticsLineChart({
     type: 'line',
     data: values,
     smooth: 0.35,
-    lineStyle: { color, width: 2 },
-    itemStyle: { color, borderColor: '#fff', borderWidth: 2 },
+    lineStyle: { color: lineColor, width: 2 },
+    itemStyle: { color: lineColor, borderColor: '#fff', borderWidth: 2 },
     symbolSize: 5,
     z: 10,
   });
@@ -65,7 +67,7 @@ export function AnalyticsLineChart({
       trigger: 'axis',
       formatter: (params: { name: string; value: number; seriesIndex: number }[]) => {
         const main = params.find((p) => p.seriesIndex === series.length - 1);
-        return main ? `${main.name}<br/><b>${main.value}</b> transactions` : '';
+        return main ? `${main.name}<br/><b>${main.value}</b>` : '';
       },
     },
     grid: { left: 46, right: 16, top: 16, bottom: 28 },

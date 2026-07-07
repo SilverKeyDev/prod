@@ -1,0 +1,34 @@
+{
+    "state": {
+      "success": {
+        "DEFAULT": "hsl(142, 20%, 40%)",
+        "light": "hsl(142, 20%, 90%)",
+        "dark": "hsl(142, 20%, 25%)",
+        "text": "hsl(142, 20%, 25%)"
+      },
+      "warning": {
+        "DEFAULT": "hsl(45, 20%, 50%)",
+        "light": "hsl(45, 20%, 90%)",
+        "dark": "hsl(45, 20%, 30%)",
+        "text": "hsl(45, 20%, 30%)"
+      },
+      "danger": {
+        "DEFAULT": "hsl(340, 20%, 55%)",
+        "light": "hsl(340, 20%, 90%)",
+        "dark": "hsl(340, 20%, 25%)",
+        "text": "hsl(340, 20%, 25%)"
+      },
+      "critical": {
+        "DEFAULT": "hsl(340, 20%, 35%)",
+        "light": "hsl(340, 20%, 90%)",
+        "dark": "hsl(340, 20%, 18%)",
+        "text": "hsl(340, 20%, 18%)"
+      },
+      "neutral": {
+        "DEFAULT": "hsl(0, 0%, 45%)",
+        "light": "hsl(0, 0%, 96%)",
+        "dark": "hsl(0, 0%, 25%)",
+        "text": "hsl(0, 0%, 32%)"
+      }
+    }
+  }

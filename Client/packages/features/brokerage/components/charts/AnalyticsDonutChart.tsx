@@ -1,25 +1,20 @@
 import ReactECharts from 'echarts-for-react';
+import { color } from 'packages/design-tokens';
 
 export interface DonutSlice {
   label: string;
   value: number;
-  /** Optional formatted string shown in tooltip, e.g. "$912K" */
   detail?: string;
 }
 
 interface Props {
   data: DonutSlice[];
-  /** Text shown in center of the donut (large) */
   centerLabel?: string;
-  /** Text shown below centerLabel (small) */
   centerSub?: string;
   height?: number;
   colors?: string[];
-  /** Show Shannon entropy badge in the graphic layer */
   showEntropy?: boolean;
 }
-
-const DEFAULT_COLORS = ['#2a78d6', '#1baf7a', '#eda100', '#4a3aa7', '#e34948', '#e87ba4'];
 
 function shannonEntropy(slices: DonutSlice[]): number {
   const total = slices.reduce((s, d) => s + d.value, 0);
@@ -34,12 +29,21 @@ export function AnalyticsDonutChart({
   centerLabel,
   centerSub,
   height = 300,
-  colors = DEFAULT_COLORS,
+  colors: colorsOverride,
   showEntropy = false,
 }: Props) {
+  const defaultColors = [
+    color("chart.1"),
+    color("chart.2"),
+    color("chart.3"),
+    color("chart.4"),
+    color("chart.5"),
+    color("chart.6"),
+  ];
+  const palette = colorsOverride ?? defaultColors;
+
   const entropy = shannonEntropy(data);
   const maxEntropy = Math.log2(data.length);
-  const entropyStr = entropy.toFixed(2);
 
   const option = {
     tooltip: {
@@ -58,7 +62,7 @@ export function AnalyticsDonutChart({
         data: data.map((d, i) => ({
           value: d.value,
           name: d.label,
-          itemStyle: { color: colors[i % colors.length] },
+          itemStyle: { color: palette[i % palette.length] },
           label: { show: false },
           emphasis: { scale: true, scaleSize: 4 },
         })),
@@ -74,7 +78,6 @@ export function AnalyticsDonutChart({
               top: centerSub ? '39%' : '45%',
               style: {
                 text: centerLabel,
-                fill: 'inherit',
                 fontSize: 18,
                 fontWeight: '500',
                 textAlign: 'center',
@@ -103,7 +106,7 @@ export function AnalyticsDonutChart({
               right: 8,
               bottom: 8,
               style: {
-                text: `H = ${entropyStr} / ${maxEntropy.toFixed(2)} bits`,
+                text: `H = ${entropy.toFixed(2)} / ${maxEntropy.toFixed(2)} bits`,
                 fontSize: 10,
                 textAlign: 'right',
               },
