@@ -532,6 +532,8 @@ components:
       $ref: "./components/schemas/preferences/UpsertPreferencesApiResponse.yaml"
     ProfilePictureResponse:
       $ref: "./components/schemas/auth/ProfilePictureResponse.yaml"
+    AgentTestimonial:
+      $ref: "./components/schemas/user/profile/AgentTestimonial.yaml"
     PublicAgentProfile:
       $ref: "./components/schemas/user/profile/PublicAgentProfile.yaml"
     PublicAgentProfileResponse:
