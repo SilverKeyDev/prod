@@ -1,9 +1,9 @@
 import ReactECharts from 'echarts-for-react';
+import { color } from 'packages/design-tokens';
 
 export interface BarDataPoint {
   label: string;
   value: number;
-  /** Optional: pre-computed z-score. If provided, bar color is derived from it. */
   zScore?: number;
 }
 
@@ -12,12 +12,10 @@ interface Props {
   height?: number;
   unit?: string;
   orientation?: 'horizontal' | 'vertical';
-  /** Show a dashed average reference line */
   showAvgLine?: boolean;
   colorAbove?: string;
   colorNear?: string;
   colorBelow?: string;
-  /** Single color override — disables z-score coloring */
   color?: string;
 }
 
@@ -41,11 +39,15 @@ export function AnalyticsBarChart({
   unit = '',
   orientation = 'horizontal',
   showAvgLine = false,
-  colorAbove = '#1baf7a',
-  colorNear = '#2a78d6',
-  colorBelow = '#eda100',
-  color,
+  colorAbove,
+  colorNear,
+  colorBelow,
+  color: colorOverride,
 }: Props) {
+  const above = colorAbove ?? color("state.success.DEFAULT");
+  const near = colorNear ?? color("chart.1");
+  const below = colorBelow ?? color("rose.DEFAULT");
+
   const values = data.map((d) => d.value);
   const avg = values.reduce((s, v) => s + v, 0) / values.length;
   const isVertical = orientation === 'vertical';
@@ -53,7 +55,7 @@ export function AnalyticsBarChart({
   const seriesData = data.map((d) => ({
     value: d.value,
     itemStyle: {
-      color: barColor(d.zScore, colorAbove, colorNear, colorBelow, color),
+      color: barColor(d.zScore, above, near, below, colorOverride),
       borderRadius: isVertical ? [3, 3, 0, 0] : [0, 3, 3, 0],
     },
   }));

@@ -1,9 +1,8 @@
 import ReactECharts from 'echarts-for-react';
+import { color } from 'packages/design-tokens';
 
 export interface HeatMapCell {
-  /** Index into xLabels */
   x: number;
-  /** Index into yLabels */
   y: number;
   value: number;
 }
@@ -13,7 +12,6 @@ interface Props {
   yLabels: string[];
   data: HeatMapCell[];
   height?: number;
-  /** Tooltip label for the value axis, e.g. "transactions" */
   valueLabel?: string;
   colorLow?: string;
   colorHigh?: string;
@@ -25,10 +23,12 @@ export function AnalyticsHeatMap({
   data,
   height = 200,
   valueLabel = 'transactions',
-  colorLow = '#e8f1fb',
-  colorHigh = '#2a78d6',
+  colorLow,
+  colorHigh,
 }: Props) {
   const maxVal = Math.max(...data.map((d) => d.value), 1);
+  const low = colorLow ?? color("olive.muted");
+  const high = colorHigh ?? color("chart.1");
 
   const option = {
     tooltip: {
@@ -61,7 +61,7 @@ export function AnalyticsHeatMap({
       min: 0,
       max: maxVal,
       show: false,
-      inRange: { color: [colorLow, colorHigh] },
+      inRange: { color: [low, high] },
     },
     series: [
       {
@@ -69,7 +69,7 @@ export function AnalyticsHeatMap({
         data: data.map((d) => [d.x, d.y, d.value]),
         label: { show: false },
         itemStyle: { borderColor: '#ffffff', borderWidth: 2, borderRadius: 2 },
-        emphasis: { itemStyle: { borderColor: '#2a78d6', borderWidth: 2 } },
+        emphasis: { itemStyle: { borderColor: high, borderWidth: 2 } },
       },
     ],
   };

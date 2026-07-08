@@ -19,6 +19,7 @@
 import { useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 
+import { color } from "packages/design-tokens";
 import { useAncillaryAnalytics } from "packages/features/brokerage/hooks/useAncillaryAnalytics";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
@@ -33,11 +34,11 @@ const SERVICE_LABELS: Record<string, string> = {
 };
 
 const SERVICE_COLORS: Record<string, string> = {
-  title: "#22c55e",
-  lending: "#ef4444",
-  escrow: "#f59e0b",
-  home_warranty: "#3b82f6",
-  mortgage_insurance: "#8b5cf6",
+  title: color("state.success.DEFAULT"),
+  lending: color("state.danger.DEFAULT"),
+  escrow: color("state.warning.DEFAULT"),
+  home_warranty: color("chart.1"),
+  mortgage_insurance: color("chart.3"),
 };
 
 function formatDollars(amount: number): string {
@@ -46,7 +47,6 @@ function formatDollars(amount: number): string {
   return `$${amount}`;
 }
 
-/** Synthetic data disclaimer shown on all demo data. */
 function DemoDisclaimer() {
   return (
     <Box className="border-border-warning bg-background-warning rounded-lg border px-3 py-2">
@@ -68,13 +68,14 @@ interface ServiceData {
 
 function AttachRatesChart({ services }: { services: ServiceData[] }) {
   const labels = services.map((s) => SERVICE_LABELS[s.service] ?? s.service);
+  const dangerColor = color("state.danger.DEFAULT");
   const inHouseData = services.map((s) => ({
     value: parseFloat(s.attach_rate_percent.toFixed(1)),
-    itemStyle: { color: SERVICE_COLORS[s.service] ?? "#6b7280", borderRadius: [0, 3, 3, 0] },
+    itemStyle: { color: SERVICE_COLORS[s.service] ?? color("chart.2"), borderRadius: [0, 3, 3, 0] },
   }));
   const outsideData = services.map((s) => ({
     value: parseFloat((100 - s.attach_rate_percent).toFixed(1)),
-    itemStyle: { color: "rgba(239,68,68,0.15)", borderRadius: [0, 3, 3, 0] },
+    itemStyle: { color: color("olive.muted"), borderRadius: [0, 3, 3, 0] },
   }));
 
   const option = {
@@ -88,7 +89,7 @@ function AttachRatesChart({ services }: { services: ServiceData[] }) {
           `<b>${label}</b>`,
           `In-house: <b>${svc.attach_rate_percent.toFixed(1)}%</b> (${svc.in_house_count} transactions)`,
           `Outside: <b>${(100 - svc.attach_rate_percent).toFixed(1)}%</b> (${svc.outside_count} transactions)`,
-          `Leakage: <b style="color:#ef4444">${formatDollars(svc.leakage_dollars)}</b>`,
+          `Leakage: <b style="color:${dangerColor}">${formatDollars(svc.leakage_dollars)}</b>`,
         ].join("<br/>");
       },
     },
@@ -111,20 +112,8 @@ function AttachRatesChart({ services }: { services: ServiceData[] }) {
       splitLine: { show: false },
     },
     series: [
-      {
-        name: "In-house",
-        type: "bar",
-        stack: "attach",
-        data: inHouseData,
-        barMaxWidth: 20,
-      },
-      {
-        name: "Outside",
-        type: "bar",
-        stack: "attach",
-        data: outsideData,
-        barMaxWidth: 20,
-      },
+      { name: "In-house", type: "bar", stack: "attach", data: inHouseData, barMaxWidth: 20 },
+      { name: "Outside", type: "bar", stack: "attach", data: outsideData, barMaxWidth: 20 },
     ],
   };
 
@@ -150,16 +139,19 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
 
   if (!data) return null;
 
+  const dangerColor = color("state.danger.DEFAULT");
+  const successColor = color("state.success.DEFAULT");
+  const warningColor = color("state.warning.DEFAULT");
+
   return (
     <Box className="flex flex-col gap-6">
       <DemoDisclaimer />
 
-      {/* Headline leakage number — the pitch hook */}
       <Box className="border-border-danger bg-background-surface rounded-xl border p-6">
         <BodyText size="sm" muted className="mb-1">
           Estimated Annual Revenue Leakage
         </BodyText>
-        <Title size="xl" className="text-red-500">
+        <Title size="xl" style={{ color: dangerColor }}>
           {formatDollars(data.summary.total_leakage_dollars)}
         </Title>
         <BodyText size="sm" muted className="mt-2">
@@ -171,7 +163,6 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
         </BodyText>
       </Box>
 
-      {/* Attach rates by service — now ECharts stacked bar */}
       <Box className="border-border bg-background-surface rounded-xl border p-5">
         <Title size="sm" as="h3" className="mb-1">
           Attach Rates by Service
@@ -182,7 +173,6 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
         <AttachRatesChart services={data.by_service} />
       </Box>
 
-      {/* Agent leakage leaderboard */}
       <Box className="border-border bg-background-surface rounded-xl border p-5">
         <Title size="sm" as="h3" className="mb-1">
           Agent Leakage Leaderboard
@@ -198,7 +188,7 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
                 <th className="py-2 pr-4 font-medium">Transactions</th>
                 <th className="py-2 pr-4 font-medium">Title Attach</th>
                 <th className="py-2 pr-4 font-medium">Lending Attach</th>
-                <th className="py-2 font-medium text-red-500">Total Leakage</th>
+                <th className="py-2 font-medium" style={{ color: dangerColor }}>Total Leakage</th>
               </tr>
             </thead>
             <tbody>
@@ -206,38 +196,22 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
                 <tr key={agent.agent_id} className="border-border/60 border-b">
                   <td className="py-2 pr-4">
                     <Box className="flex items-center gap-2">
-                      {index === 0 && <span className="text-xs font-bold text-red-500">▲</span>}
+                      {index === 0 && <span className="text-xs font-bold" style={{ color: dangerColor }}>▲</span>}
                       <span className="font-medium">{agent.name}</span>
                     </Box>
                   </td>
                   <td className="py-2 pr-4">{agent.transactions}</td>
                   <td className="py-2 pr-4">
-                    <span
-                      className={
-                        agent.title_attach >= 60
-                          ? "text-green-600"
-                          : agent.title_attach >= 40
-                            ? "text-yellow-600"
-                            : "text-red-500"
-                      }
-                    >
+                    <span style={{ color: agent.title_attach >= 60 ? successColor : agent.title_attach >= 40 ? warningColor : dangerColor }}>
                       {agent.title_attach.toFixed(1)}%
                     </span>
                   </td>
                   <td className="py-2 pr-4">
-                    <span
-                      className={
-                        agent.lending_attach >= 60
-                          ? "text-green-600"
-                          : agent.lending_attach >= 40
-                            ? "text-yellow-600"
-                            : "text-red-500"
-                      }
-                    >
+                    <span style={{ color: agent.lending_attach >= 60 ? successColor : agent.lending_attach >= 40 ? warningColor : dangerColor }}>
                       {agent.lending_attach.toFixed(1)}%
                     </span>
                   </td>
-                  <td className="py-2 font-bold text-red-500">
+                  <td className="py-2 font-bold" style={{ color: dangerColor }}>
                     {formatDollars(agent.total_leakage_dollars)}
                   </td>
                 </tr>
@@ -247,7 +221,6 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
         </Box>
       </Box>
 
-      {/* Export note */}
       <Box className="border-border rounded-xl border border-dashed p-4 text-center">
         <BodyText size="sm" muted>
           📋 Export functionality coming in SIL-277 v2 — screenshot this view for pitch decks

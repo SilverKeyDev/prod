@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import { color } from "packages/design-tokens";
 import { useBrokerageAnalytics } from "packages/features/brokerage/hooks/useBrokerageAnalytics";
 import { useDealFailureForensics } from "packages/features/brokerage/hooks/useDealFailureForensics";
 import { Box } from "packages/ui/components/structure/primitives";
@@ -101,23 +102,15 @@ export function BrokerageAnalyticsShell() {
   const { data: failureData } = useDealFailureForensics(timePeriod);
 
   const funnelBars = useMemo(
-    () =>
-      data.transactionFunnel.map((s) => ({
-        label: s.stage,
-        value: s.count,
-      })),
+    () => data.transactionFunnel.map((s) => ({ label: s.stage, value: s.count })),
     [data]
   );
 
   const agentPerformanceBarsWithZ = useMemo(() => {
-    const sorted = [...agents]
-      .sort((a, b) => b.closings - a.closings)
-      .slice(0, 8);
+    const sorted = [...agents].sort((a, b) => b.closings - a.closings).slice(0, 8);
     const vals = sorted.map((a) => a.closings);
     const avg = vals.reduce((s, v) => s + v, 0) / vals.length;
-    const std = Math.sqrt(
-      vals.reduce((s, v) => s + (v - avg) ** 2, 0) / vals.length
-    );
+    const std = Math.sqrt(vals.reduce((s, v) => s + (v - avg) ** 2, 0) / vals.length);
     return sorted.map((a) => ({
       label: a.name.split(" ")[0] ?? a.name,
       value: a.closings,
@@ -126,29 +119,17 @@ export function BrokerageAnalyticsShell() {
   }, [agents]);
 
   const agentStatusDonut = useMemo(
-    () =>
-      data.agentStatusBreakdown.map((s) => ({
-        label: s.label,
-        value: s.value,
-      })),
+    () => data.agentStatusBreakdown.map((s) => ({ label: s.label, value: s.value })),
     [data]
   );
 
   const failureTrendLine = useMemo(
-    () =>
-      failureData.trend.map((t) => ({
-        label: t.month,
-        value: t.cancelled,
-      })),
+    () => failureData.trend.map((t) => ({ label: t.month, value: t.cancelled })),
     [failureData]
   );
 
   const failureStageBars = useMemo(
-    () =>
-      failureData.by_stage.map((s) => ({
-        label: s.stage,
-        value: s.count,
-      })),
+    () => failureData.by_stage.map((s) => ({ label: s.stage, value: s.count })),
     [failureData]
   );
 
@@ -164,19 +145,20 @@ export function BrokerageAnalyticsShell() {
   const closingsDelta = overview.closingsThisMonth - overview.closingsLastMonth;
   const clientsDelta = overview.activeClientsThisMonth - overview.activeClientsLastMonth;
 
+  const successColor = color("state.success.DEFAULT");
+  const warningColor = color("state.warning.DEFAULT");
+  const dangerColor = color("state.danger.DEFAULT");
+  const chartColor1 = color("chart.1");
+
   return (
     <Box className="flex flex-col gap-6 p-6">
-      {/* Header */}
       <Box>
-        <Title size="md" as="h2">
-          Brokerage Analytics
-        </Title>
+        <Title size="md" as="h2">Brokerage Analytics</Title>
         <BodyText size="sm" muted className="mt-1">
           Real data — 50,122 transactions across 500 agents
         </BodyText>
       </Box>
 
-      {/* Tab header — SIL-286 */}
       <UnderlineTabs
         items={DASHBOARD_TABS}
         activeId={activeTab}
@@ -185,7 +167,6 @@ export function BrokerageAnalyticsShell() {
         scrollable
       />
 
-      {/* Time Period Picker */}
       <Box className="flex items-center gap-2">
         {TIME_PERIOD_OPTIONS.map((opt) => (
           <button
@@ -208,11 +189,7 @@ export function BrokerageAnalyticsShell() {
           <Box className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard label="Active Agents" value={overview.activeAgents} />
             <KpiCard label="Open Transactions" value={overview.openTransactions.toLocaleString()} />
-            <KpiCard
-              label="Messaging SLA"
-              value={`${overview.messagingSlaPercent}%`}
-              delta="Response within 24h"
-            />
+            <KpiCard label="Messaging SLA" value={`${overview.messagingSlaPercent}%`} delta="Response within 24h" />
             <KpiCard label="At-Risk Agents" value={overview.atRiskCount} delta="Stalled > 14 days" />
             <KpiCard
               label={CLOSINGS_LABEL[timePeriod]}
@@ -228,12 +205,7 @@ export function BrokerageAnalyticsShell() {
 
           <Box className="grid gap-4 lg:grid-cols-2">
             <SectionCard title="Transaction Funnel">
-              <AnalyticsBarChart
-                data={funnelBars}
-                orientation="vertical"
-                color="#4a6741"
-                height={220}
-              />
+              <AnalyticsBarChart data={funnelBars} orientation="vertical" color={chartColor1} height={220} />
             </SectionCard>
             <SectionCard title="Agent Status Breakdown">
               <AnalyticsDonutChart
@@ -241,7 +213,7 @@ export function BrokerageAnalyticsShell() {
                 centerLabel={String(overview.activeAgents)}
                 centerSub="active agents"
                 height={280}
-                colors={["#22c55e", "#3b82f6", "#ef4444"]}
+                colors={[successColor, chartColor1, dangerColor]}
               />
             </SectionCard>
           </Box>
@@ -251,7 +223,7 @@ export function BrokerageAnalyticsShell() {
               <AnalyticsBarChart
                 data={data.messagingActivity.map((d) => ({ label: d.label, value: d.value }))}
                 orientation="vertical"
-                color="#4a6741"
+                color={chartColor1}
                 height={220}
               />
             </SectionCard>
@@ -270,11 +242,7 @@ export function BrokerageAnalyticsShell() {
         <Box className="flex flex-col gap-6">
           <SectionCard title="Agent Performance">
             <Box className="mb-4">
-              <AnalyticsBarChart
-                data={agentPerformanceBarsWithZ}
-                unit=" closings"
-                height={260}
-              />
+              <AnalyticsBarChart data={agentPerformanceBarsWithZ} unit=" closings" height={260} />
             </Box>
             <Box className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -295,20 +263,11 @@ export function BrokerageAnalyticsShell() {
                       <td className="py-2 pr-4">{agent.closings}</td>
                       <td className="py-2 pr-4 font-mono text-xs">{agent.stall ?? "—"}</td>
                       <td className="py-2">
-                        <span
-                          className={
-                            agent.status === "top"
-                              ? "font-medium text-green-600"
-                              : agent.status === "at_risk"
-                                ? "font-medium text-red-500"
-                                : "text-blue-500"
-                          }
-                        >
-                          {agent.status === "top"
-                            ? "Top Performer"
-                            : agent.status === "at_risk"
-                              ? "At Risk"
-                              : "Healthy"}
+                        <span style={{
+                          color: agent.status === "top" ? successColor : agent.status === "at_risk" ? dangerColor : chartColor1,
+                          fontWeight: 500,
+                        }}>
+                          {agent.status === "top" ? "Top Performer" : agent.status === "at_risk" ? "At Risk" : "Healthy"}
                         </span>
                       </td>
                     </tr>
@@ -326,9 +285,7 @@ export function BrokerageAnalyticsShell() {
       {activeTab === "leakage" && (
         <Box className="flex flex-col gap-6">
           <Box className="border-border bg-background-surface rounded-xl border p-5">
-            <Title size="sm" as="h3" className="mb-1">
-              Ancillary Capture Leakage
-            </Title>
+            <Title size="sm" as="h3" className="mb-1">Ancillary Capture Leakage</Title>
             <BodyText size="xs" muted className="mb-4">
               Revenue leaking to outside title, lending, escrow, and home warranty vendors
             </BodyText>
@@ -355,12 +312,10 @@ export function BrokerageAnalyticsShell() {
       {activeTab === "forensics" && (
         <Box className="flex flex-col gap-6">
           <Box className="border-border bg-background-surface rounded-xl border p-5">
-            <Title size="sm" as="h3" className="mb-1">
-              Deal Failure Forensics
-            </Title>
+            <Title size="sm" as="h3" className="mb-1">Deal Failure Forensics</Title>
             <BodyText size="xs" muted className="mb-4">
               Fall-through rate:{" "}
-              <span className="font-medium text-red-500">
+              <span className="font-medium" style={{ color: dangerColor }}>
                 {failureData.summary.fall_through_rate_percent}%
               </span>{" "}
               · {failureData.summary.total_cancelled.toLocaleString()} cancelled of{" "}
@@ -370,32 +325,16 @@ export function BrokerageAnalyticsShell() {
 
             <Box className="mb-6 grid gap-4 lg:grid-cols-2">
               <Box>
-                <BodyText size="xs" muted className="mb-2">
-                  Cancellations by Month
-                </BodyText>
-                <AnalyticsLineChart
-                  data={failureTrendLine}
-                  height={200}
-                  color="#e34948"
-                  showConfidenceBand={false}
-                />
+                <BodyText size="xs" muted className="mb-2">Cancellations by Month</BodyText>
+                <AnalyticsLineChart data={failureTrendLine} height={200} color={dangerColor} showConfidenceBand={false} />
               </Box>
               <Box>
-                <BodyText size="xs" muted className="mb-2">
-                  Failure Stage Breakdown
-                </BodyText>
-                <AnalyticsBarChart
-                  data={failureStageBars}
-                  orientation="vertical"
-                  color="#e34948"
-                  height={200}
-                />
+                <BodyText size="xs" muted className="mb-2">Failure Stage Breakdown</BodyText>
+                <AnalyticsBarChart data={failureStageBars} orientation="vertical" color={dangerColor} height={200} />
               </Box>
             </Box>
 
-            <BodyText size="xs" muted className="mb-2">
-              Agent Fall-Through Rates
-            </BodyText>
+            <BodyText size="xs" muted className="mb-2">Agent Fall-Through Rates</BodyText>
             <Box className="mb-6 overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -415,15 +354,7 @@ export function BrokerageAnalyticsShell() {
                         <td className="py-2 pr-4">{agent.total_deals.toLocaleString()}</td>
                         <td className="py-2 pr-4">{agent.cancelled}</td>
                         <td className="py-2">
-                          <span
-                            className={
-                              agent.fall_through_rate_percent >= 30
-                                ? "font-medium text-red-500"
-                                : agent.fall_through_rate_percent >= 15
-                                  ? "font-medium text-yellow-500"
-                                  : "font-medium text-green-600"
-                            }
-                          >
+                          <span style={{ color: agent.fall_through_rate_percent >= 30 ? dangerColor : agent.fall_through_rate_percent >= 15 ? warningColor : successColor, fontWeight: 500 }}>
                             {agent.fall_through_rate_percent}%
                           </span>
                         </td>
@@ -433,9 +364,7 @@ export function BrokerageAnalyticsShell() {
               </table>
             </Box>
 
-            <BodyText size="xs" muted className="mb-2">
-              Lender Fall-Through Rates
-            </BodyText>
+            <BodyText size="xs" muted className="mb-2">Lender Fall-Through Rates</BodyText>
             <Box className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -455,15 +384,7 @@ export function BrokerageAnalyticsShell() {
                         <td className="py-2 pr-4">{lender.total_deals.toLocaleString()}</td>
                         <td className="py-2 pr-4">{lender.cancelled}</td>
                         <td className="py-2">
-                          <span
-                            className={
-                              lender.fall_through_rate_percent >= 25
-                                ? "font-medium text-red-500"
-                                : lender.fall_through_rate_percent >= 15
-                                  ? "font-medium text-yellow-500"
-                                  : "font-medium text-green-600"
-                            }
-                          >
+                          <span style={{ color: lender.fall_through_rate_percent >= 25 ? dangerColor : lender.fall_through_rate_percent >= 15 ? warningColor : successColor, fontWeight: 500 }}>
                             {lender.fall_through_rate_percent}%
                           </span>
                         </td>
@@ -473,9 +394,7 @@ export function BrokerageAnalyticsShell() {
               </table>
             </Box>
 
-            <BodyText size="xs" muted className="mb-2 mt-6">
-              Fall-Through Rates by Price Band
-            </BodyText>
+            <BodyText size="xs" muted className="mb-2 mt-6">Fall-Through Rates by Price Band</BodyText>
             <Box className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -493,15 +412,7 @@ export function BrokerageAnalyticsShell() {
                       <td className="py-2 pr-4">{band.total_deals.toLocaleString()}</td>
                       <td className="py-2 pr-4">{band.cancelled}</td>
                       <td className="py-2">
-                        <span
-                          className={
-                            band.fall_through_rate_percent >= 25
-                              ? "font-medium text-red-500"
-                              : band.fall_through_rate_percent >= 15
-                                ? "font-medium text-yellow-500"
-                                : "font-medium text-green-600"
-                          }
-                        >
+                        <span style={{ color: band.fall_through_rate_percent >= 25 ? dangerColor : band.fall_through_rate_percent >= 15 ? warningColor : successColor, fontWeight: 500 }}>
                           {band.fall_through_rate_percent}%
                         </span>
                       </td>

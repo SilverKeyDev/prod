@@ -19,10 +19,14 @@
  */
 import featureColors from "./features.json";
 import foundationColors from "./foundation.json";
+import chartPaletteColors from "./chart-palette.json";
+import stateColors from "./state-colors.json";
 
 export const colors = {
   ...foundationColors,
   ...featureColors,
+  ...chartPaletteColors,
+  ...stateColors,
 } as Record<string, unknown>;
 
 /** Dot-separated path accepted by `color()`, e.g. `"brand.accent"`. */
