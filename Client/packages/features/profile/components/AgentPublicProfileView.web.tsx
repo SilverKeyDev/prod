@@ -3,6 +3,7 @@ import { type ReactNode, useMemo } from "react";
 import { useLocalization } from "packages/contexts";
 import { PublicProfileHero } from "packages/features/profile/components/publicSite/PublicProfileHero.web";
 import { PublicProfileSocial } from "packages/features/profile/components/publicSite/PublicProfileSocial.web";
+import { PublicProfileTestimonials } from "packages/features/profile/components/publicSite/PublicProfileTestimonials.web";
 import { buildAgentPublicProfileViewModel } from "packages/features/profile/utils";
 import type { components } from "packages/types/api.generated";
 import { Box } from "packages/ui/components/structure/primitives";
@@ -40,6 +41,7 @@ export function AgentPublicProfileView({
         model={model}
         heroActions={heroActions}
       />
+      <PublicProfileTestimonials model={model} />
       <PublicProfileSocial model={model} />
     </Box>
   );

@@ -25,6 +25,7 @@ import {
   toRecordString,
   toString,
   toStringArray,
+  toTestimonialArray,
 } from "./profileFormSyncCoercions";
 
 export type { UserProfileForSync } from "packages/features/profile/types/form/profileFormSync";
@@ -46,15 +47,22 @@ export function nextPreferencesVersion(current?: string | null): string {
 /** Merge GET /preferences with local onboarding draft; draft wins on overlaps; keep server locations if draft has none. */
 export function mergeOnboardingServerAndDraft(
   server: OnboardingData,
-  draft: OnboardingData | null
+  draft: OnboardingData | null,
 ): OnboardingData {
   if (!draft) {
-    const locs = server.important_locations?.filter((l) => (l.address ?? "").trim() !== "") ?? [];
+    const locs =
+      server.important_locations?.filter(
+        (l) => (l.address ?? "").trim() !== "",
+      ) ?? [];
     return { ...server, important_locations: locs };
   }
-  const draftLocs = draft.important_locations?.filter((l) => (l.address ?? "").trim() !== "") ?? [];
+  const draftLocs =
+    draft.important_locations?.filter((l) => (l.address ?? "").trim() !== "") ??
+    [];
   const serverLocs =
-    server.important_locations?.filter((l) => (l.address ?? "").trim() !== "") ?? [];
+    server.important_locations?.filter(
+      (l) => (l.address ?? "").trim() !== "",
+    ) ?? [];
   const draftHasLocationsField = draft.important_locations !== undefined;
   const important_locations = draftHasLocationsField
     ? draftLocs
@@ -68,8 +76,14 @@ export function mergeOnboardingServerAndDraft(
   };
 }
 
-function isAgentFormData(formData: OnboardingData, userProfile?: UserProfileForSync): boolean {
-  return primaryOnboardingRoleFromForm(formData, { roles: userProfile?.roles }) === "agent";
+function isAgentFormData(
+  formData: OnboardingData,
+  userProfile?: UserProfileForSync,
+): boolean {
+  return (
+    primaryOnboardingRoleFromForm(formData, { roles: userProfile?.roles }) ===
+    "agent"
+  );
 }
 
 /**
@@ -80,7 +94,7 @@ function isAgentFormData(formData: OnboardingData, userProfile?: UserProfileForS
  */
 export function formDataToPreferencesPayload(
   formData: OnboardingData,
-  userProfile?: UserProfileForSync
+  userProfile?: UserProfileForSync,
 ): Record<string, unknown> {
   const { name, important_locations, ...rest } = formData;
   const payload = {
@@ -125,10 +139,14 @@ export function formDataToPreferencesPayload(
   }
 
   // Derive down_payment dollars from band when financing
-  if (!formData.paying_cash && formData.down_payment_band && formData.home_budget_max != null) {
+  if (
+    !formData.paying_cash &&
+    formData.down_payment_band &&
+    formData.home_budget_max != null
+  ) {
     payload.down_payment = downPaymentDollarsFromBand(
       formData.down_payment_band as DownPaymentBandValue,
-      formData.home_budget_max
+      formData.home_budget_max,
     );
   }
 
@@ -154,13 +172,15 @@ export function formDataToPreferencesPayload(
  */
 export function userPreferencesToOnboardingData(
   prefs: Record<string, unknown> | null | undefined,
-  userProfile?: UserProfileForSync
+  userProfile?: UserProfileForSync,
 ): OnboardingData {
   if (!prefs || typeof prefs !== "object") return {};
 
   const get = (key: string): unknown => prefs[key];
   const nameFromProfile =
-    userProfile != null && typeof userProfile.name === "string" && userProfile.name.trim() !== ""
+    userProfile != null &&
+    typeof userProfile.name === "string" &&
+    userProfile.name.trim() !== ""
       ? userProfile.name.trim()
       : undefined;
 
@@ -172,7 +192,7 @@ export function userPreferencesToOnboardingData(
       typeof extendedBuyerPrefs === "object" &&
       !Array.isArray(extendedBuyerPrefs)
       ? extendedBuyerPrefs
-      : undefined
+      : undefined,
   );
 
   const data: OnboardingData = {
@@ -203,7 +223,8 @@ export function userPreferencesToOnboardingData(
     preferred_bedrooms_min: toNumber(get("preferred_bedrooms_min")),
     preferred_bedrooms_max: toNumber(get("preferred_bedrooms_max")),
     preferred_bathrooms_min:
-      toNumber(get("preferred_bathrooms")) ?? toNumber(get("preferred_bathrooms_min")),
+      toNumber(get("preferred_bathrooms")) ??
+      toNumber(get("preferred_bathrooms_min")),
     preferred_bathrooms_max: toNumber(get("preferred_bathrooms_max")),
     listing_status: toString(get("listing_status")),
     preferred_lot_size: toString(get("preferred_lot_size")),
@@ -212,7 +233,9 @@ export function userPreferencesToOnboardingData(
     preferred_lot_size_max: toNumber(get("preferred_lot_size_max")),
     preferred_home_age_min: toNumber(get("preferred_home_age_min")),
     preferred_home_age_max: toNumber(get("preferred_home_age_max")),
-    preferred_architectural_style: toString(get("preferred_architectural_style")),
+    preferred_architectural_style: toString(
+      get("preferred_architectural_style"),
+    ),
     other_requirements:
       toStringArray(get("other_requirements")).length > 0
         ? toStringArray(get("other_requirements"))
@@ -229,17 +252,21 @@ export function userPreferencesToOnboardingData(
     days_on_market_max: toNumber(get("days_on_market_max")),
     renovation_preference: toString(get("renovation_preference")),
     intended_property_use: toString(get("intended_property_use")),
-    architectural_style_preference: toString(get("architectural_style_preference")),
+    architectural_style_preference: toString(
+      get("architectural_style_preference"),
+    ),
     deal_breakers: toStringArray(get("deal_breakers")),
 
     // Location
     preferred_regions: parseUserPreferencesArray(get("preferred_regions"))
       .filter(
-        (v): v is Record<string, unknown> => typeof v === "object" && v !== null && "address" in v
+        (v): v is Record<string, unknown> =>
+          typeof v === "object" && v !== null && "address" in v,
       )
       .map((v) => ({
         name: typeof v.name === "string" ? v.name : "",
-        address: typeof v.address === "string" ? v.address : String(v.address ?? ""),
+        address:
+          typeof v.address === "string" ? v.address : String(v.address ?? ""),
       }))
       .filter((r) => r.address.trim() !== ""),
     important_locations: toImportantLocations(get("important_locations")),
@@ -260,25 +287,34 @@ export function userPreferencesToOnboardingData(
     paying_cash: toBool(get("paying_cash")),
 
     // Agent profile (when user has agent role; API returns these only for agents)
-    agent_physical_mailing_address: toString(get("agent_physical_mailing_address")),
+    agent_physical_mailing_address: toString(
+      get("agent_physical_mailing_address"),
+    ),
     agent_licensed_states: toStringArray(get("agent_licensed_states")),
     agent_license_types: toStringArray(get("agent_license_types")),
     agent_license_numbers: toStringArray(get("agent_license_numbers")),
-    agent_license_expiration_dates: toStringArray(get("agent_license_expiration_dates")),
+    agent_license_expiration_dates: toStringArray(
+      get("agent_license_expiration_dates"),
+    ),
     agent_mls_affiliations: toDictArray(get("agent_mls_affiliations")),
+    agent_testimonials: toTestimonialArray(get("agent_testimonials")),
     agent_brokerage_name: toString(get("agent_brokerage_name")),
     agent_brokerage_bic_name: toString(get("agent_brokerage_bic_name")),
     agent_brokerage_address: toString(get("agent_brokerage_address")),
     agent_brokerage_email: toString(get("agent_brokerage_email")),
     agent_brokerage_phone: toString(get("agent_brokerage_phone")),
     agent_bio: toString(get("agent_bio")),
-    agent_primary_service_zips: toStringArray(get("agent_primary_service_zips")),
+    agent_primary_service_zips: toStringArray(
+      get("agent_primary_service_zips"),
+    ),
     agent_specialties: toStringArray(get("agent_specialties")),
     agent_social_links: toRecordString(get("agent_social_links")),
     public_profile_slug: toString(get("public_profile_slug")),
   };
 
-  const primaryRole = primaryOnboardingRoleFromForm(data, { roles: userProfile?.roles });
+  const primaryRole = primaryOnboardingRoleFromForm(data, {
+    roles: userProfile?.roles,
+  });
   if (primaryRole) {
     data.primary_onboarding_role = primaryRole;
   }
