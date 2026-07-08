@@ -208,8 +208,8 @@ export function TodoAgendaRow({
           <Box className="flex flex-row items-stretch">
             <Box className="bg-primary w-1" />
             <Box className="min-w-0 flex-1 p-3">
-              <Box className="flex flex-row items-start gap-2">
-                <Box className="flex min-w-0 flex-1 flex-col gap-1">
+              <Box className="flex flex-col gap-2">
+                <Box className="flex min-w-0 flex-col gap-1">
                   <Box className="flex min-w-0 flex-row items-center gap-2">
                     <AgendaCompleteControl
                       completed={todo.completed}
