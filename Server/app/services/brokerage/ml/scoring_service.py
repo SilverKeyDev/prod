@@ -13,16 +13,53 @@ from app.services.brokerage.ml.feature_store import (
 from app.services.brokerage.ml.seasonal_forecast import SeasonalVolumeForecaster
 
 
-def _stage_label(row: dict) -> int:
-    return int(row["drop_off_percent"] >= 20 or row["avg_days_in_stage"] >= 14)
+def _balanced_binary_labels(risk_scores: list[float]) -> list[int]:
+    """Ensure at least two classes for sklearn when proxy labels collapse."""
+    if not risk_scores:
+        return []
+
+    labels = [0] * len(risk_scores)
+    if len(risk_scores) == 1:
+        return labels
+
+    ranked = sorted(range(len(risk_scores)), key=lambda idx: risk_scores[idx], reverse=True)
+    top_n = max(1, len(risk_scores) // 2)
+    for idx in ranked[:top_n]:
+        labels[idx] = 1
+    return labels
 
 
-def _agent_label(row: dict) -> int:
-    return int(
-        row["stalled_deals"] >= 2
-        or row["avg_days_since_update"] >= 14
-        or row["stage_dropoff_rate"] >= 0.30
-    )
+def _stage_label_rows(stage_rows: list[dict]) -> list[int]:
+    risk_scores = [
+        float(row["drop_off_percent"]) + (float(row["avg_days_in_stage"]) / 30.0)
+        for row in stage_rows
+    ]
+    proxy = [
+        int(row["drop_off_percent"] >= 15 or row["avg_days_in_stage"] >= 120) for row in stage_rows
+    ]
+    if len(set(proxy)) >= 2:
+        return proxy
+    return _balanced_binary_labels(risk_scores)
+
+
+def _agent_label_rows(agent_rows: list[dict]) -> list[int]:
+    risk_scores = [
+        float(row["stalled_deals"]) * 2.0
+        + float(row["avg_days_since_update"]) / 30.0
+        + float(row["stage_dropoff_rate"]) * 100.0
+        for row in agent_rows
+    ]
+    proxy = [
+        int(
+            row["stalled_deals"] >= 2
+            or row["avg_days_since_update"] >= 120
+            or row["stage_dropoff_rate"] >= 0.12
+        )
+        for row in agent_rows
+    ]
+    if len(set(proxy)) >= 2:
+        return proxy
+    return _balanced_binary_labels(risk_scores)
 
 
 def score_brokerage_ml_insights(brokerage_org_id: str) -> dict:
@@ -46,8 +83,8 @@ def score_brokerage_ml_insights(brokerage_org_id: str) -> dict:
             "brokerage_org_id": brokerage_org_id,
         }
 
-    stage_labels = [_stage_label(r) for r in stage_rows]
-    agent_labels = [_agent_label(r) for r in agent_rows]
+    stage_labels = _stage_label_rows(stage_rows)
+    agent_labels = _agent_label_rows(agent_rows)
 
     dropoff_model = DropoffRiskModel(cfg)
     agent_model = AgentRiskModel(cfg)

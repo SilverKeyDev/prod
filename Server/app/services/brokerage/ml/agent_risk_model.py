@@ -59,8 +59,8 @@ class AgentRiskModel:
             reasons = []
             if row["stalled_deals"] > 0:
                 reasons.append("stalled_deals")
-            if row["avg_days_since_update"] > 14:
-                reasons.append("inactive_14d")
+            if row["avg_days_since_update"] >= 90:
+                reasons.append("inactive_90d")
             if row["stage_dropoff_rate"] > 0.25:
                 reasons.append("high_stage_dropoff")
 
