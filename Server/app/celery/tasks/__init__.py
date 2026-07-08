@@ -32,4 +32,5 @@ __all__ = [
     "sync_templates_task",
     "sync_brokerage_transactions_task",
     "sync_all_brokerages_incremental_task",
+    "score_brokerage_ml_insights_task",
 ]
