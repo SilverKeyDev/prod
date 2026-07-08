@@ -32,6 +32,7 @@ class UserAgentProfile(db.Model):
     primary_service_zips: Mapped[str | None] = mapped_column(db.Text)  # JSON array
     specialties: Mapped[str | None] = mapped_column(db.Text)  # JSON array
     social_links: Mapped[str | None] = mapped_column(db.Text)  # JSON object
+    testimonials: Mapped[str | None] = mapped_column(db.Text)  # JSON array of objects
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         db.DateTime,

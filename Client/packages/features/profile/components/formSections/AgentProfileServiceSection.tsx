@@ -17,6 +17,8 @@ import { Box } from "packages/ui/components/structure/primitives";
 
 import { Input, Title } from "@/components/ui";
 
+import AgentTestimonialsSection from "./AgentTestimonialsSection";
+
 export type AgentProfileServiceSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
@@ -39,7 +41,9 @@ export default function AgentProfileServiceSection({
       )}
 
       <ProfileSectionBody>
-        <ProfileFullWidthField label={<Label className="block">{FIELD_LABELS.AGENT_BIO}</Label>}>
+        <ProfileFullWidthField
+          label={<Label className="block">{FIELD_LABELS.AGENT_BIO}</Label>}
+        >
           {isEditMode ? (
             <Input
               type="text"
@@ -52,7 +56,7 @@ export default function AgentProfileServiceSection({
           ) : (
             <Box
               className={`mobile-input bg-background-base ${profileFieldValueClassName(
-                formData.agent_bio
+                formData.agent_bio,
               )}`}
             >
               {formData.agent_bio ?? PROFILE_NOT_SPECIFIED_LABEL}
@@ -61,7 +65,11 @@ export default function AgentProfileServiceSection({
         </ProfileFullWidthField>
 
         <ProfileFullWidthField
-          label={<Label className="block">{FIELD_LABELS.AGENT_PRIMARY_SERVICE_ZIPS}</Label>}
+          label={
+            <Label className="block">
+              {FIELD_LABELS.AGENT_PRIMARY_SERVICE_ZIPS}
+            </Label>
+          }
         >
           <TagInput
             value={formData.agent_primary_service_zips ?? []}
@@ -72,13 +80,27 @@ export default function AgentProfileServiceSection({
         </ProfileFullWidthField>
 
         <ProfileFullWidthField
-          label={<Label className="block">{FIELD_LABELS.AGENT_SPECIALTIES}</Label>}
+          label={
+            <Label className="block">{FIELD_LABELS.AGENT_SPECIALTIES}</Label>
+          }
         >
           <TagInput
             value={formData.agent_specialties ?? []}
             onChange={(v) => updateFormData("agent_specialties", v)}
             placeholder="e.g. First-time buyers, Luxury"
             isEditMode={isEditMode}
+          />
+        </ProfileFullWidthField>
+
+        <ProfileFullWidthField
+          label={
+            <Label className="block">{FIELD_LABELS.AGENT_TESTIMONIALS}</Label>
+          }
+        >
+          <AgentTestimonialsSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
           />
         </ProfileFullWidthField>
       </ProfileSectionBody>

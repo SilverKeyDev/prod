@@ -11,6 +11,14 @@ export type PublicAgentSocialLink = {
   href: string;
 };
 
+export type PublicAgentTestimonial = {
+  authorName: string;
+  quote: string;
+  date: string | null;
+  /** Integer 1-5 when present. */
+  rating: number | null;
+};
+
 export type AgentPublicProfileViewModel = {
   displayName: string;
   /** First word of the display name, for conversational headings ("Meet Jane"). */
@@ -26,6 +34,8 @@ export type AgentPublicProfileViewModel = {
   hasLicenseChips: boolean;
   mlsCards: ReturnType<typeof formatMlsAffiliationRecord>[];
   socialLinks: PublicAgentSocialLink[];
+  testimonials: PublicAgentTestimonial[];
+  hasTestimonials: boolean;
 };
 
 /** Display casing for well-known social platform keys; others are capitalized. */
@@ -105,6 +115,23 @@ export function buildAgentPublicProfileViewModel(
       href: href.trim(),
     }));
 
+  const testimonials: PublicAgentTestimonial[] = (agent.testimonials ?? [])
+    .map((item) => {
+      const authorName = item.author_name?.trim() ?? "";
+      const quote = item.quote?.trim() ?? "";
+      const rating =
+        typeof item.rating === "number" && item.rating >= 1 && item.rating <= 5
+          ? Math.round(item.rating)
+          : null;
+      return {
+        authorName,
+        quote,
+        date: item.date?.trim() || null,
+        rating,
+      };
+    })
+    .filter((item) => item.authorName && item.quote);
+
   return {
     displayName,
     firstName,
@@ -118,5 +145,7 @@ export function buildAgentPublicProfileViewModel(
     hasLicenseChips,
     mlsCards,
     socialLinks,
+    testimonials,
+    hasTestimonials: testimonials.length > 0,
   };
 }

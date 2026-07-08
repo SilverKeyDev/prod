@@ -22,6 +22,7 @@ export const AGENT_PROFILE_SERVICE_FIELD_KEYS = [
   "agent_bio",
   "agent_primary_service_zips",
   "agent_specialties",
+  "agent_testimonials",
   "agent_social_links",
 ] as const satisfies ReadonlyArray<keyof OnboardingData>;
 
@@ -31,4 +32,5 @@ export const AGENT_PROFILE_FORM_FIELD_KEYS = [
   ...AGENT_PROFILE_SERVICE_FIELD_KEYS,
 ] as const satisfies ReadonlyArray<keyof OnboardingData>;
 
-export type AgentProfileFormFieldKey = (typeof AGENT_PROFILE_FORM_FIELD_KEYS)[number];
+export type AgentProfileFormFieldKey =
+  (typeof AGENT_PROFILE_FORM_FIELD_KEYS)[number];

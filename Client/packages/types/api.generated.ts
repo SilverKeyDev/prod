@@ -5070,6 +5070,16 @@ export interface components {
              */
             profile_picture_url?: string;
         };
+        /** @description Agent-managed client testimonial shown on the public agent profile. `source` is `custom` for agent-entered items; reserved for external review imports (e.g. Zillow) later. */
+        AgentTestimonial: {
+            author_name: string;
+            quote: string;
+            /** @description Display date, preferably YYYY-MM-DD. */
+            date?: string | null;
+            rating?: number | null;
+            /** @description Origin of the testimonial; `custom` when agent-entered. */
+            source?: string | null;
+        };
         /** @description Public, read-only agent directory fields for shareable profile URLs. Combines `users` row contact with `user_agent_profiles` when present. Omits Cognito/Google  ids and internal S3 keys; profile images are exposed only as presigned URLs when available. */
         PublicAgentProfile: {
             id: components["schemas"]["UserId"];
@@ -5104,6 +5114,8 @@ export interface components {
             mls_affiliations?: {
                 [key: string]: unknown;
             }[] | null;
+            /** @description Agent-managed client testimonials; omitted/null when none. */
+            testimonials?: components["schemas"]["AgentTestimonial"][] | null;
             social_links?: {
                 [key: string]: string;
             } | null;
