@@ -31,6 +31,10 @@ type PublicProfileSectionProps = {
   eyebrow?: string;
   heading: string;
   tone?: PublicProfileSectionTone;
+  /** Smaller heading and tighter vertical rhythm for utility bands (e.g. `#search`). */
+  compact?: boolean;
+  /** Center the heading and content horizontally. */
+  centered?: boolean;
   children: ReactNode;
 };
 
@@ -48,9 +52,15 @@ export function PublicProfileSection({
   eyebrow,
   heading,
   tone = "base",
+  compact = false,
+  centered = false,
   children,
 }: PublicProfileSectionProps) {
   const { ref, inView } = useLandingReveal({ threshold: 0.1 });
+  const rhythmClass = compact
+    ? "gap-4 py-10 sm:py-12"
+    : "gap-5 py-14 sm:gap-6 sm:py-16";
+  const alignClass = centered ? "items-center text-center" : "";
 
   return (
     <section
@@ -59,7 +69,7 @@ export function PublicProfileSection({
     >
       <Box
         ref={ref}
-        className={`${PUBLIC_PROFILE_CONTAINER_CLASS} gap-5 py-14 sm:gap-6 sm:py-16 motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+        className={`${PUBLIC_PROFILE_CONTAINER_CLASS} ${rhythmClass} ${alignClass} motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
           inView
             ? "translate-y-0 opacity-100"
             : "motion-safe:translate-y-8 motion-safe:opacity-0"
@@ -69,7 +79,7 @@ export function PublicProfileSection({
           {eyebrow ? (
             <PublicProfileEyebrow>{eyebrow}</PublicProfileEyebrow>
           ) : null}
-          <Title as="h2" size="lg" className="!font-serif">
+          <Title as="h2" size={compact ? "md" : "lg"} className="!font-serif">
             {heading}
           </Title>
         </Box>

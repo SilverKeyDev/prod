@@ -1133,6 +1133,96 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/public/search/area-suggestions:
+    get:
+      tags:
+        - Public
+      summary: Anonymous area autocomplete for public agent pages
+      description: Unauthenticated variant of `getAreaSuggestions` (same Slipstream lookup).
+      operationId: publicGetAreaSuggestions
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search keyword (min 2 characters)
+        - name: state
+          in: query
+          schema:
+            type: string
+          description: State postal abbreviation filter (e.g. "GA")
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 25
+          description: Maximum number of results
+      responses:
+        "200":
+          description: Matching geographic areas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AreaSuggestionsResponse"
+        "503":
+          description: Upstream area search service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/public/search/area-boundary:
+    get:
+      tags:
+        - Public
+      summary: Anonymous area boundary lookup for public agent pages
+      description: Unauthenticated variant of `getAreaBoundary` (same Slipstream lookup).
+      operationId: publicGetAreaBoundary
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Slipstream area ID
+      responses:
+        "200":
+          description: Area boundary with GeoJSON geometry and viewport ring
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AreaBoundaryResponse"
+        "400":
+          description: Missing area id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Area not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Upstream area search service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/search/properties-by-polygon:
     post:
       tags:

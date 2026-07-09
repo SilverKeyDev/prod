@@ -64,6 +64,11 @@ export type SearchContextState = {
   flushPreferencesSave: (() => Promise<void>) | null;
   /** Monotonic signal; increment to request opening the Preferences dropdown/sheet. */
   preferencesPanelOpenSignal: number;
+  /**
+   * One-shot text seed for the location bar: consumed (and cleared) on its next
+   * render. Used by the public agent page → dashboard search handoff (SIL-291).
+   */
+  locationBarSeedText: string | null;
 
   setAnchor: (anchor: Partial<SearchContextAnchor>) => void;
   setFiltersHash: (hash: string) => void;
@@ -86,6 +91,7 @@ export type SearchContextState = {
   setLocationBarExternalSubmit: (fn: (() => Promise<void>) | null) => void;
   setFlushPreferencesSave: (fn: (() => Promise<void>) | null) => void;
   requestOpenPreferencesPanel: () => void;
+  setLocationBarSeedText: (text: string | null) => void;
 };
 
 const initialAnchor: SearchContextAnchor = {};
@@ -102,6 +108,7 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
   locationBarExternalSubmit: null,
   flushPreferencesSave: null,
   preferencesPanelOpenSignal: 0,
+  locationBarSeedText: null,
 
   setAnchor: (anchor) =>
     set((s) => ({
@@ -150,6 +157,8 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
   setFlushPreferencesSave: (flushPreferencesSave) => set({ flushPreferencesSave }),
 
   requestOpenPreferencesPanel: () => set({ preferencesPanelOpenSignal: Date.now() }),
+
+  setLocationBarSeedText: (locationBarSeedText) => set({ locationBarSeedText }),
 });
 
 export const useSearchContextStore = create<SearchContextState>()(

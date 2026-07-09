@@ -83,6 +83,20 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.public.connect_profile_not_ready":
     "Profile not loaded. Please try again in a moment.",
 
+  // Public agent site inline search bar (SIL-291)
+  "profile.public.site.nav_about": "About",
+  "profile.public.site.nav_search": "Search homes",
+  "profile.public.site.search_heading": "Search homes with {{agentName}}",
+  "profile.public.site.search_heading_generic": "Search homes",
+  "profile.public.site.search_placeholder": "Search by city, neighborhood, or ZIP",
+  "profile.public.site.search_body":
+    "Pick a place to continue in the full search experience — map, filters, and every listing.",
+  "profile.public.search_gate_title": "Sign in to search homes",
+  "profile.public.search_gate_body_with_agent":
+    "Create a free account or sign in to continue your search — we'll also connect you with {{agentName}} to help along the way.",
+  "profile.public.search_gate_body":
+    "Create a free account or sign in to continue your search.",
+
   // Buyer onboarding — About Me (SIL-182)
   "profile.onboarding.about.title": "About you",
   "profile.onboarding.about.subtitle":
