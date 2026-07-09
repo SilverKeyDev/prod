@@ -4,10 +4,12 @@ import { usePublicAgentListings } from "packages/features/profile/hooks/data/use
 import { PUBLIC_PROFILE_SECTION_IDS } from "packages/features/profile/utils/public/publicProfileSectionIds";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
-import Title from "packages/ui/components/structure/text/Title";
 
 import { PublicListingCard } from "./PublicListingCard.web";
-import { PublicProfileSection } from "./PublicProfileSection.web";
+import {
+  PublicProfileEyebrow,
+  PublicProfileSection,
+} from "./PublicProfileSection.web";
 
 const GRID_CLASS = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
 const SKELETON_CARD_CLASS =
@@ -25,10 +27,8 @@ function ListingsGroup({
 }) {
   if (listings.length === 0 && !emptyBody) return null;
   return (
-    <Box className="gap-3">
-      <Title as="h3" size="md" className="!font-serif">
-        {heading}
-      </Title>
+    <Box className="flex flex-col gap-5">
+      <PublicProfileEyebrow>{heading}</PublicProfileEyebrow>
       {listings.length ? (
         <Box className={GRID_CLASS}>
           {listings.map((listing) => (
@@ -40,6 +40,7 @@ function ListingsGroup({
           {emptyBody}
         </BodyText>
       )}
+      <Box className="border-border/60 mt-3 border-t" aria-hidden />
     </Box>
   );
 }
@@ -67,7 +68,6 @@ export function PublicProfileListings({ agentId }: PublicProfileListingsProps) {
   return (
     <PublicProfileSection
       id={PUBLIC_PROFILE_SECTION_IDS.listings}
-      eyebrow={t("profile.public.listings.eyebrow")}
       heading={t("profile.public.listings.heading")}
     >
       {isPending ? (
@@ -81,7 +81,7 @@ export function PublicProfileListings({ agentId }: PublicProfileListingsProps) {
           {t("profile.public.listings.empty")}
         </BodyText>
       ) : (
-        <Box className="gap-10">
+        <Box className="mt-4 flex flex-col gap-8">
           <ListingsGroup
             heading={t("profile.public.listings.current_heading")}
             listings={current}

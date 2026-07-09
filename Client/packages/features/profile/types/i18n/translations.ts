@@ -51,8 +51,7 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.public.site.licenses_fineprint": "License {{numbers}}",
 
   // Public agent site listings section (SIL-290)
-  "profile.public.listings.eyebrow": "Listings",
-  "profile.public.listings.heading": "Current and former listings",
+  "profile.public.listings.heading": "Listings",
   "profile.public.listings.current_heading": "Current listings",
   "profile.public.listings.former_heading": "Former listings",
   "profile.public.listings.empty":
