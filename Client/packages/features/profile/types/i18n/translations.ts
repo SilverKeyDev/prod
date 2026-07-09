@@ -49,6 +49,19 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.public.site.call_action": "Call",
   "profile.public.site.social_eyebrow": "Connect",
   "profile.public.site.licenses_fineprint": "License {{numbers}}",
+
+  // Public agent site listings section (SIL-290)
+  "profile.public.listings.eyebrow": "Listings",
+  "profile.public.listings.heading": "Current and former listings",
+  "profile.public.listings.current_heading": "Current listings",
+  "profile.public.listings.former_heading": "Former listings",
+  "profile.public.listings.empty":
+    "No MLS-linked listings to show right now. Check back soon.",
+  "profile.public.listings.current_empty": "No active listings right now.",
+  "profile.public.listings.sold_badge": "Sold",
+  "profile.public.listings.mls_number": "MLS # {{id}}",
+  "profile.public.listings.photo_fallback_alt": "Listing photo",
+  "profile.public.listings.address_fallback": "Address unavailable",
   "profile.public.contact_heading": "Contact",
   "profile.public.contact_subtitle":
     "How clients can reach you on your public profile.",

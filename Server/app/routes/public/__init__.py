@@ -4,4 +4,4 @@ from flask import Blueprint
 
 public_bp = Blueprint("public", __name__, url_prefix="/api/v1/public")
 
-from . import agent_profile  # noqa: E402,F401
+from . import agent_listings, agent_profile  # noqa: E402,F401

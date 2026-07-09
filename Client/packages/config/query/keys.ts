@@ -66,6 +66,8 @@ export const queryKeys = {
     agentProfile: (userId: string) => [...queryKeys.public.all, "agentProfile", userId] as const,
     agentProfileBySlug: (slug: string) =>
       [...queryKeys.public.all, "agentProfileBySlug", slug] as const,
+    agentListings: (userId: string) =>
+      [...queryKeys.public.all, "agentListings", userId] as const,
   },
 
   // Map initialization domain

@@ -148,6 +148,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/agent-profile/{userId}/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get public agent listings (current and former)
+         * @description Unauthenticated MLS listings attributed to the agent for the public agent site (`#listings` section). Matched from the shared property cache by the agent's MLS id or listing agent email. Returns 404 if the user does not exist, is not an agent, or is inactive; returns an empty list when the agent has no MLS-linked listings. Cards must render MLS attribution; no partner placement on this surface.
+         */
+        get: operations["getPublicAgentListings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/agent-profile/slug/{publicProfileSlug}": {
         parameters: {
             query?: never;
@@ -5114,6 +5134,39 @@ export interface components {
             /** @description Public agent profile; only returned when the user exists and is an active agent. */
             agent: components["schemas"]["PublicAgentProfile"];
         };
+        /** @description One MLS listing card on the public agent site, sourced from the shared `property_cache` snapshot (values are display strings as cached). Carries MLS attribution fields (`brokerage`, `mls_home_id`, `mls_region`) so cards can render compliant attribution; no partner placement data on this surface. */
+        PublicAgentListing: {
+            /** @description property_cache row id (stable even when zpid is missing). */
+            id: string;
+            /** @description Listing zpid when known; used for `/property/{zpid}/{slug}` links. */
+            zpid?: string | null;
+            address?: string | null;
+            city?: string | null;
+            state?: string | null;
+            zipcode?: string | null;
+            /** @description Cached display price (e.g. "$519,900"); not refreshed on read. */
+            price?: string | null;
+            beds?: string | null;
+            baths?: string | null;
+            sqft?: string | null;
+            primary_image_url?: string | null;
+            /** @description Raw MLS status as cached (e.g. "Active", "Under Contract", "Sold"). */
+            listing_status?: string | null;
+            /**
+             * @description Normalized bucket — `active` (current) vs `sold` (former/closed).
+             * @enum {string}
+             */
+            status_category: "active" | "sold";
+            /** @description Listing brokerage/office for MLS attribution on the card. */
+            brokerage?: string | null;
+            /** @description MLS listing number for attribution. */
+            mls_home_id?: string | null;
+            mls_region?: string | null;
+        };
+        PublicAgentListingsResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description MLS listings attributed to the agent (matched by agent MLS id or listing agent email), newest first. Empty when the agent has no MLS-linked listings. */
+            listings: components["schemas"]["PublicAgentListing"][];
+        };
         PropertyCompsRequest: {
             address: string;
             radius?: number | null;
@@ -7348,6 +7401,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicAgentProfileResponse"];
+                };
+            };
+            /** @description Not found or not a public agent profile */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPublicAgentListings: {
+        parameters: {
+            query?: {
+                /** @description Optional bucket filter; omit to return both current and former listings. */
+                status?: "active" | "sold";
+            };
+            header?: never;
+            path: {
+                /** @description Agent application user id (users.id). */
+                userId: components["schemas"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public agent listings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicAgentListingsResponse"];
+                };
+            };
+            /** @description Invalid status filter */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Not found or not a public agent profile */

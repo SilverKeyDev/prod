@@ -2732,6 +2732,60 @@ class PublicAgentProfileResponse(SuccessResponse):
     )
 
 
+class StatusCategory(Enum):
+    """
+    Normalized bucket — `active` (current) vs `sold` (former/closed).
+    """
+
+    active = "active"
+    sold = "sold"
+
+
+class PublicAgentListing(BaseModel):
+    """
+    One MLS listing card on the public agent site, sourced from the shared `property_cache` snapshot (values are display strings as cached). Carries MLS attribution fields (`brokerage`, `mls_home_id`, `mls_region`) so cards can render compliant attribution; no partner placement data on this surface.
+
+    """
+
+    id: str = Field(..., description="property_cache row id (stable even when zpid is missing).")
+    zpid: str | None = Field(
+        None,
+        description="Listing zpid when known; used for `/property/{zpid}/{slug}` links.",
+    )
+    address: str | None = None
+    city: str | None = None
+    state: str | None = None
+    zipcode: str | None = None
+    price: str | None = Field(
+        None,
+        description='Cached display price (e.g. "$519,900"); not refreshed on read.',
+    )
+    beds: str | None = None
+    baths: str | None = None
+    sqft: str | None = None
+    primary_image_url: str | None = None
+    listing_status: str | None = Field(
+        None,
+        description='Raw MLS status as cached (e.g. "Active", "Under Contract", "Sold").',
+    )
+    status_category: StatusCategory = Field(
+        ...,
+        description="Normalized bucket — `active` (current) vs `sold` (former/closed).",
+    )
+    brokerage: str | None = Field(
+        None, description="Listing brokerage/office for MLS attribution on the card."
+    )
+    mls_home_id: str | None = Field(None, description="MLS listing number for attribution.")
+    mls_region: str | None = None
+
+
+class PublicAgentListingsResponse(SuccessResponse):
+    listings: list[PublicAgentListing] = Field(
+        ...,
+        description="MLS listings attributed to the agent (matched by agent MLS id or listing agent email), newest first. Empty when the agent has no MLS-linked listings.\n",
+    )
+
+
 class PropertyCompsRequest(BaseModel):
     address: str
     radius: float | None = None
