@@ -538,6 +538,10 @@ components:
       $ref: "./components/schemas/user/profile/PublicAgentProfile.yaml"
     PublicAgentProfileResponse:
       $ref: "./components/schemas/user/profile/PublicAgentProfileResponse.yaml"
+    PublicAgentListing:
+      $ref: "./components/schemas/user/profile/PublicAgentListing.yaml"
+    PublicAgentListingsResponse:
+      $ref: "./components/schemas/user/profile/PublicAgentListingsResponse.yaml"
     PropertyCompsRequest:
       $ref: "./components/schemas/search/properties/PropertyCompsRequest.yaml"
     PropertyCompsResponse:
@@ -1087,6 +1091,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PublicAgentProfileResponse"
+        "404":
+          description: Not found or not a public agent profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/public/agent-profile/{userId}/listings:
+    get:
+      tags:
+        - Public
+      summary: Get public agent listings (current and former)
+      description: >
+        Unauthenticated MLS listings attributed to the agent for the public agent site
+        (`#listings` section). Matched from the shared property cache by the agent's MLS id
+        or listing agent email. Returns 404 if the user does not exist, is not an agent,
+        or is inactive; returns an empty list when the agent has no MLS-linked listings.
+        Cards must render MLS attribution; no partner placement on this surface.
+      operationId: getPublicAgentListings
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Agent application user id (users.id).
+          schema:
+            $ref: "#/components/schemas/UserId"
+        - name: status
+          in: query
+          required: false
+          description: Optional bucket filter; omit to return both current and former listings.
+          schema:
+            type: string
+            enum:
+              - active
+              - sold
+      responses:
+        "200":
+          description: Public agent listings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicAgentListingsResponse"
+        "400":
+          description: Invalid status filter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Not found or not a public agent profile
           content:
