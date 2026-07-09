@@ -4,6 +4,7 @@ import { useLocalization } from "packages/contexts";
 import { PublicProfileHero } from "packages/features/profile/components/publicSite/PublicProfileHero.web";
 import { PublicProfileSearchBand } from "packages/features/profile/components/publicSite/PublicProfileSearchBand.web";
 import { PublicProfileSocial } from "packages/features/profile/components/publicSite/PublicProfileSocial.web";
+import { PublicProfileTestimonials } from "packages/features/profile/components/publicSite/PublicProfileTestimonials.web";
 import { buildAgentPublicProfileViewModel } from "packages/features/profile/utils";
 import type { components } from "packages/types/api.generated";
 import { Box } from "packages/ui/components/structure/primitives";
@@ -20,10 +21,10 @@ export type AgentPublicProfileViewProps = {
  *
  * Structure: one identity hero (`#about`: name, bio, credentials fine print)
  * → inline search bar (`#search`, SIL-291: picking a place hands off to the
- * dashboard search, or the sign-in gate when anonymous) → social links.
- * Contact channels are deliberately not rendered in the body — visitors reach
- * the agent via the hero Connect CTA. Future anchors (`#listings`,
- * `#testimonials`) arrive with SIL-290/289.
+ * dashboard search, or the sign-in gate when anonymous) → testimonials
+ * (`#testimonials`, SIL-289) → social links. Contact channels are
+ * deliberately not rendered in the body — visitors reach the agent via the
+ * hero Connect CTA. The `#listings` anchor arrives with SIL-290.
  */
 export function AgentPublicProfileView({
   agent,
@@ -44,6 +45,7 @@ export function AgentPublicProfileView({
         heroActions={heroActions}
       />
       <PublicProfileSearchBand agent={agent} model={model} />
+      <PublicProfileTestimonials model={model} />
       <PublicProfileSocial model={model} />
     </Box>
   );

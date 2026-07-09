@@ -89,6 +89,12 @@ properties:
     items:
       type: object
       additionalProperties: true
+  testimonials:
+    description: Agent-managed client testimonials; omitted/null when none.
+    type: array
+    nullable: true
+    items:
+      $ref: './AgentTestimonial.yaml'
   social_links:
     type: object
     additionalProperties:

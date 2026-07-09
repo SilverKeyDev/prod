@@ -220,6 +220,7 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
                 agent.license_expiration_dates
             )
             out["agent_mls_affiliations"] = _parse_json_list_of_dicts(agent.mls_affiliations)
+            out["agent_testimonials"] = _parse_json_list_of_dicts(agent.testimonials)
             out["agent_brokerage_name"] = agent.brokerage_name
             out["agent_brokerage_bic_name"] = agent.brokerage_bic_name
             out["agent_brokerage_address"] = agent.brokerage_address

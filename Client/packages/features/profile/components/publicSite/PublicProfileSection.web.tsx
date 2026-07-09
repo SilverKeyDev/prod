@@ -12,6 +12,10 @@ export type PublicProfileSectionTone = "base" | "surface";
 export const PUBLIC_PROFILE_CONTAINER_CLASS =
   "px-responsive-sm mx-auto w-full max-w-[1100px]";
 
+/** Anchor offset for the fixed nav; re-exported so sibling sections avoid re-importing landing chrome. */
+export const PUBLIC_PROFILE_SECTION_ANCHOR_CLASS =
+  LANDING_NAV_SCROLL_MARGIN_CLASS;
+
 /** Small uppercase label above section headings, mirroring the landing eyebrow. */
 export function PublicProfileEyebrow({ children }: { children: string }) {
   return (

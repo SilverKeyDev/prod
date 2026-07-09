@@ -49,6 +49,7 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.public.site.call_action": "Call",
   "profile.public.site.social_eyebrow": "Connect",
   "profile.public.site.licenses_fineprint": "License {{numbers}}",
+  "profile.public.testimonials_heading": "What clients say",
   "profile.public.contact_heading": "Contact",
   "profile.public.contact_subtitle":
     "How clients can reach you on your public profile.",
