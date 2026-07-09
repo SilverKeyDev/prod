@@ -73,7 +73,7 @@ export function renderOnboardingStep({
         <DemographicsSection
           formData={formData}
           isEditMode={true}
-          updateFormData={updateFormData}
+          updateField={(field, value) => updateFormData(field, value)}
           hideProfilePictureWhenOnboarding={true}
           hideNameWhenOnboarding={true}
           showWhyJoiningQuestion={false}
