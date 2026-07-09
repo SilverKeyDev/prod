@@ -1,8 +1,12 @@
 // Shared types and interfaces for onboarding and personalization
 
 import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
+import type { components } from "packages/types/api.generated";
 
 import type { ProfileStepId } from "./profileStepIds";
+
+/** Agent-managed testimonial; matches the OpenAPI `AgentTestimonial` schema. */
+export type AgentTestimonial = components["schemas"]["AgentTestimonial"];
 
 export type OnboardingData = {
   // Metadata
@@ -121,6 +125,7 @@ export type OnboardingData = {
   agent_license_numbers?: string[];
   agent_license_expiration_dates?: string[];
   agent_mls_affiliations?: Record<string, unknown>[];
+  agent_testimonials?: AgentTestimonial[];
   agent_brokerage_name?: string;
   agent_brokerage_bic_name?: string;
   agent_brokerage_address?: string;
@@ -177,4 +182,6 @@ export type DropdownOption = {
   label: string;
 };
 
-export type ImportantLocation = NonNullable<OnboardingData["important_locations"]>[number];
+export type ImportantLocation = NonNullable<
+  OnboardingData["important_locations"]
+>[number];

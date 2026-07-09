@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 
 import pytest
@@ -92,6 +93,73 @@ def test_write_preferences_creates_agent_profile_when_agent(app: Flask, db_sessi
         )
         assert profile is not None
         assert profile.agent_bio == "Experienced buyer agent"
+
+
+def test_write_preferences_normalizes_agent_testimonials(app: Flask, db_session) -> None:
+    with app.app_context():
+        user = _create_user(roles=("agent",))
+        user_id = str(user.id)
+        db.session.commit()
+
+        write_preferences_from_payload(
+            user_id,
+            {
+                "primary_onboarding_role": "agent",
+                "agent_testimonials": [
+                    {
+                        "author_name": "Jane B.",
+                        "quote": "Great agent!",
+                        "date": "2026-01-15",
+                        "rating": 5,
+                    },
+                    {"author_name": "  ", "quote": "missing author"},
+                    {"author_name": "Sam", "quote": "Solid.", "rating": 9},
+                    "not-a-dict",
+                ],
+            },
+            user=user,
+        )
+
+        profile = db.session.scalar(
+            select(UserAgentProfile).where(UserAgentProfile.user_id == user_id)
+        )
+        assert profile is not None
+        items = json.loads(profile.testimonials)
+        assert items == [
+            {
+                "author_name": "Jane B.",
+                "quote": "Great agent!",
+                "date": "2026-01-15",
+                "rating": 5,
+                "source": "custom",
+            },
+            # Out-of-range rating dropped; source defaults to custom.
+            {"author_name": "Sam", "quote": "Solid.", "source": "custom"},
+        ]
+
+
+def test_write_preferences_clears_agent_testimonials_when_no_valid_items(
+    app: Flask, db_session
+) -> None:
+    with app.app_context():
+        user = _create_user(roles=("agent",))
+        user_id = str(user.id)
+        db.session.commit()
+
+        write_preferences_from_payload(
+            user_id,
+            {
+                "primary_onboarding_role": "agent",
+                "agent_testimonials": [{"author_name": "", "quote": ""}],
+            },
+            user=user,
+        )
+
+        profile = db.session.scalar(
+            select(UserAgentProfile).where(UserAgentProfile.user_id == user_id)
+        )
+        assert profile is not None
+        assert profile.testimonials is None
 
 
 def test_write_preferences_removes_agent_profile_when_no_longer_agent(

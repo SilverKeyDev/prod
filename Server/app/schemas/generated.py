@@ -2675,6 +2675,21 @@ class ProfilePictureResponse(SuccessResponse):
     )
 
 
+class AgentTestimonial(BaseModel):
+    """
+    Agent-managed client testimonial shown on the public agent profile. `source` is `custom` for agent-entered items; reserved for external review imports (e.g. Zillow) later.
+
+    """
+
+    author_name: str
+    quote: str
+    date: str | None = Field(None, description="Display date, preferably YYYY-MM-DD.")
+    rating: conint(ge=1, le=5) | None = None
+    source: str | None = Field(
+        None, description="Origin of the testimonial; `custom` when agent-entered."
+    )
+
+
 class PublicAgentProfile(BaseModel):
     """
     Public, read-only agent directory fields for shareable profile URLs. Combines `users` row contact with `user_agent_profiles` when present. Omits Cognito/Google  ids and internal S3 keys; profile images are exposed only as presigned URLs when available.
@@ -2717,6 +2732,9 @@ class PublicAgentProfile(BaseModel):
     mls_affiliations: list[dict[str, Any]] | None = Field(
         None,
         description="Parsed JSON array from user_agent_profiles.mls_affiliations (list of objects).",
+    )
+    testimonials: list[AgentTestimonial] | None = Field(
+        None, description="Agent-managed client testimonials; omitted/null when none."
     )
     social_links: dict[str, str] | None = None
     public_profile_slug: str | None = Field(

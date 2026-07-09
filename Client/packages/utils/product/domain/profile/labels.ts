@@ -139,6 +139,7 @@ export const FIELD_LABELS = {
   AGENT_BIO: "Bio",
   AGENT_PRIMARY_SERVICE_ZIPS: "Primary Service Zips",
   AGENT_SPECIALTIES: "Specialties",
+  AGENT_TESTIMONIALS: "Client Testimonials",
 } as const;
 
 /** Buyer-preference copy when the signed-in user is an agent (personal search only). */
