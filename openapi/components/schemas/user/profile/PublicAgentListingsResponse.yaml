@@ -1,0 +1,14 @@
+allOf:
+  - $ref: '../../shared/core/SuccessResponse.yaml'
+  - type: object
+    required:
+      - listings
+    properties:
+      listings:
+        type: array
+        items:
+          $ref: './PublicAgentListing.yaml'
+        description: >
+          MLS listings attributed to the agent (matched by agent MLS id or
+          listing agent email), newest first. Empty when the agent has no
+          MLS-linked listings.
