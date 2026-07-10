@@ -15,10 +15,11 @@ from sqlalchemy import func, select
 
 from app import db
 from app.models import User
+from app.models.agent.chat_history import ChatHistory
 from app.models.brokerage.brokerage_org import BrokerageOrg
 from app.models.brokerage.user_org_membership import UserOrgMembership
-from app.models.agent.chat_history import ChatHistory
 from app.models.transactions.transaction import Transaction
+from app.services.brokerage.ml.scoring_service import score_brokerage_ml_insights
 
 
 @dataclass(frozen=True)
@@ -73,12 +74,15 @@ def get_brokerage_analytics_overview(filters: BrokerageAnalyticsFilters) -> dict
     # --- Overview KPIs ---
     active_agents = len(agent_ids)
 
-    open_transactions = db.session.scalar(
-        select(func.count(Transaction.id)).where(
-            Transaction.brokerage_org_id == filters.brokerage_org_id,
-            Transaction.status.notin_(["closed", "cancelled"]),
+    open_transactions = (
+        db.session.scalar(
+            select(func.count(Transaction.id)).where(
+                Transaction.brokerage_org_id == filters.brokerage_org_id,
+                Transaction.status.notin_(["closed", "cancelled"]),
+            )
         )
-    ) or 0
+        or 0
+    )
 
     at_risk_agents = 0
     if agent_ids:
@@ -99,14 +103,17 @@ def get_brokerage_analytics_overview(filters: BrokerageAnalyticsFilters) -> dict
     # --- Messaging SLA (% threads with response within 24h) ---
     messaging_sla_percent: int | None = None
     if agent_ids:
-        total_threads = db.session.scalar(
-            select(func.count(func.distinct(ChatHistory.conversation_id))).where(
-                ChatHistory.sender_id.in_(agent_ids),
-                ChatHistory.timestamp >= date_from,
-                ChatHistory.timestamp <= date_to,
-                ChatHistory.conversation_id.isnot(None),
+        total_threads = (
+            db.session.scalar(
+                select(func.count(func.distinct(ChatHistory.conversation_id))).where(
+                    ChatHistory.sender_id.in_(agent_ids),
+                    ChatHistory.timestamp >= date_from,
+                    ChatHistory.timestamp <= date_to,
+                    ChatHistory.conversation_id.isnot(None),
+                )
             )
-        ) or 0
+            or 0
+        )
         if total_threads > 0:
             messaging_sla_percent = min(100, int((total_threads / max(total_threads, 1)) * 100))
         else:
@@ -117,20 +124,25 @@ def get_brokerage_analytics_overview(filters: BrokerageAnalyticsFilters) -> dict
     funnel = []
     prev_count = None
     for stage in FUNNEL_STAGES:
-        count = db.session.scalar(
-            select(func.count(Transaction.id)).where(
-                Transaction.brokerage_org_id == filters.brokerage_org_id,
-                Transaction.status == stage,
+        count = (
+            db.session.scalar(
+                select(func.count(Transaction.id)).where(
+                    Transaction.brokerage_org_id == filters.brokerage_org_id,
+                    Transaction.status == stage,
+                )
             )
-        ) or 0
+            or 0
+        )
         drop_off_percent = 0
         if prev_count is not None and prev_count > 0:
             drop_off_percent = round((1 - count / prev_count) * 100)
-        funnel.append({
-            "stage": stage.capitalize(),
-            "count": count,
-            "drop_off_percent": drop_off_percent,
-        })
+        funnel.append(
+            {
+                "stage": stage.capitalize(),
+                "count": count,
+                "drop_off_percent": drop_off_percent,
+            }
+        )
         prev_count = count
 
     # --- Agent performance ---
@@ -140,28 +152,36 @@ def get_brokerage_analytics_overview(filters: BrokerageAnalyticsFilters) -> dict
             agent = db.session.scalar(select(User).where(User.id == agent_id))
             if not agent:
                 continue
-            active_clients = db.session.scalar(
-                select(func.count(Transaction.id)).where(
-                    Transaction.primary_agent_id == agent_id,
-                    Transaction.brokerage_org_id == filters.brokerage_org_id,
-                    Transaction.status.notin_(["closed", "cancelled"]),
+            active_clients = (
+                db.session.scalar(
+                    select(func.count(Transaction.id)).where(
+                        Transaction.primary_agent_id == agent_id,
+                        Transaction.brokerage_org_id == filters.brokerage_org_id,
+                        Transaction.status.notin_(["closed", "cancelled"]),
+                    )
                 )
-            ) or 0
-            closings = db.session.scalar(
-                select(func.count(Transaction.id)).where(
-                    Transaction.primary_agent_id == agent_id,
-                    Transaction.brokerage_org_id == filters.brokerage_org_id,
-                    Transaction.status == "closing",
-                    Transaction.updated_at >= date_from,
-                    Transaction.updated_at <= date_to,
+                or 0
+            )
+            closings = (
+                db.session.scalar(
+                    select(func.count(Transaction.id)).where(
+                        Transaction.primary_agent_id == agent_id,
+                        Transaction.brokerage_org_id == filters.brokerage_org_id,
+                        Transaction.status == "closing",
+                        Transaction.updated_at >= date_from,
+                        Transaction.updated_at <= date_to,
+                    )
                 )
-            ) or 0
-            agent_performance.append({
-                "agent_id": agent_id,
-                "name": agent.name,
-                "active_clients": active_clients,
-                "closings": closings,
-            })
+                or 0
+            )
+            agent_performance.append(
+                {
+                    "agent_id": agent_id,
+                    "name": agent.name,
+                    "active_clients": active_clients,
+                    "closings": closings,
+                }
+            )
 
     # --- Messaging activity (thread volume per day, last 7 days) ---
     messaging_activity = []
@@ -178,10 +198,7 @@ def get_brokerage_analytics_overview(filters: BrokerageAnalyticsFilters) -> dict
             .group_by(func.date(ChatHistory.timestamp))
             .order_by(func.date(ChatHistory.timestamp))
         ).all()
-        messaging_activity = [
-            {"date": str(row.day), "count": row.count}
-            for row in rows
-        ]
+        messaging_activity = [{"date": str(row.day), "count": row.count} for row in rows]
 
     return {
         "success": True,
@@ -227,9 +244,9 @@ def get_volume_analytics(filters: BrokerageAnalyticsFilters) -> dict:
         "date_from": date_from.isoformat(),
         "date_to": date_to.isoformat(),
         "volume": [
-            {"month": "2026-01", "total": 8,  "cancelled": 1, "cancellation_rate": 12.5},
+            {"month": "2026-01", "total": 8, "cancelled": 1, "cancellation_rate": 12.5},
             {"month": "2026-02", "total": 11, "cancelled": 0, "cancellation_rate": 0.0},
-            {"month": "2026-03", "total": 9,  "cancelled": 2, "cancellation_rate": 22.2},
+            {"month": "2026-03", "total": 9, "cancelled": 2, "cancellation_rate": 22.2},
             {"month": "2026-04", "total": 14, "cancelled": 1, "cancellation_rate": 7.1},
             {"month": "2026-05", "total": 12, "cancelled": 0, "cancellation_rate": 0.0},
             {"month": "2026-06", "total": 18, "cancelled": 1, "cancellation_rate": 5.6},
@@ -295,10 +312,10 @@ def get_location_analytics(filters: BrokerageAnalyticsFilters) -> dict:
         "date_to": date_to.isoformat(),
         "locations": [
             {"lat": 33.749, "lng": -84.388, "count": 12, "label": "Atlanta, GA"},
-            {"lat": 33.830, "lng": -84.320, "count": 8,  "label": "Brookhaven, GA"},
-            {"lat": 33.680, "lng": -84.430, "count": 6,  "label": "East Point, GA"},
-            {"lat": 33.900, "lng": -84.210, "count": 5,  "label": "Tucker, GA"},
-            {"lat": 33.770, "lng": -84.290, "count": 9,  "label": "Decatur, GA"},
+            {"lat": 33.830, "lng": -84.320, "count": 8, "label": "Brookhaven, GA"},
+            {"lat": 33.680, "lng": -84.430, "count": 6, "label": "East Point, GA"},
+            {"lat": 33.900, "lng": -84.210, "count": 5, "label": "Tucker, GA"},
+            {"lat": 33.770, "lng": -84.290, "count": 9, "label": "Decatur, GA"},
         ],
     }
 
@@ -335,35 +352,58 @@ def get_type_analytics(filters: BrokerageAnalyticsFilters) -> dict:
 
 
 def get_timing_analytics(filters: BrokerageAnalyticsFilters) -> dict:
-    """
-    Aggregate seasonal volume series for ML forecast input.
-    Returns weekly/monthly volume patterns to feed timing prediction.
-    Powers GET /api/v1/brokerage/analytics/timing
-    """
     date_from = filters.date_from
     date_to = filters.date_to
     if not date_from or not date_to:
         date_from, date_to = _default_range()
 
-    # TODO SIL-272: Query real SkySlope historical volume by week/month
-    # TODO SIL-ML: Feed this into seasonal forecasting model
+    ml = score_brokerage_ml_insights(filters.brokerage_org_id)
+    if not ml.get("success"):
+        expected_no_data_errors = {"insufficient_feature_rows", "insufficient_monthly_history"}
+        if ml.get("error") in expected_no_data_errors:
+            return {
+                "success": True,
+                "brokerage_org_id": filters.brokerage_org_id,
+                "date_from": date_from.isoformat(),
+                "date_to": date_to.isoformat(),
+                "seasonal_volume": [],
+                "peak_weeks": [],
+                "forecast_note": "Not enough historical data for ML forecast",
+                "ml": {"status": ml["error"]},
+            }
+        return {
+            "success": False,
+            "error": ml.get("error", "ml_scoring_failed"),
+            "brokerage_org_id": filters.brokerage_org_id,
+            "date_from": date_from.isoformat(),
+            "date_to": date_to.isoformat(),
+        }
+
+    seasonal_volume = [
+        {"week": f"2026-W{idx:02d}", "count": row["predicted_count"]}
+        for idx, row in enumerate(ml["seasonal_forecast"], start=1)
+    ]
+    peak_weeks = [
+        row["week"] for row in sorted(seasonal_volume, key=lambda x: x["count"], reverse=True)[:2]
+    ]
+
     return {
         "success": True,
         "brokerage_org_id": filters.brokerage_org_id,
         "date_from": date_from.isoformat(),
         "date_to": date_to.isoformat(),
-        "seasonal_volume": [
-            {"week": "2026-W01", "count": 3},
-            {"week": "2026-W02", "count": 4},
-            {"week": "2026-W03", "count": 2},
-            {"week": "2026-W04", "count": 5},
-            {"week": "2026-W05", "count": 6},
-            {"week": "2026-W06", "count": 4},
-            {"week": "2026-W07", "count": 7},
-            {"week": "2026-W08", "count": 5},
-        ],
-        "peak_weeks": ["2026-W07", "2026-W05"],
-        "forecast_note": "ML forecast pending SIL-ML integration",
+        "seasonal_volume": seasonal_volume,
+        "peak_weeks": peak_weeks,
+        "forecast_note": "SIL-208 ML forecast active",
+        "ml": {
+            "model_version": ml["model_version"],
+            "generated_at": ml["generated_at"],
+            "data_coverage": ml["data_coverage"],
+            "metrics": ml["metrics"],
+            "stage_dropoff_risks": ml["stage_dropoff_risks"],
+            "at_risk_agents": ml["at_risk_agents"],
+            "seasonal_forecast": ml["seasonal_forecast"],
+        },
     }
 
 
@@ -476,20 +516,25 @@ def get_funnel_analytics(filters: BrokerageAnalyticsFilters) -> dict:
     funnel = []
     prev_count = None
     for stage in FUNNEL_STAGES:
-        count = db.session.scalar(
-            select(func.count(Transaction.id)).where(
-                Transaction.brokerage_org_id == filters.brokerage_org_id,
-                Transaction.status == stage,
+        count = (
+            db.session.scalar(
+                select(func.count(Transaction.id)).where(
+                    Transaction.brokerage_org_id == filters.brokerage_org_id,
+                    Transaction.status == stage,
+                )
             )
-        ) or 0
+            or 0
+        )
         drop_off_percent = 0
         if prev_count is not None and prev_count > 0:
             drop_off_percent = round((1 - count / prev_count) * 100)
-        funnel.append({
-            "stage": stage.capitalize(),
-            "count": count,
-            "drop_off_percent": drop_off_percent,
-        })
+        funnel.append(
+            {
+                "stage": stage.capitalize(),
+                "count": count,
+                "drop_off_percent": drop_off_percent,
+            }
+        )
         prev_count = count
 
     return {
@@ -520,28 +565,36 @@ def get_agent_analytics(filters: BrokerageAnalyticsFilters) -> dict:
             agent = db.session.scalar(select(User).where(User.id == agent_id))
             if not agent:
                 continue
-            active_clients = db.session.scalar(
-                select(func.count(Transaction.id)).where(
-                    Transaction.primary_agent_id == agent_id,
-                    Transaction.brokerage_org_id == filters.brokerage_org_id,
-                    Transaction.status.notin_(["closed", "cancelled"]),
+            active_clients = (
+                db.session.scalar(
+                    select(func.count(Transaction.id)).where(
+                        Transaction.primary_agent_id == agent_id,
+                        Transaction.brokerage_org_id == filters.brokerage_org_id,
+                        Transaction.status.notin_(["closed", "cancelled"]),
+                    )
                 )
-            ) or 0
-            closings = db.session.scalar(
-                select(func.count(Transaction.id)).where(
-                    Transaction.primary_agent_id == agent_id,
-                    Transaction.brokerage_org_id == filters.brokerage_org_id,
-                    Transaction.status == "closing",
-                    Transaction.updated_at >= date_from,
-                    Transaction.updated_at <= date_to,
+                or 0
+            )
+            closings = (
+                db.session.scalar(
+                    select(func.count(Transaction.id)).where(
+                        Transaction.primary_agent_id == agent_id,
+                        Transaction.brokerage_org_id == filters.brokerage_org_id,
+                        Transaction.status == "closing",
+                        Transaction.updated_at >= date_from,
+                        Transaction.updated_at <= date_to,
+                    )
                 )
-            ) or 0
-            agent_performance.append({
-                "agent_id": agent_id,
-                "name": agent.name,
-                "active_clients": active_clients,
-                "closings": closings,
-            })
+                or 0
+            )
+            agent_performance.append(
+                {
+                    "agent_id": agent_id,
+                    "name": agent.name,
+                    "active_clients": active_clients,
+                    "closings": closings,
+                }
+            )
 
     return {
         "success": True,
@@ -583,19 +636,19 @@ def get_deal_failure_forensics(filters: BrokerageAnalyticsFilters) -> dict:
             "avg_days_to_cancellation": 18,
         },
         "trend": [
-            {"month": "2026-01", "total": 8,  "cancelled": 1},
+            {"month": "2026-01", "total": 8, "cancelled": 1},
             {"month": "2026-02", "total": 11, "cancelled": 2},
-            {"month": "2026-03", "total": 9,  "cancelled": 1},
+            {"month": "2026-03", "total": 9, "cancelled": 1},
             {"month": "2026-04", "total": 14, "cancelled": 3},
             {"month": "2026-05", "total": 12, "cancelled": 2},
             {"month": "2026-06", "total": 18, "cancelled": 2},
         ],
         "by_stage": [
             {"stage": "Inspection", "count": 4},
-            {"stage": "Financing",  "count": 3},
-            {"stage": "Appraisal",  "count": 2},
-            {"stage": "Title",      "count": 1},
-            {"stage": "Unknown",    "count": 1},
+            {"stage": "Financing", "count": 3},
+            {"stage": "Appraisal", "count": 2},
+            {"stage": "Title", "count": 1},
+            {"stage": "Unknown", "count": 1},
         ],
         "by_agent": [
             {
@@ -680,6 +733,7 @@ def get_deal_failure_forensics(filters: BrokerageAnalyticsFilters) -> dict:
             },
         ],
     }
+
 
 def get_targeted_agent_engagement(filters: BrokerageAnalyticsFilters) -> dict:
     """
@@ -793,12 +847,13 @@ def get_targeted_agent_engagement(filters: BrokerageAnalyticsFilters) -> dict:
             },
         ],
         "by_service_gap": [
-            {"service": "lending",       "agents_with_gap": 3},
+            {"service": "lending", "agents_with_gap": 3},
             {"service": "home_warranty", "agents_with_gap": 3},
-            {"service": "title",         "agents_with_gap": 2},
-            {"service": "escrow",        "agents_with_gap": 2},
+            {"service": "title", "agents_with_gap": 2},
+            {"service": "escrow", "agents_with_gap": 2},
         ],
     }
+
 
 def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
     """
@@ -967,14 +1022,14 @@ def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
         ],
         "by_tier": [
             {"tier": "flight_risk", "count": 2, "estimated_gci_at_risk": 341000},
-            {"tier": "watch",       "count": 2, "estimated_gci_at_risk": 260000},
-            {"tier": "stable",      "count": 2, "estimated_gci_at_risk": 0},
-            {"tier": "over_comp",   "count": 2, "estimated_gci_at_risk": 0},
+            {"tier": "watch", "count": 2, "estimated_gci_at_risk": 260000},
+            {"tier": "stable", "count": 2, "estimated_gci_at_risk": 0},
+            {"tier": "over_comp", "count": 2, "estimated_gci_at_risk": 0},
         ],
         "market_benchmarks": [
-            {"tier": "Under $2M GCI",   "market_split_percent": 70},
-            {"tier": "$2M–$5M GCI",     "market_split_percent": 75},
-            {"tier": "$5M–$10M GCI",    "market_split_percent": 80},
-            {"tier": "Over $10M GCI",   "market_split_percent": 85},
+            {"tier": "Under $2M GCI", "market_split_percent": 70},
+            {"tier": "$2M–$5M GCI", "market_split_percent": 75},
+            {"tier": "$5M–$10M GCI", "market_split_percent": 80},
+            {"tier": "Over $10M GCI", "market_split_percent": 85},
         ],
     }
