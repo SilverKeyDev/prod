@@ -9,7 +9,7 @@ Product-specific client documentation. Package code: `Client/packages/features/`
 | checklists | Shipped | [checklists.md](./checklists.md), [checklists-integrations.md](./checklists-integrations.md) |
 | messaging | Partial | [messaging.md](./messaging.md) |
 | homeauth | Shipped | [homeauth.md](./homeauth.md) |
-| profile | Shipped | [profile-feature.md](./profile-feature.md), [profile-onboarding-flow.md](./profile-onboarding-flow.md) |
+| profile | Shipped | [profile-feature.md](./profile-feature.md), [profile-onboarding-flow.md](./profile-onboarding-flow.md), [public-agent-profile.md](./public-agent-profile.md) |
 | workspace | Partial | [workspace.md](./workspace.md) |
 | admin | Partial | [admin.md](./admin.md) |
 | partners | Shipped | [partners.md](./partners.md), [rev-share-partners.md](./rev-share-partners.md) |
@@ -45,3 +45,4 @@ Product-specific client documentation. Package code: `Client/packages/features/`
 | [google-maps-web-setup.md](./google-maps-web-setup.md) | Maps setup |
 | [rev-share-partners.md](./rev-share-partners.md) | Partner placement (RESPA) |
 | [profile-onboarding-flow.md](./profile-onboarding-flow.md) | Onboarding registry |
+| [public-agent-profile.md](./public-agent-profile.md) | Public agent site routes, unauthenticated APIs, MLS listing attribution, demo setup, and QA |
