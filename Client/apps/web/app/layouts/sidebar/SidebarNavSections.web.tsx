@@ -42,7 +42,7 @@ export function SidebarHeader({
                   <BodyText
                     size="xs"
                     as="span"
-                    className="line-clamp-1 text-[11px] text-sidebar-muted-foreground sm:text-xs"
+                    className="line-clamp-1 text-[11px] !text-sidebar-foreground sm:text-xs"
                   >
                     {displayUser?.email ?? "No email"}
                   </BodyText>

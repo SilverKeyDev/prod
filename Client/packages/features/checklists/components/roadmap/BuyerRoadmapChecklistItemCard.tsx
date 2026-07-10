@@ -243,7 +243,7 @@ function BuyerRoadmapChecklistItemCardInner({
 
   const checkboxRowInner = (
     <Box
-      className={`flex w-full flex-row items-stretch ${
+      className={`flex w-full flex-col gap-2 sm:flex-row sm:items-stretch ${
         checkboxDisabled && !roadmapSoftBlocked ? "bg-background-base" : "bg-background-surface"
       }`}
     >
@@ -268,25 +268,11 @@ function BuyerRoadmapChecklistItemCardInner({
             checkboxContainerClass={checklistCheckboxRowClassNames.checkboxContainer}
           />
         </Box>
-        <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-2">
-          {showDispatchGear ? (
-            <Box
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              onKeyDown={(e: React.KeyboardEvent) => e.key === "Enter" && e.stopPropagation()}
-            >
-              <IconButton
-                variant="ghost"
-                size="sm"
-                iconName="settings"
-                label={t("checklists.dispatch_automation.open_settings", {
-                  defaultValue: "Automation settings",
-                })}
-                onPress={() => onOpenDispatchModal(item.id)}
-                className="text-text-secondary hover:text-text-primary flex h-6 w-6"
-              />
-            </Box>
-          ) : null}
-          <ChecklistStepHeaderSubmitButton integrationVisible={showIntegration} />
+      </Box>
+      <Box
+        className="flex w-full flex-row flex-wrap items-center justify-end gap-2 px-4 pb-2 sm:mt-0.5 sm:w-auto sm:flex-shrink-0 sm:px-0 sm:pb-0 sm:py-0"
+      >
+        {showDispatchGear ? (
           <Box
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
             onKeyDown={(e: React.KeyboardEvent) => e.key === "Enter" && e.stopPropagation()}
@@ -294,12 +280,28 @@ function BuyerRoadmapChecklistItemCardInner({
             <IconButton
               variant="ghost"
               size="sm"
-              iconName={expanded ? "chevron-down" : "chevron-right"}
-              label={expanded ? "Collapse step" : "Expand step"}
-              onPress={() => toggleExpand(item.id)}
-              className="text-text-secondary hover:text-text-primary flex h-6 w-6"
+              iconName="settings"
+              label={t("checklists.dispatch_automation.open_settings", {
+                defaultValue: "Automation settings",
+              })}
+              onPress={() => onOpenDispatchModal(item.id)}
+              className="text-text-secondary hover:text-text-primary min-h-touch min-w-touch sm:h-6 sm:w-6"
             />
           </Box>
+        ) : null}
+        <ChecklistStepHeaderSubmitButton integrationVisible={showIntegration} />
+        <Box
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          onKeyDown={(e: React.KeyboardEvent) => e.key === "Enter" && e.stopPropagation()}
+        >
+          <IconButton
+            variant="ghost"
+            size="sm"
+            iconName={expanded ? "chevron-down" : "chevron-right"}
+            label={expanded ? "Collapse step" : "Expand step"}
+            onPress={() => toggleExpand(item.id)}
+            className="text-text-secondary hover:text-text-primary min-h-touch min-w-touch sm:h-6 sm:w-6"
+          />
         </Box>
       </Box>
     </Box>
