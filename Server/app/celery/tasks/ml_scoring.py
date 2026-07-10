@@ -21,4 +21,4 @@ def score_brokerage_ml_insights_task(self, brokerage_org_id: str):
             "SIL-208 scoring failed",
             {"error": str(exc), "brokerage_org_id": brokerage_org_id},
         )
-        return {"success": False, "error": str(exc), "brokerage_org_id": brokerage_org_id}
+        raise

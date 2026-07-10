@@ -32,7 +32,7 @@ def _days_since(dt: datetime | None) -> float:
     return max(0.0, (now - dt).total_seconds() / 86400.0)
 
 
-def _load_transactions(brokerage_org_id: str) -> list[SkySlopeTransaction]:
+def load_brokerage_transactions(brokerage_org_id: str) -> list[SkySlopeTransaction]:
     return list(
         db.session.scalars(
             select(SkySlopeTransaction).where(SkySlopeTransaction.brokerage_id == brokerage_org_id)
@@ -40,9 +40,29 @@ def _load_transactions(brokerage_org_id: str) -> list[SkySlopeTransaction]:
     )
 
 
-def build_stage_feature_rows(brokerage_org_id: str) -> list[dict]:
-    txs = _load_transactions(brokerage_org_id)
+def densify_monthly_counts(monthly: dict[str, int]) -> dict[str, int]:
+    """Fill missing months with zero so sparse history is measured by span, not raw key count."""
+    if not monthly:
+        return {}
 
+    keys = sorted(monthly.keys())
+    start_year, start_month = (int(part) for part in keys[0].split("-"))
+    end_year, end_month = (int(part) for part in keys[-1].split("-"))
+
+    year, month = start_year, start_month
+    dense: dict[str, int] = {}
+    while (year, month) <= (end_year, end_month):
+        key = f"{year}-{month:02d}"
+        dense[key] = int(monthly.get(key, 0))
+        month += 1
+        if month == 13:
+            month = 1
+            year += 1
+
+    return dense
+
+
+def build_stage_feature_rows_from_transactions(txs: list[SkySlopeTransaction]) -> list[dict]:
     stage_counts: dict[str, int] = defaultdict(int)
     stage_days_sum: dict[str, float] = defaultdict(float)
     stage_days_n: dict[str, int] = defaultdict(int)
@@ -81,9 +101,7 @@ def build_stage_feature_rows(brokerage_org_id: str) -> list[dict]:
     return rows
 
 
-def build_agent_feature_rows(brokerage_org_id: str) -> list[dict]:
-    txs = _load_transactions(brokerage_org_id)
-
+def build_agent_feature_rows_from_transactions(txs: list[SkySlopeTransaction]) -> list[dict]:
     open_deals: dict[str, int] = defaultdict(int)
     stalled_deals: dict[str, int] = defaultdict(int)
     days_sum: dict[str, float] = defaultdict(float)
@@ -126,8 +144,7 @@ def build_agent_feature_rows(brokerage_org_id: str) -> list[dict]:
     return rows
 
 
-def build_monthly_volume_series(brokerage_org_id: str) -> dict[str, int]:
-    txs = _load_transactions(brokerage_org_id)
+def build_monthly_volume_series_from_transactions(txs: list[SkySlopeTransaction]) -> dict[str, int]:
     monthly: dict[str, int] = defaultdict(int)
 
     for tx in txs:
@@ -140,3 +157,32 @@ def build_monthly_volume_series(brokerage_org_id: str) -> dict[str, int]:
         monthly[key] += 1
 
     return dict(sorted(monthly.items()))
+
+
+def build_feature_sets(
+    brokerage_org_id: str,
+    txs: list[SkySlopeTransaction] | None = None,
+) -> tuple[list[dict], list[dict], dict[str, int]]:
+    """Load SkySlope rows once and derive all SIL-208 feature sets."""
+    loaded = txs if txs is not None else load_brokerage_transactions(brokerage_org_id)
+    monthly = densify_monthly_counts(build_monthly_volume_series_from_transactions(loaded))
+    return (
+        build_stage_feature_rows_from_transactions(loaded),
+        build_agent_feature_rows_from_transactions(loaded),
+        monthly,
+    )
+
+
+def build_stage_feature_rows(brokerage_org_id: str) -> list[dict]:
+    stage_rows, _, _ = build_feature_sets(brokerage_org_id)
+    return stage_rows
+
+
+def build_agent_feature_rows(brokerage_org_id: str) -> list[dict]:
+    _, agent_rows, _ = build_feature_sets(brokerage_org_id)
+    return agent_rows
+
+
+def build_monthly_volume_series(brokerage_org_id: str) -> dict[str, int]:
+    _, _, monthly_counts = build_feature_sets(brokerage_org_id)
+    return monthly_counts

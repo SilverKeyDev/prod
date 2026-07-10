@@ -5,11 +5,7 @@ from datetime import datetime, timezone
 from app.services.brokerage.ml.agent_risk_model import AgentRiskModel
 from app.services.brokerage.ml.config import Sil208Config
 from app.services.brokerage.ml.dropoff_model import DropoffRiskModel
-from app.services.brokerage.ml.feature_store import (
-    build_agent_feature_rows,
-    build_monthly_volume_series,
-    build_stage_feature_rows,
-)
+from app.services.brokerage.ml.feature_store import build_feature_sets
 from app.services.brokerage.ml.seasonal_forecast import SeasonalVolumeForecaster
 
 
@@ -65,9 +61,7 @@ def _agent_label_rows(agent_rows: list[dict]) -> list[int]:
 def score_brokerage_ml_insights(brokerage_org_id: str) -> dict:
     cfg = Sil208Config()
 
-    stage_rows = build_stage_feature_rows(brokerage_org_id)
-    agent_rows = build_agent_feature_rows(brokerage_org_id)
-    monthly_counts = build_monthly_volume_series(brokerage_org_id)
+    stage_rows, agent_rows, monthly_counts = build_feature_sets(brokerage_org_id)
 
     if len(stage_rows) < 2 or len(agent_rows) < 5:
         return {

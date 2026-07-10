@@ -66,14 +66,15 @@ class SeasonalVolumeForecaster:
                 y += 1
 
             X = np.array([_month_features(start_idx + step, m)], dtype=float)
-            pred = float(self.model.predict(X)[0])
-            lower = max(0.0, pred - 1.96 * self.residual_std)
-            upper = max(0.0, pred + 1.96 * self.residual_std)
+            raw_pred = float(self.model.predict(X)[0])
+            safe_pred = max(0.0, raw_pred)
+            lower = max(0.0, safe_pred - 1.96 * self.residual_std)
+            upper = max(0.0, safe_pred + 1.96 * self.residual_std)
 
             out.append(
                 {
                     "month": f"{y}-{m:02d}-01",
-                    "predicted_count": int(round(pred)),
+                    "predicted_count": int(round(safe_pred)),
                     "lower": int(round(lower)),
                     "upper": int(round(upper)),
                 }

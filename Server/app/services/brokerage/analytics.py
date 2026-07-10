@@ -359,6 +359,18 @@ def get_timing_analytics(filters: BrokerageAnalyticsFilters) -> dict:
 
     ml = score_brokerage_ml_insights(filters.brokerage_org_id)
     if not ml.get("success"):
+        expected_no_data_errors = {"insufficient_feature_rows", "insufficient_monthly_history"}
+        if ml.get("error") in expected_no_data_errors:
+            return {
+                "success": True,
+                "brokerage_org_id": filters.brokerage_org_id,
+                "date_from": date_from.isoformat(),
+                "date_to": date_to.isoformat(),
+                "seasonal_volume": [],
+                "peak_weeks": [],
+                "forecast_note": "Not enough historical data for ML forecast",
+                "ml": {"status": ml["error"]},
+            }
         return {
             "success": False,
             "error": ml.get("error", "ml_scoring_failed"),
