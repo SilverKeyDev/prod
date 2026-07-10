@@ -65,10 +65,12 @@ export type SearchContextState = {
   /** Monotonic signal; increment to request opening the Preferences dropdown/sheet. */
   preferencesPanelOpenSignal: number;
   /**
-   * One-shot text seed for the location bar: consumed (and cleared) on its next
+   * One-shot seed for the location bar: consumed (and cleared) on its next
    * render. Used by the public agent page → dashboard search handoff (SIL-291).
+   * `selected: true` marks the text as a committed place (dropdown stays closed);
+   * `false` re-opens suggestions so the user can pick again.
    */
-  locationBarSeedText: string | null;
+  locationBarSeed: { text: string; selected: boolean } | null;
 
   setAnchor: (anchor: Partial<SearchContextAnchor>) => void;
   setFiltersHash: (hash: string) => void;
@@ -91,7 +93,7 @@ export type SearchContextState = {
   setLocationBarExternalSubmit: (fn: (() => Promise<void>) | null) => void;
   setFlushPreferencesSave: (fn: (() => Promise<void>) | null) => void;
   requestOpenPreferencesPanel: () => void;
-  setLocationBarSeedText: (text: string | null) => void;
+  setLocationBarSeed: (seed: { text: string; selected: boolean } | null) => void;
 };
 
 const initialAnchor: SearchContextAnchor = {};
@@ -108,7 +110,7 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
   locationBarExternalSubmit: null,
   flushPreferencesSave: null,
   preferencesPanelOpenSignal: 0,
-  locationBarSeedText: null,
+  locationBarSeed: null,
 
   setAnchor: (anchor) =>
     set((s) => ({
@@ -158,7 +160,7 @@ const baseCreator: import("zustand").StateCreator<SearchContextState> = (set) =>
 
   requestOpenPreferencesPanel: () => set({ preferencesPanelOpenSignal: Date.now() }),
 
-  setLocationBarSeedText: (locationBarSeedText) => set({ locationBarSeedText }),
+  setLocationBarSeed: (locationBarSeed) => set({ locationBarSeed }),
 });
 
 export const useSearchContextStore = create<SearchContextState>()(

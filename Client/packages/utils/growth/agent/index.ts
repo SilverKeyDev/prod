@@ -23,6 +23,7 @@ export {
 export type { PendingPublicSearch } from "./pendingPublicSearch";
 export {
   clearPendingPublicSearch,
+  hasPendingPublicSearch,
   PENDING_PUBLIC_SEARCH_KEY,
   setPendingPublicSearch,
   takePendingPublicSearch,

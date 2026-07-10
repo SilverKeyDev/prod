@@ -28,7 +28,7 @@ export function useResumePendingPublicSearch(
   const setLocationPlaceViewportFromBar = useSearchContextStore(
     (s) => s.setLocationPlaceViewportFromBar
   );
-  const setLocationBarSeedText = useSearchContextStore((s) => s.setLocationBarSeedText);
+  const setLocationBarSeed = useSearchContextStore((s) => s.setLocationBarSeed);
 
   const consumedRef = useRef(false);
   const [waitingForMap, setWaitingForMap] = useState(false);
@@ -52,7 +52,8 @@ export function useResumePendingPublicSearch(
         overlay: (pending.overlay ?? null) as IsochroneData,
       });
     }
-    setLocationBarSeedText(pending.label);
+    // No committed area → seed as unselected so the dropdown re-opens on focus.
+    setLocationBarSeed({ text: pending.label, selected: hasRing });
     log.info("SEARCH", "Resuming public agent page search", {
       label: pending.label,
       hasRing,
@@ -60,7 +61,7 @@ export function useResumePendingPublicSearch(
     if (hasRing) {
       setWaitingForMap(true);
     }
-  }, [authReady, isAuthenticated, setLocationBarSeedText, setLocationPlaceViewportFromBar]);
+  }, [authReady, isAuthenticated, setLocationBarSeed, setLocationPlaceViewportFromBar]);
 
   // The viewport search bails without a live map (bounds), so poll until the
   // map instance is up, then run — equivalent to the user pressing Search.

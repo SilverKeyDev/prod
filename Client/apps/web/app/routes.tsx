@@ -8,6 +8,8 @@ import { authUtils } from "packages/config/auth/auth";
 // app shell does not pay the cost of evaluating the entire agent feature
 // (AgentDashboard, AgentMessaging, ClientMessaging, modals, …) on first load.
 import { useResumePendingAgentPublicConnect } from "packages/features/agent/hooks/data/connections/useResumePendingAgentPublicConnect";
+// Deep import for the same eager-shell reason as the agent hook above.
+import { useResumePendingPublicSearchNavigation } from "packages/features/search/hooks/data/useResumePendingPublicSearchNavigation";
 import { useDataInitialization } from "packages/hooks/data/polling/useDataInitialization";
 import { useDataPolling } from "packages/hooks/data/polling/useDataPolling";
 import { useGlobalOrganizationJsonLd, useShellSeo } from "packages/hooks/seo/useShellSeo.web";
@@ -94,6 +96,8 @@ function AppLayout() {
   useDataInitialization();
   useIdleAuthenticatedRouteChunkPrefetch(location.pathname);
   useResumePendingAgentPublicConnect();
+  // Route freshly authenticated viewers to Search when a public agent page search is pending (SIL-291).
+  useResumePendingPublicSearchNavigation();
   // Focus main content on client-side navigation (skip initial load). Defer until after paint so
   // #main-content exists; skip on full-height routes (search, messaging) so we don't steal focus from map/reels.
   useEffect(() => {

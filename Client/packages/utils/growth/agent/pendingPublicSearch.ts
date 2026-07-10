@@ -32,6 +32,16 @@ export function setPendingPublicSearch(pending: PendingPublicSearch): void {
   }
 }
 
+/** Non-destructive check — used to route post-auth users to Search before consuming. */
+export function hasPendingPublicSearch(): boolean {
+  try {
+    const raw = getSessionStorage().getItem(PENDING_PUBLIC_SEARCH_KEY);
+    return typeof raw === "string" && raw.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** Read and clear the pending search (one-shot consume). */
 export function takePendingPublicSearch(): PendingPublicSearch | null {
   try {
