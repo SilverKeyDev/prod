@@ -66,9 +66,6 @@ def get_brokerage_analytics_overview(filters: BrokerageAnalyticsFilters) -> dict
     if not date_from or not date_to:
         date_from, date_to = _default_range()
 
-    prev_from = date_from - (date_to - date_from)
-    prev_to = date_from
-
     agent_ids = _agent_ids_for_brokerage(filters.brokerage_org_id)
 
     # --- Overview KPIs ---

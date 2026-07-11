@@ -118,9 +118,7 @@ def _assert_bba_send_allowed(
     from app.models.transactions.buyer_broker_review import BuyerBrokerReview
 
     review = db.session.scalar(
-        select(BuyerBrokerReview).where(
-            BuyerBrokerReview.transaction_id == str(transaction_id)
-        )
+        select(BuyerBrokerReview).where(BuyerBrokerReview.transaction_id == str(transaction_id))
     )
     if review is None:
         log.info(

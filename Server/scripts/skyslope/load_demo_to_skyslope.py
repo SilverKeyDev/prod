@@ -168,7 +168,7 @@ def main() -> int:
 
     data_dir = args.data_dir.resolve()
     if not data_dir.is_dir():
-        print(f"Data directory not found: {data_dir}", file=sys.stderr)
+        sys.stderr.write(f"Data directory not found: {data_dir}\n")
         return 1
 
     app = create_app()
@@ -177,10 +177,12 @@ def main() -> int:
             select(BrokerageOrg).where(BrokerageOrg.id == args.brokerage_id)
         )
         if not brokerage:
-            print(f"Brokerage not found: {args.brokerage_id}", file=sys.stderr)
+            sys.stderr.write(f"Brokerage not found: {args.brokerage_id}\n")
             return 1
 
-        print(f"Loading demo data for brokerage '{brokerage.name}' ({args.brokerage_id})...")
+        sys.stdout.write(
+            f"Loading demo data for brokerage '{brokerage.name}' ({args.brokerage_id})...\n"
+        )
         summary = load_demo_to_skyslope(
             args.brokerage_id,
             data_dir,
@@ -190,7 +192,7 @@ def main() -> int:
         )
 
     for key, value in summary.items():
-        print(f"  {key}: {value}")
+        sys.stdout.write(f"  {key}: {value}\n")
 
     return 0
 

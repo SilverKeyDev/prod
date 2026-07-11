@@ -49,9 +49,7 @@ class BuyerBrokerReview(db.Model):
         unique=True,  # 1:1 with transaction
         index=True,
     )
-    status: Mapped[str] = mapped_column(
-        db.String(32), nullable=False, default="pending_review"
-    )
+    status: Mapped[str] = mapped_column(db.String(32), nullable=False, default="pending_review")
     # Set when agent approves
     approved_by_agent_id: Mapped[str | None] = mapped_column(
         db.ForeignKey("users.id"), nullable=True
@@ -113,17 +111,13 @@ class BuyerBrokerReviewEvent(db.Model):
     event_type: Mapped[str] = mapped_column(
         db.String(64), nullable=False
     )  # approved | meeting_requested | agreement_sent | invalidated
-    actor_agent_id: Mapped[str | None] = mapped_column(
-        db.ForeignKey("users.id"), nullable=True
-    )
+    actor_agent_id: Mapped[str | None] = mapped_column(db.ForeignKey("users.id"), nullable=True)
     note: Mapped[str | None] = mapped_column(db.String(1000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(timezone.utc), nullable=False
     )
 
-    review: Mapped["BuyerBrokerReview"] = relationship(
-        "BuyerBrokerReview", back_populates="events"
-    )
+    review: Mapped["BuyerBrokerReview"] = relationship("BuyerBrokerReview", back_populates="events")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

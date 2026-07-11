@@ -16,7 +16,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from flask import Flask
 
-
 BROKERAGE_ORG_ID = "test-brokerage-org-id-123"
 OTHER_BROKERAGE_ORG_ID = "other-brokerage-org-id-456"
 
@@ -172,9 +171,7 @@ class TestGetAnalyticsOverview:
                 data = response.get_json()
                 assert "date_to" in data["error"]
 
-    def test_accepts_valid_date_range(
-        self, app: Flask, client, mock_user, mock_analytics_result
-    ):
+    def test_accepts_valid_date_range(self, app: Flask, client, mock_user, mock_analytics_result):
         """Valid date_from and date_to are accepted and passed to service."""
         with app.app_context():
             with (

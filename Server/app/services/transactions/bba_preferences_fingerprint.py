@@ -65,7 +65,6 @@ def invalidate_bba_approval_if_changed(
 
     LogPath: TRANSACTIONS.BBA_REVIEW
     """
-    from datetime import datetime, timezone
 
     from sqlalchemy import select
 
@@ -83,9 +82,7 @@ def invalidate_bba_approval_if_changed(
             return False
 
         review = db.session.scalar(
-            select(BuyerBrokerReview).where(
-                BuyerBrokerReview.transaction_id == str(tx.id)
-            )
+            select(BuyerBrokerReview).where(BuyerBrokerReview.transaction_id == str(tx.id))
         )
 
         if review is None or review.status != "approved":
@@ -129,6 +126,7 @@ def invalidate_bba_approval_if_changed(
 
     except Exception as e:
         from logger import log
+
         log.error(
             "DOCUSIGN",
             "bba_fingerprint_check_failed",

@@ -419,14 +419,14 @@ def write_outputs(tables: dict[str, pd.DataFrame], output_dir: Path) -> None:
 
 
 def _print_validation(result: ValidationResult) -> None:
-    print("=== QA validation ===")
-    print(f"Passed: {result.passed}")
+    sys.stdout.write("=== QA validation ===\n")
+    sys.stdout.write(f"Passed: {result.passed}\n")
     for key, value in result.stats.items():
-        print(f"  {key}: {value}")
+        sys.stdout.write(f"  {key}: {value}\n")
     for warning in result.warnings:
-        print(f"  WARNING: {warning}")
+        sys.stdout.write(f"  WARNING: {warning}\n")
     for error in result.errors:
-        print(f"  ERROR: {error}")
+        sys.stdout.write(f"  ERROR: {error}\n")
 
 
 def main() -> int:
@@ -450,7 +450,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    print(f"Generating dataset (seed={args.seed}, deals={args.deals})...")
+    sys.stdout.write(f"Generating dataset (seed={args.seed}, deals={args.deals})...\n")
     tables = generate_demo_dataset(
         seed=args.seed,
         num_offices=args.offices,
@@ -462,11 +462,11 @@ def main() -> int:
         result = validate_demo_dataset(**tables)
         _print_validation(result)
         if not result.passed:
-            print("Validation failed — fix generator before writing output.")
+            sys.stdout.write("Validation failed - fix generator before writing output.\n")
             return 1
 
     write_outputs(tables, args.output.resolve())
-    print(f"Wrote CSV + Excel to {args.output.resolve()}")
+    sys.stdout.write(f"Wrote CSV + Excel to {args.output.resolve()}\n")
     return 0
 
 

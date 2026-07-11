@@ -27,6 +27,7 @@ from app.utils.common_patterns import (
 from ...services.brokerage.analytics import (
     BrokerageAnalyticsFilters,
     get_agent_analytics,
+    get_agent_retention_risk,
     get_ancillary_analytics,
     get_brokerage_analytics_overview,
     get_deal_failure_forensics,
@@ -37,7 +38,6 @@ from ...services.brokerage.analytics import (
     get_timing_analytics,
     get_type_analytics,
     get_volume_analytics,
-    get_agent_retention_risk,
 )
 
 brokerage_analytics_bp = Blueprint(
@@ -51,6 +51,7 @@ brokerage_analytics_bp = Blueprint(
 # Shared helpers
 # ---------------------------------------------------------------------------
 
+
 def _parse_iso_date(value: str, field_name: str):
     """Parse ISO 8601 date string to UTC datetime.
     Returns (datetime, None) on success or (None, error_response) on failure.
@@ -59,10 +60,12 @@ def _parse_iso_date(value: str, field_name: str):
         return datetime.fromisoformat(value).replace(tzinfo=timezone.utc), None
     except ValueError:
         return None, (
-            jsonify({
-                "error": f"Invalid {field_name} format. Use ISO 8601 e.g. 2026-01-01",
-                "success": False,
-            }),
+            jsonify(
+                {
+                    "error": f"Invalid {field_name} format. Use ISO 8601 e.g. 2026-01-01",
+                    "success": False,
+                }
+            ),
             400,
         )
 
@@ -107,6 +110,7 @@ def _handle_result(result: dict):
 # ---------------------------------------------------------------------------
 # Routes — one per graph type
 # ---------------------------------------------------------------------------
+
 
 @brokerage_analytics_bp.route("/overview", methods=["GET"])
 @handle_exceptions_with_logging
@@ -269,6 +273,7 @@ def get_analytics_deal_failure(user):
         return err
     return _handle_result(get_deal_failure_forensics(filters))
 
+
 @brokerage_analytics_bp.route("/targeted-agent-engagement", methods=["GET"])
 @handle_exceptions_with_logging
 @require_brokerage_scope
@@ -284,6 +289,7 @@ def get_analytics_targeted_agent_engagement(user):
     if err:
         return err
     return _handle_result(get_targeted_agent_engagement(filters))
+
 
 @brokerage_analytics_bp.route("/agent-retention-risk", methods=["GET"])
 @handle_exceptions_with_logging
