@@ -65,12 +65,14 @@ run_server() {
   elif [ -x "${REPO_ROOT}/Server/venv/bin/python3" ]; then
     SERVER_PYTHON="${REPO_ROOT}/Server/venv/bin/python3"
   fi
+  SERVER_BIN="$(dirname "$SERVER_PYTHON")"
 
   apply_server_fixes "$SERVER_PYTHON"
 
   echo "==> Server: running discovered linters (scripts/lint/**/lint_*.py, then lint_*.sh)…"
   (
     cd "$REPO_ROOT"
+    export PATH="${SERVER_BIN}:${PATH}"
     shopt -s nullglob
     for f in Server/scripts/lint/lint_*.py; do
       echo "  Running $f"

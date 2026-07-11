@@ -12,6 +12,7 @@ Shared query parameters (all routes):
 Real data path: SkySlope sync (SIL-272) → aggregation service (SIL-202) → these routes.
 Until SkySlope sync lands, service functions return fixture-shaped stub data.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone

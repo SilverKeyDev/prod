@@ -9,6 +9,7 @@ Tests cover:
 - Unauthorized access: returns 401
 - Wrong brokerage: returns 403
 """
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
