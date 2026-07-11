@@ -129,8 +129,12 @@
     "zod": "^3.25.76",
     "zustand": "^5.0.8"
   },
+  "overrides": {
+    "shell-quote": "1.10.0"
+  },
   "pnpm": {
     "overrides": {
+      "shell-quote": "1.10.0",
       "table>ajv": "^8.17.1",
       "glob": ">=10.5.0",
       "@tanstack/react-query": "5.90.21",
