@@ -3,11 +3,13 @@
  * Captures move-in timeline for renter onboarding.
  */
 import React from "react";
-import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
+
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
+import { Button } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { Box } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -35,9 +37,13 @@ export function RenterMoveTimelineStep({ formData, updateFormData }: Props) {
       </Box>
       <Box className="flex flex-col gap-2">
         {TIMELINE_OPTIONS.map((opt) => (
-          <button
+          <Button
             key={opt.value}
             type="button"
+            variant="outline"
+            size="sm"
+            contentAlign="start"
+            label={opt.label}
             onClick={() => updateFormData("renter_move_in_timeline", opt.value)}
             className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${
               formData.renter_move_in_timeline === opt.value
@@ -45,8 +51,16 @@ export function RenterMoveTimelineStep({ formData, updateFormData }: Props) {
                 : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
             }`}
           >
-            {opt.label}
-          </button>
+            <Button.Label
+              variant="outline"
+              size="sm"
+              className={
+                formData.renter_move_in_timeline === opt.value ? "text-blue-700" : "text-gray-700"
+              }
+            >
+              {opt.label}
+            </Button.Label>
+          </Button>
         ))}
       </Box>
     </Box>

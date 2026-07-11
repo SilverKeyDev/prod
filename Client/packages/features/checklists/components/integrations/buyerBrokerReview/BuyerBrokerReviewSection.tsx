@@ -12,9 +12,9 @@
  *   agreement_sent → signing UX (existing)
  */
 import { useCallback, useState } from "react";
+
 import type { ChecklistIntegrationComponentProps } from "packages/features/checklists/types/componentRegistry";
-import { Box } from "packages/ui/components/structure/primitives";
-import BodyText from "packages/ui/components/structure/text/BodyText";
+import { BodyText, Box, Button, FormField, Textarea } from "packages/ui";
 import Card from "packages/ui/components/surfaces/cards/Card";
 
 type ReviewStatus = "pending_review" | "meeting_requested" | "approved" | "agreement_sent";
@@ -155,11 +155,13 @@ export default function BuyerBrokerReviewSection({
       <Box className="gap-4">
         {/* Status chip */}
         <Box className="flex items-center gap-2">
-          <span
-            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[status]}`}
+          <BodyText
+            as="span"
+            size="xs"
+            className={`inline-flex rounded-full px-3 py-1 font-semibold ${STATUS_STYLES[status]}`}
           >
             {STATUS_LABELS[status]}
-          </span>
+          </BodyText>
           {review?.approved_at && (
             <BodyText size="xs" muted>
               Approved {new Date(review.approved_at).toLocaleDateString()}
@@ -199,55 +201,75 @@ export default function BuyerBrokerReviewSection({
         {!isSent && (
           <Box className="flex flex-col gap-2">
             {/* Approve after call */}
-            <button
-              onClick={handleApprove}
+            <Button
+              onPress={handleApprove}
               disabled={loading || isApproved}
-              className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+              fullWidth
+              rounded="xl"
+              size="lg"
+              variant="success"
+              className={
                 isApproved
-                  ? "cursor-default bg-green-100 text-green-700"
-                  : "bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
-              }`}
+                  ? "cursor-default disabled:bg-green-100 disabled:text-green-700"
+                  : "disabled:opacity-50"
+              }
             >
               {isApproved ? "✓ Approved after call" : "Approve after call"}
-            </button>
+            </Button>
 
             {/* Request meeting */}
             {!isApproved && (
               <>
                 {showMeetingInput ? (
                   <Box className="flex flex-col gap-2">
-                    <textarea
-                      value={meetingNote}
-                      onChange={(e) => setMeetingNote(e.target.value)}
-                      placeholder="Add a note for the buyer (optional)"
-                      rows={2}
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                    />
+                    <FormField
+                      label="Meeting note"
+                      htmlFor="buyer-broker-review-meeting-note"
+                      className="mb-0"
+                      labelClassName="sr-only"
+                    >
+                      <Textarea
+                        id="buyer-broker-review-meeting-note"
+                        value={meetingNote}
+                        onChange={(e) => setMeetingNote(e.target.value)}
+                        placeholder="Add a note for the buyer (optional)"
+                        rows={2}
+                        className="min-h-0 text-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </FormField>
                     <Box className="flex gap-2">
-                      <button
-                        onClick={handleRequestMeeting}
+                      <Button
+                        onPress={handleRequestMeeting}
                         disabled={loading}
-                        className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                        rounded="xl"
+                        size="sm"
+                        variant="primary"
+                        className="flex-1 disabled:opacity-50"
                       >
                         Confirm meeting request
-                      </button>
-                      <button
-                        onClick={() => setShowMeetingInput(false)}
-                        className="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                      </Button>
+                      <Button
+                        onPress={() => setShowMeetingInput(false)}
+                        rounded="xl"
+                        size="sm"
+                        variant="cancel"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </Box>
                   </Box>
                 ) : (
-                  <button
-                    onClick={() => setShowMeetingInput(true)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                  <Button
+                    onPress={() => setShowMeetingInput(true)}
+                    fullWidth
+                    rounded="xl"
+                    size="lg"
+                    variant="outline"
                   >
                     {status === "meeting_requested"
                       ? "Update meeting request"
                       : "Request meeting instead"}
-                  </button>
+                  </Button>
                 )}
               </>
             )}

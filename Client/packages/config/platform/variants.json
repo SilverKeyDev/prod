@@ -322,6 +322,13 @@
     "reason": "PostHog slider/CTA events are web-only."
   },
   {
+    "id": "landing-book-demo",
+    "description": "Landing demo booking opener with platform-specific external URL handling.",
+    "webPath": "packages/features/homeauth/utils/landingBookDemo.ts",
+    "nativePath": "packages/features/homeauth/utils/landingBookDemo.native.ts",
+    "reason": "Web opens the Google Calendar booking URL via the browser window; native uses React Native Linking.openURL."
+  },
+  {
     "id": "contact-us-screen",
     "description": "Contact us screen with platform-specific layout.",
     "webPath": "packages/features/homeauth/components/legal/ContactUsFeature.tsx",

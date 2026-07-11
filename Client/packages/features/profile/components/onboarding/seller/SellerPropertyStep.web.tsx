@@ -4,11 +4,12 @@
  */
 import React from "react";
 
-import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
+import { Button } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { Box } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -39,9 +40,13 @@ export function SellerPropertyStep({ formData, updateFormData }: Props) {
       </Box>
       <Box className="grid gap-3 sm:grid-cols-2">
         {PROPERTY_TYPES.map((pt) => (
-          <button
+          <Button
             key={pt.value}
             type="button"
+            variant="outline"
+            size="sm"
+            contentAlign="start"
+            label={pt.label}
             onClick={() => updateFormData("seller_property_type", pt.value)}
             className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${
               selected === pt.value
@@ -49,8 +54,14 @@ export function SellerPropertyStep({ formData, updateFormData }: Props) {
                 : "border-gray-200 bg-white text-gray-700 hover:border-gray-400"
             }`}
           >
-            {pt.label}
-          </button>
+            <Button.Label
+              variant="outline"
+              size="sm"
+              className={selected === pt.value ? "text-white" : "text-gray-700"}
+            >
+              {pt.label}
+            </Button.Label>
+          </Button>
         ))}
       </Box>
     </Box>

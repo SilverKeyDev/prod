@@ -3,11 +3,13 @@
  * Captures amenity preferences for renter onboarding.
  */
 import React from "react";
-import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
+
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
+import { Button } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { Box } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -51,9 +53,12 @@ export function RenterAmenitiesStep({ formData, updateFormData }: Props) {
       </Box>
       <Box className="flex flex-wrap gap-2">
         {AMENITY_OPTIONS.map((opt) => (
-          <button
+          <Button
             key={opt.value}
             type="button"
+            variant="outline"
+            size="sm"
+            label={opt.label}
             onClick={() => toggle(opt.value)}
             className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
               selected.includes(opt.value)
@@ -61,8 +66,14 @@ export function RenterAmenitiesStep({ formData, updateFormData }: Props) {
                 : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
             }`}
           >
-            {opt.label}
-          </button>
+            <Button.Label
+              variant="outline"
+              size="sm"
+              className={selected.includes(opt.value) ? "text-blue-700" : "text-gray-600"}
+            >
+              {opt.label}
+            </Button.Label>
+          </Button>
         ))}
       </Box>
     </Box>

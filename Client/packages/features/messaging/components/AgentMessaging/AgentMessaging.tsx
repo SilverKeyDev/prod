@@ -11,9 +11,9 @@ import MessagingModals from "packages/features/messaging/components/layout/chrom
 import UnifiedMessageInput from "packages/features/messaging/components/layout/input/UnifiedMessageInput";
 import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
 import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
-import { useAgentChatsSse } from "packages/features/messaging/hooks/data/useAgentChatsSse";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import { useAgentChatsSse } from "packages/features/messaging/hooks/data/useAgentChatsSse";
 import { useMessagingComposerStoreIntegration } from "packages/features/messaging/hooks/store/useMessagingComposerStoreIntegration";
 import { useMessagingComposerStore } from "packages/features/messaging/store";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";

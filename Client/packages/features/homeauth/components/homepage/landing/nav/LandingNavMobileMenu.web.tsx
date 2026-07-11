@@ -3,21 +3,11 @@ import { LANDING_GOLD_SIGNUP_BUTTON_CLASS } from "packages/features/homeauth/uti
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
 import { scrollToLandingSection } from "packages/features/homeauth/utils/landingScroll";
 import type { LandingSectionId } from "packages/features/homeauth/utils/landingSectionIds";
-import {
-  homeLandingSectionIdFromHref,
-  Link,
-  ROUTES,
-} from "packages/navigation";
+import { homeLandingSectionIdFromHref, Link, ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/structure/primitives";
 import { Transition } from "packages/ui/components/system/adapters/headless";
 
-import {
-  AccessibleDialog,
-  BodyText,
-  Button,
-  CloseButton,
-  Title,
-} from "@/components/ui";
+import { AccessibleDialog, BodyText, Button, CloseButton, Title } from "@/components/ui";
 
 type LandingNavMobileMenuProps = {
   open: boolean;
@@ -66,11 +56,7 @@ export function LandingNavMobileMenu({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Box
-            className="bg-overlay-backdrop fixed inset-0"
-            aria-hidden
-            onClick={onClose}
-          />
+          <Box className="bg-overlay-backdrop fixed inset-0" aria-hidden onClick={onClose} />
         </Transition.Child>
         <Box className="pointer-events-none fixed inset-0 flex items-end justify-center p-0 md:hidden">
           <Transition.Child
@@ -86,21 +72,14 @@ export function LandingNavMobileMenu({
               onClick={(e) => e.stopPropagation()}
             >
               <Box className="border-border flex shrink-0 flex-col items-center border-b pt-2">
-                <Box
-                  className="bg-border mb-2 h-1 w-10 rounded-full"
-                  aria-hidden
-                />
+                <Box className="bg-border mb-2 h-1 w-10 rounded-full" aria-hidden />
                 <Box className="flex w-full items-center justify-between gap-2 px-4 pb-3">
                   <Box className="w-9 shrink-0" aria-hidden />
                   <Title size="sm" as="h2" className="flex-1 text-center">
                     {nav.landmarkLabel}
                   </Title>
                   <Box className="flex w-9 shrink-0 justify-end">
-                    <CloseButton
-                      onClick={onClose}
-                      size="sm"
-                      label="Close navigation menu"
-                    />
+                    <CloseButton onClick={onClose} size="sm" label="Close navigation menu" />
                   </Box>
                 </Box>
               </Box>

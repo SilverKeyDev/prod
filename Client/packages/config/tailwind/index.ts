@@ -7,10 +7,16 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
-const breakpoints = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/breakpoints.json"));
+const breakpoints = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/layout/breakpoints.json")
+);
 const Z_LAYERS = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/zLayers.json"));
-const spacingMap = require(path.resolve(__dirname, "../../design-tokens/tokens/layout/spacing.json"));
-const fontSize = require(path.resolve(__dirname, "../../design-tokens/tokens/typography/fontSize.json"));
+const spacingMap = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/layout/spacing.json")
+);
+const fontSize = require(
+  path.resolve(__dirname, "../../design-tokens/tokens/typography/fontSize.json")
+);
 const fontFamily = { serif: ["Playfair Display", "serif"], sans: ["Inter", "sans-serif"] };
 const foundation = require(
   path.resolve(__dirname, "../../design-tokens/tokens/color/foundation.json")

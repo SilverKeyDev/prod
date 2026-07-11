@@ -7,12 +7,7 @@ import {
   LANDING_NAV_SCROLL_MARGIN_CLASS,
 } from "packages/features/homeauth/utils/landingChrome";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
-import {
-  HomeHashLink,
-  homeLandingSectionIdFromHref,
-  Link,
-  ROUTES,
-} from "packages/navigation";
+import { HomeHashLink, homeLandingSectionIdFromHref, Link, ROUTES } from "packages/navigation";
 import { MINI_LOGO } from "packages/ui/components/media/asset";
 import { Box, Image } from "packages/ui/components/structure/primitives";
 
@@ -34,10 +29,7 @@ export type LandingNavProps = {
   variant?: "landing" | "publicAgent";
 };
 
-export function LandingNav({
-  endActions,
-  variant = "landing",
-}: LandingNavProps = {}) {
+export function LandingNav({ endActions, variant = "landing" }: LandingNavProps = {}) {
   const { nav } = LANDING_CONTENT;
   const activeSectionId = useLandingActiveSection();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -52,10 +44,7 @@ export function LandingNav({
         className={`safe-top border-border z-header bg-background-base/95 fixed left-0 right-0 top-0 border-b backdrop-blur-md ${LANDING_NAV_SCROLL_MARGIN_CLASS}`}
       >
         <Box className="px-responsive-sm mx-auto flex h-[58px] max-w-[1100px] items-center justify-between gap-2 sm:gap-3">
-          <Link
-            to="/"
-            className="flex min-w-0 shrink touch-manipulation items-center gap-2"
-          >
+          <Link to="/" className="flex min-w-0 shrink touch-manipulation items-center gap-2">
             <Image
               src={MINI_LOGO}
               alt={nav.landmarkLabel}
@@ -122,9 +111,7 @@ export function LandingNav({
                     as="span"
                     size="sm"
                     className={`text-text-primary min-h-11 items-center px-2 font-semibold ${
-                      variant === "publicAgent"
-                        ? "inline-flex"
-                        : "hidden sm:inline-flex"
+                      variant === "publicAgent" ? "inline-flex" : "hidden sm:inline-flex"
                     }`}
                   >
                     {nav.loginLabel}
@@ -142,9 +129,7 @@ export function LandingNav({
                 <Button
                   variant="primary"
                   size="sm"
-                  className={
-                    variant === "publicAgent" ? "hidden sm:inline-flex" : ""
-                  }
+                  className={variant === "publicAgent" ? "hidden sm:inline-flex" : ""}
                   onPress={() => openLandingBookDemo("nav")}
                 >
                   {nav.bookDemoLabel}

@@ -4,11 +4,12 @@
  */
 import React from "react";
 
-import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
+import { Button } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { Box } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -40,9 +41,13 @@ export function SellerMotivationStep({ formData, updateFormData }: Props) {
       </Box>
       <Box className="grid gap-3 sm:grid-cols-2">
         {MOTIVATION_OPTIONS.map((opt) => (
-          <button
+          <Button
             key={opt.value}
             type="button"
+            variant="outline"
+            size="sm"
+            contentAlign="start"
+            label={opt.label}
             onClick={() => updateFormData("seller_motivation", opt.value)}
             className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${
               selected === opt.value
@@ -50,8 +55,14 @@ export function SellerMotivationStep({ formData, updateFormData }: Props) {
                 : "border-gray-200 bg-white text-gray-700 hover:border-gray-400"
             }`}
           >
-            {opt.label}
-          </button>
+            <Button.Label
+              variant="outline"
+              size="sm"
+              className={selected === opt.value ? "text-white" : "text-gray-700"}
+            >
+              {opt.label}
+            </Button.Label>
+          </Button>
         ))}
       </Box>
     </Box>

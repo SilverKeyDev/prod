@@ -34,15 +34,13 @@ export function usePublicAgentProfileLookup() {
   const profileQueryUserId = agentUserId ?? undefined;
 
   const query = usePublicAgentProfile(
-    routeSlug
-      ? { publicProfileSlug: routeSlug }
-      : { userId: profileQueryUserId },
+    routeSlug ? { publicProfileSlug: routeSlug } : { userId: profileQueryUserId }
   );
   const agent = query.data;
 
   const agentId = useMemo(
     () => (routeSlug ? agent?.id?.trim() : profileQueryUserId?.trim()) ?? "",
-    [routeSlug, agent?.id, profileQueryUserId],
+    [routeSlug, agent?.id, profileQueryUserId]
   );
 
   const hasLookup = Boolean(routeSlug) || Boolean(profileQueryUserId?.trim());
@@ -50,12 +48,8 @@ export function usePublicAgentProfileLookup() {
   const authUser = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { userProfile } = useUserData();
-  const viewerId = isAuthenticated
-    ? (userProfile?.id ?? authUser?.id ?? null)
-    : null;
-  const isOwnProfile = Boolean(
-    viewerId && agent?.id && viewerId === agent.id.trim(),
-  );
+  const viewerId = isAuthenticated ? (userProfile?.id ?? authUser?.id ?? null) : null;
+  const isOwnProfile = Boolean(viewerId && agent?.id && viewerId === agent.id.trim());
 
   return {
     ...query,

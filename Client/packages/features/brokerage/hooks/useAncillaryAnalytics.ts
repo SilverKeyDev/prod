@@ -4,7 +4,8 @@
  * TODO SIL-272: Swap for real API call once SkySlope sync lands.
  */
 import { useMemo } from "react";
-import { BROKERAGE_ANCILLARY_FIXTURE } from "../fixtures/brokerageAnalyticsFixtures";
+
+import { BROKERAGE_ANCILLARY_FIXTURE } from "../utils/brokerageAnalyticsFixtures";
 import type { TimePeriod } from "./useBrokerageAnalytics";
 
 const FEES = { title: 500, lending: 1000, escrow: 400, home_warranty: 150 } as const;
@@ -15,12 +16,12 @@ function buildAncillaryData(period: TimePeriod) {
   const scale = period === "week" ? 0.05 : period === "month" ? 1 : period === "year" ? 12 : 24;
   const t = Math.round(2059 * scale);
 
-  const by_service = (["title","lending","escrow","home_warranty"] as const).map(svc => {
+  const by_service = (["title", "lending", "escrow", "home_warranty"] as const).map((svc) => {
     const rate = RATES[svc];
-    const outside = Math.round(t * (1 - rate/100));
+    const outside = Math.round(t * (1 - rate / 100));
     return {
       service: svc,
-      in_house_count: Math.round(t * rate/100),
+      in_house_count: Math.round((t * rate) / 100),
       outside_count: outside,
       attach_rate_percent: rate,
       leakage_dollars: outside * FEES[svc],
