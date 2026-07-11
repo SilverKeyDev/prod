@@ -26,6 +26,7 @@ LOGGER_BOOLEAN_KEYS: tuple[str, ...] = (
     "routing",
     "docusign",
     "documents",
+    "transactions",
     "profilePreferences",
 )
 
@@ -54,6 +55,7 @@ def build_environment_defaults(is_prod: bool) -> dict[str, Any]:
         "routing": bool_value,
         "docusign": bool_value,
         "documents": bool_value,
+        "transactions": bool_value,
         "profilePreferences": bool_value,
         "logLevel": "INFO" if is_prod else "ERROR",
     }
