@@ -98,7 +98,7 @@ def invalidate_bba_approval_if_changed(
 
         # Material change detected — void approval
         log.info(
-            "DOCUSIGN",
+            "TRANSACTIONS.BBA_REVIEW",
             "bba_approval_invalidated_preference_change",
             {
                 "buyer_user_id": buyer_user_id,
@@ -128,7 +128,7 @@ def invalidate_bba_approval_if_changed(
         from logger import log
 
         log.error(
-            "DOCUSIGN",
+            "TRANSACTIONS.BBA_REVIEW",
             "bba_fingerprint_check_failed",
             e,
         )

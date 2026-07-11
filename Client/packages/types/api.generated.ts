@@ -4,15559 +4,15421 @@
  */
 
 export interface paths {
-  "/api/v1/agent/clients": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List agent clients
-     * @description Returns clients assigned to the authenticated agent.
-     */
-    get: operations["getAgentClients"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/auth/login": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Log in with email and password
-     * @description Authenticates via Cognito; sets HttpOnly session and refresh_token cookies on success.
-     */
-    post: operations["login"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/auth/logout": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Log out
-     * @description Clears auth cookies.
-     */
-    post: operations["logout"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/auth/refresh-token": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Refresh session
-     * @description Uses the session cookie (access JWT) and refresh_token cookie to issue new tokens. There is no separate GET /auth/session route; clients treat a successful refresh or GET /api/v1/user/profile as the session check.
-     */
-    post: operations["refreshToken"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/auth/signup": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Register a new user */
-    post: operations["signup"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/preferences": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get current user preferences */
-    get: operations["getPreferences"];
-    put?: never;
-    /**
-     * Create or update user preferences
-     * @description Persists preference payload for the current user. There is no PUT /api/v1/user/profile; profile-adjacent data is updated here.
-     */
-    post: operations["upsertPreferences"];
-    /**
-     * Clear current user preferences
-     * @description Deletes all normalized preference rows for the authenticated user and sets
-     *     `has_preferences` to false. Agents cannot clear a client's preferences via this
-     *     endpoint; it always affects only the signed-in user.
-     */
-    delete: operations["deletePreferences"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/public/agent-profile/{userId}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get public agent profile by user id
-     * @description Unauthenticated read-only agent directory row for shareable profile URLs. Returns 404 if the user does not exist, is not an agent, or is inactive. Web client public pages use path `/agent-profile/{nameSlug}/{userId}` (name slug first; `userId` is this path parameter).
-     */
-    get: operations["getPublicAgentProfile"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/public/agent-profile/{userId}/listings": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get public agent listings (current and former)
-     * @description Unauthenticated MLS listings attributed to the agent for the public agent site (`#listings` section). Matched from the shared property cache by the agent's MLS id or listing agent email. Returns 404 if the user does not exist, is not an agent, or is inactive; returns an empty list when the agent has no MLS-linked listings. Cards must render MLS attribution; no partner placement on this surface.
-     */
-    get: operations["getPublicAgentListings"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/public/agent-profile/slug/{publicProfileSlug}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get public agent profile by short slug
-     * @description Same payload as `getPublicAgentProfile`, keyed by `users.public_profile_slug` (used for `/a/{slug}` links). Returns 404 if the slug is invalid, taken by a non-agent, or unknown.
-     */
-    get: operations["getPublicAgentProfileBySlug"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/search/properties-by-polygon": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Search homes by viewport polygon
-     * @description Primary authenticated polygon search. Replaces a hypothetical POST /search/homes (no such route).
-     */
-    post: operations["searchPropertiesByPolygon"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/favorite-homes": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List favorite and listing homes
-     * @description Paginated liked homes plus parallel listings snapshot.
-     */
-    get: operations["listFavoriteHomes"];
-    put?: never;
-    /**
-     * Replace favorite homes
-     * @description Replaces the user's favorites with the provided home objects.
-     */
-    post: operations["replaceFavoriteHomes"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/favorite-homes/add": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Add one favorite home
-     * @description Persists full home payload and returns the updated liked-homes list.
-     */
-    post: operations["addFavoriteHome"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/favorite-homes/remove": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Remove one favorite home by address
-     * @description Unlikes all matching rows for the normalized address and returns remaining liked homes.
-     */
-    post: operations["removeFavoriteHome"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/profile": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get current user profile */
-    get: operations["getUserProfile"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/account/delete": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Delete the current user account
-     * @description Irreversibly deletes the authenticated user and related application data.
-     *     Same hard-delete behavior as admin routes, but only for the signed-in user.
-     */
-    post: operations["deleteMyAccount"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/data-export": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Export the current user data
-     * @description Returns a JSON document with profile, client UI settings, saved homes, and
-     *     not-interested homes for data-portability requests.
-     */
-    get: operations["exportUserData"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/profile-picture": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Upload user profile picture
-     * @description Upload and update profile picture (JPEG, PNG, GIF allowed)
-     */
-    post: operations["uploadProfilePicture"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/client-settings": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get current user client UI settings
-     * @description Returns persisted layout, calendar view, saved tab, and optional onboarding draft merged with defaults.
-     */
-    get: operations["getUserClientSettings"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /**
-     * Patch current user client UI settings
-     * @description Deep-merges partial JSON into stored settings; null removes a top-level key.
-     */
-    patch: operations["patchUserClientSettings"];
-    trace?: never;
-  };
-  "/api/v1/google/me/events": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List user's Google Calendar events
-     * @description List events from authenticated user's own calendar (agents use /clients/{client_id}/availability for client calendars)
-     */
-    get: operations["listGoogleEvents"];
-    put?: never;
-    /**
-     * Create Google Calendar event
-     * @description Create a new event in user's Google calendar with optional cross-calendar creation for agent-client relationships
-     */
-    post: operations["createGoogleEvent"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/me/events/{event_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get a single Google Calendar event
-     * @description Fetches one event by ID (e.g. to poll for `hangoutLink` when Meet provisioning is pending).
-     */
-    get: operations["getGoogleEvent"];
-    put?: never;
-    post?: never;
-    /**
-     * Delete Google Calendar event
-     * @description Delete an event from user's Google calendar
-     */
-    delete: operations["deleteGoogleEvent"];
-    options?: never;
-    head?: never;
-    /**
-     * Update Google Calendar event
-     * @description Update an existing event in user's Google calendar
-     */
-    patch: operations["updateGoogleEvent"];
-    trace?: never;
-  };
-  "/api/v1/google/me/freebusy": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Query freebusy information
-     * @description Check availability for specified calendars
-     */
-    post: operations["getFreebusyInfo"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/oauth/start": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Start Google OAuth flow
-     * @description Initiates Google OAuth authorization with incremental scopes
-     */
-    get: operations["startGoogleOAuth"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/oauth/callback": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Google OAuth callback
-     * @description Handles OAuth callback from Google and exchanges code for tokens
-     */
-    get: operations["googleOAuthCallback"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/oauth/revoke": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Revoke Google OAuth access
-     * @description Revoke Google Calendar access for the authenticated user
-     */
-    post: operations["revokeGoogleOAuth"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/conversations": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List workspace conversations */
-    get: operations["getWorkspaceConversations"];
-    put?: never;
-    /** Create workspace conversation */
-    post: operations["createWorkspaceConversation"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/conversations/stream": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Workspace messaging events (SSE) */
-    get: operations["streamWorkspaceConversationEvents"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/conversations/eligible-contacts": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List contacts the user may message */
-    get: operations["getWorkspaceEligibleContacts"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/conversations/{conversationId}/history": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Workspace conversation history */
-    get: operations["getWorkspaceConversationHistory"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/conversations/message": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Send workspace conversation message */
-    post: operations["sendWorkspaceConversationMessage"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/conversations/{conversationId}/read": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Mark workspace conversation read */
-    post: operations["markWorkspaceConversationRead"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/chats": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List agent/client conversations */
-    get: operations["getAgentChats"];
-    put?: never;
-    /** Create a conversation */
-    post: operations["createAgentChat"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/chats/stream": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Messaging events (SSE)
-     * @description Server-Sent Events stream for the authenticated user. When `REDIS_URL` or `CELERY_URL`
-     *     is configured, the server publishes `new_message` and `conversation_read` events to a
-     *     per-user Redis Pub/Sub channel (`sk:messaging:user:{user_id}`). Heartbeats use SSE comment
-     *     lines (`:` prefix). The first `data` event is always `{"kind":"_hello","redis_fanout":boolean}`.
-     */
-    get: operations["streamAgentChatEvents"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/chats/{conversationId}/history": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get conversation message history */
-    get: operations["getAgentChatHistory"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/chats/message": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Send a chat message */
-    post: operations["sendAgentChatMessage"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/chats/messages/{messageId}/event-request-status": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /** Update calendar event request status on a message */
-    patch: operations["updateAgentChatEventRequestStatus"];
-    trace?: never;
-  };
-  "/api/v1/agent/chats/{conversationId}/read": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Mark conversation messages as read */
-    post: operations["markAgentChatAsRead"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/search-agents": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Search agents by query */
-    get: operations["searchAgents"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/recommended-agents": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Recommend agents from buyer context
-     * @description Returns ranked agents using v1 heuristics (service zips, licensed states, intent/specialty overlap).
-     *     Callers pass optional zip, state, and intent derived from preferences and active search.
-     */
-    get: operations["recommendedAgents"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/search-clients": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Search clients by query */
-    get: operations["searchClients"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/connection-requests": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List connection requests */
-    get: operations["getConnectionRequests"];
-    put?: never;
-    /**
-     * Create a connection request
-     * @description When the client initiates (`requested_by_agent` false), the server auto-accepts and
-     *     returns `status: accepted` (no agent inbox). When the agent initiates, the request stays
-     *     `pending` until the client responds via the respond endpoint.
-     */
-    post: operations["createConnectionRequest"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/connection-requests/{requestId}/respond": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Accept or decline a connection request */
-    post: operations["respondToConnectionRequest"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/notification-counter": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Unread messages and pending requests count */
-    get: operations["getAgentNotificationCounter"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/todos": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List todos for agent or client */
-    get: operations["getAgentTodos"];
-    put?: never;
-    /** Create a todo */
-    post: operations["createAgentTodo"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/agent/todos/{todoId}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /** Update a todo */
-    put: operations["updateAgentTodo"];
-    post?: never;
-    /** Delete a todo */
-    delete: operations["deleteAgentTodo"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/auth/forgot-password": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Start password recovery */
-    post: operations["forgotPassword"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/auth/google/start": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Start Google OAuth (login/signup) */
-    get: operations["googleOAuthStart"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/auth/google/callback": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Google OAuth callback */
-    get: operations["googleOAuthCallback"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/auth/resend-code": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Resend email verification code */
-    post: operations["resendVerificationCode"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/auth/reset-password": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Complete password reset with verification code */
-    post: operations["resetPassword"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/auth/verify": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Verify email with code and log in */
-    post: operations["verifyEmail"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/preferences/action-plan/{client_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Generate client action plan */
-    post: operations["generateClientActionPlan"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/preferences/clients": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List clients for preferences context */
-    get: operations["getPreferencesClients"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/preferences/user/{userId}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get preferences by user id (scoped) */
-    get: operations["getUserPreferencesById"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/search-display": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get search display settings */
-    get: operations["getSearchDisplay"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /** Update search display settings */
-    patch: operations["patchSearchDisplay"];
-    trace?: never;
-  };
-  "/api/v1/search/propertyComps": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Property comparables (Slipstream GAMLS) */
-    get: operations["getPropertyComps"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/search/monthly-cost-estimates": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Monthly HOA/utilities estimates by ZIP */
-    get: operations["getMonthlyCostEstimates"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/search/isochrone": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Isochrone from user commute preferences */
-    get: operations["getSearchIsochrone"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/search/area-suggestions": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Autocomplete for geographic areas (neighborhoods, cities, ZIP codes) */
-    get: operations["getAreaSuggestions"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/search/area-boundary": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get boundary polygon for a Slipstream area */
-    get: operations["getAreaBoundary"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/research/property": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Queue or stream property research */
-    post: operations["researchProperty"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/research/compare": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Queue or stream property comparison research */
-    post: operations["researchCompareProperty"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/research/task-status/{task_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Celery task status for research/compare */
-    get: operations["getResearchTaskStatus"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/offer/generate-strategy": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Generate negotiation strategy for an address */
-    post: operations["generateNegotiationStrategy"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/maps/script": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Google Maps JS script URL (key stays server-side) */
-    get: operations["getMapsScriptUrl"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/not-interested-homes": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List not-interested homes */
-    get: operations["listNotInterestedHomes"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/not-interested-homes/add": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Mark a home as not interested */
-    post: operations["addNotInterestedHome"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/not-interested-homes/remove": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Remove not-interested status */
-    post: operations["removeNotInterestedHome"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/user/not-interested-homes/update": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Update not-interested metadata */
-    post: operations["updateNotInterestedHome"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List deals for the current user
-     * @description Buyers receive their own `transactions` rows. Agents may pass `buyer_id` to list deals for a managed client. Deal scope ids are always `transactions.id` (UUID).
-     */
-    get: operations["listTransactions"];
-    put?: never;
-    /**
-     * Create a new deal row
-     * @description Creates a new `transactions` row. Pilot UI may not expose this; backend supports multi-deal. When `set_active` is true (default), updates the buyer's active deal pointer.
-     */
-    post: operations["createTransaction"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions/me": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get the authenticated buyer's active deal
-     * @description Resolves the buyer's active deal (`users.active_transaction_id`, else most recently updated row, else creates the first deal). Returns `transactions.id` for checklist APIs.
-     */
-    get: operations["getMyTransaction"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions/me/active": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /**
-     * Set the buyer's active deal
-     * @description Updates `users.active_transaction_id` to an owned deal. Post-pilot UI uses this for a deal switcher; pilot may omit the control while the endpoint remains available.
-     */
-    put: operations["setMyActiveTransaction"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions/address": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get saved transaction address */
-    get: operations["getTransactionAddress"];
-    put?: never;
-    /** Save transaction address */
-    post: operations["saveTransactionAddress"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions/{transaction_id}/tasks/progress-summary": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Task checklist progress summary for a transaction subject
-     * @description Returns per-category completion counts and overall journey progress for the deal identified by `transactions.id`. Same auth as GET .../tasks.
-     */
-    get: operations["getTransactionTaskChecklistProgressSummary"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions/{transaction_id}/tasks": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Task checklist for a transaction subject (buyer self or agent client)
-     * @description Returns unified task checklist definitions and progress for the given `transactions.id`. Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
-     */
-    get: operations["getTransactionTaskChecklist"];
-    /**
-     * Replace task checklist progress for a transaction subject
-     * @description Replaces checklist progress for the deal identified by `transactions.id`. Buyers may update their own checklist; agents may update a managed client's checklist.
-     */
-    put: operations["putTransactionTaskChecklist"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/documents": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal. */
-        transaction_id: string;
-        /** @description Checklist category (e.g. escrow, financing). */
-        section: string;
-        /** @description Checklist step id within the section. */
-        item_id: string;
-      };
-      cookie?: never;
-    };
-    /** List agreements linked to a checklist item */
-    get: operations["getChecklistItemDocuments"];
-    put?: never;
-    /** Link an agreement or uploaded document to a checklist item */
-    post: operations["linkAgreementToChecklistItem"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/forms": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal. */
-        transaction_id: string;
-        /** @description Checklist category (e.g. escrow, financing). */
-        section: string;
-        /** @description Checklist step id within the section. */
-        item_id: string;
-      };
-      cookie?: never;
-    };
-    /** List forms suggested for a checklist step */
-    get: operations["getChecklistItemForms"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/forms/{form_id}/download": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        transaction_id: string;
-        section: string;
-        item_id: string;
-        form_id: string;
-      };
-      cookie?: never;
-    };
-    /** Generate presigned download URL for a checklist form */
-    get: operations["downloadChecklistItemForm"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/forms/{form_id}/send": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        transaction_id: string;
-        section: string;
-        item_id: string;
-        form_id: string;
-      };
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Send a checklist form via messaging, DocuSign, or both */
-    post: operations["sendChecklistItemForm"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/dispatch-automation": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal. */
-        transaction_id: string;
-        /** @description Checklist category (e.g. escrow, financing). */
-        section: string;
-        /** @description Checklist step id within the section. */
-        item_id: string;
-      };
-      cookie?: never;
-    };
-    /** Get checklist dispatch automation settings for a step */
-    get: operations["getChecklistDispatchAutomation"];
-    /** Replace checklist dispatch automation settings for a step */
-    put: operations["putChecklistDispatchAutomation"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/client/errors": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Report client-side errors (optional auth) */
-    post: operations["reportClientError"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/forms/library": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List all checklist forms grouped by category */
-    get: operations["listFormsLibrary"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/forms/library/{form_id}/download": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        form_id: string;
-      };
-      cookie?: never;
-    };
-    /** Generate presigned download URL for a library form */
-    get: operations["downloadFormsLibraryForm"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/feed": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Paginated listing feed */
-    get: operations["getFeed"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/feed/likes": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Batch like counts for home ids */
-    get: operations["getFeedLikes"];
-    put?: never;
-    /** Like a feed item */
-    post: operations["postFeedLike"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/feed/likes/{home_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /** Unlike a feed item */
-    delete: operations["deleteFeedLike"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/feed/comments/{home_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Comments for a home */
-    get: operations["getFeedComments"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/feed/comments": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Add a comment */
-    post: operations["postFeedComment"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/health": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Google Calendar integration health */
-    get: operations["googleCalendarHealth"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/connection-status": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Google Calendar connection status */
-    get: operations["googleCalendarConnectionStatus"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/oauth/enhance": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Request incremental Calendar scopes */
-    get: operations["googleCalendarOAuthEnhance"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/me/calendars": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List user's Google calendars */
-    get: operations["listGoogleCalendars"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/calendars": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Create a Google calendar */
-    post: operations["createGoogleCalendar"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/calendars/{calendar_id}/acl": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Add ACL rule to a calendar */
-    post: operations["addGoogleCalendarAcl"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/me/silverkey-calendar": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get or describe SilverKey calendar */
-    get: operations["getSilverkeyCalendar"];
-    put?: never;
-    /** Create or ensure SilverKey calendar */
-    post: operations["ensureSilverkeyCalendar"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/me/permissions": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get calendar permission flags */
-    get: operations["getGoogleCalendarPermissions"];
-    /** Replace calendar permission flags */
-    put: operations["putGoogleCalendarPermissions"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/clients/{client_id}/availability": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Query client availability */
-    post: operations["queryClientAvailability"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/clients/{client_id}/events": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List events for a client */
-    get: operations["listClientGoogleEvents"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/google/calendar/webhook": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Google Calendar push notification channel */
-    post: operations["googleCalendarWebhook"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/report/list": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List reports for current user */
-    get: operations["listReports"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/report/{report_id}/download-url": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Presigned download URL for report PDF */
-    get: operations["getReportDownloadUrl"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/report/{report_id}/view-url": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Presigned view URL for report PDF */
-    get: operations["getReportViewUrl"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/report/{report_id}/view": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Inline PDF bytes for report */
-    get: operations["viewReportPdf"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/report/{report_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /** Delete a report */
-    delete: operations["deleteReport"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/report/documents": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Workflow documents for reports */
-    get: operations["listReportWorkflowDocuments"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/report/document-library": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Document library for current or scoped user */
-    get: operations["getDocumentLibrary"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/report/document-library/{library_item_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /** Remove item from document library */
-    delete: operations["deleteDocumentLibraryItem"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/upload/document": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Secure document upload */
-    post: operations["uploadSecureDocument"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/upload/image": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Secure image upload */
-    post: operations["uploadSecureImage"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/logger-config": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get deployment logger configuration (client + server) */
-    get: operations["adminGetLoggerConfig"];
-    put?: never;
-    /** Update deployment logger configuration (client and/or server) */
-    post: operations["adminUpdateLoggerConfig"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/current-user-agent-status": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Set current user agent flag (admin) */
-    post: operations["adminSetCurrentUserAgentStatus"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/current-user-dev-workspace": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Set current user dev workspace persona (admin) */
-    post: operations["adminSetCurrentUserDevWorkspace"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/dev-accounts/session": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Mint one-time dev account session token (admin) */
-    post: operations["adminMintDevAccountSession"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/dev-accounts/session/exchange": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Exchange one-time dev account session token */
-    post: operations["adminExchangeDevAccountSession"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/users/gate-roles": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List users with SilverKey gate roles (super_admin only) */
-    get: operations["adminListGateRoleUsers"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/users/roles": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Grant or revoke SilverKey gate roles for a user (super_admin only) */
-    post: operations["adminUpdateUserSystemRoles"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/validation-stats": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** OpenAPI validation failure statistics snapshot (placeholder data until log aggregation lands) */
-    get: operations["adminGetValidationStats"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/users/delete": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Hard-delete a user (super_admin only) */
-    post: operations["adminDeleteUser"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/users/reset-dev-data": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Reset dev/test data for a user (profile, preferences, DocuSign) */
-    post: operations["adminResetDevUserData"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/oauth/start": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Start DocuSign OAuth (returns auth_url JSON) */
-    get: operations["docusignOAuthStart"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/oauth/callback": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** DocuSign OAuth callback */
-    get: operations["docusignOAuthCallback"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/templates": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List DocuSign templates */
-    get: operations["docusignListTemplates"];
-    put?: never;
-    /** Create DocuSign template from PDFs and open editor */
-    post: operations["docusignCreateTemplate"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/templates/{template_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get DocuSign template details including roles */
-    get: operations["docusignGetTemplateDetail"];
-    put?: never;
-    post?: never;
-    /** Delete DocuSign template */
-    delete: operations["docusignDeleteTemplate"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/templates/{template_id}/edit-url": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get DocuSign template edit view URL */
-    get: operations["docusignGetTemplateEditUrl"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/templates/sync": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Sync DocuSign templates */
-    post: operations["docusignSyncTemplates"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List agreements */
-    get: operations["docusignListAgreements"];
-    put?: never;
-    /** Create agreement */
-    post: operations["docusignCreateAgreement"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get agreement */
-    get: operations["docusignGetAgreement"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/participants": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Add agreement participant */
-    post: operations["docusignAddParticipant"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/participants/{participant_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /** Remove participant */
-    delete: operations["docusignRemoveParticipant"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/participants/{participant_id}/routing-order": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /** Update participant routing order */
-    patch: operations["docusignUpdateParticipantRoutingOrder"];
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/signing-url": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Create recipient signing URL */
-    post: operations["docusignGetSigningUrl"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/sender-view": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Sender view URL (embedded sending) */
-    get: operations["docusignGetSenderView"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/revisions": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Create agreement revision */
-    post: operations["docusignCreateRevision"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/send": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Send agreement for signature */
-    post: operations["docusignSendAgreement"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/resend": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Resend DocuSign notification to a pending signer */
-    post: operations["docusignResendAgreementRecipient"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/notification": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    /** Update DocuSign envelope reminder and expiration settings */
-    put: operations["docusignUpdateAgreementEnvelopeNotification"];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/void": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Void agreement */
-    post: operations["docusignVoidAgreement"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/discard": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Discard agreement from Saved (agent)
-     * @description Listing agent removes the agreement from Saved for themselves and their client. Voids the DocuSign envelope when DocuSign allows; otherwise removes the shared library row only (e.g. completed envelopes).
-     */
-    post: operations["docusignDiscardAgreement"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/docusign/agreements/{agreement_id}/download": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get pre-signed download URL for agreement PDF
-     * @description Returns a pre-signed S3 URL for the merged signed document when present, otherwise the latest revision file.
-     */
-    get: operations["docusignGetAgreementDownloadUrl"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/webhooks/docusign/connect": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** DocuSign Connect webhook */
-    post: operations["docusignConnectWebhook"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/healthz": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Readiness and database connectivity
-     * @description Verifies the app can reach the database (SELECT 1). Prefer /livez for fast liveness only.
-     */
-    get: operations["healthz"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/livez": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Process liveness (no database)
-     * @description Returns 200 when the HTTP process is up; does not check the database. Use for Docker health probes.
-     */
-    get: operations["livez"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/readyz": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Readiness and database connectivity (alias of /healthz)
-     * @description Same behavior as GET /healthz — verifies the app can reach the database (SELECT 1). Provided for operators who standardize on the readyz name.
-     */
-    get: operations["readyz"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/chat/address/{report_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Send message to property chatbot
-     * @description Send a message to the chatbot for a specific property report
-     */
-    post: operations["sendChatMessage"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/chat/history/{report_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get chat history for property
-     * @description Get the conversation history for a specific property report
-     */
-    get: operations["getChatHistory"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/partners": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List rev-share partners */
-    get: operations["listAdminPartners"];
-    put?: never;
-    /** Create rev-share partner */
-    post: operations["createAdminPartner"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/partners/checklist-steps": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List checklist steps eligible for partner placement */
-    get: operations["listPartnerChecklistSteps"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/partners/{partner_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get partner by id */
-    get: operations["getAdminPartner"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /** Update partner */
-    patch: operations["patchAdminPartner"];
-    trace?: never;
-  };
-  "/api/v1/admin/partners/{partner_id}/provision-links": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Provision rev_share_links for all agents */
-    post: operations["provisionAdminPartnerLinks"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/rev-share/analytics": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Rev-share analytics for a partner */
-    get: operations["getAdminRevShareAnalytics"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get SkySlope integration metadata for a brokerage (admin only) */
-    get: operations["getAdminBrokerageSkySlopeCredential"];
-    /** Update SkySlope integration credentials for a brokerage (admin only) */
-    put: operations["updateAdminBrokerageSkySlopeCredential"];
-    /** Store encrypted SkySlope API key for a brokerage (admin only) */
-    post: operations["createAdminBrokerageSkySlopeCredential"];
-    /** Delete SkySlope integration credentials for a brokerage (admin only) */
-    delete: operations["deleteAdminBrokerageSkySlopeCredential"];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope/test-connection": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Verify stored SkySlope credentials decrypt successfully (admin only) */
-    post: operations["testAdminBrokerageSkySlopeConnection"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/partners/placements": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Active partner placements for a checklist step */
-    get: operations["getPartnerPlacements"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/api/v1/rev-share/step-views": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Record buyer step view (CTR denominator) */
-    post: operations["postRevShareStepView"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/r/{link_id}": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Rev-share click redirect */
-    get: operations["revShareRedirect"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
+    "/api/v1/agent/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List agent clients
+         * @description Returns clients assigned to the authenticated agent.
+         */
+        get: operations["getAgentClients"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Log in with email and password
+         * @description Authenticates via Cognito; sets HttpOnly session and refresh_token cookies on success.
+         */
+        post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Log out
+         * @description Clears auth cookies.
+         */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/refresh-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh session
+         * @description Uses the session cookie (access JWT) and refresh_token cookie to issue new tokens. There is no separate GET /auth/session route; clients treat a successful refresh or GET /api/v1/user/profile as the session check.
+         */
+        post: operations["refreshToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register a new user */
+        post: operations["signup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get current user preferences */
+        get: operations["getPreferences"];
+        put?: never;
+        /**
+         * Create or update user preferences
+         * @description Persists preference payload for the current user. There is no PUT /api/v1/user/profile; profile-adjacent data is updated here.
+         */
+        post: operations["upsertPreferences"];
+        /**
+         * Clear current user preferences
+         * @description Deletes all normalized preference rows for the authenticated user and sets
+         *     `has_preferences` to false. Agents cannot clear a client's preferences via this
+         *     endpoint; it always affects only the signed-in user.
+         */
+        delete: operations["deletePreferences"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/agent-profile/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get public agent profile by user id
+         * @description Unauthenticated read-only agent directory row for shareable profile URLs. Returns 404 if the user does not exist, is not an agent, or is inactive. Web client public pages use path `/agent-profile/{nameSlug}/{userId}` (name slug first; `userId` is this path parameter).
+         */
+        get: operations["getPublicAgentProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/agent-profile/{userId}/listings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get public agent listings (current and former)
+         * @description Unauthenticated MLS listings attributed to the agent for the public agent site (`#listings` section). Matched from the shared property cache by the agent's MLS id or listing agent email. Returns 404 if the user does not exist, is not an agent, or is inactive; returns an empty list when the agent has no MLS-linked listings. Cards must render MLS attribution; no partner placement on this surface.
+         */
+        get: operations["getPublicAgentListings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/agent-profile/slug/{publicProfileSlug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get public agent profile by short slug
+         * @description Same payload as `getPublicAgentProfile`, keyed by `users.public_profile_slug` (used for `/a/{slug}` links). Returns 404 if the slug is invalid, taken by a non-agent, or unknown.
+         */
+        get: operations["getPublicAgentProfileBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/properties-by-polygon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search homes by viewport polygon
+         * @description Primary authenticated polygon search. Replaces a hypothetical POST /search/homes (no such route).
+         */
+        post: operations["searchPropertiesByPolygon"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/favorite-homes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List favorite and listing homes
+         * @description Paginated liked homes plus parallel listings snapshot.
+         */
+        get: operations["listFavoriteHomes"];
+        put?: never;
+        /**
+         * Replace favorite homes
+         * @description Replaces the user's favorites with the provided home objects.
+         */
+        post: operations["replaceFavoriteHomes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/favorite-homes/add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add one favorite home
+         * @description Persists full home payload and returns the updated liked-homes list.
+         */
+        post: operations["addFavoriteHome"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/favorite-homes/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Remove one favorite home by address
+         * @description Unlikes all matching rows for the normalized address and returns remaining liked homes.
+         */
+        post: operations["removeFavoriteHome"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get current user profile */
+        get: operations["getUserProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/account/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete the current user account
+         * @description Irreversibly deletes the authenticated user and related application data.
+         *     Same hard-delete behavior as admin routes, but only for the signed-in user.
+         */
+        post: operations["deleteMyAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/data-export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export the current user data
+         * @description Returns a JSON document with profile, client UI settings, saved homes, and
+         *     not-interested homes for data-portability requests.
+         */
+        get: operations["exportUserData"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/profile-picture": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload user profile picture
+         * @description Upload and update profile picture (JPEG, PNG, GIF allowed)
+         */
+        post: operations["uploadProfilePicture"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/client-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current user client UI settings
+         * @description Returns persisted layout, calendar view, saved tab, and optional onboarding draft merged with defaults.
+         */
+        get: operations["getUserClientSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Patch current user client UI settings
+         * @description Deep-merges partial JSON into stored settings; null removes a top-level key.
+         */
+        patch: operations["patchUserClientSettings"];
+        trace?: never;
+    };
+    "/api/v1/google/me/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List user's Google Calendar events
+         * @description List events from authenticated user's own calendar (agents use /clients/{client_id}/availability for client calendars)
+         */
+        get: operations["listGoogleEvents"];
+        put?: never;
+        /**
+         * Create Google Calendar event
+         * @description Create a new event in user's Google calendar with optional cross-calendar creation for agent-client relationships
+         */
+        post: operations["createGoogleEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/me/events/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a single Google Calendar event
+         * @description Fetches one event by ID (e.g. to poll for `hangoutLink` when Meet provisioning is pending).
+         */
+        get: operations["getGoogleEvent"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Google Calendar event
+         * @description Delete an event from user's Google calendar
+         */
+        delete: operations["deleteGoogleEvent"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Google Calendar event
+         * @description Update an existing event in user's Google calendar
+         */
+        patch: operations["updateGoogleEvent"];
+        trace?: never;
+    };
+    "/api/v1/google/me/freebusy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Query freebusy information
+         * @description Check availability for specified calendars
+         */
+        post: operations["getFreebusyInfo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/oauth/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Start Google OAuth flow
+         * @description Initiates Google OAuth authorization with incremental scopes
+         */
+        get: operations["startGoogleOAuth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/oauth/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Google OAuth callback
+         * @description Handles OAuth callback from Google and exchanges code for tokens
+         */
+        get: operations["googleOAuthCallback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/oauth/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Google OAuth access
+         * @description Revoke Google Calendar access for the authenticated user
+         */
+        post: operations["revokeGoogleOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List workspace conversations */
+        get: operations["getWorkspaceConversations"];
+        put?: never;
+        /** Create workspace conversation */
+        post: operations["createWorkspaceConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workspace messaging events (SSE) */
+        get: operations["streamWorkspaceConversationEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/eligible-contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List contacts the user may message */
+        get: operations["getWorkspaceEligibleContacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workspace conversation history */
+        get: operations["getWorkspaceConversationHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send workspace conversation message */
+        post: operations["sendWorkspaceConversationMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/conversations/{conversationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark workspace conversation read */
+        post: operations["markWorkspaceConversationRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/chats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List agent/client conversations */
+        get: operations["getAgentChats"];
+        put?: never;
+        /** Create a conversation */
+        post: operations["createAgentChat"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/chats/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Messaging events (SSE)
+         * @description Server-Sent Events stream for the authenticated user. When `REDIS_URL` or `CELERY_URL`
+         *     is configured, the server publishes `new_message` and `conversation_read` events to a
+         *     per-user Redis Pub/Sub channel (`sk:messaging:user:{user_id}`). Heartbeats use SSE comment
+         *     lines (`:` prefix). The first `data` event is always `{"kind":"_hello","redis_fanout":boolean}`.
+         */
+        get: operations["streamAgentChatEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/chats/{conversationId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get conversation message history */
+        get: operations["getAgentChatHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/chats/message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a chat message */
+        post: operations["sendAgentChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/chats/messages/{messageId}/event-request-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update calendar event request status on a message */
+        patch: operations["updateAgentChatEventRequestStatus"];
+        trace?: never;
+    };
+    "/api/v1/agent/chats/{conversationId}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark conversation messages as read */
+        post: operations["markAgentChatAsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/search-agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search agents by query */
+        get: operations["searchAgents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/recommended-agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recommend agents from buyer context
+         * @description Returns ranked agents using v1 heuristics (service zips, licensed states, intent/specialty overlap).
+         *     Callers pass optional zip, state, and intent derived from preferences and active search.
+         */
+        get: operations["recommendedAgents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/search-clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search clients by query */
+        get: operations["searchClients"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/connection-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List connection requests */
+        get: operations["getConnectionRequests"];
+        put?: never;
+        /**
+         * Create a connection request
+         * @description When the client initiates (`requested_by_agent` false), the server auto-accepts and
+         *     returns `status: accepted` (no agent inbox). When the agent initiates, the request stays
+         *     `pending` until the client responds via the respond endpoint.
+         */
+        post: operations["createConnectionRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/connection-requests/{requestId}/respond": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept or decline a connection request */
+        post: operations["respondToConnectionRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/notification-counter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unread messages and pending requests count */
+        get: operations["getAgentNotificationCounter"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/todos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List todos for agent or client */
+        get: operations["getAgentTodos"];
+        put?: never;
+        /** Create a todo */
+        post: operations["createAgentTodo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agent/todos/{todoId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update a todo */
+        put: operations["updateAgentTodo"];
+        post?: never;
+        /** Delete a todo */
+        delete: operations["deleteAgentTodo"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start password recovery */
+        post: operations["forgotPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Start Google OAuth (login/signup) */
+        get: operations["googleOAuthStart"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Google OAuth callback */
+        get: operations["googleOAuthCallback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/resend-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend email verification code */
+        post: operations["resendVerificationCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete password reset with verification code */
+        post: operations["resetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify email with code and log in */
+        post: operations["verifyEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/preferences/action-plan/{client_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate client action plan */
+        post: operations["generateClientActionPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/preferences/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List clients for preferences context */
+        get: operations["getPreferencesClients"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/preferences/user/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get preferences by user id (scoped) */
+        get: operations["getUserPreferencesById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search-display": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get search display settings */
+        get: operations["getSearchDisplay"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update search display settings */
+        patch: operations["patchSearchDisplay"];
+        trace?: never;
+    };
+    "/api/v1/search/propertyComps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Property comparables (Slipstream GAMLS) */
+        get: operations["getPropertyComps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/monthly-cost-estimates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Monthly HOA/utilities estimates by ZIP */
+        get: operations["getMonthlyCostEstimates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/isochrone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Isochrone from user commute preferences */
+        get: operations["getSearchIsochrone"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/area-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Autocomplete for geographic areas (neighborhoods, cities, ZIP codes) */
+        get: operations["getAreaSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/search/area-boundary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get boundary polygon for a Slipstream area */
+        get: operations["getAreaBoundary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/property": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue or stream property research */
+        post: operations["researchProperty"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue or stream property comparison research */
+        post: operations["researchCompareProperty"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research/task-status/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Celery task status for research/compare */
+        get: operations["getResearchTaskStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/offer/generate-strategy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate negotiation strategy for an address */
+        post: operations["generateNegotiationStrategy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/maps/script": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Google Maps JS script URL (key stays server-side) */
+        get: operations["getMapsScriptUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/not-interested-homes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List not-interested homes */
+        get: operations["listNotInterestedHomes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/not-interested-homes/add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a home as not interested */
+        post: operations["addNotInterestedHome"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/not-interested-homes/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove not-interested status */
+        post: operations["removeNotInterestedHome"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user/not-interested-homes/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update not-interested metadata */
+        post: operations["updateNotInterestedHome"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List deals for the current user
+         * @description Buyers receive their own `transactions` rows. Agents may pass `buyer_id` to list deals for a managed client. Deal scope ids are always `transactions.id` (UUID).
+         */
+        get: operations["listTransactions"];
+        put?: never;
+        /**
+         * Create a new deal row
+         * @description Creates a new `transactions` row. Pilot UI may not expose this; backend supports multi-deal. When `set_active` is true (default), updates the buyer's active deal pointer.
+         */
+        post: operations["createTransaction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the authenticated buyer's active deal
+         * @description Resolves the buyer's active deal (`users.active_transaction_id`, else most recently updated row, else creates the first deal). Returns `transactions.id` for checklist APIs.
+         */
+        get: operations["getMyTransaction"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/me/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the buyer's active deal
+         * @description Updates `users.active_transaction_id` to an owned deal. Post-pilot UI uses this for a deal switcher; pilot may omit the control while the endpoint remains available.
+         */
+        put: operations["setMyActiveTransaction"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/address": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get saved transaction address */
+        get: operations["getTransactionAddress"];
+        put?: never;
+        /** Save transaction address */
+        post: operations["saveTransactionAddress"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/tasks/progress-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Task checklist progress summary for a transaction subject
+         * @description Returns per-category completion counts and overall journey progress for the deal identified by `transactions.id`. Same auth as GET .../tasks.
+         */
+        get: operations["getTransactionTaskChecklistProgressSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Task checklist for a transaction subject (buyer self or agent client)
+         * @description Returns unified task checklist definitions and progress for the given `transactions.id`. Callers may read their own checklist or, when authorized, a client checklist (agent must manage the client).
+         */
+        get: operations["getTransactionTaskChecklist"];
+        /**
+         * Replace task checklist progress for a transaction subject
+         * @description Replaces checklist progress for the deal identified by `transactions.id`. Buyers may update their own checklist; agents may update a managed client's checklist.
+         */
+        put: operations["putTransactionTaskChecklist"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        /** List agreements linked to a checklist item */
+        get: operations["getChecklistItemDocuments"];
+        put?: never;
+        /** Link an agreement or uploaded document to a checklist item */
+        post: operations["linkAgreementToChecklistItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/forms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        /** List forms suggested for a checklist step */
+        get: operations["getChecklistItemForms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/forms/{form_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+                section: string;
+                item_id: string;
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        /** Generate presigned download URL for a checklist form */
+        get: operations["downloadChecklistItemForm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/forms/{form_id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+                section: string;
+                item_id: string;
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a checklist form via messaging, DocuSign, or both */
+        post: operations["sendChecklistItemForm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/transactions/{transaction_id}/checklist-items/{section}/{item_id}/dispatch-automation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        /** Get checklist dispatch automation settings for a step */
+        get: operations["getChecklistDispatchAutomation"];
+        /** Replace checklist dispatch automation settings for a step */
+        put: operations["putChecklistDispatchAutomation"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report client-side errors (optional auth) */
+        post: operations["reportClientError"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/library": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all checklist forms grouped by category */
+        get: operations["listFormsLibrary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/library/{form_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        /** Generate presigned download URL for a library form */
+        get: operations["downloadFormsLibraryForm"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paginated listing feed */
+        get: operations["getFeed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feed/likes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Batch like counts for home ids */
+        get: operations["getFeedLikes"];
+        put?: never;
+        /** Like a feed item */
+        post: operations["postFeedLike"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feed/likes/{home_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unlike a feed item */
+        delete: operations["deleteFeedLike"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feed/comments/{home_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Comments for a home */
+        get: operations["getFeedComments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feed/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a comment */
+        post: operations["postFeedComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Google Calendar integration health */
+        get: operations["googleCalendarHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/connection-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Google Calendar connection status */
+        get: operations["googleCalendarConnectionStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/oauth/enhance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Request incremental Calendar scopes */
+        get: operations["googleCalendarOAuthEnhance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/me/calendars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List user's Google calendars */
+        get: operations["listGoogleCalendars"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/calendars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a Google calendar */
+        post: operations["createGoogleCalendar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/calendars/{calendar_id}/acl": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add ACL rule to a calendar */
+        post: operations["addGoogleCalendarAcl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/me/silverkey-calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get or describe SilverKey calendar */
+        get: operations["getSilverkeyCalendar"];
+        put?: never;
+        /** Create or ensure SilverKey calendar */
+        post: operations["ensureSilverkeyCalendar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/me/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get calendar permission flags */
+        get: operations["getGoogleCalendarPermissions"];
+        /** Replace calendar permission flags */
+        put: operations["putGoogleCalendarPermissions"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/clients/{client_id}/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Query client availability */
+        post: operations["queryClientAvailability"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/clients/{client_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List events for a client */
+        get: operations["listClientGoogleEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/google/calendar/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Google Calendar push notification channel */
+        post: operations["googleCalendarWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/report/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List reports for current user */
+        get: operations["listReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/report/{report_id}/download-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Presigned download URL for report PDF */
+        get: operations["getReportDownloadUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/report/{report_id}/view-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Presigned view URL for report PDF */
+        get: operations["getReportViewUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/report/{report_id}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inline PDF bytes for report */
+        get: operations["viewReportPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/report/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a report */
+        delete: operations["deleteReport"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/report/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workflow documents for reports */
+        get: operations["listReportWorkflowDocuments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/report/document-library": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Document library for current or scoped user */
+        get: operations["getDocumentLibrary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/report/document-library/{library_item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove item from document library */
+        delete: operations["deleteDocumentLibraryItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Secure document upload */
+        post: operations["uploadSecureDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Secure image upload */
+        post: operations["uploadSecureImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/logger-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get deployment logger configuration (client + server) */
+        get: operations["adminGetLoggerConfig"];
+        put?: never;
+        /** Update deployment logger configuration (client and/or server) */
+        post: operations["adminUpdateLoggerConfig"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/current-user-agent-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set current user agent flag (admin) */
+        post: operations["adminSetCurrentUserAgentStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/current-user-dev-workspace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set current user dev workspace persona (admin) */
+        post: operations["adminSetCurrentUserDevWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dev-accounts/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mint one-time dev account session token (admin) */
+        post: operations["adminMintDevAccountSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dev-accounts/session/exchange": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange one-time dev account session token */
+        post: operations["adminExchangeDevAccountSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/gate-roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List users with SilverKey gate roles (super_admin only) */
+        get: operations["adminListGateRoleUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grant or revoke SilverKey gate roles for a user (super_admin only) */
+        post: operations["adminUpdateUserSystemRoles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/validation-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** OpenAPI validation failure statistics snapshot (placeholder data until log aggregation lands) */
+        get: operations["adminGetValidationStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hard-delete a user (super_admin only) */
+        post: operations["adminDeleteUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/reset-dev-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset dev/test data for a user (profile, preferences, DocuSign) */
+        post: operations["adminResetDevUserData"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/oauth/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Start DocuSign OAuth (returns auth_url JSON) */
+        get: operations["docusignOAuthStart"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/oauth/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** DocuSign OAuth callback */
+        get: operations["docusignOAuthCallback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List DocuSign templates */
+        get: operations["docusignListTemplates"];
+        put?: never;
+        /** Create DocuSign template from PDFs and open editor */
+        post: operations["docusignCreateTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/templates/{template_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get DocuSign template details including roles */
+        get: operations["docusignGetTemplateDetail"];
+        put?: never;
+        post?: never;
+        /** Delete DocuSign template */
+        delete: operations["docusignDeleteTemplate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/templates/{template_id}/edit-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get DocuSign template edit view URL */
+        get: operations["docusignGetTemplateEditUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/templates/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync DocuSign templates */
+        post: operations["docusignSyncTemplates"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List agreements */
+        get: operations["docusignListAgreements"];
+        put?: never;
+        /** Create agreement */
+        post: operations["docusignCreateAgreement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get agreement */
+        get: operations["docusignGetAgreement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add agreement participant */
+        post: operations["docusignAddParticipant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/participants/{participant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove participant */
+        delete: operations["docusignRemoveParticipant"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/participants/{participant_id}/routing-order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update participant routing order */
+        patch: operations["docusignUpdateParticipantRoutingOrder"];
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/signing-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create recipient signing URL */
+        post: operations["docusignGetSigningUrl"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/sender-view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sender view URL (embedded sending) */
+        get: operations["docusignGetSenderView"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create agreement revision */
+        post: operations["docusignCreateRevision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send agreement for signature */
+        post: operations["docusignSendAgreement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend DocuSign notification to a pending signer */
+        post: operations["docusignResendAgreementRecipient"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/notification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update DocuSign envelope reminder and expiration settings */
+        put: operations["docusignUpdateAgreementEnvelopeNotification"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Void agreement */
+        post: operations["docusignVoidAgreement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Discard agreement from Saved (agent)
+         * @description Listing agent removes the agreement from Saved for themselves and their client. Voids the DocuSign envelope when DocuSign allows; otherwise removes the shared library row only (e.g. completed envelopes).
+         */
+        post: operations["docusignDiscardAgreement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/docusign/agreements/{agreement_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get pre-signed download URL for agreement PDF
+         * @description Returns a pre-signed S3 URL for the merged signed document when present, otherwise the latest revision file.
+         */
+        get: operations["docusignGetAgreementDownloadUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/webhooks/docusign/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** DocuSign Connect webhook */
+        post: operations["docusignConnectWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/healthz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Readiness and database connectivity
+         * @description Verifies the app can reach the database (SELECT 1). Prefer /livez for fast liveness only.
+         */
+        get: operations["healthz"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/livez": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Process liveness (no database)
+         * @description Returns 200 when the HTTP process is up; does not check the database. Use for Docker health probes.
+         */
+        get: operations["livez"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readyz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Readiness and database connectivity (alias of /healthz)
+         * @description Same behavior as GET /healthz — verifies the app can reach the database (SELECT 1). Provided for operators who standardize on the readyz name.
+         */
+        get: operations["readyz"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/address/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send message to property chatbot
+         * @description Send a message to the chatbot for a specific property report
+         */
+        post: operations["sendChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/history/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get chat history for property
+         * @description Get the conversation history for a specific property report
+         */
+        get: operations["getChatHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/partners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List rev-share partners */
+        get: operations["listAdminPartners"];
+        put?: never;
+        /** Create rev-share partner */
+        post: operations["createAdminPartner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/partners/checklist-steps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List checklist steps eligible for partner placement */
+        get: operations["listPartnerChecklistSteps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/partners/{partner_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get partner by id */
+        get: operations["getAdminPartner"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update partner */
+        patch: operations["patchAdminPartner"];
+        trace?: never;
+    };
+    "/api/v1/admin/partners/{partner_id}/provision-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provision rev_share_links for all agents */
+        post: operations["provisionAdminPartnerLinks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/rev-share/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rev-share analytics for a partner */
+        get: operations["getAdminRevShareAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get SkySlope integration metadata for a brokerage (admin only) */
+        get: operations["getAdminBrokerageSkySlopeCredential"];
+        /** Update SkySlope integration credentials for a brokerage (admin only) */
+        put: operations["updateAdminBrokerageSkySlopeCredential"];
+        /** Store encrypted SkySlope API key for a brokerage (admin only) */
+        post: operations["createAdminBrokerageSkySlopeCredential"];
+        /** Delete SkySlope integration credentials for a brokerage (admin only) */
+        delete: operations["deleteAdminBrokerageSkySlopeCredential"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/brokerages/{brokerage_id}/integrations/skyslope/test-connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify stored SkySlope credentials decrypt successfully (admin only) */
+        post: operations["testAdminBrokerageSkySlopeConnection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partners/placements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active partner placements for a checklist step */
+        get: operations["getPartnerPlacements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rev-share/step-views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record buyer step view (CTR denominator) */
+        post: operations["postRevShareStepView"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/r/{link_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rev-share click redirect */
+        get: operations["revShareRedirect"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    ActionPlanResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Generated action plan structure */
-      plan?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    AddCalendarACLRequest: {
-      /**
-       * @description Access role to grant
-       * @enum {string}
-       */
-      role: "owner" | "writer" | "reader" | "freeBusyReader";
-      scope: {
-        /** @enum {string} */
-        type: "user" | "group" | "domain" | "default";
-        /** @description Email or domain (required for user/group/domain types) */
-        value?: string | null;
-      };
-    };
-    AddCalendarACLResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Created ACL rule */
-      rule?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    AddCommentRequest: {
-      /** @description ID of the home/listing to comment on */
-      home_id: string;
-      /** @description Comment text */
-      text: string;
-    };
-    AddCommentResponse: components["schemas"]["SuccessResponse"] & {
-      comment?: components["schemas"]["FeedCommentApiShape"];
-    };
-    /**
-     * @example {
-     *       "home": {
-     *         "zpid": "12345678",
-     *         "address": "742 Evergreen Terrace",
-     *         "city": "Springfield",
-     *         "state": "IL",
-     *         "zipcode": "62704",
-     *         "price": 425000,
-     *         "bedrooms": 4,
-     *         "bathrooms": 2.5,
-     *         "livingArea": 2400,
-     *         "homeType": "SINGLE_FAMILY",
-     *         "imageUrl": "https://photos.examplecdn.com/listings/12345678/hero.jpg",
-     *         "listingStatus": "FOR_SALE"
-     *       },
-     *       "client_id": "c3d4e5f6-a7b8-9012-cdef-345678901234"
-     *     }
-     */
-    AddFavoriteRequest: {
-      home: components["schemas"]["FavoriteHomePayload"];
-      /** @description When set, agent saves to client's favorites */
-      client_id?: string | null;
-    };
-    AreaBoundaryResponse: {
-      success: boolean;
-      /** @description Area metadata */
-      area?: {
-        id?: string;
-        name?: string;
-        label?: string;
-        geoType?: string;
-        state?: string;
-        center?: {
-          lat?: number;
-          lng?: number;
-        } | null;
-      } | null;
-      /** @description GeoJSON Polygon or MultiPolygon boundary geometry */
-      geometry?: {
-        /** @enum {string} */
-        type?: "Polygon" | "MultiPolygon";
-        /** @description GeoJSON coordinate arrays */
-        coordinates?: unknown[];
-      } | null;
-      /** @description Boundary as viewport-compatible ring of {lat, lng} points. Can be sent directly as viewport_polygon in polygon search. */
-      viewport_ring?: components["schemas"]["ViewportPolygonPoint"][] | null;
-      error?: string | null;
-      message?: string | null;
-    };
-    AreaSearchResult: {
-      /** @description Slipstream area ID (hex hash) */
-      id: string;
-      /** @description Area name (e.g. "Atlanta", "Sandy Springs") */
-      name: string;
-      /** @description Formatted label (e.g. "Sandy Springs, GA") */
-      label: string;
-      /** @description Slipstream area type (area/neighborhood, area/postal-city, area/census-place, area/county, area/zipcode, area/township) */
-      geoType: string;
-      /** @description State postal abbreviation (e.g. "GA") */
-      state: string;
-      /** @description Parent place name for neighborhoods and ZIP codes */
-      place?: string | null;
-    };
-    AreaSuggestionsResponse: {
-      success: boolean;
-      /** @description Matching geographic areas from Slipstream */
-      areas?: components["schemas"]["AreaSearchResult"][];
-      error?: string | null;
-      message?: string | null;
-    };
-    AddFeedLikeRequest: {
-      /** @description ID of the home/listing to like */
-      home_id: string;
-    };
-    AddNotInterestedRequest: {
-      home: components["schemas"]["FavoriteHomePayload"];
-      why?: string | null;
-    };
-    AgentChatHistoryResponse: components["schemas"]["SuccessResponse"] & {
-      messages?: components["schemas"]["AgentChatMessage"][] | null;
-      conversation?: components["schemas"]["AgentConversation"];
-      /** @description Whether more messages exist before the oldest message in this page */
-      has_more_older?: boolean;
-      /** @description Whether more messages exist after the newest message in this page */
-      has_more_newer?: boolean;
-    };
-    AgentChatMessage: {
-      id: string;
-      conversation_id: string;
-      sender_id: string;
-      /** @enum {string} */
-      role: "user" | "agent" | "assistant";
-      message: string;
-      shared_home_id?: string | null;
-      shared_document_id?: string | null;
-      timestamp: string;
-      is_read?: boolean | null;
-      read_at?: string | null;
-      event_request_status?: components["schemas"]["EventRequestStatus"];
-    };
-    /**
-     * @description Buyer or client row as seen from the agent workspace (client list, messaging, tasks).
-     *     `profile_picture` is a storage key unless a route explicitly expands to a URL.
-     * @example {
-     *       "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
-     *       "transaction_id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
-     *       "name": "Jordan Client",
-     *       "email": "jordan.client@example.com",
-     *       "phone": "+15551112222",
-     *       "profile_picture": "profiles/c3d4e5f6-a7b8-9012-cdef-345678901234.jpg",
-     *       "created_at": "2025-08-01T16:45:00.000Z",
-     *       "client_kind": "buyer",
-     *       "pipeline_stage": "search",
-     *       "current_phase": "search",
-     *       "current_step_label": "Set a budget",
-     *       "requires_signature": false
-     *     }
-     */
-    AgentClient: {
-      /** @description Application user id for the client. */
-      id: string;
-      /**
-       * @description Revenue spine id (`transactions.id`) for this client's deal. Use for checklist,
-       *     forms, documents, and rev-share APIs — not the buyer user id.
-       */
-      transaction_id: string;
-      /** @description Display name shown in agent UI and shared documents. */
-      name: string;
-      /**
-       * Format: email
-       * @description Primary contact email for invites and DocuSign routing.
-       */
-      email: string;
-      /** @description E.164 or formatted phone when on file. */
-      phone?: string | null;
-      /** @description S3 key or relative path for avatar; not always a public URL. */
-      profile_picture?: string | null;
-      /** @description ISO 8601 timestamp when the client relationship or row was created. */
-      created_at?: string | null;
-      /**
-       * @description Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/renter/investor role is set.
-       * @enum {string|null}
-       */
-      client_kind?: "buyer" | "seller" | "renter" | "investor" | "unknown" | null;
-      /**
-       * @description Checklist area with the most recent completed task activity for this client (preview only).
-       *     `search` when there are no completed checklist tasks yet or activity cannot be determined.
-       * @enum {string|null}
-       */
-      pipeline_stage?:
-        | "search"
-        | "offer"
-        | "escrow"
-        | "financing"
-        | "closing"
-        | "insurance"
-        | "unknown"
-        | null;
-      /** @description Short-lived presigned URL for `profile_picture` when available; use for list avatars. */
-      profile_picture_url?: string | null;
-      /**
-       * @description Active checklist category for this client — first unlocked section with incomplete work.
-       *     Aligns with pipeline categories (`search`, `offer`, …).
-       * @enum {string|null}
-       */
-      current_phase?:
-        | "search"
-        | "offer"
-        | "escrow"
-        | "financing"
-        | "closing"
-        | "insurance"
-        | "unknown"
-        | null;
-      /**
-       * @description Human-readable label of the earliest incomplete checklist step in `current_phase`.
-       *     Null when every step in the active phase is complete.
-       */
-      current_step_label?: string | null;
-      /** @description True when the agent must sign a non-void agreement for this client (client has signed; agent has not). */
-      requires_signature?: boolean | null;
-    };
-    AgentClientsResponse: components["schemas"]["SuccessResponse"] & {
-      clients?: components["schemas"]["AgentClient"][] | null;
-    };
-    AgentConnectionRequest: {
-      id: string;
-      agent_id: string;
-      client_id: string;
-      requested_by_agent: boolean;
-      /** @enum {string} */
-      status: "pending" | "accepted" | "rejected";
-      message?: string | null;
-      other_party_name?: string | null;
-      other_party_email?: string | null;
-      created_at: string;
-    };
-    EligibleContactsResponse: {
-      success: boolean;
-      contacts: components["schemas"]["EligibleContact"][];
-    };
-    EligibleContact: {
-      contact_id: string;
-      contact_type: string;
-      display_name: string;
-      kind: components["schemas"]["WorkspaceConversationKind"];
-      metadata?: {
-        [key: string]: unknown;
-      };
-    };
-    CreateWorkspaceConversationRequest: {
-      kind: components["schemas"]["WorkspaceConversationKind"];
-      brokerage_org_id?: string | null;
-      partner_id?: string | null;
-      agent_user_id?: string | null;
-      /** @enum {string|null} */
-      support_category?: "brokerage" | "integrator" | null;
-    };
-    CreateWorkspaceConversationResponse: {
-      success: boolean;
-      conversation: components["schemas"]["WorkspaceConversation"];
-    };
-    WorkspaceConversation: {
-      id: string;
-      kind: components["schemas"]["WorkspaceConversationKind"];
-      brokerage_org_id?: string | null;
-      partner_id?: string | null;
-      subject_user_id?: string | null;
-      /** @enum {string|null} */
-      support_category?: "brokerage" | "integrator" | null;
-      agent_user_id?: string | null;
-      title?: string | null;
-      participant_count?: number | null;
-      is_archived?: boolean | null;
-      last_message?: string | null;
-      /** Format: date-time */
-      last_message_at?: string | null;
-      /** Format: date-time */
-      last_read_at?: string | null;
-      unread_count?: number | null;
-      /** Format: date-time */
-      created_at: string;
-      /** Format: date-time */
-      updated_at: string;
-    };
-    /**
-     * @description Workspace-scoped conversation kind
-     * @enum {string}
-     */
-    WorkspaceConversationKind:
-      | "platform_support"
-      | "brokerage_agent"
-      | "integrator_brokerage"
-      | "group";
-    WorkspaceConversationsResponse: {
-      success: boolean;
-      conversations: components["schemas"]["WorkspaceConversation"][];
-    };
-    WorkspaceConversationHistoryResponse: {
-      success: boolean;
-      messages: components["schemas"]["WorkspaceMessage"][];
-    };
-    WorkspaceMessage: {
-      id: string;
-      conversation_id?: string | null;
-      sender_id?: string | null;
-      role: string;
-      message: string;
-      /** Format: date-time */
-      timestamp?: string | null;
-    };
-    SendWorkspaceMessageRequest: {
-      conversation_id: string;
-      message: string;
-    };
-    GroupConversation: components["schemas"]["WorkspaceConversation"] & {
-      participants?: {
-        user_id?: string;
-        participant_role?: string;
-      }[];
-    };
-    /** @description Reserved for group chat — endpoints not implemented */
-    GroupConversationCreateRequest: {
-      title: string;
-      participant_user_ids: string[];
-      brokerage_org_id?: string | null;
-    };
-    /** @description Reserved for group chat — endpoints not implemented */
-    GroupConversationUpdateRequest: {
-      title?: string;
-      is_archived?: boolean;
-    };
-    /** @description Reserved for group chat — endpoints not implemented */
-    GroupParticipantAddRequest: {
-      user_id: string;
-    };
-    /** @description Reserved for group chat — endpoints not implemented */
-    GroupParticipantRemoveRequest: {
-      user_id: string;
-    };
-    AgentConversation: {
-      id: string;
-      agent_id: string;
-      client_id: string;
-      client_name?: string | null;
-      client_email?: string | null;
-      client_profile_picture?: string | null;
-      agent_name?: string | null;
-      agent_email?: string | null;
-      agent_profile_picture?: string | null;
-      last_message?: string | null;
-      last_message_at?: string | null;
-      created_at: string;
-      updated_at: string;
-      unread_count?: number | null;
-      last_read_at?: string | null;
-    };
-    AgentConversationsResponse: components["schemas"]["SuccessResponse"] & {
-      conversations?: components["schemas"]["AgentConversation"][] | null;
-    };
-    /**
-     * @description Agent user returned from agent search or picker APIs (e.g. connect with an agent).
-     *     Lightweight directory row—brokerage fields appear only when explicitly added by the route.
-     * @example {
-     *       "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
-     *       "name": "Taylor Agent",
-     *       "email": "taylor.agent@example.com",
-     *       "phone": "+15553334444",
-     *       "created_at": "2024-03-10T11:00:00.000Z"
-     *     }
-     */
-    AgentSearchResult: {
-      /** @description Agent application user id. */
-      id: string;
-      /** @description Public-facing agent name. */
-      name: string;
-      /**
-       * Format: email
-       * @description Contact email for the agent record.
-       */
-      email: string;
-      /** @description Office or mobile phone when exposed to search callers. */
-      phone?: string | null;
-      /**
-       * Format: date-time
-       * @description ISO 8601 timestamp of agent user creation when returned by search.
-       */
-      created_at?: string | null;
-      /**
-       * @description Public profile image URL when available (professional headshot from agent profile,
-       *     otherwise the user account profile picture).
-       */
-      profile_picture?: string | null;
-      /** @description Short public bio or summary for directory cards (e.g. agent_bio). */
-      description?: string | null;
-    };
-    RecommendedAgentResult: components["schemas"]["AgentSearchResult"] & {
-      /**
-       * @description Deterministic v1 relevance score (zip/state/intent heuristics). Higher is better;
-       *     clients may use for ordering only.
-       */
-      relevance_score: number;
-      /** @description Short human-readable reasons for the score (e.g. zip, state, specialty). */
-      match_reasons?: string[] | null;
-    };
-    RecommendedAgentsResponse: components["schemas"]["SuccessResponse"] & {
-      agents?: components["schemas"]["RecommendedAgentResult"][] | null;
-    };
-    /**
-     * @description DocuSign-backed agreement between an agent and buyer, including envelope metadata,
-     *     participant list, optional revisions/history, and denormalized names for list views.
-     *     `docusign_envelope_id` is the primary correlation key with DocuSign.
-     * @example {
-     *       "id": "agr-1a2b3c4d-5e6f-7890-abcd-ef1234567890",
-     *       "agent_id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
-     *       "buyer_id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
-     *       "title": "Buyer representation — Jordan Client",
-     *       "agreement_type": "buyer_representation",
-     *       "status": "sent",
-     *       "property_address": "742 Evergreen Terrace, Springfield, IL 62704",
-     *       "description": "Standard BRA for spring 2026 search.",
-     *       "docusign_envelope_id": "abc123de-4567-89ab-cdef-0123456789ab",
-     *       "docusign_status": "sent",
-     *       "created_at": "2026-03-01T12:00:00.000Z",
-     *       "updated_at": "2026-03-02T09:30:00.000Z",
-     *       "sent_at": "2026-03-02T09:31:00.000Z",
-     *       "completed_at": null,
-     *       "voided_at": null,
-     *       "agent_name": "Alex Agent",
-     *       "buyer_name": "Jordan Client",
-     *       "buyer_email": "jordan.client@example.com"
-     *     }
-     */
-    Agreement: {
-      id: string;
-      agent_id: string;
-      buyer_id: string;
-      title: string;
-      agreement_type: components["schemas"]["AgreementType"];
-      status: components["schemas"]["AgreementStatus"];
-      /** @description Human-readable property line for titles and notifications. */
-      property_address?: string | null;
-      /** @description Free-text summary or internal notes shown on agreement detail. */
-      description?: string | null;
-      /** @description Current DocuSign envelope UUID used for API callbacks and deep links. */
-      docusign_envelope_id?: string | null;
-      /** @description When set, envelope is created from this DocuSign template instead of PDF revisions. */
-      docusign_source_template_id?: string | null;
-      /** @description Last observed DocuSign composite status string (e.g. sent, completed). */
-      docusign_status?: string | null;
-      /** Format: date-time */
-      created_at: string;
-      /** Format: date-time */
-      updated_at: string;
-      /** Format: date-time */
-      sent_at?: string | null;
-      /** Format: date-time */
-      completed_at?: string | null;
-      /** Format: date-time */
-      voided_at?: string | null;
-      current_revision_id?: string | null;
-      /** @description Storage path to the merged signed PDF after completion. */
-      signed_document_path?: string | null;
-      /** @description Optional path to the completion certificate artifact. */
-      certificate_path?: string | null;
-      participants?: components["schemas"]["AgreementParticipant"][] | null;
-      revisions?: components["schemas"]["AgreementRevision"][] | null;
-      events?: components["schemas"]["AgreementEvent"][] | null;
-      current_revision?: components["schemas"]["AgreementRevision"];
-      agent_name?: string | null;
-      buyer_name?: string | null;
-      /** Format: email */
-      buyer_email?: string | null;
-    };
-    AgreementEvent: {
-      id: string;
-      agreement_id: string;
-      event_type: string;
-      status?: components["schemas"]["AgreementStatus"];
-      actor_id?: string | null;
-      /** @description DocuSign or workflow-specific event payload (keys vary by event_type). */
-      metadata?: {
-        [key: string]: unknown;
-      } | null;
-      /** Format: date-time */
-      created_at: string;
-      actor_name?: string | null;
-    };
-    AgreementParticipant: {
-      id: string;
-      agreement_id: string;
-      user_id?: string | null;
-      /** Format: email */
-      email: string;
-      name: string;
-      role: components["schemas"]["ParticipantRole"];
-      docusign_recipient_id?: string | null;
-      recipient_id?: string | null;
-      recipient_status?: string | null;
-      status?: components["schemas"]["ParticipantStatus"];
-      routing_order: number;
-      signing_order?: number | null;
-      sent_at?: string | null;
-      delivered_at?: string | null;
-      signed_at?: string | null;
-      declined_at?: string | null;
-      declined_reason?: string | null;
-      created_at?: string | null;
-      updated_at?: string | null;
-    };
-    AgreementRevision: {
-      id: string;
-      agreement_id: string;
-      version_number: number;
-      filename: string;
-      /** @description Alternative field name */
-      file_name?: string | null;
-      file_path: string;
-      s3_key?: string | null;
-      file_size?: number | null;
-      created_by: string;
-      notes?: string | null;
-      created_at: string;
-      created_by_name?: string | null;
-      file_hash?: string | null;
-      mime_type?: string | null;
-      template_id?: string | null;
-    };
-    /**
-     * @description Internal agreement lifecycle (aligned with DocuSign envelope progression):
-     *     - `draft`: Built locally, not yet sent to signers
-     *     - `sent`: Envelope dispatched to recipients
-     *     - `delivered`: At least one recipient has opened the envelope
-     *     - `signed`: All required signatures captured (may still be processing)
-     *     - `completed`: Envelope finished and artifacts stored
-     *     - `voided`: Canceled per agent or system; not legally effective
-     *     - `declined`: A recipient explicitly declined to sign
-     * @enum {string}
-     */
-    AgreementStatus:
-      | "draft"
-      | "sent"
-      | "delivered"
-      | "signed"
-      | "completed"
-      | "voided"
-      | "declined";
-    /**
-     * @description Template/category for the agreement row (`agreements.agreement_type`, VARCHAR). Drives
-     *     which DocuSign template or checklist path is used and how the UI groups items.
-     *     Values mean:
-     *     - `buyer_representation`: Agency / buyer representation agreement
-     *     - `offer`: Purchase offer or counter package
-     *     - `inspection_addendum`: Inspection-related addenda or amendments
-     *     - `financing_contingency`: Financing or loan contingency documents
-     *     - `closing_disclosure`: CD / settlement-related disclosures
-     *     - `other`: Catch-all custom agreement type
-     *     - `uploaded_document`: Checklist-linked upload not from a standard template
-     * @enum {string}
-     */
-    AgreementType:
-      | "buyer_representation"
-      | "offer"
-      | "inspection_addendum"
-      | "financing_contingency"
-      | "closing_disclosure"
-      | "other"
-      | "uploaded_document"
-      | "checklist_form";
-    /**
-     * @example {
-     *       "success": true,
-     *       "message": null,
-     *       "error": null,
-     *       "user": {
-     *         "auth_user_kind": "session",
-     *         "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *         "email": "jane.buyer@example.com",
-     *         "name": "Jane Buyer"
-     *       },
-     *       "user_sub": "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *       "verification_complete": true,
-     *       "login_failed": false,
-     *       "auto_login_failed": false,
-     *       "needs_verification": false,
-     *       "access_token": null,
-     *       "id_token": null,
-     *       "refresh_token": null,
-     *       "code_delivery": null
-     *     }
-     */
-    AuthResponse: components["schemas"]["SuccessResponse"] & {
-      user?: components["schemas"]["AuthSessionUser"] | null;
-      /**
-       * @deprecated
-       * @description Tokens are stored in HTTP-only cookies. Do not store client-side.
-       */
-      access_token?: string | null;
-      /** @deprecated */
-      id_token?: string | null;
-      /** @deprecated */
-      refresh_token?: string | null;
-      /** @description Cognito subject identifier; mirrors `AuthSessionUser.user_sub` for clients that cache it. */
-      user_sub?: string | null;
-      /** @description True when email/phone verification requirements are satisfied for this session. */
-      verification_complete?: boolean | null;
-      /** @description True when the last password or token exchange attempt failed (check `message` / `error`). */
-      login_failed?: boolean | null;
-      /** @description True when silent refresh or cookie-based auto-login could not establish a session. */
-      auto_login_failed?: boolean | null;
-      code_delivery?: components["schemas"]["CognitoCodeDeliveryDetails"] | null;
-      /** @description True when the user must complete a verification step before full access. */
-      needs_verification?: boolean | null;
-    };
-    /** @description User payload returned on successful auth flows (login, refresh, verify) from create_auth_response. This is not a full UserProfile; use GET /api/v1/user/profile for the complete row shape. */
-    AuthSessionUser: {
-      /**
-       * @description Discriminator for auth success payloads; always `session` for create_auth_response users.
-       * @constant
-       */
-      auth_user_kind: "session";
-      /** Format: email */
-      email: string;
-      user_sub: string;
-      name: string;
-      /** @description Application user id when the row exists; null if not yet linked. */
-      id?: string | null;
-      phone?: string | null;
-      /** @description Role names from user_roles; empty when user row is not linked yet. */
-      roles: string[];
-      /**
-       * @description How the session authenticated relative to linked identities on the user row:
-       *     - `unknown`: Could not classify (legacy or transitional row)
-       *     - `cognito`: Cognito username/password or hosted UI session
-       *     - `google`: Google OAuth identity supplied the tokens
-       *     - `both`: User has linked Cognito and Google identities
-       * @enum {string}
-       */
-      auth_method: "unknown" | "cognito" | "google" | "both";
-    };
-    BulkUpdateFavoritesRequest: {
-      /** @description Replaces the user's favorites; each element is a home object passed to add_or_update_home_basic (same flexible shape as add-favorite). */
-      favorites: components["schemas"]["FavoriteHomePayload"][];
-    };
-    BrokerageSkySlopeCredential: {
-      /** @description Brokerage org id (brokerage_orgs.id) */
-      brokerage_id: string;
-      /**
-       * @description Integration provider identifier
-       * @enum {string}
-       */
-      provider: "skyslope";
-      /** @description Last four characters of the API key (masked display only) */
-      key_last4?: string | null;
-      /** @description Optional SkySlope organization identifier */
-      skyslope_org_id?: string | null;
-      status: components["schemas"]["BrokerageSkySlopeCredentialStatus"];
-      /**
-       * Format: date-time
-       * @description When connection was last verified successfully
-       */
-      last_verified_at?: string | null;
-      /** Format: date-time */
-      created_at: string;
-      /** Format: date-time */
-      updated_at: string;
-    };
-    BrokerageSkySlopeCredentialCreateRequest: {
-      /** @description Per-brokerage SkySlope AccessKey (write-only; never returned by GET) */
-      api_key: string;
-      /** @description Per-brokerage SkySlope AccessSecret (write-only; required for live API calls) */
-      access_secret?: string;
-      /** @description Optional SkySlope organization identifier */
-      skyslope_org_id?: string | null;
-    };
-    BrokerageSkySlopeCredentialUpdateRequest: {
-      /** @description Replacement SkySlope AccessKey (write-only) */
-      api_key?: string;
-      /** @description Replacement SkySlope AccessSecret (write-only) */
-      access_secret?: string;
-      skyslope_org_id?: string | null;
-      status?: components["schemas"]["BrokerageSkySlopeCredentialStatus"];
-    };
-    BrokerageSkySlopeCredentialResponse: {
-      success: boolean;
-      data: components["schemas"]["BrokerageSkySlopeCredential"];
-    };
-    /**
-     * @description SkySlope integration credential health status
-     * @enum {string}
-     */
-    BrokerageSkySlopeCredentialStatus: "active" | "invalid" | "pending";
-    BrokerageSkySlopeCredentialTestResponse: {
-      success: boolean;
-      /** @description Safe, non-secret connection test result */
-      message: string;
-    };
-    ChatbotHistoryMessage: {
-      id: string;
-      /** @enum {string} */
-      role: "user" | "assistant";
-      message: string;
-      timestamp: string;
-    };
-    ChatbotHistoryResponse: {
-      messages: components["schemas"]["ChatbotHistoryMessage"][];
-    };
-    ChatbotResponse: {
-      response: string;
-      /** @description LLM function call structure (currently always null, reserved for future OpenAI function calling support) */
-      function_call?: {
-        [key: string]: unknown;
-      } | null;
-      message_id: string;
-      message_summary: string;
-    };
-    ChatbotSendRequest: {
-      message: string;
-    };
-    ChecklistResponse: components["schemas"]["SuccessResponse"] & {
-      checklist?: components["schemas"]["TaskChecklistResponse"];
-    };
-    /** @enum {string} */
-    ChecklistType: "search" | "offer" | "escrow" | "financing" | "closing" | "insurance";
-    /** @description Declarative condition for checklist rules (v1). Evaluates against the effective checked item ids for the same checklist type (API `type` query param). */
-    ChecklistCondition: {
-      /**
-       * @description all_items_checked: true when every id in item_ids is in the checked set. any_item_checked: true when at least one id in item_ids is in the checked set.
-       * @enum {string}
-       */
-      kind: "all_items_checked" | "any_item_checked";
-      /** @description Checklist item ids within the same category that participate in the condition. Empty item_ids: all_items_checked is vacuously true; any_item_checked is false. */
-      item_ids: number[];
-    };
-    ChecklistDispatchAutomationApiResponse: {
-      success: boolean;
-      error?: string | null;
-      setting?: components["schemas"]["ChecklistDispatchAutomationSetting"];
-    };
-    ChecklistDispatchAutomationSetting: {
-      /** @description When true, run configured dispatch when the step is newly checked. */
-      enabled: boolean;
-      channel: components["schemas"]["ChecklistDispatchChannel"];
-      recipientScope: components["schemas"]["ChecklistDispatchRecipientScope"];
-      /** @description Required when recipientScope is selected_clients; subset of agent clients. */
-      selectedClientIds?: string[] | null;
-      noteMode: components["schemas"]["ChecklistDispatchNoteMode"];
-      /** @description Used when noteMode is broadcast. */
-      noteBroadcast?: string | null;
-      /** @description Map of client user id to note when noteMode is per_client. */
-      notesPerClient?: {
-        [key: string]: string;
-      } | null;
-      /**
-       * Format: date-time
-       * @description Last update time when a row exists in the database.
-       */
-      updatedAt?: string | null;
-    };
-    /**
-     * @description How checklist forms are delivered when automation runs or manual send uses this channel.
-     * @enum {string}
-     */
-    ChecklistDispatchChannel: "messaging" | "docusign" | "both";
-    ChecklistFormSendRequest: {
-      /** @enum {string} */
-      method: "docusign" | "messaging" | "both";
-      conversation_id?: string | null;
-      client_id?: string | null;
-      message?: string | null;
-      participants?:
-        | {
-            email?: string;
-            name?: string;
-          }[]
-        | null;
-    };
-    ChecklistFormSendResponse: {
-      success: boolean;
-      /** @description Messaging attachment message id when messaging succeeded. */
-      message_id?: string | null;
-      /** @description DocuSign agreement id when signing flow succeeded. */
-      agreement_id?: string | null;
-      /** @description Per-step failures when method is both and one leg failed. */
-      partial_errors?: components["schemas"]["ChecklistFormPartialStepError"][] | null;
-    };
-    ChecklistFormPartialStepError: {
-      /** @enum {string} */
-      step: "messaging" | "docusign";
-      /** @description Stable error code (e.g. VALIDATION_ERROR, FORBIDDEN). */
-      error: string;
-      /** @description Safe user-facing message for the failed step. */
-      message: string;
-    };
-    ChecklistForm: {
-      id: string;
-      /** @description Stable key (e.g. earnest_money, wire_instructions). */
-      form_key: string;
-      title: string;
-      description?: string | null;
-      /** @description S3 object key for the PDF template. */
-      s3_template_path: string;
-      /** @description Library folder (e.g. escrow, financing). */
-      category?: string | null;
-      created_at?: string | null;
-      updated_at?: string | null;
-    };
-    ChecklistFormWithDownload: components["schemas"]["ChecklistForm"] & {
-      /**
-       * Format: uri
-       * @description Presigned S3 URL; null when URL generation fails.
-       */
-      download_url: string | null;
-      /** @description ISO date deadline derived from checklist step timing when available. */
-      deadline?: string | null;
-    };
-    ChecklistItemDocumentsResponse: {
-      success: boolean;
-      data: {
-        agreements: components["schemas"]["Agreement"][];
-      };
-      error?: string | null;
-    };
-    LinkChecklistDocumentApiResponse: {
-      success: boolean;
-      data: {
-        agreement: components["schemas"]["Agreement"];
-      };
-      error?: string | null;
-    };
-    LinkDocumentToChecklistRequest: {
-      /** @description ID of the document to link to checklist item */
-      document_id?: string | null;
-      /** @description ID of the agreement to link to checklist item */
-      agreement_id?: string | null;
-    };
-    /**
-     * @description How optional message text is applied per recipient for messaging (and stored on agreement description for DocuSign).
-     * @enum {string}
-     */
-    ChecklistDispatchNoteMode: "none" | "broadcast" | "per_client";
-    /**
-     * @description Who receives automated dispatches when the hub client checks this step off. `context_client` = only the client whose checklist was updated (the checker). `all_agent_clients` = every client linked to the configuring agent. `selected_clients` = subset listed in selectedClientIds.
-     * @enum {string}
-     */
-    ChecklistDispatchRecipientScope: "context_client" | "all_agent_clients" | "selected_clients";
-    ClientAvailabilityRequest: {
-      /**
-       * Format: date-time
-       * @description Start of availability window
-       */
-      start_date: string;
-      /**
-       * Format: date-time
-       * @description End of availability window
-       */
-      end_date: string;
-      /** @description Timezone for results */
-      timezone?: string | null;
-    };
-    ClientAvailabilityResponse: components["schemas"]["SuccessResponse"] & {
-      availability?: {
-        /** Format: date-time */
-        start?: string;
-        /** Format: date-time */
-        end?: string;
-        /** @enum {string} */
-        status?: "free" | "busy";
-      }[];
-    };
-    ClientErrorReport: {
-      /** @description Error message or stack trace */
-      error_message: string;
-      /** @description URL where error occurred */
-      url?: string | null;
-      /** @description Browser user agent */
-      user_agent?: string | null;
-      /** @description Client-side timestamp */
-      timestamp?: string | null;
-      /** @description Additional error context */
-      metadata?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    ClientInfo: {
-      id?: string;
-      name?: string;
-      /** Format: email */
-      email?: string;
-    };
-    /**
-     * @description Client match from agent-side client search (typeahead or directory). Same core
-     *     fields as `AgentClient`; used as items in `SearchClientsResponse`.
-     * @example {
-     *       "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
-     *       "name": "Jordan Client",
-     *       "email": "jordan.client@example.com",
-     *       "phone": "+15551112222",
-     *       "profile_picture": "profiles/c3d4e5f6-a7b8-9012-cdef-345678901234.jpg",
-     *       "created_at": "2025-08-01T16:45:00.000Z"
-     *     }
-     */
-    ClientSearchResult: {
-      /** @description Client application user id. */
-      id: string;
-      /** @description Resolved display name for list and picker rows. */
-      name: string;
-      /**
-       * Format: email
-       * @description Primary email used for matching the query.
-       */
-      email: string;
-      /** @description Secondary match field when search includes phone tokens. */
-      phone?: string | null;
-      /** @description Storage key for thumbnail in search results. */
-      profile_picture?: string | null;
-      /**
-       * Format: date-time
-       * @description ISO 8601 timestamp for sort-by-recent when provided.
-       */
-      created_at?: string | null;
-    };
-    ClientsPreferencesResponse: components["schemas"]["SuccessResponse"] & {
-      preferences?:
-        | {
-            client?: components["schemas"]["ClientInfo"];
-            preferences?: components["schemas"]["PreferencesResponse"];
-          }[]
-        | null;
-    };
-    DeletePreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
-      /** @enum {boolean} */
-      has_preferences: false;
-      preferences?: unknown;
-      /** @description Confirmation copy after clearing preferences. */
-      message?: string;
-    };
-    GetPreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
-      preferences?: components["schemas"]["PreferencesResponse"];
-      /** @description True when the user has persisted preference rows. */
-      has_preferences?: boolean;
-    };
-    GetUserPreferencesByIdApiResponse: components["schemas"]["SuccessResponse"] & {
-      preferences?: components["schemas"]["PreferencesResponse"];
-    };
-    ClientsResponse: {
-      success?: boolean;
-      clients?: components["schemas"]["ClientInfo"][] | null;
-    };
-    /** @description User-scoped client UI settings (library layout/sort, saved tab, calendar view, optional onboarding draft). Stored as a versioned JSON document; GET returns merged defaults for missing keys. */
-    ClientSettings: {
-      /** @description Document version (client/schema). */
-      v?: number;
-      library?: {
-        homes?: components["schemas"]["LibraryTabClientSettings"];
-        documents?: components["schemas"]["LibraryTabClientSettings"];
-        docusign?: components["schemas"]["LibraryTabClientSettings"];
-      };
-      saved?: {
-        /** @enum {string} */
-        tab?: "homes" | "documents" | "forms-library" | "agreements";
-      };
-      calendar?: {
-        /**
-         * @description Main calendar shell (agent dashboard / Google-connected calendar).
-         * @enum {string}
-         */
-        shell?: "week" | "month";
-      };
-      /** @description Partial onboarding / profile form payload for refresh recovery. Omitted when empty. */
-      onboarding_draft?: {
-        [key: string]: unknown;
-      } | null;
-    } & {
-      [key: string]: unknown;
-    };
-    ClientSettingsResponse: components["schemas"]["SuccessResponse"] & {
-      client_settings?: components["schemas"]["ClientSettings"];
-    };
-    CommuteData: {
-      travel_times: {
-        name?: string;
-        address?: string;
-        travel_time?: string;
-        commute_tolerance?: number;
-        /** @description Google-encoded overview polyline for the driving route from the listing to this location (Directions API). */
-        encoded_polyline?: string | null;
-      }[];
-      property_address: string;
-    };
-    CompareReportsRequest: {
-      report_ids: string[];
-      s3Keys?: string[] | null;
-    };
-    CompareReportsResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description LLM-generated comparison structure (shape varies by comparison type) */
-      comparison_data?: {
-        [key: string]: unknown;
-      } | null;
-      /** @description Structured comparison table (shape varies by properties being compared) */
-      table?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    /** @description AWS Cognito CodeDeliveryDetails — where a verification code was sent. */
-    CognitoCodeDeliveryDetails: {
-      DeliveryMedium?: components["schemas"]["CognitoEmailSmsMedium"];
-      /** @description Masked destination (e.g., 'j***@example.com' or '+1***1234') */
-      Destination?: string;
-      /** @description Attribute being verified (e.g., 'email') */
-      AttributeName?: string;
-    };
-    /**
-     * @description Value of Cognito `CodeDeliveryDetails.DeliveryMedium` (EMAIL or SMS).
-     * @enum {string}
-     */
-    CognitoEmailSmsMedium: "EMAIL" | "SMS";
-    ConnectionRequestsResponse: components["schemas"]["SuccessResponse"] & {
-      requests?: components["schemas"]["AgentConnectionRequest"][] | null;
-    };
-    ConnectionStatusResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Whether Google Calendar is connected */
-      connected?: boolean;
-      /**
-       * Format: email
-       * @description Connected Google account email
-       */
-      email?: string | null;
-      /** @description Granted OAuth scopes */
-      scopes?: string[] | null;
-    };
-    CoverLetterRequest: {
-      property_address: string;
-      buyer_story: string;
-      offer_highlights: string[];
-    };
-    CreateAgreementRequest: {
-      title: string;
-      agreement_type: components["schemas"]["AgreementType"];
-      buyer_id: string;
-      property_address?: string | null;
-      description?: string | null;
-      /** @description When set, this agreement is sent using this DocuSign template ID instead of an uploaded PDF revision. Omit revisions for template-only agreements until send. */
-      docusign_source_template_id?: string | null;
-    };
-    CreateAgreementResponse: components["schemas"]["SuccessResponse"] & {
-      agreement?: components["schemas"]["Agreement"];
-    };
-    CreateCalendarRequest: {
-      /** @description Calendar name/title */
-      summary: string;
-      /** @description Calendar description */
-      description?: string | null;
-      /** @description Calendar timezone (defaults to user's timezone) */
-      timeZone?: string | null;
-    };
-    CreateConnectionRequestRequest: {
-      agent_id: string;
-      client_id: string;
-      message?: string | null;
-    };
-    CreateConnectionRequestResponse: components["schemas"]["SuccessResponse"] & {
-      request?: components["schemas"]["AgentConnectionRequest"];
-      /** @description True when pending request already existed */
-      already_pending?: boolean | null;
-    };
-    CreateConversationRequest: {
-      client_id: string;
-    };
-    CreateConversationResponse: components["schemas"]["SuccessResponse"] & {
-      conversation?: components["schemas"]["AgentConversation"];
-    };
-    CreateParticipantRequest: {
-      /**
-       * Format: email
-       * @description Participant email address
-       */
-      email: string;
-      /** @description Participant full name */
-      name: string;
-      role: components["schemas"]["ParticipantRole"];
-      /** @description Signing order (defaults to next available) */
-      routing_order?: number | null;
-      /** @description SilverKey user ID (required) */
-      user_id: string;
-    };
-    CreateParticipantResponse: components["schemas"]["SuccessResponse"] & {
-      participant?: components["schemas"]["AgreementParticipant"];
-    };
-    /** @description Create or update user preferences */
-    CreatePreferencesRequest: {
-      /** @description Buyer communication preference — text, call, or email (user_communication_prefs) */
-      preferred_contact_method?: string;
-      /** @description Update cadence — as_things_come_up, weekly_check_in, or daily */
-      communication_frequency?: string;
-      /** @description Versioned buyer preference extensions (v1 JSON) */
-      extended_buyer_preferences?: {
-        /** @description SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation */
-        buyer_about_me?: {
-          [key: string]: unknown;
+    schemas: {
+        ActionPlanResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Generated action plan structure */
+            plan?: {
+                [key: string]: unknown;
+            } | null;
         };
-        /** @description SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc. */
-        price_financing?: {
-          [key: string]: unknown;
-        };
-      } & {
-        [key: string]: unknown;
-      };
-      /** @description Intent attribute — true when buyer pays cash */
-      paying_cash?: boolean;
-    } & {
-      [key: string]: unknown;
-    };
-    CreateRevisionResponse: components["schemas"]["SuccessResponse"] & {
-      revision?: components["schemas"]["AgreementRevision"];
-    };
-    CreateSilverkeyCalendarRequest: {
-      /** @description Force creation even if SilverKey calendar already exists */
-      force?: boolean | null;
-    };
-    /**
-     * @description Payload for creating an agent todo. Only `title` is required; omit `client_id` for
-     *     personal tasks. `type` defaults in the API when omitted—see TodoItem enum for meanings.
-     * @example {
-     *       "title": "Follow up on pre-approval",
-     *       "due_date": "2026-04-12",
-     *       "type": "follow_up",
-     *       "client_id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
-     *       "description": "Check in if no doc upload by Tuesday."
-     *     }
-     */
-    CreateTodoRequest: {
-      /** @description Short label shown in lists and notifications. */
-      title: string;
-      /** @description Optional ISO 8601 due date or datetime; null for undated tasks. */
-      due_date?: string | null;
-      /**
-       * @description Task category: `deadline`, `follow_up`, `inspection`, `offer_expiration`, `closing`, or `manual`
-       *     (same semantics as `TodoItem.type`).
-       * @enum {string|null}
-       */
-      type?:
-        | "deadline"
-        | "follow_up"
-        | "inspection"
-        | "offer_expiration"
-        | "closing"
-        | "manual"
-        | null;
-      /** @description Associate the task with a specific client when set. */
-      client_id?: string | null;
-      /** @description Longer notes or checklist context for the assignee. */
-      description?: string | null;
-    };
-    CreateTodoResponse: components["schemas"]["SuccessResponse"] & {
-      todo?: components["schemas"]["TodoItem"];
-    };
-    DashboardResponse: components["schemas"]["SuccessResponse"] & {
-      document?: components["schemas"]["WorkflowDocumentRecord"];
-    };
-    DeleteEventResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Whether event was successfully deleted */
-      deleted?: boolean;
-    };
-    DeleteMyAccountRequest: {
-      /**
-       * @description Must be true to confirm irreversible account deletion.
-       * @enum {boolean}
-       */
-      confirm: true;
-    };
-    DeleteReportRequest: {
-      /** @description S3 key for the report to delete */
-      s3_key?: string | null;
-    };
-    DeleteReportResponse: components["schemas"]["SuccessResponse"];
-    DeleteUserRequest: {
-      /** @description ID of user to delete */
-      user_id: string;
-      /** @description Must be true to confirm deletion */
-      confirm: boolean;
-    };
-    DeleteUserResponse: components["schemas"]["SuccessResponse"] & {
-      deleted_user_id?: string | null;
-    };
-    DownloadChecklistFormResponse: components["schemas"]["SuccessResponse"] & {
-      /** Format: uri */
-      download_url: string;
-    };
-    DevUserDataResetRequest: {
-      /** @description Must be true to confirm the reset. */
-      confirm: boolean;
-      /** @description Data domains to clear for the target user. */
-      scopes: (
-        | "profile"
-        | "preferences"
-        | "docusign"
-        | "transaction_steps"
-        | "s3"
-        | "connections"
-      )[];
-      /** @description Target user UUID. Omit to reset the signed-in admin. Super_admin only when set to another user. */
-      user_id?: string | null;
-    };
-    DevUserDataResetResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description User whose data was reset. */
-      target_user_id: string;
-      /** @description Map of scope name to true when that scope was applied. */
-      cleared: {
-        [key: string]: boolean;
-      };
-    };
-    /**
-     * @description Single row in the unified document library: either a user upload or a DocuSign-backed
-     *     agreement. Use `library_kind` to branch UI; `status` reflects upload pipeline or
-     *     envelope state depending on kind.
-     * @example {
-     *       "document_record_kind": "library",
-     *       "library_item_id": "lib-1a2b3c4d-5e6f-7890-abcd-ef1234567890",
-     *       "library_kind": "agreement",
-     *       "id": "docusign-envelope-abc123def456",
-     *       "filename": "Disclosure_Package.pdf",
-     *       "file_path": "library/a1b2c3d4/disclosure-package.pdf",
-     *       "status": "completed",
-     *       "created_at": "2026-02-10T09:00:00.000Z",
-     *       "updated_at": "2026-02-11T14:20:00.000Z",
-     *       "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *       "document_type": "disclosure",
-     *       "address": "742 Evergreen Terrace, Springfield, IL 62704",
-     *       "agreement_type": "BUYER_REPRESENTATION",
-     *       "event_type": null
-     *     }
-     */
-    DocumentLibraryListItem: {
-      /**
-       * @description Discriminator for OpenAPI tooling; always `library` for unified library list rows.
-       * @constant
-       */
-      document_record_kind: "library";
-      library_item_id: string;
-      /**
-       * @description Source of the row:
-       *     - `upload`: User- or agent-uploaded file in storage
-       *     - `agreement`: DocuSign envelope or generated agreement tracked in agreements service
-       * @enum {string}
-       */
-      library_kind: "upload" | "agreement";
-      id: string;
-      filename: string;
-      file_path: string;
-      /** @description Normalized status string (upload lifecycle or agreement/envelope phase; compare to `library_kind`). */
-      status: string;
-      created_at?: string | null;
-      updated_at?: string | null;
-      user_id: string;
-      document_type?: string | null;
-      address?: string | null;
-      agreement_type?: string | null;
-      /** @description When this agreement is linked to a checklist step, the key `{checklist_category}.{item_id}` (e.g. `offer.3`, `insurance.2`). */
-      linked_checklist_item_id?: string | null;
-      /**
-       * @description MLS-style listing event when the library item ties to a feed update:
-       *     - `listed`: New listing associated with documents
-       *     - `price_change`: Price update triggering revised paperwork
-       *     - `sold`: Closed transaction context
-       *     - `withdrawn`: Listing canceled or taken off market
-       * @enum {string|null}
-       */
-      event_type?: "listed" | "price_change" | "sold" | "withdrawn" | null;
-    };
-    DocumentLibraryResponse: components["schemas"]["SuccessResponse"] & {
-      items?: components["schemas"]["DocumentLibraryListItem"][] | null;
-      /** @description Number of items in this response page; `pagination.total` is the full library size */
-      count?: number | null;
-      pagination?: components["schemas"]["Pagination"];
-    };
-    /**
-     * @description Buyer/agent workflow document on the dashboard (review, signing, expiry). Distinct from file pipeline rows (`UploadedDocumentRecord`) and unified Saved list rows (`DocumentLibraryListItem`).
-     * @example {
-     *       "document_record_kind": "workflow",
-     *       "id": "doc-wf-7f8e9d0c-1b2a-3948-8576-543210fedcba",
-     *       "name": "Purchase Agreement - 742 Evergreen Terrace",
-     *       "file_path": "workflows/a1b2c3d4/agreements/purchase-agreement.pdf",
-     *       "file_size": 524288,
-     *       "file_type": "application/pdf",
-     *       "category": "offer",
-     *       "property_id": "prop-12345678",
-     *       "offer_id": "offer-9a8b7c6d-5e4f-3210-abcd-ef1234567890",
-     *       "uploaded_by": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *       "uploaded_at": "2026-03-28T15:30:00.000Z",
-     *       "is_signed": false,
-     *       "expiry_date": "2026-04-15",
-     *       "status": "pending",
-     *       "address": "742 Evergreen Terrace, Springfield, IL 62704",
-     *       "document_type": "purchase_agreement"
-     *     }
-     */
-    WorkflowDocumentRecord: {
-      /**
-       * @description Discriminator for OpenAPI tooling; always `workflow` for this shape.
-       * @constant
-       */
-      document_record_kind: "workflow";
-      id: string;
-      name: string;
-      /** @description Storage key or path for the PDF/binary in the workflow bucket. */
-      file_path: string;
-      /** @description Byte length of the stored object. */
-      file_size: number;
-      /** @description MIME type as stored (e.g. application/pdf). */
-      file_type: string;
-      /** @description Workflow grouping (e.g. offer, disclosure) for dashboard filters. */
-      category: string;
-      /** @description Linked listing identifier when the document belongs to a specific property. */
-      property_id?: string | null;
-      /** @description Linked offer workflow when this file is part of an active offer package. */
-      offer_id?: string | null;
-      uploaded_by: string;
-      uploaded_at: string;
-      is_signed?: boolean | null;
-      expiry_date?: string | null;
-      /**
-       * @description Review and signing workflow state for this document:
-       *     - `pending`: Awaiting agent or compliance review
-       *     - `approved`: Cleared for signing or distribution
-       *     - `rejected`: Send back for corrections or re-upload
-       *     - `expired`: Past allowed signing or review window
-       * @enum {string}
-       */
-      status: "pending" | "approved" | "rejected" | "expired";
-      address?: string | null;
-      document_type?: string | null;
-    };
-    DocumentsResponse: components["schemas"]["SuccessResponse"] & {
-      documents?: components["schemas"]["UploadedDocumentRecord"][] | null;
-      count?: number | null;
-      total?: number | null;
-      limit?: number | null;
-      offset?: number | null;
-      hasMore?: boolean | null;
-    };
-    /** @description Optional per-send override for DocuSign envelope notification (reminders + expirations). When omitted, server defaults from environment apply. */
-    DocuSignEnvelopeNotificationInput: {
-      /** @description When true, DocuSign account defaults apply and reminders/expirations below are ignored. */
-      use_account_defaults?: boolean | null;
-      reminders?: components["schemas"]["DocuSignRemindersInput"];
-      expirations?: components["schemas"]["DocuSignExpirationsInput"];
-    };
-    /** @description Sender-level prefill tabs (not tied to a recipient). */
-    DocuSignEnvelopePrefillTabsInput: {
-      text_fields?: components["schemas"]["DocuSignPrefillTextTabInput"][] | null;
-      checkboxes?: components["schemas"]["DocuSignPrefillCheckboxTabInput"][] | null;
-    };
-    /** @description DocuSign envelope expiration settings (maps to notification.expirations). */
-    DocuSignExpirationsInput: {
-      expire_enabled?: boolean | null;
-      /** @description Days until the envelope expires after send. */
-      expire_after?: number | null;
-      /** @description Days before expiry to send a warning. */
-      expire_warn?: number | null;
-    };
-    DocuSignParticipantTabPrefillInput: {
-      /** @description SilverKey agreement participant UUID (DocuSign recipientId). */
-      participant_id: string;
-      text_fields?: components["schemas"]["DocuSignPrefillTextTabInput"][] | null;
-      checkboxes?: components["schemas"]["DocuSignPrefillCheckboxTabInput"][] | null;
-    };
-    DocuSignPrefillCheckboxTabInput: {
-      tab_label: string;
-      selected?: boolean | null;
-      locked?: boolean | null;
-      /** @default 1 */
-      document_id: string | null;
-      page_number?: number | null;
-      x_position?: number | null;
-      y_position?: number | null;
-      anchor_string?: string | null;
-      anchor_x_offset?: string | null;
-      anchor_y_offset?: string | null;
-    };
-    DocuSignPrefillTextTabInput: {
-      /** @description DocuSign tabLabel; must match template/PDF placement or anchor. */
-      tab_label: string;
-      value?: string | null;
-      /** @description When true, signer cannot edit (read-only tab). */
-      locked?: boolean | null;
-      /** @default 1 */
-      document_id: string | null;
-      page_number?: number | null;
-      x_position?: number | null;
-      y_position?: number | null;
-      anchor_string?: string | null;
-      anchor_x_offset?: string | null;
-      anchor_y_offset?: string | null;
-      /** @description e.g. size10 */
-      font_size?: string | null;
-    };
-    /** @description DocuSign envelope reminder settings (maps to notification.reminders). */
-    DocuSignRemindersInput: {
-      /** @description When false, disables reminder emails for this envelope. */
-      reminder_enabled?: boolean | null;
-      /** @description Days after send before the first reminder. */
-      reminder_delay?: number | null;
-      /** @description Days between subsequent reminders. */
-      reminder_frequency?: number | null;
-    };
-    DocusignAgreementDownloadUrlResponse: components["schemas"]["SuccessResponse"] & {
-      /**
-       * Format: uri
-       * @description Pre-signed S3 URL for viewing or downloading the agreement PDF.
-       */
-      download_url: string;
-      /** @description Optional expiration timestamp for the pre-signed URL. Handler currently returns null. */
-      expires_at?: string | null;
-    };
-    DocusignCreateTemplateMetadataInput: {
-      /** @description Display name for the DocuSign template. */
-      name: string;
-      description?: string | null;
-      /** @description Ordered signer role names (e.g. Agent, Buyer). Must match the number of signers you will assign in DocuSign after opening the template editor. */
-      roles: string[];
-    };
-    DocusignCreateTemplateMultipartRequest: {
-      /** @description JSON string for DocusignCreateTemplateMetadataInput (name, description, roles). */
-      metadata: string;
-      /** @description One or more PDF files (document order matches upload order). */
-      files: string[];
-      /**
-       * Format: binary
-       * @description Optional singular alias for a single PDF; backend also accepts file instead of files.
-       */
-      file?: string;
-    };
-    DocusignCreateTemplateResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description SilverKey row id for the cached template record. */
-      id?: string | null;
-      /** @description DocuSign template GUID (envelope template id). */
-      template_id?: string | null;
-      /** @description URL to open DocuSign template editor (place fields). */
-      edit_url?: string | null;
-    };
-    DocusignDeleteTemplateResponse: components["schemas"]["SuccessResponse"] & {
-      message?: string | null;
-    };
-    DocusignGetTemplateDetailResponse: components["schemas"]["SuccessResponse"] & {
-      template_id?: string | null;
-      name?: string | null;
-      description?: string | null;
-      roles?: components["schemas"]["DocusignTemplateRoleInfo"][] | null;
-    };
-    DocusignGetTemplateEditUrlResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description URL to open DocuSign template editor. */
-      edit_url?: string | null;
-    };
-    DocusignListTemplatesResponse: components["schemas"]["SuccessResponse"] & {
-      templates?: components["schemas"]["DocusignTemplateListItem"][] | null;
-    };
-    DocusignOAuthStartResponse: components["schemas"]["SuccessResponse"] & {
-      /** Format: uri */
-      auth_url?: string | null;
-    };
-    DocusignResendRecipientRequest: {
-      /** @description Agreement participant id (signer); email uses server-stored value. */
-      participant_id: string;
-      /** @description Private note included with the resend (DocuSign signer note). */
-      note?: string | null;
-    };
-    DocusignResendRecipientResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description DocuSign RecipientsUpdateSummary or error detail. */
-      detail?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    DocusignTemplate: {
-      id: string;
-      template_id: string;
-      name: string;
-      description?: string | null;
-      agreement_type?: components["schemas"]["AgreementType"];
-      is_active: boolean;
-      last_synced_at: string;
-      created_at: string;
-      updated_at: string;
-    };
-    DocusignTemplateListItem: {
-      id: string;
-      name: string;
-      is_active?: boolean | null;
-    };
-    DocusignTemplateRoleInfo: {
-      role_name: string;
-      /** @description Signing order when set on the template role. */
-      routing_order?: number | null;
-    };
-    DocusignTemplateRoleMapEntry: {
-      /** @description Agreement participant id (UUID). */
-      participant_id: string;
-      /** @description DocuSign template role name this participant fills. */
-      role_name: string;
-    };
-    /** @description Update in-flight envelope reminder/expiration settings. */
-    DocusignUpdateEnvelopeNotificationRequest: {
-      use_account_defaults?: boolean | null;
-      reminders?: components["schemas"]["DocuSignRemindersInput"];
-      expirations?: components["schemas"]["DocuSignExpirationsInput"];
-    };
-    DocusignUpdateEnvelopeNotificationResponse: components["schemas"]["SuccessResponse"] & {
-      notification?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    /** @description DocuSign Connect webhook payload */
-    DocusignWebhookPayload: {
-      /** @description Webhook event type */
-      event?: string;
-      /** @description DocuSign envelope ID */
-      envelopeId?: string | null;
-      /** @description Envelope status */
-      status?: string | null;
-    } & {
-      [key: string]: unknown;
-    };
-    DownloadUrlResponse: components["schemas"]["SuccessResponse"] & {
-      /** Format: uri */
-      downloadUrl?: string | null;
-      expires_at?: string | null;
-    };
-    EarnestMoneyRequest: {
-      property_address: string;
-      earnest_amount: number;
-      escrow_company: string;
-    };
-    /** @description Empty JSON body for POST/PUT/PATCH routes with no request fields (cookie auth, path-only, or multipart file handled outside OpenAPI body validation). Client may send {}. */
-    EmptyRequest: Record<string, never>;
-    /**
-     * @description Standard error envelope for JSON APIs. `success` is always false; `error` is a stable
-     *     code for clients, while `message` is safe to show to users. Use `error_id` when
-     *     correlating with server logs; `field_errors` carries validation details when present.
-     */
-    ErrorResponse: {
-      /** @enum {boolean} */
-      success: false;
-      /** @description Machine-oriented error code or short error type (e.g. validation_error, GOOGLE_OAUTH_FAILED). */
-      error: string;
-      /** @description Human-readable message when provided. */
-      message?: string | null;
-      /** @description Unique error tracking ID from SecureErrorHandler (short UUID prefix) for server-side log correlation. */
-      error_id?: string | null;
-      /** @description True when the client may retry (e.g. transient Google token refresh / network failures, 503-style cases). */
-      retryable?: boolean | null;
-      /** @description Per-field validation messages from SecureErrorHandler (sanitized string per field); some validators may emit multiple messages per field as an array. */
-      field_errors?: {
-        [key: string]: string | string[];
-      } | null;
-      /**
-       * @deprecated
-       * @description Deprecated — use `field_errors`. Removed from SecureErrorHandler output; retained one release for client backward compatibility.
-       */
-      validation_errors?: {
-        [key: string]: unknown;
-      } | null;
-      /** @description Additional context as plain text or structured map. */
-      details?:
-        | string
-        | {
-            [key: string]: unknown;
-          }
-        | null;
-      /** @description Optional HTTP status echoed in the JSON body; the authoritative status is the response status line. */
-      status_code?: number | null;
-      /** @description Suggested delay in seconds before retrying (e.g. rate limit responses). */
-      retry_after?: number | null;
-      /** @description Allowed values hint (e.g. some file upload error responses). */
-      allowed_types?: string[] | null;
-    };
-    /** @enum {string} */
-    EventRequestStatus: "pending" | "accepted" | "cancelled";
-    /** @description Flexible home object accepted by favorite/not-interested upsert (search listing shape, alternate keys like imageUrl/beds/bedrooms). Validated in handlers; address required where the route documents it. additionalProperties is true because upstream listing and client payloads use many optional, versioned, or provider-specific keys. */
-    FavoriteHomePayload: {
-      [key: string]: unknown;
-    };
-    /** @description Parallel pagination for GET /favorite-homes: `favorites` and `listings` share the same page and per_page slice; each stream has its own totals. */
-    FavoriteHomesPagination: {
-      favorites: components["schemas"]["Pagination"];
-      listings: components["schemas"]["Pagination"];
-    };
-    FavoriteHomesReplaceResponse: components["schemas"]["SuccessResponse"] & {
-      favorites?: components["schemas"]["SavedHome"][] | null;
-    };
-    /**
-     * @example {
-     *       "success": true,
-     *       "message": null,
-     *       "error": null,
-     *       "favorites": [
-     *         {
-     *           "id": "fav-8c2e9b1a-4d3f-5e6a-7b8c-9d0e1f2a3b4c",
-     *           "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *           "isLiked": true,
-     *           "current": true,
-     *           "address": "742 Evergreen Terrace",
-     *           "city": "Springfield",
-     *           "state": "IL",
-     *           "zipcode": "62704",
-     *           "beds": "4",
-     *           "baths": "2.5",
-     *           "sqft": "2400",
-     *           "price": "425000",
-     *           "zpid": "12345678"
-     *         }
-     *       ],
-     *       "listings": [],
-     *       "pagination": {
-     *         "limit": 20,
-     *         "offset": 0,
-     *         "totalFavorites": 12,
-     *         "totalListings": 0,
-     *         "hasMoreFavorites": false,
-     *         "hasMoreListings": false
-     *       }
-     *     }
-     */
-    FavoriteHomesResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Explicitly saved (liked) properties for the authenticated user. */
-      favorites?: components["schemas"]["SavedHome"][] | null;
-      /** @description Additional tracked listings (e.g. pipeline) when the endpoint returns both buckets. */
-      listings?: components["schemas"]["SavedHome"][] | null;
-      /** @description Limits, offsets, and totals for favorites and listings lists. */
-      pagination?: components["schemas"]["FavoriteHomesPagination"];
-    };
-    FeedCommentApiShape: {
-      id: string;
-      user: {
-        id?: string;
-        name?: string;
-        /** Format: uri */
-        avatarUrl?: string | null;
-      };
-      text: string;
-      createdAt: string;
-      likes?: number | null;
-    };
-    FeedCommentsResponse: {
-      comments: components["schemas"]["FeedCommentApiShape"][];
-    };
-    FeedLikeEntry: {
-      count: number;
-      isLikedByMe: boolean;
-    };
-    FeedLikesResponse: {
-      likes: {
-        [key: string]: components["schemas"]["FeedLikeEntry"];
-      };
-    };
-    FeedListing: {
-      id: string;
-      /** Format: uri */
-      thumbnailUrl: string;
-      /** Format: uri */
-      videoUrl?: string | null;
-      /** Format: uri */
-      audioSpeechUrl?: string | null;
-      /** Format: uri */
-      audioSongUrl?: string | null;
-      user: {
-        id?: string;
-        name?: string;
-        /** Format: uri */
-        avatarUrl?: string | null;
-      };
-      stats: {
-        likes?: number;
-        comments?: number;
-        shares?: number;
-      };
-      images: string[];
-    };
-    FeedResponse: {
-      items: components["schemas"]["FeedListing"][];
-      hasMore: boolean;
-      cursor?: string | null;
-    };
-    ForgotPasswordData: {
-      /**
-       * Format: email
-       * @description Email address for password reset
-       */
-      email: string;
-    };
-    ForgotPasswordResponse: components["schemas"]["SuccessResponse"] & {
-      code_delivery?: components["schemas"]["CognitoCodeDeliveryDetails"] | null;
-    };
-    FormsLibraryCategory: {
-      /** @description Category folder name (e.g. escrow). */
-      name: string;
-      forms: components["schemas"]["ChecklistFormWithDownload"][];
-    };
-    FormsLibraryDownloadResponse: components["schemas"]["SuccessResponse"] & {
-      /** Format: uri */
-      download_url: string;
-      form: components["schemas"]["ChecklistForm"];
-    };
-    FormsLibraryResponse: components["schemas"]["SuccessResponse"] & {
-      categories?: components["schemas"]["FormsLibraryCategory"][] | null;
-    };
-    FreebusyRequest: {
-      /**
-       * Format: date-time
-       * @description Start of time range
-       */
-      timeMin: string;
-      /**
-       * Format: date-time
-       * @description End of time range
-       */
-      timeMax: string;
-      items: {
-        /** @description Calendar ID */
-        id: string;
-      }[];
-      /** @description Timezone for response (defaults to UTC) */
-      timeZone?: string | null;
-    };
-    FreebusyResponse: {
-      calendars: {
-        [key: string]: {
-          busy?: {
-            /** Format: date-time */
-            start?: string;
-            /** Format: date-time */
-            end?: string;
-          }[];
-          errors?: {
-            domain?: string;
-            reason?: string;
-          }[];
-        };
-      };
-    };
-    GenerateReportRequest: {
-      address: string;
-      /** @description For agent client selection */
-      user_id?: string | null;
-      marketing_model?: boolean | null;
-    };
-    GenerateReportResponse: components["schemas"]["SuccessResponse"] & {
-      document_id?: string | null;
-    };
-    GetAgreementResponse: components["schemas"]["SuccessResponse"] & {
-      agreement?: components["schemas"]["Agreement"];
-    };
-    GetChecklistItemFormsResponse: components["schemas"]["SuccessResponse"] & {
-      forms?: components["schemas"]["ChecklistFormWithDownload"][] | null;
-    };
-    GetDashboardResponse: components["schemas"]["SuccessResponse"] & {
-      user: components["schemas"]["UserProfile"];
-    };
-    GetLoggerConfigResponse: components["schemas"]["SuccessResponse"] & {
-      config?: components["schemas"]["DeploymentLoggerConfig"];
-    };
-    /** @description Resolved frontend logger category toggles with nested API subcategories plus logLevel. */
-    ClientLoggerConfig: {
-      polling: boolean;
-      pages: boolean;
-      hooks: boolean;
-      auth: boolean;
-      http: boolean;
-      api: boolean | components["schemas"]["ClientApiSubcategoryConfig"];
-      errors: boolean;
-      security: boolean;
-      search: boolean;
-      polygonSearch: boolean;
-      mapRendering: boolean;
-      propertyDetails: boolean;
-      negotiation: boolean;
-      checklists: boolean;
-      calendar: boolean;
-      dashboard: boolean;
-      messages: boolean;
-      feed: boolean;
-      routing: boolean;
-      docusign: boolean;
-      documents: boolean;
-      profilePreferences: boolean;
-      /** @enum {string} */
-      logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR";
-    };
-    /** @description Partial frontend logger config for admin updates. All fields optional; server deep-merges into stored deployment overrides. */
-    ClientLoggerConfigPatch: {
-      polling?: boolean;
-      pages?: boolean;
-      hooks?: boolean;
-      auth?: boolean;
-      http?: boolean;
-      api?: boolean | components["schemas"]["ClientApiSubcategoryConfigPatch"];
-      errors?: boolean;
-      security?: boolean;
-      search?: boolean;
-      polygonSearch?: boolean;
-      mapRendering?: boolean;
-      propertyDetails?: boolean;
-      negotiation?: boolean;
-      checklists?: boolean;
-      calendar?: boolean;
-      dashboard?: boolean;
-      messages?: boolean;
-      feed?: boolean;
-      routing?: boolean;
-      docusign?: boolean;
-      documents?: boolean;
-      profilePreferences?: boolean;
-      /** @enum {string} */
-      logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR";
-    };
-    ClientApiSubcategoryConfig: {
-      initialLoad: boolean;
-      polling: boolean;
-      pageMount: boolean;
-      other: boolean;
-    };
-    /** @description Partial API subcategory toggles for admin logger config updates. */
-    ClientApiSubcategoryConfigPatch: {
-      initialLoad?: boolean;
-      polling?: boolean;
-      pageMount?: boolean;
-      other?: boolean;
-    };
-    DeploymentLoggerConfig: {
-      client: components["schemas"]["ClientLoggerConfig"];
-      server: components["schemas"]["ServerLoggerConfig"];
-    };
-    DeploymentLoggerConfigUpdates: {
-      client?: components["schemas"]["ClientLoggerConfigPatch"];
-      server?: components["schemas"]["ServerLoggerConfigPatch"];
-    };
-    GetSenderViewUrlResponse: components["schemas"]["SuccessResponse"] & {
-      /** Format: uri */
-      sender_url?: string | null;
-    };
-    GetSigningUrlRequest: {
-      participant_id: string;
-    };
-    GetSigningUrlResponse: components["schemas"]["SuccessResponse"] & {
-      /** Format: uri */
-      signing_url?: string | null;
-    };
-    GetTodosResponse: components["schemas"]["SuccessResponse"] & {
-      todos?: components["schemas"]["TodoItem"][] | null;
-    };
-    /**
-     * @description Calendar list entry from Google Calendar API (`calendarList`). `accessRole` controls
-     *     what the connected user may do (e.g. owner vs reader). Colors mirror Google’s UI chips.
-     * @example {
-     *       "id": "primary@group.calendar.google.com",
-     *       "summary": "Alex Agent — Silver Key",
-     *       "description": "Primary scheduling calendar",
-     *       "primary": true,
-     *       "accessRole": "owner",
-     *       "backgroundColor": "#9fe1e7",
-     *       "foregroundColor": "#000000"
-     *     }
-     */
-    GoogleCalendar: {
-      id: string;
-      summary: string;
-      description?: string | null;
-      primary?: boolean | null;
-      /**
-       * @description Google Calendar ACL role for this user on the calendar, e.g. `owner`, `writer`,
-       *     `reader`, `freeBusyReader`—drives whether events can be created or only viewed.
-       */
-      accessRole: string;
-      backgroundColor?: string | null;
-      foregroundColor?: string | null;
-    };
-    GoogleCalendarApiResponse: {
-      success: boolean;
-      /** @description Generic data field - shape depends on endpoint */
-      data?: {
-        [key: string]: unknown;
-      } | null;
-      error?: string | null;
-    };
-    /**
-     * @description Google Calendar event creation body: `GoogleEvent` fields plus SilverKey-only options.
-     *     `addGoogleMeet` is stripped server-side; Meet `conferenceData` is never taken from the client.
-     */
-    GoogleCalendarEventCreateBody: components["schemas"]["GoogleEvent"] & {
-      /**
-       * @description When true, server requests a new Google Meet conference on insert (create only). Ignored for updates. Not sent to Google Calendar API.
-       * @default false
-       */
-      addGoogleMeet: boolean;
-    };
-    GoogleCalendarListResponse: {
-      kind: string;
-      etag: string;
-      nextPageToken?: string | null;
-      nextSyncToken?: string | null;
-      items: components["schemas"]["GoogleCalendar"][];
-    };
-    GoogleCalendarPermission: {
-      granted: boolean;
-      description: string;
-      scope: string;
-    };
-    GoogleCalendarPermissionsResponse: {
-      permissions: {
-        [key: string]: components["schemas"]["GoogleCalendarPermission"];
-      };
-      scopes: string;
-      last_updated?: string | null;
-    };
-    /** @description Optional JSON body on Google Calendar push notifications. Header verification (X-Goog-Channel-Token, etc.) is authoritative; body shape varies by Google. */
-    GoogleCalendarWebhookBody: {
-      [key: string]: unknown;
-    };
-    GoogleConferenceData: {
-      createRequest?: {
-        requestId?: string;
-        status?: {
-          /** @description e.g. pending when Meet is still provisioning */
-          statusCode?: string;
-        } | null;
-        conferenceSolutionKey?: {
-          type?: string;
-        };
-      };
-      entryPoints?:
-        | {
-            [key: string]: unknown;
-          }[]
-        | null;
-    };
-    /**
-     * @description Google Calendar API event subset used by Silver Key for scheduling and messaging.
-     *     `start`/`end` use `GoogleEventDateTime` (dateTime or all-day date); optional
-     *     `conferenceData` holds Meet links when created with conference support.
-     * @example {
-     *       "id": "evt-google-a1b2c3d4e5f6",
-     *       "summary": "Home tour — 742 Evergreen Terrace",
-     *       "description": "Meet at the property; allow 45 minutes.",
-     *       "start": {
-     *         "dateTime": "2026-04-10T15:00:00-05:00",
-     *         "timeZone": "America/Chicago"
-     *       },
-     *       "end": {
-     *         "dateTime": "2026-04-10T15:45:00-05:00",
-     *         "timeZone": "America/Chicago"
-     *       },
-     *       "location": "742 Evergreen Terrace, Springfield, IL 62704",
-     *       "attendees": [
-     *         {
-     *           "email": "jane.buyer@example.com",
-     *           "displayName": "Jane Buyer",
-     *           "responseStatus": "accepted"
-     *         }
-     *       ],
-     *       "reminders": {
-     *         "useDefault": true
-     *       },
-     *       "conferenceData": null
-     *     }
-     */
-    GoogleEvent: {
-      id?: string | null;
-      /** @description Event title as shown in Google Calendar and in-app agendas. */
-      summary: string;
-      /** @description Optional HTML or plain details synced from Google. */
-      description?: string | null;
-      start: components["schemas"]["GoogleEventDateTime"];
-      end: components["schemas"]["GoogleEventDateTime"];
-      attendees?: components["schemas"]["GoogleEventAttendee"][] | null;
-      reminders?: components["schemas"]["GoogleEventReminders"];
-      location?: string | null;
-      /**
-       * Format: uri
-       * @description Google Meet URL when provisioned (Calendar API `hangoutLink`).
-       */
-      hangoutLink?: string | null;
-      conferenceData?: components["schemas"]["GoogleConferenceData"];
-      /** @description Google Calendar event color id (1–11) when set on the event; returned by the Calendar API on list/get. Optional; omitted when the event uses the calendar default color. */
-      colorId?: string | null;
-      /** @description SilverKey scheduling category from the app database when this event was created in-app (e.g. `property_viewing`, `meeting`, `open_house`). Not sent to Google; attached by the server when listing or getting events. Used for UI coloring when the title no longer matches a known template label. */
-      silverKeyEventType?: string | null;
-      /** @description True when this SilverKey-managed event was saved with virtual meeting requested (derived from DB conference_status / meet_url). Omitted for events not in our DB. */
-      silverKeyVirtualMeetingEnabled?: boolean | null;
-    };
-    GoogleEventAttendee: {
-      /** Format: email */
-      email: string;
-      displayName?: string | null;
-      responseStatus?: string | null;
-    };
-    GoogleEventCreateResponse: components["schemas"]["GoogleEvent"] & {
-      kind: string;
-      etag: string;
-      /** Format: uri */
-      htmlLink: string;
-      created: string;
-      updated: string;
-      creator: {
-        /** Format: email */
-        email?: string;
-        displayName?: string | null;
-      };
-      organizer: {
-        /** Format: email */
-        email?: string;
-        displayName?: string | null;
-      };
-      sequence: number;
-      iCalUID: string;
-      status: string;
-    };
-    GoogleEventDateTime: {
-      /** Format: date-time */
-      dateTime: string;
-      timeZone?: string | null;
-    };
-    GoogleEventListResponse: {
-      kind: string;
-      etag: string;
-      summary: string;
-      description?: string | null;
-      updated: string;
-      timeZone: string;
-      accessRole: string;
-      nextPageToken?: string | null;
-      nextSyncToken?: string | null;
-      items: components["schemas"]["GoogleEvent"][];
-    };
-    GoogleEventReminders: {
-      useDefault?: boolean | null;
-      overrides?: components["schemas"]["GoogleReminderOverride"][] | null;
-    };
-    GoogleReminderOverride: {
-      method: string;
-      minutes: number;
-    };
-    /** @description Response from GET /healthz or GET /readyz (readiness: database connectivity; /readyz is an alias of /healthz). For process-only liveness without a DB round-trip, use GET /livez. Aligns with Flask handlers. */
-    HealthResponse: {
-      /** @enum {string} */
-      status: "ok" | "error";
-      /** @enum {string} */
-      database: "connected" | "disconnected";
-      /** @description Present when status is error; connection or query failure detail. */
-      error?: string;
-    };
-    /** @description Response from GET /livez (process liveness only; no database call). Use for fast orchestrator probes; use GET /healthz when database connectivity must be verified. */
-    LivezResponse: {
-      /** @enum {string} */
-      status: "ok";
-    };
-    IsochroneData: {
-      isochrone: {
-        type?: string;
-        geometry?: {
-          type?: string;
-          coordinates?: number[][][];
-        };
-      };
-      individual_isochrones: {
-        address?: string;
-        commute_tolerance?: number | null;
-        name?: string | null;
-        /** @description GeoJSON Feature for this location's isochrone */
-        isochrone?: {
-          /** @enum {string} */
-          type?: "Feature";
-          geometry?: {
-            /** @enum {string} */
-            type?: "Polygon" | "MultiPolygon";
-            coordinates?: number[][][];
-          };
-          properties?: {
-            [key: string]: unknown;
-          } | null;
-        };
-      }[];
-      center: {
-        lat?: number;
-        lon?: number;
-        address?: string;
-        name?: string | null;
-      };
-      locations: {
-        address?: string;
-        commute_tolerance?: number | null;
-        lat?: number | null;
-        lng?: number | null;
-        name?: string | null;
-      }[];
-      commute_tolerance: number;
-      mode: string;
-    };
-    IsochroneGeometry: {
-      /** @enum {string} */
-      type: "Polygon";
-      coordinates: number[][][];
-    };
-    IsochroneResponse: components["schemas"]["SuccessResponse"] & {
-      data?: components["schemas"]["IsochroneData"];
-    };
-    IsochroneQueryParams: {
-      /** @description Optional user id whose preferences drive the isochrone (agent research scope). */
-      preferences_user_id?: string;
-    };
-    OAuthCallbackQueryParams: {
-      /** @description OAuth authorization code */
-      code?: string;
-      /** @description OAuth CSRF state parameter */
-      state?: string;
-      /** @description OAuth error code when authorization failed */
-      error?: string;
-    };
-    ListAgreementsResponse: components["schemas"]["SuccessResponse"] & {
-      agreements?: components["schemas"]["Agreement"][] | null;
-    };
-    ListTemplatesResponse: components["schemas"]["SuccessResponse"] & {
-      templates?: components["schemas"]["DocusignTemplate"][] | null;
-    };
-    /**
-     * @description Email and password credentials for Cognito-backed login. Sent over HTTPS; never
-     *     logged or stored client-side beyond the password field during entry.
-     * @example {
-     *       "email": "jane.buyer@example.com",
-     *       "password": "Str0ng!Passw0rd"
-     *     }
-     */
-    LoginData: {
-      /**
-       * Format: email
-       * @description Primary login email on the user row (must match verified Cognito attribute when required).
-       * @example jane.buyer@example.com
-       */
-      email: string;
-      /**
-       * Format: password
-       * @description Plaintext password for this request only; use a strong unique password in production accounts.
-       * @example Str0ng!Passw0rd
-       */
-      password: string;
-    };
-    MapsScriptResponse: components["schemas"]["SuccessResponse"] & {
-      /** Format: uri */
-      script_url?: string | null;
-    };
-    MarkMessagesAsReadResponse: components["schemas"]["SuccessResponse"] & {
-      marked_count?: number | null;
-    };
-    MonthlyCostEstimatesResponse: components["schemas"]["SuccessResponse"] & {
-      hoa_monthly?: number | null;
-      utilities_monthly?: number | null;
-    };
-    NegotiationStrategyRequest: {
-      address: string;
-      /** @description For agent client selection */
-      user_id?: string | null;
-    };
-    NegotiationStrategyResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Generated negotiation strategy with price and market analysis */
-      strategy?: {
-        price_section: {
-          /** @description Recommended opening offer amount */
-          opening_offer: number;
-          /** @description Detailed justification based on comparable sales */
-          price_rationale: string;
-          /** @description Requested seller credits and terms */
-          credits_and_terms?: string[];
-          /** @description Inspection strategy and repair tolerance */
-          inspection_plan: string;
-          /** @description Proposed closing timeline */
-          timeline: string;
-          /** @description What makes this offer strong */
-          offer_strength: string;
-        };
-        market_section: {
-          /** @description 3-4 key local market statistics */
-          local_market_stats: string[];
-          /** @description Overall buyer leverage assessment */
-          buyer_leverage: string;
-          /** @description Brief national market context */
-          national_snapshot: string;
-          /** @description Brief neighborhood-specific market context */
-          neighborhood_snapshot: string;
-        };
-      };
-      property_address: string;
-      strategy_id: string;
-      filename: string;
-      generated_at: string;
-      generated_for_user: string;
-      property_data?: components["schemas"]["PropertyComplete"];
-      commute_data?: components["schemas"]["CommuteData"];
-      /** @description Property analysis from research endpoint (same structure as in PropertyResponse) */
-      property_analysis?: {
-        [key: string]: unknown;
-      } | null;
-      traceback?: string | null;
-    };
-    NotInterestedHomeItem: {
-      id?: string | null;
-      address?: string | null;
-      latitude?: number | null;
-      longitude?: number | null;
-      zpid?: string | null;
-      mls_home_id?: string | null;
-    } & {
-      [key: string]: unknown;
-    };
-    NotInterestedHomesResponse: components["schemas"]["SuccessResponse"] & {
-      notInterested?: components["schemas"]["NotInterestedHomeItem"][] | null;
-    };
-    NotificationCounterResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Total unread/pending notifications; typically present when success is true. */
-      total_count?: number;
-    };
-    OAuthStartResponse: components["schemas"]["SuccessResponse"] & {
-      /** Format: uri */
-      auth_url?: string | null;
-    };
-    PaginatedResponse: components["schemas"]["SuccessResponse"] & {
-      count?: number;
-      next_page_token?: string | null;
-      next_sync_token?: string | null;
-    };
-    Pagination: {
-      /**
-       * @description Current page number (1-indexed)
-       * @example 1
-       */
-      page: number;
-      /**
-       * @description Items per page
-       * @example 20
-       */
-      per_page: number;
-      /**
-       * @description Total number of items
-       * @example 145
-       */
-      total: number;
-      /**
-       * @description Total number of pages
-       * @example 8
-       */
-      total_pages: number;
-      /** @description True if there are more pages */
-      has_next?: boolean;
-      /** @description True if there are previous pages */
-      has_prev?: boolean;
-      /** @description Next page number, null if on last page */
-      next_page?: number | null;
-      /** @description Previous page number, null if on first page */
-      prev_page?: number | null;
-    };
-    /** @description Standard query pagination (page / per_page). Use as a reusable parameter schema or request property shape. */
-    PaginationRequest: {
-      /** @default 1 */
-      page: number;
-      /** @default 20 */
-      per_page: number;
-    };
-    /** @enum {string} */
-    ParticipantRole: "agent" | "buyer" | "seller" | "other" | "signer" | "carbon_copy";
-    /** @enum {string} */
-    ParticipantStatus: "pending" | "sent" | "delivered" | "signed" | "completed" | "declined";
-    PollReportResponse: components["schemas"]["SuccessResponse"] & {
-      report?: components["schemas"]["ReportListItem"];
-    };
-    PreApprovalLetterRequest: {
-      buyer_name: string;
-      loan_amount: number;
-      property_address: string;
-      loan_type: string;
-    };
-    OfferDocumentGenerationResponse: components["schemas"]["SuccessResponse"] & {
-      /** Format: uri */
-      document_url?: string | null;
-      document_id?: string | null;
-      filename?: string | null;
-    };
-    /** @description User search preferences */
-    PreferencesResponse: {
-      /** @description Buyer communication preference — text, call, or email */
-      preferred_contact_method?: string;
-      /** @description Update cadence — as_things_come_up, weekly_check_in, or daily */
-      communication_frequency?: string;
-      /** @description Versioned buyer preference extensions (v1 JSON) */
-      extended_buyer_preferences?: {
-        /** @description SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation */
-        buyer_about_me?: {
-          [key: string]: unknown;
-        };
-        /** @description SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc. */
-        price_financing?: {
-          [key: string]: unknown;
-        };
-      } & {
-        [key: string]: unknown;
-      };
-      /** @description Intent attribute — true when buyer pays cash */
-      paying_cash?: boolean;
-    } & {
-      [key: string]: unknown;
-    };
-    UpsertPreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
-      preferences?: components["schemas"]["PreferencesResponse"];
-      /** @description Confirmation copy (e.g. Preferences saved successfully). */
-      message?: string;
-    };
-    ProfilePictureResponse: components["schemas"]["SuccessResponse"] & {
-      /**
-       * Format: uri
-       * @description Public URL of the uploaded profile picture
-       */
-      profile_picture_url?: string;
-    };
-    /** @description Agent-managed client testimonial shown on the public agent profile. `source` is `custom` for agent-entered items; reserved for external review imports (e.g. Zillow) later. */
-    AgentTestimonial: {
-      author_name: string;
-      quote: string;
-      /** @description Display date, preferably YYYY-MM-DD. */
-      date?: string | null;
-      rating?: number | null;
-      /** @description Origin of the testimonial; `custom` when agent-entered. */
-      source?: string | null;
-    };
-    /** @description Public, read-only agent directory fields for shareable profile URLs. Combines `users` row contact with `user_agent_profiles` when present. Omits Cognito/Google  ids and internal S3 keys; profile images are exposed only as presigned URLs when available. */
-    PublicAgentProfile: {
-      id: components["schemas"]["UserId"];
-      name: string;
-      /** Format: email */
-      email: string;
-      phone?: string | null;
-      mls_id?: string | null;
-      /** @description Brokerage name from the users row (prefer `brokerage_name` when both are set). */
-      brokerage?: string | null;
-      /**
-       * Format: uri
-       * @description Presigned URL for the user's profile picture when stored in S3.
-       */
-      profile_picture_url?: string | null;
-      agent_bio?: string | null;
-      brokerage_name?: string | null;
-      brokerage_bic_name?: string | null;
-      brokerage_address?: string | null;
-      /** Format: email */
-      brokerage_email?: string | null;
-      brokerage_phone?: string | null;
-      /** @description URL or stored headshot reference as persisted on user_agent_profiles. */
-      professional_headshot_url?: string | null;
-      primary_service_zips?: string[] | null;
-      specialties?: string[] | null;
-      licensed_states?: string[] | null;
-      license_types?: string[] | null;
-      license_numbers?: string[] | null;
-      license_expiration_dates?: string[] | null;
-      /** @description Parsed JSON array from user_agent_profiles.mls_affiliations (list of objects). */
-      mls_affiliations?:
-        | {
-            [key: string]: unknown;
-          }[]
-        | null;
-      /** @description Agent-managed client testimonials; omitted/null when none. */
-      testimonials?: components["schemas"]["AgentTestimonial"][] | null;
-      social_links?: {
-        [key: string]: string;
-      } | null;
-      /** @description Unique slug for the short public profile URL path `/a/{public_profile_slug}`. Omitted or null before slug backfill; clients should fall back to the long id-based URL. */
-      public_profile_slug?: string | null;
-    };
-    PublicAgentProfileResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Public agent profile; only returned when the user exists and is an active agent. */
-      agent: components["schemas"]["PublicAgentProfile"];
-    };
-    /** @description One MLS listing card on the public agent site, sourced from the shared `property_cache` snapshot (values are display strings as cached). Carries MLS attribution fields (`brokerage`, `mls_home_id`, `mls_region`) so cards can render compliant attribution; no partner placement data on this surface. */
-    PublicAgentListing: {
-      /** @description property_cache row id (stable even when zpid is missing). */
-      id: string;
-      /** @description Listing zpid when known; used for `/property/{zpid}/{slug}` links. */
-      zpid?: string | null;
-      address?: string | null;
-      city?: string | null;
-      state?: string | null;
-      zipcode?: string | null;
-      /** @description Cached display price (e.g. "$519,900"); not refreshed on read. */
-      price?: string | null;
-      beds?: string | null;
-      baths?: string | null;
-      sqft?: string | null;
-      primary_image_url?: string | null;
-      /** @description Raw MLS status as cached (e.g. "Active", "Under Contract", "Sold"). */
-      listing_status?: string | null;
-      /**
-       * @description Normalized bucket — `active` (current) vs `sold` (former/closed).
-       * @enum {string}
-       */
-      status_category: "active" | "sold";
-      /** @description Listing brokerage/office for MLS attribution on the card. */
-      brokerage?: string | null;
-      /** @description MLS listing number for attribution. */
-      mls_home_id?: string | null;
-      mls_region?: string | null;
-    };
-    PublicAgentListingsResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description MLS listings attributed to the agent (matched by agent MLS id or listing agent email), newest first. Empty when the agent has no MLS-linked listings. */
-      listings: components["schemas"]["PublicAgentListing"][];
-    };
-    PropertyCompsRequest: {
-      address: string;
-      radius?: number | null;
-      count?: number | null;
-    };
-    PropertyCompsResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Request parameters used for the API call */
-      query?: {
-        [key: string]: unknown;
-      };
-      /** @description Property comparables data from Slipstream API */
-      data?: {
-        [key: string]: unknown;
-      } | null;
-      /** @enum {string} */
-      source?: "slipstream_gamls";
-    };
-    /**
-     * @description Agent and brokerage information
-     * @example {
-     *       "listingAgentName": "Jane Smith",
-     *       "listingAgentPhone": "+15551234567",
-     *       "listingAgentEmail": "jane.smith@realty.com",
-     *       "brokerage": "Premier Realty Group",
-     *       "mlsId": "MLS12345678",
-     *       "mlsRegion": "Central Illinois MLS"
-     *     }
-     */
-    PropertyAgent: {
-      /** @description MLS or internal agent ID */
-      listingAgentId?: string | null;
-      /** @description Full name of listing agent */
-      listingAgentName?: string | null;
-      /** @description Agent phone number */
-      listingAgentPhone?: string | null;
-      /**
-       * Format: email
-       * @description Agent email address
-       */
-      listingAgentEmail?: string | null;
-      /** @description Brokerage firm name */
-      brokerage?: string | null;
-      /** @description MLS listing ID */
-      mlsId?: string | null;
-      /** @description MLS region or board */
-      mlsRegion?: string | null;
-    };
-    /**
-     * @description Complete property record with all details organized into logical submodels.
-     *     Use this for detailed property views and comprehensive data requirements.
-     * @example {
-     *       "id": "12345678",
-     *       "essentials": {
-     *         "bedrooms": 4,
-     *         "bathrooms": 2.5,
-     *         "livingAreaSqft": 2400,
-     *         "lotSizeSqft": 8000,
-     *         "yearBuilt": 2015
-     *       },
-     *       "location": {
-     *         "address": "742 Evergreen Terrace",
-     *         "city": "Springfield",
-     *         "state": "IL",
-     *         "zipcode": "62704",
-     *         "latitude": 39.7817,
-     *         "longitude": -89.6501
-     *       },
-     *       "financials": {
-     *         "price": 425000,
-     *         "pricePerSqft": 177,
-     *         "annualTaxes": 5200
-     *       },
-     *       "metadata": {
-     *         "listingStatus": "FOR_SALE",
-     *         "daysOnMarket": 12
-     *       },
-     *       "score": 87.5,
-     *       "ranking": 3
-     *     }
-     */
-    PropertyComplete: {
-      /** @description Unique property identifier (ZPID or internal ID) */
-      id: string;
-      essentials: components["schemas"]["PropertyEssentials"];
-      location: components["schemas"]["PropertyLocation"];
-      financials?: components["schemas"]["PropertyFinancials"];
-      agent?: components["schemas"]["PropertyAgent"];
-      features?: components["schemas"]["PropertyFeatures"];
-      media?: components["schemas"]["PropertyMedia"];
-      metadata?: components["schemas"]["PropertyMetadata"];
-      /**
-       * Format: float
-       * @description Match score (0-100) based on user preferences
-       */
-      score?: number | null;
-      /** @description Position in search results (1 = best match) */
-      ranking?: number | null;
-    };
-    /**
-     * @description Core property characteristics - bedrooms, bathrooms, size, and age
-     * @example {
-     *       "bedrooms": 4,
-     *       "bathrooms": 2.5,
-     *       "livingAreaSqft": 2400,
-     *       "lotSizeSqft": 8000,
-     *       "lotSizeUnit": "sqft",
-     *       "yearBuilt": 2015,
-     *       "stories": 2
-     *     }
-     */
-    PropertyEssentials: {
-      /** @description Number of bedrooms */
-      bedrooms: number;
-      /**
-       * Format: float
-       * @description Number of bathrooms (e.g., 2.5 for 2 full, 1 half)
-       */
-      bathrooms: number;
-      /** @description Living area in square feet */
-      livingAreaSqft?: number | null;
-      /** @description Lot size in square feet */
-      lotSizeSqft?: number | null;
-      /**
-       * @description Unit for lot size measurement
-       * @default sqft
-       * @enum {string|null}
-       */
-      lotSizeUnit: "sqft" | "acres" | null;
-      /** @description Year property was built */
-      yearBuilt?: number | null;
-      /** @description Number of stories/floors */
-      stories?: number | null;
-    };
-    /**
-     * @description Property features, amenities, and characteristics
-     * @example {
-     *       "homeType": "SINGLE_FAMILY",
-     *       "parking": {
-     *         "spaces": 2,
-     *         "type": "attached_garage"
-     *       },
-     *       "amenities": [
-     *         "pool",
-     *         "fireplace",
-     *         "hardwood_floors",
-     *         "granite_countertops"
-     *       ],
-     *       "appliances": [
-     *         "refrigerator",
-     *         "dishwasher",
-     *         "microwave",
-     *         "washer",
-     *         "dryer"
-     *       ],
-     *       "heating": "forced_air_gas",
-     *       "cooling": "central_air",
-     *       "flooring": [
-     *         "hardwood",
-     *         "carpet",
-     *         "tile"
-     *       ]
-     *     }
-     */
-    PropertyFeatures: {
-      /**
-       * @description Type of residential property
-       * @enum {string|null}
-       */
-      homeType?:
-        | "SINGLE_FAMILY"
-        | "CONDO"
-        | "TOWNHOUSE"
-        | "MULTI_FAMILY"
-        | "LAND"
-        | "MANUFACTURED"
-        | "CO_OP"
-        | "OTHER"
-        | null;
-      parking?: {
-        /** @description Number of parking spaces */
-        spaces?: number;
-        /**
-         * @description Type of parking
-         * @enum {string}
-         */
-        type?:
-          | "garage"
-          | "attached_garage"
-          | "detached_garage"
-          | "carport"
-          | "driveway"
-          | "street"
-          | "covered"
-          | "none";
-      } | null;
-      /** @description List of property amenities (pool, fireplace, deck, etc.) */
-      amenities?: string[] | null;
-      /** @description Included appliances */
-      appliances?: string[] | null;
-      /** @description Heating system type */
-      heating?: string | null;
-      /** @description Cooling system type */
-      cooling?: string | null;
-      /** @description Flooring types (hardwood, carpet, tile, etc.) */
-      flooring?: string[] | null;
-      /** @description Exterior material (brick, vinyl, stucco, etc.) */
-      exterior?: string | null;
-      /** @description Roof material and age */
-      roof?: string | null;
-    };
-    /**
-     * @description Property pricing, taxes, and financial details
-     * @example {
-     *       "price": 425000,
-     *       "listPrice": 450000,
-     *       "pricePerSqft": 177,
-     *       "annualTaxes": 5200,
-     *       "hoaFees": 150
-     *     }
-     */
-    PropertyFinancials: {
-      /** @description Current listing price */
-      price?: number | null;
-      /** @description Original list price */
-      listPrice?: number | null;
-      /** @description Price per square foot */
-      pricePerSqft?: number | null;
-      priceHistory?:
-        | {
+        AddCalendarACLRequest: {
             /**
-             * Format: date
-             * @description Date of price event
-             */
-            eventDate: string;
-            /** @description Price at this event */
-            price: number;
-            /**
-             * @description Type of price event
+             * @description Access role to grant
              * @enum {string}
              */
-            event: "listed" | "sold" | "price_change" | "delisted" | "pending";
-          }[]
-        | null;
-      /** @description Tax assessed value */
-      taxAssessedValue?: number | null;
-      /** @description Annual property taxes */
-      annualTaxes?: number | null;
-      /** @description Monthly HOA fees */
-      hoaFees?: number | null;
-      /** @description Estimated monthly insurance cost */
-      insurance?: number | null;
-    };
-    /**
-     * @description Property address and geographic information
-     * @example {
-     *       "address": "742 Evergreen Terrace",
-     *       "city": "Springfield",
-     *       "state": "IL",
-     *       "zipcode": "62704",
-     *       "county": "Sangamon",
-     *       "neighborhood": "Downtown",
-     *       "latitude": 39.7817,
-     *       "longitude": -89.6501,
-     *       "schoolDistrict": "Springfield District 186"
-     *     }
-     */
-    PropertyLocation: {
-      /** @description Full street address */
-      address: string;
-      /** @description City name */
-      city: string;
-      /** @description State abbreviation (e.g., CA, NY) */
-      state: string;
-      /** @description ZIP code (5 or 9 digits) */
-      zipcode: string;
-      /** @description County name */
-      county?: string | null;
-      /** @description Neighborhood or area name */
-      neighborhood?: string | null;
-      /**
-       * Format: double
-       * @description Latitude coordinate
-       */
-      latitude: number;
-      /**
-       * Format: double
-       * @description Longitude coordinate
-       */
-      longitude: number;
-      /** @description GeoJSON polygon boundaries */
-      boundaries?: Record<string, never> | null;
-      /** @description School district name */
-      schoolDistrict?: string | null;
-      commuteData?: components["schemas"]["CommuteData"];
-    };
-    /**
-     * @description Property photos, videos, and virtual tours
-     * @example {
-     *       "primaryImageUrl": "https://photos.example.com/listings/12345678/hero.jpg",
-     *       "images": [
-     *         {
-     *           "url": "https://photos.example.com/listings/12345678/1.jpg",
-     *           "caption": "Front exterior",
-     *           "order": 0
-     *         },
-     *         {
-     *           "url": "https://photos.example.com/listings/12345678/2.jpg",
-     *           "caption": "Living room",
-     *           "order": 1
-     *         }
-     *       ],
-     *       "virtualTourUrl": "https://my.matterport.com/show/?m=abc123"
-     *     }
-     */
-    PropertyMedia: {
-      /**
-       * Format: uri
-       * @description Primary/hero image URL
-       */
-      primaryImageUrl?: string | null;
-      images?:
-        | {
-            /**
-             * Format: uri
-             * @description Image URL
-             */
-            url: string;
-            /** @description Image caption or description */
-            caption?: string | null;
-            /** @description Display order (0-based) */
-            order?: number;
-            width?: number | null;
-            height?: number | null;
-          }[]
-        | null;
-      /**
-       * Format: uri
-       * @description 3D virtual tour or Matterport URL
-       */
-      virtualTourUrl?: string | null;
-      /**
-       * Format: uri
-       * @description Property video URL
-       */
-      videoUrl?: string | null;
-      /**
-       * Format: uri
-       * @description Floor plan image URL
-       */
-      floorPlanUrl?: string | null;
-    };
-    /**
-     * @description Property listing metadata and status
-     * @example {
-     *       "zpid": "12345678",
-     *       "mlsHomeId": "MLS98765432",
-     *       "listingStatus": "FOR_SALE",
-     *       "daysOnMarket": 12,
-     *       "listingDate": "2026-03-27",
-     *       "lastUpdated": "2026-04-08T10:30:00Z",
-     *       "createdAt": "2026-03-27T09:00:00Z",
-     *       "updatedAt": "2026-04-08T10:30:00Z"
-     *     }
-     */
-    PropertyMetadata: {
-      /** @description Property listing ID (MLS ID from Slipstream) */
-      zpid?: string | null;
-      /** @description MLS listing ID */
-      mlsHomeId?: string | null;
-      /**
-       * @description Current listing status
-       * @enum {string|null}
-       */
-      listingStatus?:
-        | "FOR_SALE"
-        | "PENDING"
-        | "SOLD"
-        | "OFF_MARKET"
-        | "COMING_SOON"
-        | "CONTINGENT"
-        | "ACTIVE"
-        | null;
-      /** @description Number of days property has been listed */
-      daysOnMarket?: number | null;
-      /**
-       * Format: date
-       * @description Date property was listed
-       */
-      listingDate?: string | null;
-      /**
-       * Format: date-time
-       * @description Last time listing was updated
-       */
-      lastUpdated?: string | null;
-      /**
-       * Format: date-time
-       * @description When record was created in our system
-       */
-      createdAt?: string | null;
-      /**
-       * Format: date-time
-       * @description When record was last updated in our system
-       */
-      updatedAt?: string | null;
-    };
-    PropertyRequest: components["schemas"]["PropertyResearchOptions"] & {
-      address: string;
-      zpid?: string | null;
-      /** Format: uri */
-      property_url?: string | null;
-    };
-    PropertyResearchOptions: {
-      /** @description When set by agent, load this client's preferences */
-      preferences_user_id?: string | null;
-      pros_count?: number | null;
-      cons_count?: number | null;
-      /** @enum {string|null} */
-      detail_level?: "compact" | "standard" | "detailed" | null;
-    };
-    PropertyResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Request parameters (zpid, property_url, or address) */
-      query?: {
-        zpid?: string | null;
-        /** Format: uri */
-        property_url?: string | null;
-        address?: string | null;
-      } | null;
-      /** @description Normalized property data from Slipstream API */
-      data?: {
-        [key: string]: unknown;
-      } | null;
-      /** @description Categorized property features extracted from listing */
-      features?: {
-        [key: string]: string[];
-      } | null;
-      /** @description Commute analysis with travel times to important locations */
-      commute_data?: {
-        travel_times?: {
-          name: string;
-          address: string;
-          travel_time?: string | null;
-          commute_tolerance?: number;
-        }[];
-        /** Format: uri */
-        map_url?: string | null;
-        property_address?: string | null;
-      } | null;
-      /** @description AI-generated property analysis with pros, cons, and detailed sections */
-      property_analysis?:
-        | ({
-            pros?: string[] | null;
-            cons?: string[] | null;
-            highlights_context?: {
-              [key: string]: unknown;
+            role: "owner" | "writer" | "reader" | "freeBusyReader";
+            scope: {
+                /** @enum {string} */
+                type: "user" | "group" | "domain" | "default";
+                /** @description Email or domain (required for user/group/domain types) */
+                value?: string | null;
+            };
+        };
+        AddCalendarACLResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Created ACL rule */
+            rule?: {
+                [key: string]: unknown;
             } | null;
-          } & {
-            [key: string]: unknown;
-          })
-        | null;
-      /** @description Features extracted from property images using AI vision */
-      image_features?: {
-        raw: string[];
-        clean: string[];
-      } | null;
-      images?: string[] | null;
-    };
-    /**
-     * @description Property search result with essential details for list views.
-     *     For complete property details, use PropertyComplete.
-     * @example {
-     *       "id": "12345678",
-     *       "essentials": {
-     *         "bedrooms": 4,
-     *         "bathrooms": 2.5,
-     *         "livingAreaSqft": 2400,
-     *         "yearBuilt": 2015
-     *       },
-     *       "location": {
-     *         "address": "742 Evergreen Terrace",
-     *         "city": "Springfield",
-     *         "state": "IL",
-     *         "zipcode": "62704",
-     *         "latitude": 39.7817,
-     *         "longitude": -89.6501
-     *       },
-     *       "financials": {
-     *         "price": 425000,
-     *         "pricePerSqft": 177
-     *       },
-     *       "media": {
-     *         "primaryImageUrl": "https://photos.examplecdn.com/listings/12345678/hero.jpg"
-     *       },
-     *       "metadata": {
-     *         "listingStatus": "FOR_SALE",
-     *         "homeType": "SINGLE_FAMILY",
-     *         "daysOnMarket": 12
-     *       },
-     *       "score": 87.5,
-     *       "ranking": 3
-     *     }
-     */
-    PropertySearchResult: {
-      /** @description Slipstream listing key (ZPID or MLS id) */
-      id: string;
-      /** @description Stable PropertyCache UUID for this listing in SilverKey (use for saves, feed, and refresh). */
-      home_id?: string | null;
-      /** @description Core property characteristics */
-      essentials: {
-        bedrooms: number;
-        bathrooms: number;
-        livingAreaSqft?: number | null;
-        yearBuilt?: number | null;
-      };
-      /** @description Property location */
-      location: {
-        address: string;
-        city: string;
-        state: string;
-        zipcode: string;
-        /** Format: double */
-        latitude?: number | null;
-        /** Format: double */
-        longitude?: number | null;
-      };
-      /** @description Pricing information */
-      financials?: {
-        price?: number | null;
-        pricePerSqft?: number | null;
-      } | null;
-      /** @description Property images */
-      media?: {
-        /** Format: uri */
-        primaryImageUrl?: string | null;
-      } | null;
-      /** @description Listing metadata */
-      metadata?: {
-        /** @enum {string|null} */
-        listingStatus?:
-          | "FOR_SALE"
-          | "PENDING"
-          | "SOLD"
-          | "OFF_MARKET"
-          | "COMING_SOON"
-          | "CONTINGENT"
-          | "ACTIVE"
-          | null;
-        homeType?: string | null;
-        daysOnMarket?: number | null;
-      } | null;
-      /** @description Match score based on preferences */
-      score?: number | null;
-      /** @description Position in search results */
-      ranking?: number | null;
-    };
-    RemoveFavoriteRequest: {
-      address: string;
-      client_id?: string | null;
-    };
-    RemoveNotInterestedRequest: {
-      address: string;
-    };
-    /** @description Entry returned by GET /api/v1/report/list — property PDF reports for the current user (camelCase fields as produced by the API). Not the same shape as `UploadedDocumentRecord`. */
-    ReportListItem: {
-      id: string;
-      /** @enum {string} */
-      status: "generating" | "completed" | "error";
-      /** @description Unix timestamp in seconds */
-      generatedAt: number;
-      address: string;
-      /** Format: uri */
-      pdfUrl?: string | null;
-      s3Key?: string | null;
-    };
-    ReportDocumentsListResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Rows from GET /api/v1/report/documents */
-      documents?: components["schemas"]["UploadedDocumentRecord"][] | null;
-      count?: number | null;
-      /** @description Total matching rows when paginated */
-      total?: number | null;
-      limit?: number | null;
-      offset?: number | null;
-      hasMore?: boolean | null;
-    };
-    ReportsListResponse: components["schemas"]["SuccessResponse"] & {
-      reports?: components["schemas"]["ReportListItem"][] | null;
-    };
-    ReportsResponse: components["schemas"]["SuccessResponse"] & {
-      documents?: components["schemas"]["UploadedDocumentRecord"][] | null;
-      /** @description Property report list entries (GET /api/v1/report/list shape). */
-      reports?: components["schemas"]["ReportListItem"][] | null;
-    };
-    ResendCodeData: {
-      /**
-       * Format: email
-       * @description Email address to resend verification code to
-       */
-      email: string;
-    };
-    ResendCodeResponse: components["schemas"]["SuccessResponse"] & {
-      code_delivery?: components["schemas"]["CognitoCodeDeliveryDetails"] | null;
-    };
-    ResetPasswordData: {
-      /**
-       * Format: email
-       * @description User's email address
-       */
-      email: string;
-      /** @description Password reset code from email */
-      code: string;
-      /**
-       * Format: password
-       * @description New password to set
-       */
-      new_password: string;
-    };
-    RespondToConnectionRequestRequest: {
-      accept: boolean;
-    };
-    RespondToConnectionRequestResponse: components["schemas"]["SuccessResponse"] & {
-      request?: components["schemas"]["AgentConnectionRequest"];
-    };
-    RevokeResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Whether OAuth token was successfully revoked */
-      revoked?: boolean;
-    };
-    /**
-     * @description A single saved or tracked listing row from PropertyCache + UserPropertyLink. Numeric facts (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether the row reflects the latest MLS snapshot the server holds.
-     * @example {
-     *       "id": "fav-8c2e9b1a-4d3f-5e6a-7b8c-9d0e1f2a3b4c",
-     *       "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *       "isLiked": true,
-     *       "current": true,
-     *       "address": "742 Evergreen Terrace",
-     *       "city": "Springfield",
-     *       "state": "IL",
-     *       "zipcode": "62704",
-     *       "beds": "4",
-     *       "baths": "2.5",
-     *       "sqft": "2400",
-     *       "price": "425000",
-     *       "zpid": "12345678",
-     *       "listing_status": "FOR_SALE",
-     *       "property_type": "SingleFamily",
-     *       "latitude": 39.7817,
-     *       "longitude": -89.6501,
-     *       "image_url": "https://photos.examplecdn.com/listings/12345678/hero.jpg",
-     *       "created_at": "2025-11-20T18:00:00.000Z",
-     *       "updated_at": "2026-04-01T12:00:00.000Z",
-     *       "score": 0.92,
-     *       "ranking": 1
-     *     }
-     */
-    SavedHome: {
-      id: string;
-      user_id: string;
-      address?: string | null;
-      /** @description User has actively saved (“liked”) this home in the product UI. */
-      isLiked: boolean;
-      /** @description Listing row is the latest synced version; false may indicate stale or archived data. */
-      current: boolean;
-      /**
-       * Format: float
-       * @description Search or recommendation match score when the row was added or refreshed.
-       */
-      score?: number | null;
-      /** @description Ordinal position within a sorted list (e.g. search results) when applicable. */
-      ranking?: number | null;
-      city?: string | null;
-      state?: string | null;
-      zipcode?: string | null;
-      beds?: string | null;
-      baths?: string | null;
-      sqft?: string | null;
-      lot_size?: string | null;
-      price?: string | null;
-      /** Format: date-time */
-      created_at?: string | null;
-      /** Format: date-time */
-      updated_at?: string | null;
-      /** Format: uri */
-      image_url?: string | null;
-      /** @description Map of provider-specific keys to image URLs (absolute https preferred). */
-      image_urls?: {
-        [key: string]: string;
-      } | null;
-      zpid?: string | null;
-      mls_home_id?: string | null;
-      listing_status?: string | null;
-      property_type?: string | null;
-      home_type?: string | null;
-      year_built?: string | null;
-      mls_agent_id?: string | null;
-      listing_agent_phone?: string | null;
-      /** Format: email */
-      listing_agent_email?: string | null;
-      brokerage?: string | null;
-      mls_region?: string | null;
-      /** Format: float */
-      latitude?: number | null;
-      /** Format: float */
-      longitude?: number | null;
-      living_area?: string | null;
-      lot_area_value?: string | null;
-      lot_area_unit?: string | null;
-      /** @description Opaque listing feature map from upstream property data. */
-      features?: {
-        [key: string]: unknown;
-      } | null;
-      /** @description Serialized analysis blob from property pipeline (structure varies). */
-      property_analysis?: {
-        [key: string]: unknown;
-      } | null;
-      /** @description Commute or isochrone-related payload attached to the saved row. */
-      commute_data?: {
-        [key: string]: unknown;
-      } | null;
-      /** @description Raw provider/listing JSON retained for debugging or reprocessing. */
-      raw_data?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    AgentSearchQueryParams: {
-      /** @default  */
-      q: string;
-      /** @default 20 */
-      limit: number;
-    };
-    AgentRecommendQueryParams: {
-      zip?: string;
-      state?: string;
-      intent?: string;
-      /** @default 20 */
-      limit: number;
-    };
-    FeedListQueryParams: {
-      /** @default 0 */
-      page: number;
-      /** @default 10 */
-      limit: number;
-    };
-    FeedLikesQueryParams: {
-      /** @description Comma-separated home ids */
-      ids?: string;
-    };
-    ChecklistTypeQueryParams: {
-      /** @default escrow */
-      type: components["schemas"]["ChecklistType"];
-    };
-    SearchAgentsResponse: components["schemas"]["SuccessResponse"] & {
-      agents?: components["schemas"]["AgentSearchResult"][] | null;
-    };
-    /**
-     * @description Map-bounded property search. `viewport_polygon` is an ordered ring of points with
-     *     explicit `lat` and `lng` (WGS-84 decimal degrees), closing implicitly by edge order.
-     *     Omit `viewport_polygon` for read-only `onlyCached` requests (hydrate persisted results).
-     *     For `forceSearch`, include `viewport_polygon` for map-bounded search or rely on server isochrone from preferences when omitted.
-     *     Optional filters come from `user_preferences` and strictness flags; results are
-     *     scored server-side unless overridden by route-specific sort parameters.
-     * @example {
-     *       "viewport_polygon": [
-     *         {
-     *           "lat": 39.75,
-     *           "lng": -104.98
-     *         },
-     *         {
-     *           "lat": 39.75,
-     *           "lng": -104.9
-     *         },
-     *         {
-     *           "lat": 39.7,
-     *           "lng": -104.9
-     *         },
-     *         {
-     *           "lat": 39.7,
-     *           "lng": -104.98
-     *         }
-     *       ],
-     *       "user_preferences": null,
-     *       "preferences_strict_filter": false,
-     *       "perBucketPages": 10,
-     *       "forceSearch": false,
-     *       "onlyCached": false,
-     *       "hydrateListings": false
-     *     }
-     */
-    SearchByPolygonRequest: {
-      /**
-       * @description Closed polygon covering the visible map region (typically 4+ corners).
-       *     Optional when `onlyCached` is true (no new search); recommended when driving `forceSearch` from the map.
-       */
-      viewport_polygon?: components["schemas"]["ViewportPolygonPoint"][] | null;
-      /** @description Buyer preference slice applied as soft or hard filters depending on `preferences_strict_filter`. */
-      user_preferences?: components["schemas"]["UserPreferencesData"];
-      /** @description When true, exclude properties that fail preference constraints instead of only down-ranking them. */
-      preferences_strict_filter?: boolean | null;
-      /** @description Cap on hits per internal price or geography bucket when paginating large result sets. */
-      perBucketPages?: number | null;
-      /** @description Bypass short-circuit caches and recompute matches (admin or debug style refresh). */
-      forceSearch?: boolean | null;
-      /** @description When true, return previously materialized results only without hitting upstream MLS. */
-      onlyCached?: boolean | null;
-      /**
-       * @description When true with `onlyCached`, refresh listing snapshots (price, status, beds, etc.) from Slipstream
-       *     using each persisted home_id before responding. Does not re-run search or change match scores.
-       */
-      hydrateListings?: boolean | null;
-      /**
-       * @description Optional subject for preference scoring (agents: must be a linked client id; buyers are always scoped to self).
-       *     Resolved server-side via `resolve_preferences_user_id_for_research`.
-       */
-      preferences_user_id?: string | null;
-    };
-    /**
-     * @description Polygon search outcome: ranked `PropertySearchResult` rows when `success` is true.
-     *     `cached` indicates a fast path from server cache; `error` carries a short diagnostic
-     *     when `success` is false without throwing HTTP errors.
-     * @example {
-     *       "success": true,
-     *       "count": 2,
-     *       "cached": false,
-     *       "error": null,
-     *       "properties": [
-     *         {
-     *           "zpid": "12345678",
-     *           "address": "742 Evergreen Terrace",
-     *           "city": "Springfield",
-     *           "state": "IL",
-     *           "zipcode": "62704",
-     *           "latitude": 39.7817,
-     *           "longitude": -89.6501,
-     *           "price": 425000,
-     *           "bedrooms": 4,
-     *           "bathrooms": 2.5,
-     *           "livingArea": 2400,
-     *           "homeType": "SINGLE_FAMILY",
-     *           "imageUrl": "https://photos.examplecdn.com/listings/12345678/hero.jpg",
-     *           "listingStatus": "FOR_SALE"
-     *         },
-     *         {
-     *           "zpid": "87654321",
-     *           "address": "100 Main St",
-     *           "city": "Springfield",
-     *           "state": "IL",
-     *           "zipcode": "62701",
-     *           "latitude": 39.8,
-     *           "longitude": -89.64,
-     *           "price": 310000,
-     *           "bedrooms": 3,
-     *           "bathrooms": 2,
-     *           "livingArea": 1850,
-     *           "homeType": "TOWNHOUSE",
-     *           "imageUrl": "https://photos.examplecdn.com/listings/87654321/hero.jpg",
-     *           "listingStatus": "FOR_SALE"
-     *         }
-     *       ]
-     *     }
-     */
-    SearchByPolygonResponse: {
-      /** @description False when the search could not complete; inspect `error` and HTTP status. */
-      success: boolean;
-      /** @description Matching listings normalized for map and list UIs. */
-      properties?: components["schemas"]["PropertySearchResult"][] | null;
-      /** @description Number of items in `properties` for this response page. */
-      count?: number | null;
-      /** @description True when results were served from an in-memory or DB cache without full re-query. */
-      cached?: boolean | null;
-      /** @description Machine-oriented failure hint when `success` is false (e.g. invalid polygon). */
-      error?: string | null;
-      /** @description Standard pagination for the returned property list (single-page responses use page 1). */
-      pagination?: components["schemas"]["Pagination"];
-    };
-    SearchClientsResponse: components["schemas"]["SuccessResponse"] & {
-      clients?: components["schemas"]["ClientSearchResult"][] | null;
-    };
-    /** @description Search display state including persisted UI settings and last search context. */
-    SearchDisplayPayload: {
-      /** @description Whether the commute isochrone overlay is visible on the map. */
-      show_commute_overlay?: boolean;
-      /** @description Number of property cards shown on the map at once. */
-      map_home_cards_count?: number;
-      /** @description Sort key for the search results list. */
-      results_order_by?: string;
-      /** @description When true, preference post-filters always apply server-side. */
-      preferences_strict_filter?: boolean;
-      /** @description Snapshot of the user's last executed search for restoring polygon and map state on page load. */
-      last_search_context?: {
+        };
+        AddCommentRequest: {
+            /** @description ID of the home/listing to comment on */
+            home_id: string;
+            /** @description Comment text */
+            text: string;
+        };
+        AddCommentResponse: components["schemas"]["SuccessResponse"] & {
+            comment?: components["schemas"]["FeedCommentApiShape"];
+        };
         /**
-         * @description Whether the search was driven by user preferences/commute or a location bar entry.
+         * @example {
+         *       "home": {
+         *         "zpid": "12345678",
+         *         "address": "742 Evergreen Terrace",
+         *         "city": "Springfield",
+         *         "state": "IL",
+         *         "zipcode": "62704",
+         *         "price": 425000,
+         *         "bedrooms": 4,
+         *         "bathrooms": 2.5,
+         *         "livingArea": 2400,
+         *         "homeType": "SINGLE_FAMILY",
+         *         "imageUrl": "https://photos.examplecdn.com/listings/12345678/hero.jpg",
+         *         "listingStatus": "FOR_SALE"
+         *       },
+         *       "client_id": "c3d4e5f6-a7b8-9012-cdef-345678901234"
+         *     }
+         */
+        AddFavoriteRequest: {
+            home: components["schemas"]["FavoriteHomePayload"];
+            /** @description When set, agent saves to client's favorites */
+            client_id?: string | null;
+        };
+        AreaBoundaryResponse: {
+            success: boolean;
+            /** @description Area metadata */
+            area?: {
+                id?: string;
+                name?: string;
+                label?: string;
+                geoType?: string;
+                state?: string;
+                center?: {
+                    lat?: number;
+                    lng?: number;
+                } | null;
+            } | null;
+            /** @description GeoJSON Polygon or MultiPolygon boundary geometry */
+            geometry?: {
+                /** @enum {string} */
+                type?: "Polygon" | "MultiPolygon";
+                /** @description GeoJSON coordinate arrays */
+                coordinates?: unknown[];
+            } | null;
+            /** @description Boundary as viewport-compatible ring of {lat, lng} points. Can be sent directly as viewport_polygon in polygon search. */
+            viewport_ring?: components["schemas"]["ViewportPolygonPoint"][] | null;
+            error?: string | null;
+            message?: string | null;
+        };
+        AreaSearchResult: {
+            /** @description Slipstream area ID (hex hash) */
+            id: string;
+            /** @description Area name (e.g. "Atlanta", "Sandy Springs") */
+            name: string;
+            /** @description Formatted label (e.g. "Sandy Springs, GA") */
+            label: string;
+            /** @description Slipstream area type (area/neighborhood, area/postal-city, area/census-place, area/county, area/zipcode, area/township) */
+            geoType: string;
+            /** @description State postal abbreviation (e.g. "GA") */
+            state: string;
+            /** @description Parent place name for neighborhoods and ZIP codes */
+            place?: string | null;
+        };
+        AreaSuggestionsResponse: {
+            success: boolean;
+            /** @description Matching geographic areas from Slipstream */
+            areas?: components["schemas"]["AreaSearchResult"][];
+            error?: string | null;
+            message?: string | null;
+        };
+        AddFeedLikeRequest: {
+            /** @description ID of the home/listing to like */
+            home_id: string;
+        };
+        AddNotInterestedRequest: {
+            home: components["schemas"]["FavoriteHomePayload"];
+            why?: string | null;
+        };
+        AgentChatHistoryResponse: components["schemas"]["SuccessResponse"] & {
+            messages?: components["schemas"]["AgentChatMessage"][] | null;
+            conversation?: components["schemas"]["AgentConversation"];
+            /** @description Whether more messages exist before the oldest message in this page */
+            has_more_older?: boolean;
+            /** @description Whether more messages exist after the newest message in this page */
+            has_more_newer?: boolean;
+        };
+        AgentChatMessage: {
+            id: string;
+            conversation_id: string;
+            sender_id: string;
+            /** @enum {string} */
+            role: "user" | "agent" | "assistant";
+            message: string;
+            shared_home_id?: string | null;
+            shared_document_id?: string | null;
+            timestamp: string;
+            is_read?: boolean | null;
+            read_at?: string | null;
+            event_request_status?: components["schemas"]["EventRequestStatus"];
+        };
+        /**
+         * @description Buyer or client row as seen from the agent workspace (client list, messaging, tasks).
+         *     `profile_picture` is a storage key unless a route explicitly expands to a URL.
+         * @example {
+         *       "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+         *       "transaction_id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *       "name": "Jordan Client",
+         *       "email": "jordan.client@example.com",
+         *       "phone": "+15551112222",
+         *       "profile_picture": "profiles/c3d4e5f6-a7b8-9012-cdef-345678901234.jpg",
+         *       "created_at": "2025-08-01T16:45:00.000Z",
+         *       "client_kind": "buyer",
+         *       "pipeline_stage": "search",
+         *       "current_phase": "search",
+         *       "current_step_label": "Set a budget",
+         *       "requires_signature": false
+         *     }
+         */
+        AgentClient: {
+            /** @description Application user id for the client. */
+            id: string;
+            /**
+             * @description Revenue spine id (`transactions.id`) for this client's deal. Use for checklist,
+             *     forms, documents, and rev-share APIs — not the buyer user id.
+             */
+            transaction_id: string;
+            /** @description Display name shown in agent UI and shared documents. */
+            name: string;
+            /**
+             * Format: email
+             * @description Primary contact email for invites and DocuSign routing.
+             */
+            email: string;
+            /** @description E.164 or formatted phone when on file. */
+            phone?: string | null;
+            /** @description S3 key or relative path for avatar; not always a public URL. */
+            profile_picture?: string | null;
+            /** @description ISO 8601 timestamp when the client relationship or row was created. */
+            created_at?: string | null;
+            /**
+             * @description Client representation from `user_roles` (excluding `agent`). `unknown` when no buyer/seller/renter/investor role is set.
+             * @enum {string|null}
+             */
+            client_kind?: "buyer" | "seller" | "renter" | "investor" | "unknown" | null;
+            /**
+             * @description Checklist area with the most recent completed task activity for this client (preview only).
+             *     `search` when there are no completed checklist tasks yet or activity cannot be determined.
+             * @enum {string|null}
+             */
+            pipeline_stage?: "search" | "offer" | "escrow" | "financing" | "closing" | "insurance" | "unknown" | null;
+            /** @description Short-lived presigned URL for `profile_picture` when available; use for list avatars. */
+            profile_picture_url?: string | null;
+            /**
+             * @description Active checklist category for this client — first unlocked section with incomplete work.
+             *     Aligns with pipeline categories (`search`, `offer`, …).
+             * @enum {string|null}
+             */
+            current_phase?: "search" | "offer" | "escrow" | "financing" | "closing" | "insurance" | "unknown" | null;
+            /**
+             * @description Human-readable label of the earliest incomplete checklist step in `current_phase`.
+             *     Null when every step in the active phase is complete.
+             */
+            current_step_label?: string | null;
+            /** @description True when the agent must sign a non-void agreement for this client (client has signed; agent has not). */
+            requires_signature?: boolean | null;
+        };
+        AgentClientsResponse: components["schemas"]["SuccessResponse"] & {
+            clients?: components["schemas"]["AgentClient"][] | null;
+        };
+        AgentConnectionRequest: {
+            id: string;
+            agent_id: string;
+            client_id: string;
+            requested_by_agent: boolean;
+            /** @enum {string} */
+            status: "pending" | "accepted" | "rejected";
+            message?: string | null;
+            other_party_name?: string | null;
+            other_party_email?: string | null;
+            created_at: string;
+        };
+        EligibleContactsResponse: {
+            success: boolean;
+            contacts: components["schemas"]["EligibleContact"][];
+        };
+        EligibleContact: {
+            contact_id: string;
+            contact_type: string;
+            display_name: string;
+            kind: components["schemas"]["WorkspaceConversationKind"];
+            metadata?: {
+                [key: string]: unknown;
+            };
+        };
+        CreateWorkspaceConversationRequest: {
+            kind: components["schemas"]["WorkspaceConversationKind"];
+            brokerage_org_id?: string | null;
+            partner_id?: string | null;
+            agent_user_id?: string | null;
+            /** @enum {string|null} */
+            support_category?: "brokerage" | "integrator" | null;
+        };
+        CreateWorkspaceConversationResponse: {
+            success: boolean;
+            conversation: components["schemas"]["WorkspaceConversation"];
+        };
+        WorkspaceConversation: {
+            id: string;
+            kind: components["schemas"]["WorkspaceConversationKind"];
+            brokerage_org_id?: string | null;
+            partner_id?: string | null;
+            subject_user_id?: string | null;
+            /** @enum {string|null} */
+            support_category?: "brokerage" | "integrator" | null;
+            agent_user_id?: string | null;
+            title?: string | null;
+            participant_count?: number | null;
+            is_archived?: boolean | null;
+            last_message?: string | null;
+            /** Format: date-time */
+            last_message_at?: string | null;
+            /** Format: date-time */
+            last_read_at?: string | null;
+            unread_count?: number | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        /**
+         * @description Workspace-scoped conversation kind
          * @enum {string}
          */
-        search_source?: "preferences" | "location";
-        /** @description Closed polygon ring from the last search viewport or place bounds. */
-        viewport_ring?: components["schemas"]["ViewportPolygonPoint"][] | null;
-        /** @description Formatted label for the searched place (e.g. "Atlanta, GA"). */
-        place_label?: string | null;
-        /** @description Map center at the time of the last search. */
-        map_center?: {
-          /** Format: double */
-          lat?: number;
-          /** Format: double */
-          lng?: number;
-        } | null;
+        WorkspaceConversationKind: "platform_support" | "brokerage_agent" | "integrator_brokerage" | "group";
+        WorkspaceConversationsResponse: {
+            success: boolean;
+            conversations: components["schemas"]["WorkspaceConversation"][];
+        };
+        WorkspaceConversationHistoryResponse: {
+            success: boolean;
+            messages: components["schemas"]["WorkspaceMessage"][];
+        };
+        WorkspaceMessage: {
+            id: string;
+            conversation_id?: string | null;
+            sender_id?: string | null;
+            role: string;
+            message: string;
+            /** Format: date-time */
+            timestamp?: string | null;
+        };
+        SendWorkspaceMessageRequest: {
+            conversation_id: string;
+            message: string;
+        };
+        GroupConversation: components["schemas"]["WorkspaceConversation"] & {
+            participants?: {
+                user_id?: string;
+                participant_role?: string;
+            }[];
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupConversationCreateRequest: {
+            title: string;
+            participant_user_ids: string[];
+            brokerage_org_id?: string | null;
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupConversationUpdateRequest: {
+            title?: string;
+            is_archived?: boolean;
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupParticipantAddRequest: {
+            user_id: string;
+        };
+        /** @description Reserved for group chat — endpoints not implemented */
+        GroupParticipantRemoveRequest: {
+            user_id: string;
+        };
+        AgentConversation: {
+            id: string;
+            agent_id: string;
+            client_id: string;
+            client_name?: string | null;
+            client_email?: string | null;
+            client_profile_picture?: string | null;
+            agent_name?: string | null;
+            agent_email?: string | null;
+            agent_profile_picture?: string | null;
+            last_message?: string | null;
+            last_message_at?: string | null;
+            created_at: string;
+            updated_at: string;
+            unread_count?: number | null;
+            last_read_at?: string | null;
+        };
+        AgentConversationsResponse: components["schemas"]["SuccessResponse"] & {
+            conversations?: components["schemas"]["AgentConversation"][] | null;
+        };
         /**
-         * Format: double
-         * @description Map zoom level at the time of the last search.
+         * @description Agent user returned from agent search or picker APIs (e.g. connect with an agent).
+         *     Lightweight directory row—brokerage fields appear only when explicitly added by the route.
+         * @example {
+         *       "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+         *       "name": "Taylor Agent",
+         *       "email": "taylor.agent@example.com",
+         *       "phone": "+15553334444",
+         *       "created_at": "2024-03-10T11:00:00.000Z"
+         *     }
          */
-        map_zoom?: number | null;
+        AgentSearchResult: {
+            /** @description Agent application user id. */
+            id: string;
+            /** @description Public-facing agent name. */
+            name: string;
+            /**
+             * Format: email
+             * @description Contact email for the agent record.
+             */
+            email: string;
+            /** @description Office or mobile phone when exposed to search callers. */
+            phone?: string | null;
+            /**
+             * Format: date-time
+             * @description ISO 8601 timestamp of agent user creation when returned by search.
+             */
+            created_at?: string | null;
+            /**
+             * @description Public profile image URL when available (professional headshot from agent profile,
+             *     otherwise the user account profile picture).
+             */
+            profile_picture?: string | null;
+            /** @description Short public bio or summary for directory cards (e.g. agent_bio). */
+            description?: string | null;
+        };
+        RecommendedAgentResult: components["schemas"]["AgentSearchResult"] & {
+            /**
+             * @description Deterministic v1 relevance score (zip/state/intent heuristics). Higher is better;
+             *     clients may use for ordering only.
+             */
+            relevance_score: number;
+            /** @description Short human-readable reasons for the score (e.g. zip, state, specialty). */
+            match_reasons?: string[] | null;
+        };
+        RecommendedAgentsResponse: components["schemas"]["SuccessResponse"] & {
+            agents?: components["schemas"]["RecommendedAgentResult"][] | null;
+        };
+        /**
+         * @description DocuSign-backed agreement between an agent and buyer, including envelope metadata,
+         *     participant list, optional revisions/history, and denormalized names for list views.
+         *     `docusign_envelope_id` is the primary correlation key with DocuSign.
+         * @example {
+         *       "id": "agr-1a2b3c4d-5e6f-7890-abcd-ef1234567890",
+         *       "agent_id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+         *       "buyer_id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+         *       "title": "Buyer representation — Jordan Client",
+         *       "agreement_type": "buyer_representation",
+         *       "status": "sent",
+         *       "property_address": "742 Evergreen Terrace, Springfield, IL 62704",
+         *       "description": "Standard BRA for spring 2026 search.",
+         *       "docusign_envelope_id": "abc123de-4567-89ab-cdef-0123456789ab",
+         *       "docusign_status": "sent",
+         *       "created_at": "2026-03-01T12:00:00.000Z",
+         *       "updated_at": "2026-03-02T09:30:00.000Z",
+         *       "sent_at": "2026-03-02T09:31:00.000Z",
+         *       "completed_at": null,
+         *       "voided_at": null,
+         *       "agent_name": "Alex Agent",
+         *       "buyer_name": "Jordan Client",
+         *       "buyer_email": "jordan.client@example.com"
+         *     }
+         */
+        Agreement: {
+            id: string;
+            agent_id: string;
+            buyer_id: string;
+            title: string;
+            agreement_type: components["schemas"]["AgreementType"];
+            status: components["schemas"]["AgreementStatus"];
+            /** @description Human-readable property line for titles and notifications. */
+            property_address?: string | null;
+            /** @description Free-text summary or internal notes shown on agreement detail. */
+            description?: string | null;
+            /** @description Current DocuSign envelope UUID used for API callbacks and deep links. */
+            docusign_envelope_id?: string | null;
+            /** @description When set, envelope is created from this DocuSign template instead of PDF revisions. */
+            docusign_source_template_id?: string | null;
+            /** @description Last observed DocuSign composite status string (e.g. sent, completed). */
+            docusign_status?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: date-time */
+            sent_at?: string | null;
+            /** Format: date-time */
+            completed_at?: string | null;
+            /** Format: date-time */
+            voided_at?: string | null;
+            current_revision_id?: string | null;
+            /** @description Storage path to the merged signed PDF after completion. */
+            signed_document_path?: string | null;
+            /** @description Optional path to the completion certificate artifact. */
+            certificate_path?: string | null;
+            participants?: components["schemas"]["AgreementParticipant"][] | null;
+            revisions?: components["schemas"]["AgreementRevision"][] | null;
+            events?: components["schemas"]["AgreementEvent"][] | null;
+            current_revision?: components["schemas"]["AgreementRevision"];
+            agent_name?: string | null;
+            buyer_name?: string | null;
+            /** Format: email */
+            buyer_email?: string | null;
+        };
+        AgreementEvent: {
+            id: string;
+            agreement_id: string;
+            event_type: string;
+            status?: components["schemas"]["AgreementStatus"];
+            actor_id?: string | null;
+            /** @description DocuSign or workflow-specific event payload (keys vary by event_type). */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            /** Format: date-time */
+            created_at: string;
+            actor_name?: string | null;
+        };
+        AgreementParticipant: {
+            id: string;
+            agreement_id: string;
+            user_id?: string | null;
+            /** Format: email */
+            email: string;
+            name: string;
+            role: components["schemas"]["ParticipantRole"];
+            docusign_recipient_id?: string | null;
+            recipient_id?: string | null;
+            recipient_status?: string | null;
+            status?: components["schemas"]["ParticipantStatus"];
+            routing_order: number;
+            signing_order?: number | null;
+            sent_at?: string | null;
+            delivered_at?: string | null;
+            signed_at?: string | null;
+            declined_at?: string | null;
+            declined_reason?: string | null;
+            created_at?: string | null;
+            updated_at?: string | null;
+        };
+        AgreementRevision: {
+            id: string;
+            agreement_id: string;
+            version_number: number;
+            filename: string;
+            /** @description Alternative field name */
+            file_name?: string | null;
+            file_path: string;
+            s3_key?: string | null;
+            file_size?: number | null;
+            created_by: string;
+            notes?: string | null;
+            created_at: string;
+            created_by_name?: string | null;
+            file_hash?: string | null;
+            mime_type?: string | null;
+            template_id?: string | null;
+        };
+        /**
+         * @description Internal agreement lifecycle (aligned with DocuSign envelope progression):
+         *     - `draft`: Built locally, not yet sent to signers
+         *     - `sent`: Envelope dispatched to recipients
+         *     - `delivered`: At least one recipient has opened the envelope
+         *     - `signed`: All required signatures captured (may still be processing)
+         *     - `completed`: Envelope finished and artifacts stored
+         *     - `voided`: Canceled per agent or system; not legally effective
+         *     - `declined`: A recipient explicitly declined to sign
+         * @enum {string}
+         */
+        AgreementStatus: "draft" | "sent" | "delivered" | "signed" | "completed" | "voided" | "declined";
+        /**
+         * @description Template/category for the agreement row (`agreements.agreement_type`, VARCHAR). Drives
+         *     which DocuSign template or checklist path is used and how the UI groups items.
+         *     Values mean:
+         *     - `buyer_representation`: Agency / buyer representation agreement
+         *     - `offer`: Purchase offer or counter package
+         *     - `inspection_addendum`: Inspection-related addenda or amendments
+         *     - `financing_contingency`: Financing or loan contingency documents
+         *     - `closing_disclosure`: CD / settlement-related disclosures
+         *     - `other`: Catch-all custom agreement type
+         *     - `uploaded_document`: Checklist-linked upload not from a standard template
+         * @enum {string}
+         */
+        AgreementType: "buyer_representation" | "offer" | "inspection_addendum" | "financing_contingency" | "closing_disclosure" | "other" | "uploaded_document" | "checklist_form";
+        /**
+         * @example {
+         *       "success": true,
+         *       "message": null,
+         *       "error": null,
+         *       "user": {
+         *         "auth_user_kind": "session",
+         *         "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *         "email": "jane.buyer@example.com",
+         *         "name": "Jane Buyer"
+         *       },
+         *       "user_sub": "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *       "verification_complete": true,
+         *       "login_failed": false,
+         *       "auto_login_failed": false,
+         *       "needs_verification": false,
+         *       "access_token": null,
+         *       "id_token": null,
+         *       "refresh_token": null,
+         *       "code_delivery": null
+         *     }
+         */
+        AuthResponse: components["schemas"]["SuccessResponse"] & {
+            user?: components["schemas"]["AuthSessionUser"] | null;
+            /**
+             * @deprecated
+             * @description Tokens are stored in HTTP-only cookies. Do not store client-side.
+             */
+            access_token?: string | null;
+            /** @deprecated */
+            id_token?: string | null;
+            /** @deprecated */
+            refresh_token?: string | null;
+            /** @description Cognito subject identifier; mirrors `AuthSessionUser.user_sub` for clients that cache it. */
+            user_sub?: string | null;
+            /** @description True when email/phone verification requirements are satisfied for this session. */
+            verification_complete?: boolean | null;
+            /** @description True when the last password or token exchange attempt failed (check `message` / `error`). */
+            login_failed?: boolean | null;
+            /** @description True when silent refresh or cookie-based auto-login could not establish a session. */
+            auto_login_failed?: boolean | null;
+            code_delivery?: components["schemas"]["CognitoCodeDeliveryDetails"] | null;
+            /** @description True when the user must complete a verification step before full access. */
+            needs_verification?: boolean | null;
+        };
+        /** @description User payload returned on successful auth flows (login, refresh, verify) from create_auth_response. This is not a full UserProfile; use GET /api/v1/user/profile for the complete row shape. */
+        AuthSessionUser: {
+            /**
+             * @description Discriminator for auth success payloads; always `session` for create_auth_response users.
+             * @constant
+             */
+            auth_user_kind: "session";
+            /** Format: email */
+            email: string;
+            user_sub: string;
+            name: string;
+            /** @description Application user id when the row exists; null if not yet linked. */
+            id?: string | null;
+            phone?: string | null;
+            /** @description Role names from user_roles; empty when user row is not linked yet. */
+            roles: string[];
+            /**
+             * @description How the session authenticated relative to linked identities on the user row:
+             *     - `unknown`: Could not classify (legacy or transitional row)
+             *     - `cognito`: Cognito username/password or hosted UI session
+             *     - `google`: Google OAuth identity supplied the tokens
+             *     - `both`: User has linked Cognito and Google identities
+             * @enum {string}
+             */
+            auth_method: "unknown" | "cognito" | "google" | "both";
+        };
+        BulkUpdateFavoritesRequest: {
+            /** @description Replaces the user's favorites; each element is a home object passed to add_or_update_home_basic (same flexible shape as add-favorite). */
+            favorites: components["schemas"]["FavoriteHomePayload"][];
+        };
+        BrokerageSkySlopeCredential: {
+            /** @description Brokerage org id (brokerage_orgs.id) */
+            brokerage_id: string;
+            /**
+             * @description Integration provider identifier
+             * @enum {string}
+             */
+            provider: "skyslope";
+            /** @description Last four characters of the API key (masked display only) */
+            key_last4?: string | null;
+            /** @description Optional SkySlope organization identifier */
+            skyslope_org_id?: string | null;
+            status: components["schemas"]["BrokerageSkySlopeCredentialStatus"];
+            /**
+             * Format: date-time
+             * @description When connection was last verified successfully
+             */
+            last_verified_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        BrokerageSkySlopeCredentialCreateRequest: {
+            /** @description Per-brokerage SkySlope AccessKey (write-only; never returned by GET) */
+            api_key: string;
+            /** @description Per-brokerage SkySlope AccessSecret (write-only; required for live API calls) */
+            access_secret?: string;
+            /** @description Optional SkySlope organization identifier */
+            skyslope_org_id?: string | null;
+        };
+        BrokerageSkySlopeCredentialUpdateRequest: {
+            /** @description Replacement SkySlope AccessKey (write-only) */
+            api_key?: string;
+            /** @description Replacement SkySlope AccessSecret (write-only) */
+            access_secret?: string;
+            skyslope_org_id?: string | null;
+            status?: components["schemas"]["BrokerageSkySlopeCredentialStatus"];
+        };
+        BrokerageSkySlopeCredentialResponse: {
+            success: boolean;
+            data: components["schemas"]["BrokerageSkySlopeCredential"];
+        };
+        /**
+         * @description SkySlope integration credential health status
+         * @enum {string}
+         */
+        BrokerageSkySlopeCredentialStatus: "active" | "invalid" | "pending";
+        BrokerageSkySlopeCredentialTestResponse: {
+            success: boolean;
+            /** @description Safe, non-secret connection test result */
+            message: string;
+        };
+        ChatbotHistoryMessage: {
+            id: string;
+            /** @enum {string} */
+            role: "user" | "assistant";
+            message: string;
+            timestamp: string;
+        };
+        ChatbotHistoryResponse: {
+            messages: components["schemas"]["ChatbotHistoryMessage"][];
+        };
+        ChatbotResponse: {
+            response: string;
+            /** @description LLM function call structure (currently always null, reserved for future OpenAI function calling support) */
+            function_call?: {
+                [key: string]: unknown;
+            } | null;
+            message_id: string;
+            message_summary: string;
+        };
+        ChatbotSendRequest: {
+            message: string;
+        };
+        ChecklistResponse: components["schemas"]["SuccessResponse"] & {
+            checklist?: components["schemas"]["TaskChecklistResponse"];
+        };
+        /** @enum {string} */
+        ChecklistType: "search" | "offer" | "escrow" | "financing" | "closing" | "insurance";
+        /** @description Declarative condition for checklist rules (v1). Evaluates against the effective checked item ids for the same checklist type (API `type` query param). */
+        ChecklistCondition: {
+            /**
+             * @description all_items_checked: true when every id in item_ids is in the checked set. any_item_checked: true when at least one id in item_ids is in the checked set.
+             * @enum {string}
+             */
+            kind: "all_items_checked" | "any_item_checked";
+            /** @description Checklist item ids within the same category that participate in the condition. Empty item_ids: all_items_checked is vacuously true; any_item_checked is false. */
+            item_ids: number[];
+        };
+        ChecklistDispatchAutomationApiResponse: {
+            success: boolean;
+            error?: string | null;
+            setting?: components["schemas"]["ChecklistDispatchAutomationSetting"];
+        };
+        ChecklistDispatchAutomationSetting: {
+            /** @description When true, run configured dispatch when the step is newly checked. */
+            enabled: boolean;
+            channel: components["schemas"]["ChecklistDispatchChannel"];
+            recipientScope: components["schemas"]["ChecklistDispatchRecipientScope"];
+            /** @description Required when recipientScope is selected_clients; subset of agent clients. */
+            selectedClientIds?: string[] | null;
+            noteMode: components["schemas"]["ChecklistDispatchNoteMode"];
+            /** @description Used when noteMode is broadcast. */
+            noteBroadcast?: string | null;
+            /** @description Map of client user id to note when noteMode is per_client. */
+            notesPerClient?: {
+                [key: string]: string;
+            } | null;
+            /**
+             * Format: date-time
+             * @description Last update time when a row exists in the database.
+             */
+            updatedAt?: string | null;
+        };
+        /**
+         * @description How checklist forms are delivered when automation runs or manual send uses this channel.
+         * @enum {string}
+         */
+        ChecklistDispatchChannel: "messaging" | "docusign" | "both";
+        ChecklistFormSendRequest: {
+            /** @enum {string} */
+            method: "docusign" | "messaging" | "both";
+            conversation_id?: string | null;
+            client_id?: string | null;
+            message?: string | null;
+            participants?: {
+                email?: string;
+                name?: string;
+            }[] | null;
+        };
+        ChecklistFormSendResponse: {
+            success: boolean;
+            /** @description Messaging attachment message id when messaging succeeded. */
+            message_id?: string | null;
+            /** @description DocuSign agreement id when signing flow succeeded. */
+            agreement_id?: string | null;
+            /** @description Per-step failures when method is both and one leg failed. */
+            partial_errors?: components["schemas"]["ChecklistFormPartialStepError"][] | null;
+        };
+        ChecklistFormPartialStepError: {
+            /** @enum {string} */
+            step: "messaging" | "docusign";
+            /** @description Stable error code (e.g. VALIDATION_ERROR, FORBIDDEN). */
+            error: string;
+            /** @description Safe user-facing message for the failed step. */
+            message: string;
+        };
+        ChecklistForm: {
+            id: string;
+            /** @description Stable key (e.g. earnest_money, wire_instructions). */
+            form_key: string;
+            title: string;
+            description?: string | null;
+            /** @description S3 object key for the PDF template. */
+            s3_template_path: string;
+            /** @description Library folder (e.g. escrow, financing). */
+            category?: string | null;
+            created_at?: string | null;
+            updated_at?: string | null;
+        };
+        ChecklistFormWithDownload: components["schemas"]["ChecklistForm"] & {
+            /**
+             * Format: uri
+             * @description Presigned S3 URL; null when URL generation fails.
+             */
+            download_url: string | null;
+            /** @description ISO date deadline derived from checklist step timing when available. */
+            deadline?: string | null;
+        };
+        ChecklistItemDocumentsResponse: {
+            success: boolean;
+            data: {
+                agreements: components["schemas"]["Agreement"][];
+            };
+            error?: string | null;
+        };
+        LinkChecklistDocumentApiResponse: {
+            success: boolean;
+            data: {
+                agreement: components["schemas"]["Agreement"];
+            };
+            error?: string | null;
+        };
+        LinkDocumentToChecklistRequest: {
+            /** @description ID of the document to link to checklist item */
+            document_id?: string | null;
+            /** @description ID of the agreement to link to checklist item */
+            agreement_id?: string | null;
+        };
+        /**
+         * @description How optional message text is applied per recipient for messaging (and stored on agreement description for DocuSign).
+         * @enum {string}
+         */
+        ChecklistDispatchNoteMode: "none" | "broadcast" | "per_client";
+        /**
+         * @description Who receives automated dispatches when the hub client checks this step off. `context_client` = only the client whose checklist was updated (the checker). `all_agent_clients` = every client linked to the configuring agent. `selected_clients` = subset listed in selectedClientIds.
+         * @enum {string}
+         */
+        ChecklistDispatchRecipientScope: "context_client" | "all_agent_clients" | "selected_clients";
+        ClientAvailabilityRequest: {
+            /**
+             * Format: date-time
+             * @description Start of availability window
+             */
+            start_date: string;
+            /**
+             * Format: date-time
+             * @description End of availability window
+             */
+            end_date: string;
+            /** @description Timezone for results */
+            timezone?: string | null;
+        };
+        ClientAvailabilityResponse: components["schemas"]["SuccessResponse"] & {
+            availability?: {
+                /** Format: date-time */
+                start?: string;
+                /** Format: date-time */
+                end?: string;
+                /** @enum {string} */
+                status?: "free" | "busy";
+            }[];
+        };
+        ClientErrorReport: {
+            /** @description Error message or stack trace */
+            error_message: string;
+            /** @description URL where error occurred */
+            url?: string | null;
+            /** @description Browser user agent */
+            user_agent?: string | null;
+            /** @description Client-side timestamp */
+            timestamp?: string | null;
+            /** @description Additional error context */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        ClientInfo: {
+            id?: string;
+            name?: string;
+            /** Format: email */
+            email?: string;
+        };
+        /**
+         * @description Client match from agent-side client search (typeahead or directory). Same core
+         *     fields as `AgentClient`; used as items in `SearchClientsResponse`.
+         * @example {
+         *       "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+         *       "name": "Jordan Client",
+         *       "email": "jordan.client@example.com",
+         *       "phone": "+15551112222",
+         *       "profile_picture": "profiles/c3d4e5f6-a7b8-9012-cdef-345678901234.jpg",
+         *       "created_at": "2025-08-01T16:45:00.000Z"
+         *     }
+         */
+        ClientSearchResult: {
+            /** @description Client application user id. */
+            id: string;
+            /** @description Resolved display name for list and picker rows. */
+            name: string;
+            /**
+             * Format: email
+             * @description Primary email used for matching the query.
+             */
+            email: string;
+            /** @description Secondary match field when search includes phone tokens. */
+            phone?: string | null;
+            /** @description Storage key for thumbnail in search results. */
+            profile_picture?: string | null;
+            /**
+             * Format: date-time
+             * @description ISO 8601 timestamp for sort-by-recent when provided.
+             */
+            created_at?: string | null;
+        };
+        ClientsPreferencesResponse: components["schemas"]["SuccessResponse"] & {
+            preferences?: {
+                client?: components["schemas"]["ClientInfo"];
+                preferences?: components["schemas"]["PreferencesResponse"];
+            }[] | null;
+        };
+        DeletePreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
+            /** @enum {boolean} */
+            has_preferences: false;
+            preferences?: unknown;
+            /** @description Confirmation copy after clearing preferences. */
+            message?: string;
+        };
+        GetPreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
+            preferences?: components["schemas"]["PreferencesResponse"];
+            /** @description True when the user has persisted preference rows. */
+            has_preferences?: boolean;
+        };
+        GetUserPreferencesByIdApiResponse: components["schemas"]["SuccessResponse"] & {
+            preferences?: components["schemas"]["PreferencesResponse"];
+        };
+        ClientsResponse: {
+            success?: boolean;
+            clients?: components["schemas"]["ClientInfo"][] | null;
+        };
+        /** @description User-scoped client UI settings (library layout/sort, saved tab, calendar view, optional onboarding draft). Stored as a versioned JSON document; GET returns merged defaults for missing keys. */
+        ClientSettings: {
+            /** @description Document version (client/schema). */
+            v?: number;
+            library?: {
+                homes?: components["schemas"]["LibraryTabClientSettings"];
+                documents?: components["schemas"]["LibraryTabClientSettings"];
+                docusign?: components["schemas"]["LibraryTabClientSettings"];
+            };
+            saved?: {
+                /** @enum {string} */
+                tab?: "homes" | "documents" | "forms-library" | "agreements";
+            };
+            calendar?: {
+                /**
+                 * @description Main calendar shell (agent dashboard / Google-connected calendar).
+                 * @enum {string}
+                 */
+                shell?: "week" | "month";
+            };
+            /** @description Partial onboarding / profile form payload for refresh recovery. Omitted when empty. */
+            onboarding_draft?: {
+                [key: string]: unknown;
+            } | null;
+        } & {
+            [key: string]: unknown;
+        };
+        ClientSettingsResponse: components["schemas"]["SuccessResponse"] & {
+            client_settings?: components["schemas"]["ClientSettings"];
+        };
+        CommuteData: {
+            travel_times: {
+                name?: string;
+                address?: string;
+                travel_time?: string;
+                commute_tolerance?: number;
+                /** @description Google-encoded overview polyline for the driving route from the listing to this location (Directions API). */
+                encoded_polyline?: string | null;
+            }[];
+            property_address: string;
+        };
+        CompareReportsRequest: {
+            report_ids: string[];
+            s3Keys?: string[] | null;
+        };
+        CompareReportsResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description LLM-generated comparison structure (shape varies by comparison type) */
+            comparison_data?: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Structured comparison table (shape varies by properties being compared) */
+            table?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** @description AWS Cognito CodeDeliveryDetails — where a verification code was sent. */
+        CognitoCodeDeliveryDetails: {
+            DeliveryMedium?: components["schemas"]["CognitoEmailSmsMedium"];
+            /** @description Masked destination (e.g., 'j***@example.com' or '+1***1234') */
+            Destination?: string;
+            /** @description Attribute being verified (e.g., 'email') */
+            AttributeName?: string;
+        };
+        /**
+         * @description Value of Cognito `CodeDeliveryDetails.DeliveryMedium` (EMAIL or SMS).
+         * @enum {string}
+         */
+        CognitoEmailSmsMedium: "EMAIL" | "SMS";
+        ConnectionRequestsResponse: components["schemas"]["SuccessResponse"] & {
+            requests?: components["schemas"]["AgentConnectionRequest"][] | null;
+        };
+        ConnectionStatusResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Whether Google Calendar is connected */
+            connected?: boolean;
+            /**
+             * Format: email
+             * @description Connected Google account email
+             */
+            email?: string | null;
+            /** @description Granted OAuth scopes */
+            scopes?: string[] | null;
+        };
+        CoverLetterRequest: {
+            property_address: string;
+            buyer_story: string;
+            offer_highlights: string[];
+        };
+        CreateAgreementRequest: {
+            title: string;
+            agreement_type: components["schemas"]["AgreementType"];
+            buyer_id: string;
+            property_address?: string | null;
+            description?: string | null;
+            /** @description When set, this agreement is sent using this DocuSign template ID instead of an uploaded PDF revision. Omit revisions for template-only agreements until send. */
+            docusign_source_template_id?: string | null;
+        };
+        CreateAgreementResponse: components["schemas"]["SuccessResponse"] & {
+            agreement?: components["schemas"]["Agreement"];
+        };
+        CreateCalendarRequest: {
+            /** @description Calendar name/title */
+            summary: string;
+            /** @description Calendar description */
+            description?: string | null;
+            /** @description Calendar timezone (defaults to user's timezone) */
+            timeZone?: string | null;
+        };
+        CreateConnectionRequestRequest: {
+            agent_id: string;
+            client_id: string;
+            message?: string | null;
+        };
+        CreateConnectionRequestResponse: components["schemas"]["SuccessResponse"] & {
+            request?: components["schemas"]["AgentConnectionRequest"];
+            /** @description True when pending request already existed */
+            already_pending?: boolean | null;
+        };
+        CreateConversationRequest: {
+            client_id: string;
+        };
+        CreateConversationResponse: components["schemas"]["SuccessResponse"] & {
+            conversation?: components["schemas"]["AgentConversation"];
+        };
+        CreateParticipantRequest: {
+            /**
+             * Format: email
+             * @description Participant email address
+             */
+            email: string;
+            /** @description Participant full name */
+            name: string;
+            role: components["schemas"]["ParticipantRole"];
+            /** @description Signing order (defaults to next available) */
+            routing_order?: number | null;
+            /** @description SilverKey user ID (required) */
+            user_id: string;
+        };
+        CreateParticipantResponse: components["schemas"]["SuccessResponse"] & {
+            participant?: components["schemas"]["AgreementParticipant"];
+        };
+        /** @description Create or update user preferences */
+        CreatePreferencesRequest: {
+            /** @description Buyer communication preference — text, call, or email (user_communication_prefs) */
+            preferred_contact_method?: string;
+            /** @description Update cadence — as_things_come_up, weekly_check_in, or daily */
+            communication_frequency?: string;
+            /** @description Versioned buyer preference extensions (v1 JSON) */
+            extended_buyer_preferences?: {
+                /** @description SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation */
+                buyer_about_me?: {
+                    [key: string]: unknown;
+                };
+                /** @description SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc. */
+                price_financing?: {
+                    [key: string]: unknown;
+                };
+            } & {
+                [key: string]: unknown;
+            };
+            /** @description Intent attribute — true when buyer pays cash */
+            paying_cash?: boolean;
+        } & {
+            [key: string]: unknown;
+        };
+        CreateRevisionResponse: components["schemas"]["SuccessResponse"] & {
+            revision?: components["schemas"]["AgreementRevision"];
+        };
+        CreateSilverkeyCalendarRequest: {
+            /** @description Force creation even if SilverKey calendar already exists */
+            force?: boolean | null;
+        };
+        /**
+         * @description Payload for creating an agent todo. Only `title` is required; omit `client_id` for
+         *     personal tasks. `type` defaults in the API when omitted—see TodoItem enum for meanings.
+         * @example {
+         *       "title": "Follow up on pre-approval",
+         *       "due_date": "2026-04-12",
+         *       "type": "follow_up",
+         *       "client_id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+         *       "description": "Check in if no doc upload by Tuesday."
+         *     }
+         */
+        CreateTodoRequest: {
+            /** @description Short label shown in lists and notifications. */
+            title: string;
+            /** @description Optional ISO 8601 due date or datetime; null for undated tasks. */
+            due_date?: string | null;
+            /**
+             * @description Task category: `deadline`, `follow_up`, `inspection`, `offer_expiration`, `closing`, or `manual`
+             *     (same semantics as `TodoItem.type`).
+             * @enum {string|null}
+             */
+            type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual" | null;
+            /** @description Associate the task with a specific client when set. */
+            client_id?: string | null;
+            /** @description Longer notes or checklist context for the assignee. */
+            description?: string | null;
+        };
+        CreateTodoResponse: components["schemas"]["SuccessResponse"] & {
+            todo?: components["schemas"]["TodoItem"];
+        };
+        DashboardResponse: components["schemas"]["SuccessResponse"] & {
+            document?: components["schemas"]["WorkflowDocumentRecord"];
+        };
+        DeleteEventResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Whether event was successfully deleted */
+            deleted?: boolean;
+        };
+        DeleteMyAccountRequest: {
+            /**
+             * @description Must be true to confirm irreversible account deletion.
+             * @enum {boolean}
+             */
+            confirm: true;
+        };
+        DeleteReportRequest: {
+            /** @description S3 key for the report to delete */
+            s3_key?: string | null;
+        };
+        DeleteReportResponse: components["schemas"]["SuccessResponse"];
+        DeleteUserRequest: {
+            /** @description ID of user to delete */
+            user_id: string;
+            /** @description Must be true to confirm deletion */
+            confirm: boolean;
+        };
+        DeleteUserResponse: components["schemas"]["SuccessResponse"] & {
+            deleted_user_id?: string | null;
+        };
+        DownloadChecklistFormResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            download_url: string;
+        };
+        DevUserDataResetRequest: {
+            /** @description Must be true to confirm the reset. */
+            confirm: boolean;
+            /** @description Data domains to clear for the target user. */
+            scopes: ("profile" | "preferences" | "docusign" | "transaction_steps" | "s3" | "connections")[];
+            /** @description Target user UUID. Omit to reset the signed-in admin. Super_admin only when set to another user. */
+            user_id?: string | null;
+        };
+        DevUserDataResetResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description User whose data was reset. */
+            target_user_id: string;
+            /** @description Map of scope name to true when that scope was applied. */
+            cleared: {
+                [key: string]: boolean;
+            };
+        };
+        /**
+         * @description Single row in the unified document library: either a user upload or a DocuSign-backed
+         *     agreement. Use `library_kind` to branch UI; `status` reflects upload pipeline or
+         *     envelope state depending on kind.
+         * @example {
+         *       "document_record_kind": "library",
+         *       "library_item_id": "lib-1a2b3c4d-5e6f-7890-abcd-ef1234567890",
+         *       "library_kind": "agreement",
+         *       "id": "docusign-envelope-abc123def456",
+         *       "filename": "Disclosure_Package.pdf",
+         *       "file_path": "library/a1b2c3d4/disclosure-package.pdf",
+         *       "status": "completed",
+         *       "created_at": "2026-02-10T09:00:00.000Z",
+         *       "updated_at": "2026-02-11T14:20:00.000Z",
+         *       "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *       "document_type": "disclosure",
+         *       "address": "742 Evergreen Terrace, Springfield, IL 62704",
+         *       "agreement_type": "BUYER_REPRESENTATION",
+         *       "event_type": null
+         *     }
+         */
+        DocumentLibraryListItem: {
+            /**
+             * @description Discriminator for OpenAPI tooling; always `library` for unified library list rows.
+             * @constant
+             */
+            document_record_kind: "library";
+            library_item_id: string;
+            /**
+             * @description Source of the row:
+             *     - `upload`: User- or agent-uploaded file in storage
+             *     - `agreement`: DocuSign envelope or generated agreement tracked in agreements service
+             * @enum {string}
+             */
+            library_kind: "upload" | "agreement";
+            id: string;
+            filename: string;
+            file_path: string;
+            /** @description Normalized status string (upload lifecycle or agreement/envelope phase; compare to `library_kind`). */
+            status: string;
+            created_at?: string | null;
+            updated_at?: string | null;
+            user_id: string;
+            document_type?: string | null;
+            address?: string | null;
+            agreement_type?: string | null;
+            /** @description When this agreement is linked to a checklist step, the key `{checklist_category}.{item_id}` (e.g. `offer.3`, `insurance.2`). */
+            linked_checklist_item_id?: string | null;
+            /**
+             * @description MLS-style listing event when the library item ties to a feed update:
+             *     - `listed`: New listing associated with documents
+             *     - `price_change`: Price update triggering revised paperwork
+             *     - `sold`: Closed transaction context
+             *     - `withdrawn`: Listing canceled or taken off market
+             * @enum {string|null}
+             */
+            event_type?: "listed" | "price_change" | "sold" | "withdrawn" | null;
+        };
+        DocumentLibraryResponse: components["schemas"]["SuccessResponse"] & {
+            items?: components["schemas"]["DocumentLibraryListItem"][] | null;
+            /** @description Number of items in this response page; `pagination.total` is the full library size */
+            count?: number | null;
+            pagination?: components["schemas"]["Pagination"];
+        };
+        /**
+         * @description Buyer/agent workflow document on the dashboard (review, signing, expiry). Distinct from file pipeline rows (`UploadedDocumentRecord`) and unified Saved list rows (`DocumentLibraryListItem`).
+         * @example {
+         *       "document_record_kind": "workflow",
+         *       "id": "doc-wf-7f8e9d0c-1b2a-3948-8576-543210fedcba",
+         *       "name": "Purchase Agreement - 742 Evergreen Terrace",
+         *       "file_path": "workflows/a1b2c3d4/agreements/purchase-agreement.pdf",
+         *       "file_size": 524288,
+         *       "file_type": "application/pdf",
+         *       "category": "offer",
+         *       "property_id": "prop-12345678",
+         *       "offer_id": "offer-9a8b7c6d-5e4f-3210-abcd-ef1234567890",
+         *       "uploaded_by": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *       "uploaded_at": "2026-03-28T15:30:00.000Z",
+         *       "is_signed": false,
+         *       "expiry_date": "2026-04-15",
+         *       "status": "pending",
+         *       "address": "742 Evergreen Terrace, Springfield, IL 62704",
+         *       "document_type": "purchase_agreement"
+         *     }
+         */
+        WorkflowDocumentRecord: {
+            /**
+             * @description Discriminator for OpenAPI tooling; always `workflow` for this shape.
+             * @constant
+             */
+            document_record_kind: "workflow";
+            id: string;
+            name: string;
+            /** @description Storage key or path for the PDF/binary in the workflow bucket. */
+            file_path: string;
+            /** @description Byte length of the stored object. */
+            file_size: number;
+            /** @description MIME type as stored (e.g. application/pdf). */
+            file_type: string;
+            /** @description Workflow grouping (e.g. offer, disclosure) for dashboard filters. */
+            category: string;
+            /** @description Linked listing identifier when the document belongs to a specific property. */
+            property_id?: string | null;
+            /** @description Linked offer workflow when this file is part of an active offer package. */
+            offer_id?: string | null;
+            uploaded_by: string;
+            uploaded_at: string;
+            is_signed?: boolean | null;
+            expiry_date?: string | null;
+            /**
+             * @description Review and signing workflow state for this document:
+             *     - `pending`: Awaiting agent or compliance review
+             *     - `approved`: Cleared for signing or distribution
+             *     - `rejected`: Send back for corrections or re-upload
+             *     - `expired`: Past allowed signing or review window
+             * @enum {string}
+             */
+            status: "pending" | "approved" | "rejected" | "expired";
+            address?: string | null;
+            document_type?: string | null;
+        };
+        DocumentsResponse: components["schemas"]["SuccessResponse"] & {
+            documents?: components["schemas"]["UploadedDocumentRecord"][] | null;
+            count?: number | null;
+            total?: number | null;
+            limit?: number | null;
+            offset?: number | null;
+            hasMore?: boolean | null;
+        };
+        /** @description Optional per-send override for DocuSign envelope notification (reminders + expirations). When omitted, server defaults from environment apply. */
+        DocuSignEnvelopeNotificationInput: {
+            /** @description When true, DocuSign account defaults apply and reminders/expirations below are ignored. */
+            use_account_defaults?: boolean | null;
+            reminders?: components["schemas"]["DocuSignRemindersInput"];
+            expirations?: components["schemas"]["DocuSignExpirationsInput"];
+        };
+        /** @description Sender-level prefill tabs (not tied to a recipient). */
+        DocuSignEnvelopePrefillTabsInput: {
+            text_fields?: components["schemas"]["DocuSignPrefillTextTabInput"][] | null;
+            checkboxes?: components["schemas"]["DocuSignPrefillCheckboxTabInput"][] | null;
+        };
+        /** @description DocuSign envelope expiration settings (maps to notification.expirations). */
+        DocuSignExpirationsInput: {
+            expire_enabled?: boolean | null;
+            /** @description Days until the envelope expires after send. */
+            expire_after?: number | null;
+            /** @description Days before expiry to send a warning. */
+            expire_warn?: number | null;
+        };
+        DocuSignParticipantTabPrefillInput: {
+            /** @description SilverKey agreement participant UUID (DocuSign recipientId). */
+            participant_id: string;
+            text_fields?: components["schemas"]["DocuSignPrefillTextTabInput"][] | null;
+            checkboxes?: components["schemas"]["DocuSignPrefillCheckboxTabInput"][] | null;
+        };
+        DocuSignPrefillCheckboxTabInput: {
+            tab_label: string;
+            selected?: boolean | null;
+            locked?: boolean | null;
+            /** @default 1 */
+            document_id: string | null;
+            page_number?: number | null;
+            x_position?: number | null;
+            y_position?: number | null;
+            anchor_string?: string | null;
+            anchor_x_offset?: string | null;
+            anchor_y_offset?: string | null;
+        };
+        DocuSignPrefillTextTabInput: {
+            /** @description DocuSign tabLabel; must match template/PDF placement or anchor. */
+            tab_label: string;
+            value?: string | null;
+            /** @description When true, signer cannot edit (read-only tab). */
+            locked?: boolean | null;
+            /** @default 1 */
+            document_id: string | null;
+            page_number?: number | null;
+            x_position?: number | null;
+            y_position?: number | null;
+            anchor_string?: string | null;
+            anchor_x_offset?: string | null;
+            anchor_y_offset?: string | null;
+            /** @description e.g. size10 */
+            font_size?: string | null;
+        };
+        /** @description DocuSign envelope reminder settings (maps to notification.reminders). */
+        DocuSignRemindersInput: {
+            /** @description When false, disables reminder emails for this envelope. */
+            reminder_enabled?: boolean | null;
+            /** @description Days after send before the first reminder. */
+            reminder_delay?: number | null;
+            /** @description Days between subsequent reminders. */
+            reminder_frequency?: number | null;
+        };
+        DocusignAgreementDownloadUrlResponse: components["schemas"]["SuccessResponse"] & {
+            /**
+             * Format: uri
+             * @description Pre-signed S3 URL for viewing or downloading the agreement PDF.
+             */
+            download_url: string;
+            /** @description Optional expiration timestamp for the pre-signed URL. Handler currently returns null. */
+            expires_at?: string | null;
+        };
+        DocusignCreateTemplateMetadataInput: {
+            /** @description Display name for the DocuSign template. */
+            name: string;
+            description?: string | null;
+            /** @description Ordered signer role names (e.g. Agent, Buyer). Must match the number of signers you will assign in DocuSign after opening the template editor. */
+            roles: string[];
+        };
+        DocusignCreateTemplateMultipartRequest: {
+            /** @description JSON string for DocusignCreateTemplateMetadataInput (name, description, roles). */
+            metadata: string;
+            /** @description One or more PDF files (document order matches upload order). */
+            files: string[];
+            /**
+             * Format: binary
+             * @description Optional singular alias for a single PDF; backend also accepts file instead of files.
+             */
+            file?: string;
+        };
+        DocusignCreateTemplateResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description SilverKey row id for the cached template record. */
+            id?: string | null;
+            /** @description DocuSign template GUID (envelope template id). */
+            template_id?: string | null;
+            /** @description URL to open DocuSign template editor (place fields). */
+            edit_url?: string | null;
+        };
+        DocusignDeleteTemplateResponse: components["schemas"]["SuccessResponse"] & {
+            message?: string | null;
+        };
+        DocusignGetTemplateDetailResponse: components["schemas"]["SuccessResponse"] & {
+            template_id?: string | null;
+            name?: string | null;
+            description?: string | null;
+            roles?: components["schemas"]["DocusignTemplateRoleInfo"][] | null;
+        };
+        DocusignGetTemplateEditUrlResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description URL to open DocuSign template editor. */
+            edit_url?: string | null;
+        };
+        DocusignListTemplatesResponse: components["schemas"]["SuccessResponse"] & {
+            templates?: components["schemas"]["DocusignTemplateListItem"][] | null;
+        };
+        DocusignOAuthStartResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            auth_url?: string | null;
+        };
+        DocusignResendRecipientRequest: {
+            /** @description Agreement participant id (signer); email uses server-stored value. */
+            participant_id: string;
+            /** @description Private note included with the resend (DocuSign signer note). */
+            note?: string | null;
+        };
+        DocusignResendRecipientResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description DocuSign RecipientsUpdateSummary or error detail. */
+            detail?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        DocusignTemplate: {
+            id: string;
+            template_id: string;
+            name: string;
+            description?: string | null;
+            agreement_type?: components["schemas"]["AgreementType"];
+            is_active: boolean;
+            last_synced_at: string;
+            created_at: string;
+            updated_at: string;
+        };
+        DocusignTemplateListItem: {
+            id: string;
+            name: string;
+            is_active?: boolean | null;
+        };
+        DocusignTemplateRoleInfo: {
+            role_name: string;
+            /** @description Signing order when set on the template role. */
+            routing_order?: number | null;
+        };
+        DocusignTemplateRoleMapEntry: {
+            /** @description Agreement participant id (UUID). */
+            participant_id: string;
+            /** @description DocuSign template role name this participant fills. */
+            role_name: string;
+        };
+        /** @description Update in-flight envelope reminder/expiration settings. */
+        DocusignUpdateEnvelopeNotificationRequest: {
+            use_account_defaults?: boolean | null;
+            reminders?: components["schemas"]["DocuSignRemindersInput"];
+            expirations?: components["schemas"]["DocuSignExpirationsInput"];
+        };
+        DocusignUpdateEnvelopeNotificationResponse: components["schemas"]["SuccessResponse"] & {
+            notification?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** @description DocuSign Connect webhook payload */
+        DocusignWebhookPayload: {
+            /** @description Webhook event type */
+            event?: string;
+            /** @description DocuSign envelope ID */
+            envelopeId?: string | null;
+            /** @description Envelope status */
+            status?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        DownloadUrlResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            downloadUrl?: string | null;
+            expires_at?: string | null;
+        };
+        EarnestMoneyRequest: {
+            property_address: string;
+            earnest_amount: number;
+            escrow_company: string;
+        };
+        /** @description Empty JSON body for POST/PUT/PATCH routes with no request fields (cookie auth, path-only, or multipart file handled outside OpenAPI body validation). Client may send {}. */
+        EmptyRequest: Record<string, never>;
+        /**
+         * @description Standard error envelope for JSON APIs. `success` is always false; `error` is a stable
+         *     code for clients, while `message` is safe to show to users. Use `error_id` when
+         *     correlating with server logs; `field_errors` carries validation details when present.
+         */
+        ErrorResponse: {
+            /** @enum {boolean} */
+            success: false;
+            /** @description Machine-oriented error code or short error type (e.g. validation_error, GOOGLE_OAUTH_FAILED). */
+            error: string;
+            /** @description Human-readable message when provided. */
+            message?: string | null;
+            /** @description Unique error tracking ID from SecureErrorHandler (short UUID prefix) for server-side log correlation. */
+            error_id?: string | null;
+            /** @description True when the client may retry (e.g. transient Google token refresh / network failures, 503-style cases). */
+            retryable?: boolean | null;
+            /** @description Per-field validation messages from SecureErrorHandler (sanitized string per field); some validators may emit multiple messages per field as an array. */
+            field_errors?: {
+                [key: string]: string | string[];
+            } | null;
+            /**
+             * @deprecated
+             * @description Deprecated — use `field_errors`. Removed from SecureErrorHandler output; retained one release for client backward compatibility.
+             */
+            validation_errors?: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Additional context as plain text or structured map. */
+            details?: string | {
+                [key: string]: unknown;
+            } | null;
+            /** @description Optional HTTP status echoed in the JSON body; the authoritative status is the response status line. */
+            status_code?: number | null;
+            /** @description Suggested delay in seconds before retrying (e.g. rate limit responses). */
+            retry_after?: number | null;
+            /** @description Allowed values hint (e.g. some file upload error responses). */
+            allowed_types?: string[] | null;
+        };
+        /** @enum {string} */
+        EventRequestStatus: "pending" | "accepted" | "cancelled";
+        /** @description Flexible home object accepted by favorite/not-interested upsert (search listing shape, alternate keys like imageUrl/beds/bedrooms). Validated in handlers; address required where the route documents it. additionalProperties is true because upstream listing and client payloads use many optional, versioned, or provider-specific keys. */
+        FavoriteHomePayload: {
+            [key: string]: unknown;
+        };
+        /** @description Parallel pagination for GET /favorite-homes: `favorites` and `listings` share the same page and per_page slice; each stream has its own totals. */
+        FavoriteHomesPagination: {
+            favorites: components["schemas"]["Pagination"];
+            listings: components["schemas"]["Pagination"];
+        };
+        FavoriteHomesReplaceResponse: components["schemas"]["SuccessResponse"] & {
+            favorites?: components["schemas"]["SavedHome"][] | null;
+        };
+        /**
+         * @example {
+         *       "success": true,
+         *       "message": null,
+         *       "error": null,
+         *       "favorites": [
+         *         {
+         *           "id": "fav-8c2e9b1a-4d3f-5e6a-7b8c-9d0e1f2a3b4c",
+         *           "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *           "isLiked": true,
+         *           "current": true,
+         *           "address": "742 Evergreen Terrace",
+         *           "city": "Springfield",
+         *           "state": "IL",
+         *           "zipcode": "62704",
+         *           "beds": "4",
+         *           "baths": "2.5",
+         *           "sqft": "2400",
+         *           "price": "425000",
+         *           "zpid": "12345678"
+         *         }
+         *       ],
+         *       "listings": [],
+         *       "pagination": {
+         *         "limit": 20,
+         *         "offset": 0,
+         *         "totalFavorites": 12,
+         *         "totalListings": 0,
+         *         "hasMoreFavorites": false,
+         *         "hasMoreListings": false
+         *       }
+         *     }
+         */
+        FavoriteHomesResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Explicitly saved (liked) properties for the authenticated user. */
+            favorites?: components["schemas"]["SavedHome"][] | null;
+            /** @description Additional tracked listings (e.g. pipeline) when the endpoint returns both buckets. */
+            listings?: components["schemas"]["SavedHome"][] | null;
+            /** @description Limits, offsets, and totals for favorites and listings lists. */
+            pagination?: components["schemas"]["FavoriteHomesPagination"];
+        };
+        FeedCommentApiShape: {
+            id: string;
+            user: {
+                id?: string;
+                name?: string;
+                /** Format: uri */
+                avatarUrl?: string | null;
+            };
+            text: string;
+            createdAt: string;
+            likes?: number | null;
+        };
+        FeedCommentsResponse: {
+            comments: components["schemas"]["FeedCommentApiShape"][];
+        };
+        FeedLikeEntry: {
+            count: number;
+            isLikedByMe: boolean;
+        };
+        FeedLikesResponse: {
+            likes: {
+                [key: string]: components["schemas"]["FeedLikeEntry"];
+            };
+        };
+        FeedListing: {
+            id: string;
+            /** Format: uri */
+            thumbnailUrl: string;
+            /** Format: uri */
+            videoUrl?: string | null;
+            /** Format: uri */
+            audioSpeechUrl?: string | null;
+            /** Format: uri */
+            audioSongUrl?: string | null;
+            user: {
+                id?: string;
+                name?: string;
+                /** Format: uri */
+                avatarUrl?: string | null;
+            };
+            stats: {
+                likes?: number;
+                comments?: number;
+                shares?: number;
+            };
+            images: string[];
+        };
+        FeedResponse: {
+            items: components["schemas"]["FeedListing"][];
+            hasMore: boolean;
+            cursor?: string | null;
+        };
+        ForgotPasswordData: {
+            /**
+             * Format: email
+             * @description Email address for password reset
+             */
+            email: string;
+        };
+        ForgotPasswordResponse: components["schemas"]["SuccessResponse"] & {
+            code_delivery?: components["schemas"]["CognitoCodeDeliveryDetails"] | null;
+        };
+        FormsLibraryCategory: {
+            /** @description Category folder name (e.g. escrow). */
+            name: string;
+            forms: components["schemas"]["ChecklistFormWithDownload"][];
+        };
+        FormsLibraryDownloadResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            download_url: string;
+            form: components["schemas"]["ChecklistForm"];
+        };
+        FormsLibraryResponse: components["schemas"]["SuccessResponse"] & {
+            categories?: components["schemas"]["FormsLibraryCategory"][] | null;
+        };
+        FreebusyRequest: {
+            /**
+             * Format: date-time
+             * @description Start of time range
+             */
+            timeMin: string;
+            /**
+             * Format: date-time
+             * @description End of time range
+             */
+            timeMax: string;
+            items: {
+                /** @description Calendar ID */
+                id: string;
+            }[];
+            /** @description Timezone for response (defaults to UTC) */
+            timeZone?: string | null;
+        };
+        FreebusyResponse: {
+            calendars: {
+                [key: string]: {
+                    busy?: {
+                        /** Format: date-time */
+                        start?: string;
+                        /** Format: date-time */
+                        end?: string;
+                    }[];
+                    errors?: {
+                        domain?: string;
+                        reason?: string;
+                    }[];
+                };
+            };
+        };
+        GenerateReportRequest: {
+            address: string;
+            /** @description For agent client selection */
+            user_id?: string | null;
+            marketing_model?: boolean | null;
+        };
+        GenerateReportResponse: components["schemas"]["SuccessResponse"] & {
+            document_id?: string | null;
+        };
+        GetAgreementResponse: components["schemas"]["SuccessResponse"] & {
+            agreement?: components["schemas"]["Agreement"];
+        };
+        GetChecklistItemFormsResponse: components["schemas"]["SuccessResponse"] & {
+            forms?: components["schemas"]["ChecklistFormWithDownload"][] | null;
+        };
+        GetDashboardResponse: components["schemas"]["SuccessResponse"] & {
+            user: components["schemas"]["UserProfile"];
+        };
+        GetLoggerConfigResponse: components["schemas"]["SuccessResponse"] & {
+            config?: components["schemas"]["DeploymentLoggerConfig"];
+        };
+        /** @description Resolved frontend logger category toggles with nested API subcategories plus logLevel. */
+        ClientLoggerConfig: {
+            polling: boolean;
+            pages: boolean;
+            hooks: boolean;
+            auth: boolean;
+            http: boolean;
+            api: boolean | components["schemas"]["ClientApiSubcategoryConfig"];
+            errors: boolean;
+            security: boolean;
+            search: boolean;
+            polygonSearch: boolean;
+            mapRendering: boolean;
+            propertyDetails: boolean;
+            negotiation: boolean;
+            checklists: boolean;
+            calendar: boolean;
+            dashboard: boolean;
+            messages: boolean;
+            feed: boolean;
+            routing: boolean;
+            docusign: boolean;
+            documents: boolean;
+            transactions: boolean;
+            profilePreferences: boolean;
+            /** @enum {string} */
+            logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR";
+        };
+        /** @description Partial frontend logger config for admin updates. All fields optional; server deep-merges into stored deployment overrides. */
+        ClientLoggerConfigPatch: {
+            polling?: boolean;
+            pages?: boolean;
+            hooks?: boolean;
+            auth?: boolean;
+            http?: boolean;
+            api?: boolean | components["schemas"]["ClientApiSubcategoryConfigPatch"];
+            errors?: boolean;
+            security?: boolean;
+            search?: boolean;
+            polygonSearch?: boolean;
+            mapRendering?: boolean;
+            propertyDetails?: boolean;
+            negotiation?: boolean;
+            checklists?: boolean;
+            calendar?: boolean;
+            dashboard?: boolean;
+            messages?: boolean;
+            feed?: boolean;
+            routing?: boolean;
+            docusign?: boolean;
+            documents?: boolean;
+            transactions?: boolean;
+            profilePreferences?: boolean;
+            /** @enum {string} */
+            logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR";
+        };
+        ClientApiSubcategoryConfig: {
+            initialLoad: boolean;
+            polling: boolean;
+            pageMount: boolean;
+            other: boolean;
+        };
+        /** @description Partial API subcategory toggles for admin logger config updates. */
+        ClientApiSubcategoryConfigPatch: {
+            initialLoad?: boolean;
+            polling?: boolean;
+            pageMount?: boolean;
+            other?: boolean;
+        };
+        DeploymentLoggerConfig: {
+            client: components["schemas"]["ClientLoggerConfig"];
+            server: components["schemas"]["ServerLoggerConfig"];
+        };
+        DeploymentLoggerConfigUpdates: {
+            client?: components["schemas"]["ClientLoggerConfigPatch"];
+            server?: components["schemas"]["ServerLoggerConfigPatch"];
+        };
+        GetSenderViewUrlResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            sender_url?: string | null;
+        };
+        GetSigningUrlRequest: {
+            participant_id: string;
+        };
+        GetSigningUrlResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            signing_url?: string | null;
+        };
+        GetTodosResponse: components["schemas"]["SuccessResponse"] & {
+            todos?: components["schemas"]["TodoItem"][] | null;
+        };
+        /**
+         * @description Calendar list entry from Google Calendar API (`calendarList`). `accessRole` controls
+         *     what the connected user may do (e.g. owner vs reader). Colors mirror Google’s UI chips.
+         * @example {
+         *       "id": "primary@group.calendar.google.com",
+         *       "summary": "Alex Agent — Silver Key",
+         *       "description": "Primary scheduling calendar",
+         *       "primary": true,
+         *       "accessRole": "owner",
+         *       "backgroundColor": "#9fe1e7",
+         *       "foregroundColor": "#000000"
+         *     }
+         */
+        GoogleCalendar: {
+            id: string;
+            summary: string;
+            description?: string | null;
+            primary?: boolean | null;
+            /**
+             * @description Google Calendar ACL role for this user on the calendar, e.g. `owner`, `writer`,
+             *     `reader`, `freeBusyReader`—drives whether events can be created or only viewed.
+             */
+            accessRole: string;
+            backgroundColor?: string | null;
+            foregroundColor?: string | null;
+        };
+        GoogleCalendarApiResponse: {
+            success: boolean;
+            /** @description Generic data field - shape depends on endpoint */
+            data?: {
+                [key: string]: unknown;
+            } | null;
+            error?: string | null;
+        };
+        /**
+         * @description Google Calendar event creation body: `GoogleEvent` fields plus SilverKey-only options.
+         *     `addGoogleMeet` is stripped server-side; Meet `conferenceData` is never taken from the client.
+         */
+        GoogleCalendarEventCreateBody: components["schemas"]["GoogleEvent"] & {
+            /**
+             * @description When true, server requests a new Google Meet conference on insert (create only). Ignored for updates. Not sent to Google Calendar API.
+             * @default false
+             */
+            addGoogleMeet: boolean;
+        };
+        GoogleCalendarListResponse: {
+            kind: string;
+            etag: string;
+            nextPageToken?: string | null;
+            nextSyncToken?: string | null;
+            items: components["schemas"]["GoogleCalendar"][];
+        };
+        GoogleCalendarPermission: {
+            granted: boolean;
+            description: string;
+            scope: string;
+        };
+        GoogleCalendarPermissionsResponse: {
+            permissions: {
+                [key: string]: components["schemas"]["GoogleCalendarPermission"];
+            };
+            scopes: string;
+            last_updated?: string | null;
+        };
+        /** @description Optional JSON body on Google Calendar push notifications. Header verification (X-Goog-Channel-Token, etc.) is authoritative; body shape varies by Google. */
+        GoogleCalendarWebhookBody: {
+            [key: string]: unknown;
+        };
+        GoogleConferenceData: {
+            createRequest?: {
+                requestId?: string;
+                status?: {
+                    /** @description e.g. pending when Meet is still provisioning */
+                    statusCode?: string;
+                } | null;
+                conferenceSolutionKey?: {
+                    type?: string;
+                };
+            };
+            entryPoints?: {
+                [key: string]: unknown;
+            }[] | null;
+        };
+        /**
+         * @description Google Calendar API event subset used by Silver Key for scheduling and messaging.
+         *     `start`/`end` use `GoogleEventDateTime` (dateTime or all-day date); optional
+         *     `conferenceData` holds Meet links when created with conference support.
+         * @example {
+         *       "id": "evt-google-a1b2c3d4e5f6",
+         *       "summary": "Home tour — 742 Evergreen Terrace",
+         *       "description": "Meet at the property; allow 45 minutes.",
+         *       "start": {
+         *         "dateTime": "2026-04-10T15:00:00-05:00",
+         *         "timeZone": "America/Chicago"
+         *       },
+         *       "end": {
+         *         "dateTime": "2026-04-10T15:45:00-05:00",
+         *         "timeZone": "America/Chicago"
+         *       },
+         *       "location": "742 Evergreen Terrace, Springfield, IL 62704",
+         *       "attendees": [
+         *         {
+         *           "email": "jane.buyer@example.com",
+         *           "displayName": "Jane Buyer",
+         *           "responseStatus": "accepted"
+         *         }
+         *       ],
+         *       "reminders": {
+         *         "useDefault": true
+         *       },
+         *       "conferenceData": null
+         *     }
+         */
+        GoogleEvent: {
+            id?: string | null;
+            /** @description Event title as shown in Google Calendar and in-app agendas. */
+            summary: string;
+            /** @description Optional HTML or plain details synced from Google. */
+            description?: string | null;
+            start: components["schemas"]["GoogleEventDateTime"];
+            end: components["schemas"]["GoogleEventDateTime"];
+            attendees?: components["schemas"]["GoogleEventAttendee"][] | null;
+            reminders?: components["schemas"]["GoogleEventReminders"];
+            location?: string | null;
+            /**
+             * Format: uri
+             * @description Google Meet URL when provisioned (Calendar API `hangoutLink`).
+             */
+            hangoutLink?: string | null;
+            conferenceData?: components["schemas"]["GoogleConferenceData"];
+            /** @description Google Calendar event color id (1–11) when set on the event; returned by the Calendar API on list/get. Optional; omitted when the event uses the calendar default color. */
+            colorId?: string | null;
+            /** @description SilverKey scheduling category from the app database when this event was created in-app (e.g. `property_viewing`, `meeting`, `open_house`). Not sent to Google; attached by the server when listing or getting events. Used for UI coloring when the title no longer matches a known template label. */
+            silverKeyEventType?: string | null;
+            /** @description True when this SilverKey-managed event was saved with virtual meeting requested (derived from DB conference_status / meet_url). Omitted for events not in our DB. */
+            silverKeyVirtualMeetingEnabled?: boolean | null;
+        };
+        GoogleEventAttendee: {
+            /** Format: email */
+            email: string;
+            displayName?: string | null;
+            responseStatus?: string | null;
+        };
+        GoogleEventCreateResponse: components["schemas"]["GoogleEvent"] & {
+            kind: string;
+            etag: string;
+            /** Format: uri */
+            htmlLink: string;
+            created: string;
+            updated: string;
+            creator: {
+                /** Format: email */
+                email?: string;
+                displayName?: string | null;
+            };
+            organizer: {
+                /** Format: email */
+                email?: string;
+                displayName?: string | null;
+            };
+            sequence: number;
+            iCalUID: string;
+            status: string;
+        };
+        GoogleEventDateTime: {
+            /** Format: date-time */
+            dateTime: string;
+            timeZone?: string | null;
+        };
+        GoogleEventListResponse: {
+            kind: string;
+            etag: string;
+            summary: string;
+            description?: string | null;
+            updated: string;
+            timeZone: string;
+            accessRole: string;
+            nextPageToken?: string | null;
+            nextSyncToken?: string | null;
+            items: components["schemas"]["GoogleEvent"][];
+        };
+        GoogleEventReminders: {
+            useDefault?: boolean | null;
+            overrides?: components["schemas"]["GoogleReminderOverride"][] | null;
+        };
+        GoogleReminderOverride: {
+            method: string;
+            minutes: number;
+        };
+        /** @description Response from GET /healthz or GET /readyz (readiness: database connectivity; /readyz is an alias of /healthz). For process-only liveness without a DB round-trip, use GET /livez. Aligns with Flask handlers. */
+        HealthResponse: {
+            /** @enum {string} */
+            status: "ok" | "error";
+            /** @enum {string} */
+            database: "connected" | "disconnected";
+            /** @description Present when status is error; connection or query failure detail. */
+            error?: string;
+        };
+        /** @description Response from GET /livez (process liveness only; no database call). Use for fast orchestrator probes; use GET /healthz when database connectivity must be verified. */
+        LivezResponse: {
+            /** @enum {string} */
+            status: "ok";
+        };
+        IsochroneData: {
+            isochrone: {
+                type?: string;
+                geometry?: {
+                    type?: string;
+                    coordinates?: number[][][];
+                };
+            };
+            individual_isochrones: {
+                address?: string;
+                commute_tolerance?: number | null;
+                name?: string | null;
+                /** @description GeoJSON Feature for this location's isochrone */
+                isochrone?: {
+                    /** @enum {string} */
+                    type?: "Feature";
+                    geometry?: {
+                        /** @enum {string} */
+                        type?: "Polygon" | "MultiPolygon";
+                        coordinates?: number[][][];
+                    };
+                    properties?: {
+                        [key: string]: unknown;
+                    } | null;
+                };
+            }[];
+            center: {
+                lat?: number;
+                lon?: number;
+                address?: string;
+                name?: string | null;
+            };
+            locations: {
+                address?: string;
+                commute_tolerance?: number | null;
+                lat?: number | null;
+                lng?: number | null;
+                name?: string | null;
+            }[];
+            commute_tolerance: number;
+            mode: string;
+        };
+        IsochroneGeometry: {
+            /** @enum {string} */
+            type: "Polygon";
+            coordinates: number[][][];
+        };
+        IsochroneResponse: components["schemas"]["SuccessResponse"] & {
+            data?: components["schemas"]["IsochroneData"];
+        };
+        IsochroneQueryParams: {
+            /** @description Optional user id whose preferences drive the isochrone (agent research scope). */
+            preferences_user_id?: string;
+        };
+        OAuthCallbackQueryParams: {
+            /** @description OAuth authorization code */
+            code?: string;
+            /** @description OAuth CSRF state parameter */
+            state?: string;
+            /** @description OAuth error code when authorization failed */
+            error?: string;
+        };
+        ListAgreementsResponse: components["schemas"]["SuccessResponse"] & {
+            agreements?: components["schemas"]["Agreement"][] | null;
+        };
+        ListTemplatesResponse: components["schemas"]["SuccessResponse"] & {
+            templates?: components["schemas"]["DocusignTemplate"][] | null;
+        };
+        /**
+         * @description Email and password credentials for Cognito-backed login. Sent over HTTPS; never
+         *     logged or stored client-side beyond the password field during entry.
+         * @example {
+         *       "email": "jane.buyer@example.com",
+         *       "password": "Str0ng!Passw0rd"
+         *     }
+         */
+        LoginData: {
+            /**
+             * Format: email
+             * @description Primary login email on the user row (must match verified Cognito attribute when required).
+             * @example jane.buyer@example.com
+             */
+            email: string;
+            /**
+             * Format: password
+             * @description Plaintext password for this request only; use a strong unique password in production accounts.
+             * @example Str0ng!Passw0rd
+             */
+            password: string;
+        };
+        MapsScriptResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            script_url?: string | null;
+        };
+        MarkMessagesAsReadResponse: components["schemas"]["SuccessResponse"] & {
+            marked_count?: number | null;
+        };
+        MonthlyCostEstimatesResponse: components["schemas"]["SuccessResponse"] & {
+            hoa_monthly?: number | null;
+            utilities_monthly?: number | null;
+        };
+        NegotiationStrategyRequest: {
+            address: string;
+            /** @description For agent client selection */
+            user_id?: string | null;
+        };
+        NegotiationStrategyResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Generated negotiation strategy with price and market analysis */
+            strategy?: {
+                price_section: {
+                    /** @description Recommended opening offer amount */
+                    opening_offer: number;
+                    /** @description Detailed justification based on comparable sales */
+                    price_rationale: string;
+                    /** @description Requested seller credits and terms */
+                    credits_and_terms?: string[];
+                    /** @description Inspection strategy and repair tolerance */
+                    inspection_plan: string;
+                    /** @description Proposed closing timeline */
+                    timeline: string;
+                    /** @description What makes this offer strong */
+                    offer_strength: string;
+                };
+                market_section: {
+                    /** @description 3-4 key local market statistics */
+                    local_market_stats: string[];
+                    /** @description Overall buyer leverage assessment */
+                    buyer_leverage: string;
+                    /** @description Brief national market context */
+                    national_snapshot: string;
+                    /** @description Brief neighborhood-specific market context */
+                    neighborhood_snapshot: string;
+                };
+            };
+            property_address: string;
+            strategy_id: string;
+            filename: string;
+            generated_at: string;
+            generated_for_user: string;
+            property_data?: components["schemas"]["PropertyComplete"];
+            commute_data?: components["schemas"]["CommuteData"];
+            /** @description Property analysis from research endpoint (same structure as in PropertyResponse) */
+            property_analysis?: {
+                [key: string]: unknown;
+            } | null;
+            traceback?: string | null;
+        };
+        NotInterestedHomeItem: {
+            id?: string | null;
+            address?: string | null;
+            latitude?: number | null;
+            longitude?: number | null;
+            zpid?: string | null;
+            mls_home_id?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        NotInterestedHomesResponse: components["schemas"]["SuccessResponse"] & {
+            notInterested?: components["schemas"]["NotInterestedHomeItem"][] | null;
+        };
+        NotificationCounterResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Total unread/pending notifications; typically present when success is true. */
+            total_count?: number;
+        };
+        OAuthStartResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            auth_url?: string | null;
+        };
+        PaginatedResponse: components["schemas"]["SuccessResponse"] & {
+            count?: number;
+            next_page_token?: string | null;
+            next_sync_token?: string | null;
+        };
+        Pagination: {
+            /**
+             * @description Current page number (1-indexed)
+             * @example 1
+             */
+            page: number;
+            /**
+             * @description Items per page
+             * @example 20
+             */
+            per_page: number;
+            /**
+             * @description Total number of items
+             * @example 145
+             */
+            total: number;
+            /**
+             * @description Total number of pages
+             * @example 8
+             */
+            total_pages: number;
+            /** @description True if there are more pages */
+            has_next?: boolean;
+            /** @description True if there are previous pages */
+            has_prev?: boolean;
+            /** @description Next page number, null if on last page */
+            next_page?: number | null;
+            /** @description Previous page number, null if on first page */
+            prev_page?: number | null;
+        };
+        /** @description Standard query pagination (page / per_page). Use as a reusable parameter schema or request property shape. */
+        PaginationRequest: {
+            /** @default 1 */
+            page: number;
+            /** @default 20 */
+            per_page: number;
+        };
+        /** @enum {string} */
+        ParticipantRole: "agent" | "buyer" | "seller" | "other" | "signer" | "carbon_copy";
+        /** @enum {string} */
+        ParticipantStatus: "pending" | "sent" | "delivered" | "signed" | "completed" | "declined";
+        PollReportResponse: components["schemas"]["SuccessResponse"] & {
+            report?: components["schemas"]["ReportListItem"];
+        };
+        PreApprovalLetterRequest: {
+            buyer_name: string;
+            loan_amount: number;
+            property_address: string;
+            loan_type: string;
+        };
+        OfferDocumentGenerationResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            document_url?: string | null;
+            document_id?: string | null;
+            filename?: string | null;
+        };
+        /** @description User search preferences */
+        PreferencesResponse: {
+            /** @description Buyer communication preference — text, call, or email */
+            preferred_contact_method?: string;
+            /** @description Update cadence — as_things_come_up, weekly_check_in, or daily */
+            communication_frequency?: string;
+            /** @description Versioned buyer preference extensions (v1 JSON) */
+            extended_buyer_preferences?: {
+                /** @description SIL-182 About Me — moving_with, kids_ages, pet_types, move_motivation */
+                buyer_about_me?: {
+                    [key: string]: unknown;
+                };
+                /** @description SIL-182 Financing — lender_status, loan_type, down_payment_band, move_timeline, etc. */
+                price_financing?: {
+                    [key: string]: unknown;
+                };
+            } & {
+                [key: string]: unknown;
+            };
+            /** @description Intent attribute — true when buyer pays cash */
+            paying_cash?: boolean;
+        } & {
+            [key: string]: unknown;
+        };
+        UpsertPreferencesApiResponse: components["schemas"]["SuccessResponse"] & {
+            preferences?: components["schemas"]["PreferencesResponse"];
+            /** @description Confirmation copy (e.g. Preferences saved successfully). */
+            message?: string;
+        };
+        ProfilePictureResponse: components["schemas"]["SuccessResponse"] & {
+            /**
+             * Format: uri
+             * @description Public URL of the uploaded profile picture
+             */
+            profile_picture_url?: string;
+        };
+        /** @description Agent-managed client testimonial shown on the public agent profile. `source` is `custom` for agent-entered items; reserved for external review imports (e.g. Zillow) later. */
+        AgentTestimonial: {
+            author_name: string;
+            quote: string;
+            /** @description Display date, preferably YYYY-MM-DD. */
+            date?: string | null;
+            rating?: number | null;
+            /** @description Origin of the testimonial; `custom` when agent-entered. */
+            source?: string | null;
+        };
+        /** @description Public, read-only agent directory fields for shareable profile URLs. Combines `users` row contact with `user_agent_profiles` when present. Omits Cognito/Google  ids and internal S3 keys; profile images are exposed only as presigned URLs when available. */
+        PublicAgentProfile: {
+            id: components["schemas"]["UserId"];
+            name: string;
+            /** Format: email */
+            email: string;
+            phone?: string | null;
+            mls_id?: string | null;
+            /** @description Brokerage name from the users row (prefer `brokerage_name` when both are set). */
+            brokerage?: string | null;
+            /**
+             * Format: uri
+             * @description Presigned URL for the user's profile picture when stored in S3.
+             */
+            profile_picture_url?: string | null;
+            agent_bio?: string | null;
+            brokerage_name?: string | null;
+            brokerage_bic_name?: string | null;
+            brokerage_address?: string | null;
+            /** Format: email */
+            brokerage_email?: string | null;
+            brokerage_phone?: string | null;
+            /** @description URL or stored headshot reference as persisted on user_agent_profiles. */
+            professional_headshot_url?: string | null;
+            primary_service_zips?: string[] | null;
+            specialties?: string[] | null;
+            licensed_states?: string[] | null;
+            license_types?: string[] | null;
+            license_numbers?: string[] | null;
+            license_expiration_dates?: string[] | null;
+            /** @description Parsed JSON array from user_agent_profiles.mls_affiliations (list of objects). */
+            mls_affiliations?: {
+                [key: string]: unknown;
+            }[] | null;
+            /** @description Agent-managed client testimonials; omitted/null when none. */
+            testimonials?: components["schemas"]["AgentTestimonial"][] | null;
+            social_links?: {
+                [key: string]: string;
+            } | null;
+            /** @description Unique slug for the short public profile URL path `/a/{public_profile_slug}`. Omitted or null before slug backfill; clients should fall back to the long id-based URL. */
+            public_profile_slug?: string | null;
+        };
+        PublicAgentProfileResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Public agent profile; only returned when the user exists and is an active agent. */
+            agent: components["schemas"]["PublicAgentProfile"];
+        };
+        /** @description One MLS listing card on the public agent site, sourced from the shared `property_cache` snapshot (values are display strings as cached). Carries MLS attribution fields (`brokerage`, `mls_home_id`, `mls_region`) so cards can render compliant attribution; no partner placement data on this surface. */
+        PublicAgentListing: {
+            /** @description property_cache row id (stable even when zpid is missing). */
+            id: string;
+            /** @description Listing zpid when known; used for `/property/{zpid}/{slug}` links. */
+            zpid?: string | null;
+            address?: string | null;
+            city?: string | null;
+            state?: string | null;
+            zipcode?: string | null;
+            /** @description Cached display price (e.g. "$519,900"); not refreshed on read. */
+            price?: string | null;
+            beds?: string | null;
+            baths?: string | null;
+            sqft?: string | null;
+            primary_image_url?: string | null;
+            /** @description Raw MLS status as cached (e.g. "Active", "Under Contract", "Sold"). */
+            listing_status?: string | null;
+            /**
+             * @description Normalized bucket — `active` (current) vs `sold` (former/closed).
+             * @enum {string}
+             */
+            status_category: "active" | "sold";
+            /** @description Listing brokerage/office for MLS attribution on the card. */
+            brokerage?: string | null;
+            /** @description MLS listing number for attribution. */
+            mls_home_id?: string | null;
+            mls_region?: string | null;
+        };
+        PublicAgentListingsResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description MLS listings attributed to the agent (matched by agent MLS id or listing agent email), newest first. Empty when the agent has no MLS-linked listings. */
+            listings: components["schemas"]["PublicAgentListing"][];
+        };
+        PropertyCompsRequest: {
+            address: string;
+            radius?: number | null;
+            count?: number | null;
+        };
+        PropertyCompsResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Request parameters used for the API call */
+            query?: {
+                [key: string]: unknown;
+            };
+            /** @description Property comparables data from Slipstream API */
+            data?: {
+                [key: string]: unknown;
+            } | null;
+            /** @enum {string} */
+            source?: "slipstream_gamls";
+        };
+        /**
+         * @description Agent and brokerage information
+         * @example {
+         *       "listingAgentName": "Jane Smith",
+         *       "listingAgentPhone": "+15551234567",
+         *       "listingAgentEmail": "jane.smith@realty.com",
+         *       "brokerage": "Premier Realty Group",
+         *       "mlsId": "MLS12345678",
+         *       "mlsRegion": "Central Illinois MLS"
+         *     }
+         */
+        PropertyAgent: {
+            /** @description MLS or internal agent ID */
+            listingAgentId?: string | null;
+            /** @description Full name of listing agent */
+            listingAgentName?: string | null;
+            /** @description Agent phone number */
+            listingAgentPhone?: string | null;
+            /**
+             * Format: email
+             * @description Agent email address
+             */
+            listingAgentEmail?: string | null;
+            /** @description Brokerage firm name */
+            brokerage?: string | null;
+            /** @description MLS listing ID */
+            mlsId?: string | null;
+            /** @description MLS region or board */
+            mlsRegion?: string | null;
+        };
+        /**
+         * @description Complete property record with all details organized into logical submodels.
+         *     Use this for detailed property views and comprehensive data requirements.
+         * @example {
+         *       "id": "12345678",
+         *       "essentials": {
+         *         "bedrooms": 4,
+         *         "bathrooms": 2.5,
+         *         "livingAreaSqft": 2400,
+         *         "lotSizeSqft": 8000,
+         *         "yearBuilt": 2015
+         *       },
+         *       "location": {
+         *         "address": "742 Evergreen Terrace",
+         *         "city": "Springfield",
+         *         "state": "IL",
+         *         "zipcode": "62704",
+         *         "latitude": 39.7817,
+         *         "longitude": -89.6501
+         *       },
+         *       "financials": {
+         *         "price": 425000,
+         *         "pricePerSqft": 177,
+         *         "annualTaxes": 5200
+         *       },
+         *       "metadata": {
+         *         "listingStatus": "FOR_SALE",
+         *         "daysOnMarket": 12
+         *       },
+         *       "score": 87.5,
+         *       "ranking": 3
+         *     }
+         */
+        PropertyComplete: {
+            /** @description Unique property identifier (ZPID or internal ID) */
+            id: string;
+            essentials: components["schemas"]["PropertyEssentials"];
+            location: components["schemas"]["PropertyLocation"];
+            financials?: components["schemas"]["PropertyFinancials"];
+            agent?: components["schemas"]["PropertyAgent"];
+            features?: components["schemas"]["PropertyFeatures"];
+            media?: components["schemas"]["PropertyMedia"];
+            metadata?: components["schemas"]["PropertyMetadata"];
+            /**
+             * Format: float
+             * @description Match score (0-100) based on user preferences
+             */
+            score?: number | null;
+            /** @description Position in search results (1 = best match) */
+            ranking?: number | null;
+        };
+        /**
+         * @description Core property characteristics - bedrooms, bathrooms, size, and age
+         * @example {
+         *       "bedrooms": 4,
+         *       "bathrooms": 2.5,
+         *       "livingAreaSqft": 2400,
+         *       "lotSizeSqft": 8000,
+         *       "lotSizeUnit": "sqft",
+         *       "yearBuilt": 2015,
+         *       "stories": 2
+         *     }
+         */
+        PropertyEssentials: {
+            /** @description Number of bedrooms */
+            bedrooms: number;
+            /**
+             * Format: float
+             * @description Number of bathrooms (e.g., 2.5 for 2 full, 1 half)
+             */
+            bathrooms: number;
+            /** @description Living area in square feet */
+            livingAreaSqft?: number | null;
+            /** @description Lot size in square feet */
+            lotSizeSqft?: number | null;
+            /**
+             * @description Unit for lot size measurement
+             * @default sqft
+             * @enum {string|null}
+             */
+            lotSizeUnit: "sqft" | "acres" | null;
+            /** @description Year property was built */
+            yearBuilt?: number | null;
+            /** @description Number of stories/floors */
+            stories?: number | null;
+        };
+        /**
+         * @description Property features, amenities, and characteristics
+         * @example {
+         *       "homeType": "SINGLE_FAMILY",
+         *       "parking": {
+         *         "spaces": 2,
+         *         "type": "attached_garage"
+         *       },
+         *       "amenities": [
+         *         "pool",
+         *         "fireplace",
+         *         "hardwood_floors",
+         *         "granite_countertops"
+         *       ],
+         *       "appliances": [
+         *         "refrigerator",
+         *         "dishwasher",
+         *         "microwave",
+         *         "washer",
+         *         "dryer"
+         *       ],
+         *       "heating": "forced_air_gas",
+         *       "cooling": "central_air",
+         *       "flooring": [
+         *         "hardwood",
+         *         "carpet",
+         *         "tile"
+         *       ]
+         *     }
+         */
+        PropertyFeatures: {
+            /**
+             * @description Type of residential property
+             * @enum {string|null}
+             */
+            homeType?: "SINGLE_FAMILY" | "CONDO" | "TOWNHOUSE" | "MULTI_FAMILY" | "LAND" | "MANUFACTURED" | "CO_OP" | "OTHER" | null;
+            parking?: {
+                /** @description Number of parking spaces */
+                spaces?: number;
+                /**
+                 * @description Type of parking
+                 * @enum {string}
+                 */
+                type?: "garage" | "attached_garage" | "detached_garage" | "carport" | "driveway" | "street" | "covered" | "none";
+            } | null;
+            /** @description List of property amenities (pool, fireplace, deck, etc.) */
+            amenities?: string[] | null;
+            /** @description Included appliances */
+            appliances?: string[] | null;
+            /** @description Heating system type */
+            heating?: string | null;
+            /** @description Cooling system type */
+            cooling?: string | null;
+            /** @description Flooring types (hardwood, carpet, tile, etc.) */
+            flooring?: string[] | null;
+            /** @description Exterior material (brick, vinyl, stucco, etc.) */
+            exterior?: string | null;
+            /** @description Roof material and age */
+            roof?: string | null;
+        };
+        /**
+         * @description Property pricing, taxes, and financial details
+         * @example {
+         *       "price": 425000,
+         *       "listPrice": 450000,
+         *       "pricePerSqft": 177,
+         *       "annualTaxes": 5200,
+         *       "hoaFees": 150
+         *     }
+         */
+        PropertyFinancials: {
+            /** @description Current listing price */
+            price?: number | null;
+            /** @description Original list price */
+            listPrice?: number | null;
+            /** @description Price per square foot */
+            pricePerSqft?: number | null;
+            priceHistory?: {
+                /**
+                 * Format: date
+                 * @description Date of price event
+                 */
+                eventDate: string;
+                /** @description Price at this event */
+                price: number;
+                /**
+                 * @description Type of price event
+                 * @enum {string}
+                 */
+                event: "listed" | "sold" | "price_change" | "delisted" | "pending";
+            }[] | null;
+            /** @description Tax assessed value */
+            taxAssessedValue?: number | null;
+            /** @description Annual property taxes */
+            annualTaxes?: number | null;
+            /** @description Monthly HOA fees */
+            hoaFees?: number | null;
+            /** @description Estimated monthly insurance cost */
+            insurance?: number | null;
+        };
+        /**
+         * @description Property address and geographic information
+         * @example {
+         *       "address": "742 Evergreen Terrace",
+         *       "city": "Springfield",
+         *       "state": "IL",
+         *       "zipcode": "62704",
+         *       "county": "Sangamon",
+         *       "neighborhood": "Downtown",
+         *       "latitude": 39.7817,
+         *       "longitude": -89.6501,
+         *       "schoolDistrict": "Springfield District 186"
+         *     }
+         */
+        PropertyLocation: {
+            /** @description Full street address */
+            address: string;
+            /** @description City name */
+            city: string;
+            /** @description State abbreviation (e.g., CA, NY) */
+            state: string;
+            /** @description ZIP code (5 or 9 digits) */
+            zipcode: string;
+            /** @description County name */
+            county?: string | null;
+            /** @description Neighborhood or area name */
+            neighborhood?: string | null;
+            /**
+             * Format: double
+             * @description Latitude coordinate
+             */
+            latitude: number;
+            /**
+             * Format: double
+             * @description Longitude coordinate
+             */
+            longitude: number;
+            /** @description GeoJSON polygon boundaries */
+            boundaries?: Record<string, never> | null;
+            /** @description School district name */
+            schoolDistrict?: string | null;
+            commuteData?: components["schemas"]["CommuteData"];
+        };
+        /**
+         * @description Property photos, videos, and virtual tours
+         * @example {
+         *       "primaryImageUrl": "https://photos.example.com/listings/12345678/hero.jpg",
+         *       "images": [
+         *         {
+         *           "url": "https://photos.example.com/listings/12345678/1.jpg",
+         *           "caption": "Front exterior",
+         *           "order": 0
+         *         },
+         *         {
+         *           "url": "https://photos.example.com/listings/12345678/2.jpg",
+         *           "caption": "Living room",
+         *           "order": 1
+         *         }
+         *       ],
+         *       "virtualTourUrl": "https://my.matterport.com/show/?m=abc123"
+         *     }
+         */
+        PropertyMedia: {
+            /**
+             * Format: uri
+             * @description Primary/hero image URL
+             */
+            primaryImageUrl?: string | null;
+            images?: {
+                /**
+                 * Format: uri
+                 * @description Image URL
+                 */
+                url: string;
+                /** @description Image caption or description */
+                caption?: string | null;
+                /** @description Display order (0-based) */
+                order?: number;
+                width?: number | null;
+                height?: number | null;
+            }[] | null;
+            /**
+             * Format: uri
+             * @description 3D virtual tour or Matterport URL
+             */
+            virtualTourUrl?: string | null;
+            /**
+             * Format: uri
+             * @description Property video URL
+             */
+            videoUrl?: string | null;
+            /**
+             * Format: uri
+             * @description Floor plan image URL
+             */
+            floorPlanUrl?: string | null;
+        };
+        /**
+         * @description Property listing metadata and status
+         * @example {
+         *       "zpid": "12345678",
+         *       "mlsHomeId": "MLS98765432",
+         *       "listingStatus": "FOR_SALE",
+         *       "daysOnMarket": 12,
+         *       "listingDate": "2026-03-27",
+         *       "lastUpdated": "2026-04-08T10:30:00Z",
+         *       "createdAt": "2026-03-27T09:00:00Z",
+         *       "updatedAt": "2026-04-08T10:30:00Z"
+         *     }
+         */
+        PropertyMetadata: {
+            /** @description Property listing ID (MLS ID from Slipstream) */
+            zpid?: string | null;
+            /** @description MLS listing ID */
+            mlsHomeId?: string | null;
+            /**
+             * @description Current listing status
+             * @enum {string|null}
+             */
+            listingStatus?: "FOR_SALE" | "PENDING" | "SOLD" | "OFF_MARKET" | "COMING_SOON" | "CONTINGENT" | "ACTIVE" | null;
+            /** @description Number of days property has been listed */
+            daysOnMarket?: number | null;
+            /**
+             * Format: date
+             * @description Date property was listed
+             */
+            listingDate?: string | null;
+            /**
+             * Format: date-time
+             * @description Last time listing was updated
+             */
+            lastUpdated?: string | null;
+            /**
+             * Format: date-time
+             * @description When record was created in our system
+             */
+            createdAt?: string | null;
+            /**
+             * Format: date-time
+             * @description When record was last updated in our system
+             */
+            updatedAt?: string | null;
+        };
+        PropertyRequest: components["schemas"]["PropertyResearchOptions"] & {
+            address: string;
+            zpid?: string | null;
+            /** Format: uri */
+            property_url?: string | null;
+        };
+        PropertyResearchOptions: {
+            /** @description When set by agent, load this client's preferences */
+            preferences_user_id?: string | null;
+            pros_count?: number | null;
+            cons_count?: number | null;
+            /** @enum {string|null} */
+            detail_level?: "compact" | "standard" | "detailed" | null;
+        };
+        PropertyResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Request parameters (zpid, property_url, or address) */
+            query?: {
+                zpid?: string | null;
+                /** Format: uri */
+                property_url?: string | null;
+                address?: string | null;
+            } | null;
+            /** @description Normalized property data from Slipstream API */
+            data?: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Categorized property features extracted from listing */
+            features?: {
+                [key: string]: string[];
+            } | null;
+            /** @description Commute analysis with travel times to important locations */
+            commute_data?: {
+                travel_times?: {
+                    name: string;
+                    address: string;
+                    travel_time?: string | null;
+                    commute_tolerance?: number;
+                }[];
+                /** Format: uri */
+                map_url?: string | null;
+                property_address?: string | null;
+            } | null;
+            /** @description AI-generated property analysis with pros, cons, and detailed sections */
+            property_analysis?: ({
+                pros?: string[] | null;
+                cons?: string[] | null;
+                highlights_context?: {
+                    [key: string]: unknown;
+                } | null;
+            } & {
+                [key: string]: unknown;
+            }) | null;
+            /** @description Features extracted from property images using AI vision */
+            image_features?: {
+                raw: string[];
+                clean: string[];
+            } | null;
+            images?: string[] | null;
+        };
+        /**
+         * @description Property search result with essential details for list views.
+         *     For complete property details, use PropertyComplete.
+         * @example {
+         *       "id": "12345678",
+         *       "essentials": {
+         *         "bedrooms": 4,
+         *         "bathrooms": 2.5,
+         *         "livingAreaSqft": 2400,
+         *         "yearBuilt": 2015
+         *       },
+         *       "location": {
+         *         "address": "742 Evergreen Terrace",
+         *         "city": "Springfield",
+         *         "state": "IL",
+         *         "zipcode": "62704",
+         *         "latitude": 39.7817,
+         *         "longitude": -89.6501
+         *       },
+         *       "financials": {
+         *         "price": 425000,
+         *         "pricePerSqft": 177
+         *       },
+         *       "media": {
+         *         "primaryImageUrl": "https://photos.examplecdn.com/listings/12345678/hero.jpg"
+         *       },
+         *       "metadata": {
+         *         "listingStatus": "FOR_SALE",
+         *         "homeType": "SINGLE_FAMILY",
+         *         "daysOnMarket": 12
+         *       },
+         *       "score": 87.5,
+         *       "ranking": 3
+         *     }
+         */
+        PropertySearchResult: {
+            /** @description Slipstream listing key (ZPID or MLS id) */
+            id: string;
+            /** @description Stable PropertyCache UUID for this listing in SilverKey (use for saves, feed, and refresh). */
+            home_id?: string | null;
+            /** @description Core property characteristics */
+            essentials: {
+                bedrooms: number;
+                bathrooms: number;
+                livingAreaSqft?: number | null;
+                yearBuilt?: number | null;
+            };
+            /** @description Property location */
+            location: {
+                address: string;
+                city: string;
+                state: string;
+                zipcode: string;
+                /** Format: double */
+                latitude?: number | null;
+                /** Format: double */
+                longitude?: number | null;
+            };
+            /** @description Pricing information */
+            financials?: {
+                price?: number | null;
+                pricePerSqft?: number | null;
+            } | null;
+            /** @description Property images */
+            media?: {
+                /** Format: uri */
+                primaryImageUrl?: string | null;
+            } | null;
+            /** @description Listing metadata */
+            metadata?: {
+                /** @enum {string|null} */
+                listingStatus?: "FOR_SALE" | "PENDING" | "SOLD" | "OFF_MARKET" | "COMING_SOON" | "CONTINGENT" | "ACTIVE" | null;
+                homeType?: string | null;
+                daysOnMarket?: number | null;
+            } | null;
+            /** @description Match score based on preferences */
+            score?: number | null;
+            /** @description Position in search results */
+            ranking?: number | null;
+        };
+        RemoveFavoriteRequest: {
+            address: string;
+            client_id?: string | null;
+        };
+        RemoveNotInterestedRequest: {
+            address: string;
+        };
+        /** @description Entry returned by GET /api/v1/report/list — property PDF reports for the current user (camelCase fields as produced by the API). Not the same shape as `UploadedDocumentRecord`. */
+        ReportListItem: {
+            id: string;
+            /** @enum {string} */
+            status: "generating" | "completed" | "error";
+            /** @description Unix timestamp in seconds */
+            generatedAt: number;
+            address: string;
+            /** Format: uri */
+            pdfUrl?: string | null;
+            s3Key?: string | null;
+        };
+        ReportDocumentsListResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Rows from GET /api/v1/report/documents */
+            documents?: components["schemas"]["UploadedDocumentRecord"][] | null;
+            count?: number | null;
+            /** @description Total matching rows when paginated */
+            total?: number | null;
+            limit?: number | null;
+            offset?: number | null;
+            hasMore?: boolean | null;
+        };
+        ReportsListResponse: components["schemas"]["SuccessResponse"] & {
+            reports?: components["schemas"]["ReportListItem"][] | null;
+        };
+        ReportsResponse: components["schemas"]["SuccessResponse"] & {
+            documents?: components["schemas"]["UploadedDocumentRecord"][] | null;
+            /** @description Property report list entries (GET /api/v1/report/list shape). */
+            reports?: components["schemas"]["ReportListItem"][] | null;
+        };
+        ResendCodeData: {
+            /**
+             * Format: email
+             * @description Email address to resend verification code to
+             */
+            email: string;
+        };
+        ResendCodeResponse: components["schemas"]["SuccessResponse"] & {
+            code_delivery?: components["schemas"]["CognitoCodeDeliveryDetails"] | null;
+        };
+        ResetPasswordData: {
+            /**
+             * Format: email
+             * @description User's email address
+             */
+            email: string;
+            /** @description Password reset code from email */
+            code: string;
+            /**
+             * Format: password
+             * @description New password to set
+             */
+            new_password: string;
+        };
+        RespondToConnectionRequestRequest: {
+            accept: boolean;
+        };
+        RespondToConnectionRequestResponse: components["schemas"]["SuccessResponse"] & {
+            request?: components["schemas"]["AgentConnectionRequest"];
+        };
+        RevokeResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Whether OAuth token was successfully revoked */
+            revoked?: boolean;
+        };
+        /**
+         * @description A single saved or tracked listing row from PropertyCache + UserPropertyLink. Numeric facts (`beds`, `baths`, `sqft`, `price`) are strings on the wire because they are stored as VARCHAR in the database. Use `isLiked` for heart/save UI and `current` for whether the row reflects the latest MLS snapshot the server holds.
+         * @example {
+         *       "id": "fav-8c2e9b1a-4d3f-5e6a-7b8c-9d0e1f2a3b4c",
+         *       "user_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *       "isLiked": true,
+         *       "current": true,
+         *       "address": "742 Evergreen Terrace",
+         *       "city": "Springfield",
+         *       "state": "IL",
+         *       "zipcode": "62704",
+         *       "beds": "4",
+         *       "baths": "2.5",
+         *       "sqft": "2400",
+         *       "price": "425000",
+         *       "zpid": "12345678",
+         *       "listing_status": "FOR_SALE",
+         *       "property_type": "SingleFamily",
+         *       "latitude": 39.7817,
+         *       "longitude": -89.6501,
+         *       "image_url": "https://photos.examplecdn.com/listings/12345678/hero.jpg",
+         *       "created_at": "2025-11-20T18:00:00.000Z",
+         *       "updated_at": "2026-04-01T12:00:00.000Z",
+         *       "score": 0.92,
+         *       "ranking": 1
+         *     }
+         */
+        SavedHome: {
+            id: string;
+            user_id: string;
+            address?: string | null;
+            /** @description User has actively saved (“liked”) this home in the product UI. */
+            isLiked: boolean;
+            /** @description Listing row is the latest synced version; false may indicate stale or archived data. */
+            current: boolean;
+            /**
+             * Format: float
+             * @description Search or recommendation match score when the row was added or refreshed.
+             */
+            score?: number | null;
+            /** @description Ordinal position within a sorted list (e.g. search results) when applicable. */
+            ranking?: number | null;
+            city?: string | null;
+            state?: string | null;
+            zipcode?: string | null;
+            beds?: string | null;
+            baths?: string | null;
+            sqft?: string | null;
+            lot_size?: string | null;
+            price?: string | null;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+            /** Format: uri */
+            image_url?: string | null;
+            /** @description Map of provider-specific keys to image URLs (absolute https preferred). */
+            image_urls?: {
+                [key: string]: string;
+            } | null;
+            zpid?: string | null;
+            mls_home_id?: string | null;
+            listing_status?: string | null;
+            property_type?: string | null;
+            home_type?: string | null;
+            year_built?: string | null;
+            mls_agent_id?: string | null;
+            listing_agent_phone?: string | null;
+            /** Format: email */
+            listing_agent_email?: string | null;
+            brokerage?: string | null;
+            mls_region?: string | null;
+            /** Format: float */
+            latitude?: number | null;
+            /** Format: float */
+            longitude?: number | null;
+            living_area?: string | null;
+            lot_area_value?: string | null;
+            lot_area_unit?: string | null;
+            /** @description Opaque listing feature map from upstream property data. */
+            features?: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Serialized analysis blob from property pipeline (structure varies). */
+            property_analysis?: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Commute or isochrone-related payload attached to the saved row. */
+            commute_data?: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Raw provider/listing JSON retained for debugging or reprocessing. */
+            raw_data?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        AgentSearchQueryParams: {
+            /** @default  */
+            q: string;
+            /** @default 20 */
+            limit: number;
+        };
+        AgentRecommendQueryParams: {
+            zip?: string;
+            state?: string;
+            intent?: string;
+            /** @default 20 */
+            limit: number;
+        };
+        FeedListQueryParams: {
+            /** @default 0 */
+            page: number;
+            /** @default 10 */
+            limit: number;
+        };
+        FeedLikesQueryParams: {
+            /** @description Comma-separated home ids */
+            ids?: string;
+        };
+        ChecklistTypeQueryParams: {
+            /** @default escrow */
+            type: components["schemas"]["ChecklistType"];
+        };
+        SearchAgentsResponse: components["schemas"]["SuccessResponse"] & {
+            agents?: components["schemas"]["AgentSearchResult"][] | null;
+        };
+        /**
+         * @description Map-bounded property search. `viewport_polygon` is an ordered ring of points with
+         *     explicit `lat` and `lng` (WGS-84 decimal degrees), closing implicitly by edge order.
+         *     Omit `viewport_polygon` for read-only `onlyCached` requests (hydrate persisted results).
+         *     For `forceSearch`, include `viewport_polygon` for map-bounded search or rely on server isochrone from preferences when omitted.
+         *     Optional filters come from `user_preferences` and strictness flags; results are
+         *     scored server-side unless overridden by route-specific sort parameters.
+         * @example {
+         *       "viewport_polygon": [
+         *         {
+         *           "lat": 39.75,
+         *           "lng": -104.98
+         *         },
+         *         {
+         *           "lat": 39.75,
+         *           "lng": -104.9
+         *         },
+         *         {
+         *           "lat": 39.7,
+         *           "lng": -104.9
+         *         },
+         *         {
+         *           "lat": 39.7,
+         *           "lng": -104.98
+         *         }
+         *       ],
+         *       "user_preferences": null,
+         *       "preferences_strict_filter": false,
+         *       "perBucketPages": 10,
+         *       "forceSearch": false,
+         *       "onlyCached": false,
+         *       "hydrateListings": false
+         *     }
+         */
+        SearchByPolygonRequest: {
+            /**
+             * @description Closed polygon covering the visible map region (typically 4+ corners).
+             *     Optional when `onlyCached` is true (no new search); recommended when driving `forceSearch` from the map.
+             */
+            viewport_polygon?: components["schemas"]["ViewportPolygonPoint"][] | null;
+            /** @description Buyer preference slice applied as soft or hard filters depending on `preferences_strict_filter`. */
+            user_preferences?: components["schemas"]["UserPreferencesData"];
+            /** @description When true, exclude properties that fail preference constraints instead of only down-ranking them. */
+            preferences_strict_filter?: boolean | null;
+            /** @description Cap on hits per internal price or geography bucket when paginating large result sets. */
+            perBucketPages?: number | null;
+            /** @description Bypass short-circuit caches and recompute matches (admin or debug style refresh). */
+            forceSearch?: boolean | null;
+            /** @description When true, return previously materialized results only without hitting upstream MLS. */
+            onlyCached?: boolean | null;
+            /**
+             * @description When true with `onlyCached`, refresh listing snapshots (price, status, beds, etc.) from Slipstream
+             *     using each persisted home_id before responding. Does not re-run search or change match scores.
+             */
+            hydrateListings?: boolean | null;
+            /**
+             * @description Optional subject for preference scoring (agents: must be a linked client id; buyers are always scoped to self).
+             *     Resolved server-side via `resolve_preferences_user_id_for_research`.
+             */
+            preferences_user_id?: string | null;
+        };
+        /**
+         * @description Polygon search outcome: ranked `PropertySearchResult` rows when `success` is true.
+         *     `cached` indicates a fast path from server cache; `error` carries a short diagnostic
+         *     when `success` is false without throwing HTTP errors.
+         * @example {
+         *       "success": true,
+         *       "count": 2,
+         *       "cached": false,
+         *       "error": null,
+         *       "properties": [
+         *         {
+         *           "zpid": "12345678",
+         *           "address": "742 Evergreen Terrace",
+         *           "city": "Springfield",
+         *           "state": "IL",
+         *           "zipcode": "62704",
+         *           "latitude": 39.7817,
+         *           "longitude": -89.6501,
+         *           "price": 425000,
+         *           "bedrooms": 4,
+         *           "bathrooms": 2.5,
+         *           "livingArea": 2400,
+         *           "homeType": "SINGLE_FAMILY",
+         *           "imageUrl": "https://photos.examplecdn.com/listings/12345678/hero.jpg",
+         *           "listingStatus": "FOR_SALE"
+         *         },
+         *         {
+         *           "zpid": "87654321",
+         *           "address": "100 Main St",
+         *           "city": "Springfield",
+         *           "state": "IL",
+         *           "zipcode": "62701",
+         *           "latitude": 39.8,
+         *           "longitude": -89.64,
+         *           "price": 310000,
+         *           "bedrooms": 3,
+         *           "bathrooms": 2,
+         *           "livingArea": 1850,
+         *           "homeType": "TOWNHOUSE",
+         *           "imageUrl": "https://photos.examplecdn.com/listings/87654321/hero.jpg",
+         *           "listingStatus": "FOR_SALE"
+         *         }
+         *       ]
+         *     }
+         */
+        SearchByPolygonResponse: {
+            /** @description False when the search could not complete; inspect `error` and HTTP status. */
+            success: boolean;
+            /** @description Matching listings normalized for map and list UIs. */
+            properties?: components["schemas"]["PropertySearchResult"][] | null;
+            /** @description Number of items in `properties` for this response page. */
+            count?: number | null;
+            /** @description True when results were served from an in-memory or DB cache without full re-query. */
+            cached?: boolean | null;
+            /** @description Machine-oriented failure hint when `success` is false (e.g. invalid polygon). */
+            error?: string | null;
+            /** @description Standard pagination for the returned property list (single-page responses use page 1). */
+            pagination?: components["schemas"]["Pagination"];
+        };
+        SearchClientsResponse: components["schemas"]["SuccessResponse"] & {
+            clients?: components["schemas"]["ClientSearchResult"][] | null;
+        };
+        /** @description Search display state including persisted UI settings and last search context. */
+        SearchDisplayPayload: {
+            /** @description Whether the commute isochrone overlay is visible on the map. */
+            show_commute_overlay?: boolean;
+            /** @description Number of property cards shown on the map at once. */
+            map_home_cards_count?: number;
+            /** @description Sort key for the search results list. */
+            results_order_by?: string;
+            /** @description When true, preference post-filters always apply server-side. */
+            preferences_strict_filter?: boolean;
+            /** @description Snapshot of the user's last executed search for restoring polygon and map state on page load. */
+            last_search_context?: {
+                /**
+                 * @description Whether the search was driven by user preferences/commute or a location bar entry.
+                 * @enum {string}
+                 */
+                search_source?: "preferences" | "location";
+                /** @description Closed polygon ring from the last search viewport or place bounds. */
+                viewport_ring?: components["schemas"]["ViewportPolygonPoint"][] | null;
+                /** @description Formatted label for the searched place (e.g. "Atlanta, GA"). */
+                place_label?: string | null;
+                /** @description Map center at the time of the last search. */
+                map_center?: {
+                    /** Format: double */
+                    lat?: number;
+                    /** Format: double */
+                    lng?: number;
+                } | null;
+                /**
+                 * Format: double
+                 * @description Map zoom level at the time of the last search.
+                 */
+                map_zoom?: number | null;
+                /**
+                 * Format: date-time
+                 * @description ISO 8601 timestamp of when the search was executed.
+                 */
+                searched_at?: string | null;
+            } | null;
+        } & {
+            [key: string]: unknown;
+        };
+        SearchDisplayResponse: components["schemas"]["SuccessResponse"] & {
+            search_display?: components["schemas"]["SearchDisplayPayload"];
+        };
+        /** @description Multipart form fields for POST /api/v1/upload/document (excluding binary `file`, which is validated via file_security). Maps to the `address` part of SecureUploadDocumentRequest. */
+        SecureUploadDocumentForm: {
+            /** @description Optional property address associated with the upload. */
+            address?: string | null;
+        };
+        /** @description Nested payload returned by POST /api/v1/upload/document (field `document` on `UploadResponse`). Immediate upload metadata; not the full `UploadedDocumentRecord` (no `user_id` / pipeline status in body). */
+        SecureUploadDocumentPayload: {
+            id: string;
+            filename: string;
+            size?: number | null;
+            /** @description Validated MIME type of the uploaded file */
+            type?: string | null;
+            hash?: string | null;
+            uploaded_at?: string | null;
+        };
+        SecureUploadDocumentRequest: {
+            /**
+             * Format: binary
+             * @description Document file (PDF, DOCX, or allowed image types per handler validation).
+             */
+            file: string;
+            /** @description Optional property address associated with the upload. */
+            address?: string | null;
+        };
+        /** @description Nested payload returned by POST /api/v1/upload/image (field `image` on UploadResponse). */
+        SecureUploadImagePayload: {
+            filename: string;
+            /** @description File size in bytes; may be null after temp file is removed post-S3 upload. */
+            size?: number | null;
+            /** @description Validated MIME type of the uploaded image. */
+            type?: string | null;
+            hash?: string | null;
+            /**
+             * Format: uri
+             * @description S3 URL when configured; otherwise null.
+             */
+            url?: string | null;
+        };
+        SecureUploadImageRequest: {
+            /**
+             * Format: binary
+             * @description Image file (JPEG, PNG, or GIF per handler validation).
+             */
+            file: string;
+        };
+        SendAgreementRequest: {
+            signing_method?: components["schemas"]["SigningMethod"];
+            /** @description Optional selected signer user id */
+            participant_user_id?: string | null;
+            /** @description Optional per-send DocuSign reminder/expiration overrides. */
+            envelope_notification?: components["schemas"]["DocuSignEnvelopeNotificationInput"];
+            /** @description Per-signer text/checkbox tabs to pre-populate at send time. */
+            tab_prefill?: components["schemas"]["DocuSignParticipantTabPrefillInput"][] | null;
+            /** @description Sender-level prefill tabs (not tied to a recipient). */
+            envelope_prefill_tabs?: components["schemas"]["DocuSignEnvelopePrefillTabsInput"];
+            /** @description Required when sending an agreement created with docusign_source_template_id: maps each DocuSign template role name to an agreement participant. */
+            template_role_map?: components["schemas"]["DocusignTemplateRoleMapEntry"][] | null;
+        };
+        SendAgreementResponse: components["schemas"]["SuccessResponse"] & {
+            task_id?: string | null;
+        };
+        SendMessageRequest: {
+            /** @description Use 'new' to create conversation, requires client_id */
+            conversation_id: string;
+            message: string;
+            /** @description Required when conversation_id is 'new' and user is agent */
+            client_id?: string | null;
+            shared_home_id?: string | null;
+            shared_document_id?: string | null;
+        };
+        SendMessageResponse: components["schemas"]["SuccessResponse"] & {
+            message_id?: string | null;
+        };
+        /** @description Resolved server logger category toggles plus logLevel. */
+        ServerLoggerConfig: {
+            polling: boolean;
+            pages: boolean;
+            hooks: boolean;
+            auth: boolean;
+            http: boolean;
+            api: boolean;
+            errors: boolean;
+            security: boolean;
+            search: boolean;
+            polygonSearch: boolean;
+            mapRendering: boolean;
+            propertyDetails: boolean;
+            negotiation: boolean;
+            checklists: boolean;
+            calendar: boolean;
+            dashboard: boolean;
+            messages: boolean;
+            feed: boolean;
+            routing: boolean;
+            docusign: boolean;
+            documents: boolean;
+            transactions: boolean;
+            profilePreferences: boolean;
+            /** @enum {string} */
+            logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR";
+        };
+        /** @description Partial server logger config for admin updates. All fields optional; server deep-merges into stored deployment overrides. */
+        ServerLoggerConfigPatch: {
+            polling?: boolean;
+            pages?: boolean;
+            hooks?: boolean;
+            auth?: boolean;
+            http?: boolean;
+            api?: boolean;
+            errors?: boolean;
+            security?: boolean;
+            search?: boolean;
+            polygonSearch?: boolean;
+            mapRendering?: boolean;
+            propertyDetails?: boolean;
+            negotiation?: boolean;
+            checklists?: boolean;
+            calendar?: boolean;
+            dashboard?: boolean;
+            messages?: boolean;
+            feed?: boolean;
+            routing?: boolean;
+            docusign?: boolean;
+            documents?: boolean;
+            transactions?: boolean;
+            profilePreferences?: boolean;
+            /** @enum {string} */
+            logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR";
+        };
+        /** @enum {string} */
+        SigningMethod: "embedded" | "email";
+        /**
+         * @description Self-service registration payload. Creates a Cognito user and application row;
+         *     agents may supply optional `brokerage` and `phone` for CRM and notification defaults.
+         * @example {
+         *       "name": "Alex Agent",
+         *       "email": "alex.agent@example.com",
+         *       "password": "Str0ng!Passw0rd",
+         *       "phone": "+15559876543",
+         *       "brokerage": "Silver Key Realty"
+         *     }
+         */
+        SignupData: {
+            /**
+             * @description Display name stored on the user profile and shown in messaging and agreements.
+             * @example Alex Agent
+             */
+            name: string;
+            /**
+             * Format: email
+             * @description Unique account email; becomes the username for Cognito email flows.
+             * @example alex.agent@example.com
+             */
+            email: string;
+            /**
+             * Format: password
+             * @description Initial password meeting Cognito policy; user may change after first login.
+             * @example Str0ng!Passw0rd
+             */
+            password: string;
+            /**
+             * @description E.164-style phone when SMS or voice verification is enabled for the pool.
+             * @example +15559876543
+             */
+            phone?: string | null;
+            /**
+             * @description Optional `users.brokerage` for agents at signup; shown on agent-facing surfaces.
+             * @example Silver Key Realty
+             */
+            brokerage?: string | null;
+        };
+        /**
+         * @description Base success envelope extended via `allOf` across many routes. `success` is always
+         *     true; `message` is optional human copy; `error` is normally null on success responses.
+         * @example {
+         *       "success": true,
+         *       "message": "OK",
+         *       "error": null
+         *     }
+         */
+        SuccessResponse: {
+            /**
+             * @description Always true for this schema; failed requests use ErrorResponse instead.
+             * @enum {boolean}
+             */
+            success: true;
+            /** @description Optional short status (e.g. OK or operation-specific confirmation). */
+            message?: string | null;
+            /** @description Reserved for symmetry with errors; keep null on success. */
+            error?: string | null;
+        };
+        /** @description Empty JSON body for POST /api/v1/docusign/templates/sync. Client may send {}. No fields are required or read by the handler. */
+        SyncTemplatesRequest: Record<string, never>;
+        SyncTemplatesResponse: components["schemas"]["SuccessResponse"] & {
+            task_id?: string | null;
+        };
+        TaskChecklistApiResponse: components["schemas"]["SuccessResponse"] & {
+            data?: components["schemas"]["TaskChecklistResponse"];
+        };
+        TaskChecklistItem: {
+            id: number;
+            label: string;
+            explanation: string;
+            bullets?: string[] | null;
+            tip?: string | null;
+            resource?: {
+                label?: string;
+                href?: string | null;
+            } | null;
+            order?: number | null;
+            integration_key?: string | null;
+            component_key?: string | null;
+            /**
+             * @description Optional checklist-step UI for suggested forms. When omitted, use default compact form cards; document uses DocumentCard-style layout.
+             * @enum {string|null}
+             */
+            forms_card_variant?: "default" | "document" | null;
+            allow_unordered_check?: boolean | null;
+            /** @description When set, unchecked items sharing the same value are treated as concurrent "active" steps in the UI until all are complete (e.g. parallel integrations). */
+            parallel_step_group?: string | null;
+            suggestedFormIds?: string[] | null;
+            optional?: boolean | null;
+            calendar?: {
+                hasDates?: boolean;
+                days?: number;
+                eventSchedule?: number[] | null;
+            } | null;
+            /** @description When set, the user may manually check this step only if this condition holds (in addition to section unlock and sequential ordering). Omitted means no extra gate for manual selection. */
+            selectable_when?: components["schemas"]["ChecklistCondition"] | null;
+            /** @description When this condition holds on the effective checked set, this item id is included in checklist progress (server merge on GET/PUT). */
+            auto_complete_when?: components["schemas"]["ChecklistCondition"] | null;
+            /** @description When this condition holds, an id that was already checked (stored before the request) cannot be removed from checkedIds; server re-adds it on PUT. */
+            lock_uncheck_when?: components["schemas"]["ChecklistCondition"] | null;
+            /** @description When true, agents may configure automatic dispatch (messaging / DocuSign) when this step is checked off, for this client context. */
+            dispatchAutomationAvailable?: boolean | null;
+            /** @description When true, the checklist checkbox must not be used to mark this step complete; the client completes it only via the integration submit action after validating required fields. */
+            completionRequiresSubmit?: boolean | null;
+            /**
+             * @description How the step becomes complete. Omitted or manual allows normal checkbox behavior (subject to completionRequiresSubmit). signature_based steps complete only when linked agreements are fully executed.
+             * @enum {string|null}
+             */
+            completionType?: "manual" | "signature_based" | "signature_plus_review" | "integration_based" | null;
+        };
+        TaskChecklistProgressSummary: {
+            /** @description Per-category progress keyed by ChecklistType (search, offer, escrow, insurance, financing, closing). */
+            sections: {
+                [key: string]: components["schemas"]["TaskChecklistSectionProgress"];
+            };
+            overall: components["schemas"]["TaskChecklistOverallProgress"];
+        };
+        TaskChecklistProgressSummaryResponse: components["schemas"]["SuccessResponse"] & {
+            data?: components["schemas"]["TaskChecklistProgressSummary"];
+        };
+        TaskChecklistSectionProgress: {
+            completed: number;
+            total: number;
+            isComplete: boolean;
+        };
+        TaskChecklistOverallProgress: {
+            completed: number;
+            total: number;
+            percent: number;
+        };
+        TaskChecklistResponse: {
+            items: components["schemas"]["TaskChecklistItem"][];
+            checkedIds: number[];
+            title?: string | null;
+            subtitle?: string | null;
+            deadline?: string | null;
+            date_finished?: string | null;
+        };
+        TaskStatusResponse: components["schemas"]["SuccessResponse"] & {
+            task_id: string;
+            /** @enum {string} */
+            status: "SUCCESS" | "PENDING" | "PROGRESS" | "FAILURE";
+            /** @description Task result payload when status is SUCCESS; shape depends on task type (Celery/async jobs). additionalProperties stays open because each task defines its own result keys. */
+            result?: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Progress metadata when status is PROGRESS; may include arbitrary progress fields per task. */
+            meta?: ({
+                status?: string | null;
+            } & {
+                [key: string]: unknown;
+            }) | null;
+            status_code?: number | null;
+            elapsed_time?: number | null;
+        };
         /**
          * Format: date-time
-         * @description ISO 8601 timestamp of when the search was executed.
+         * @example 2024-01-15T10:30:00Z
          */
-        searched_at?: string | null;
-      } | null;
-    } & {
-      [key: string]: unknown;
-    };
-    SearchDisplayResponse: components["schemas"]["SuccessResponse"] & {
-      search_display?: components["schemas"]["SearchDisplayPayload"];
-    };
-    /** @description Multipart form fields for POST /api/v1/upload/document (excluding binary `file`, which is validated via file_security). Maps to the `address` part of SecureUploadDocumentRequest. */
-    SecureUploadDocumentForm: {
-      /** @description Optional property address associated with the upload. */
-      address?: string | null;
-    };
-    /** @description Nested payload returned by POST /api/v1/upload/document (field `document` on `UploadResponse`). Immediate upload metadata; not the full `UploadedDocumentRecord` (no `user_id` / pipeline status in body). */
-    SecureUploadDocumentPayload: {
-      id: string;
-      filename: string;
-      size?: number | null;
-      /** @description Validated MIME type of the uploaded file */
-      type?: string | null;
-      hash?: string | null;
-      uploaded_at?: string | null;
-    };
-    SecureUploadDocumentRequest: {
-      /**
-       * Format: binary
-       * @description Document file (PDF, DOCX, or allowed image types per handler validation).
-       */
-      file: string;
-      /** @description Optional property address associated with the upload. */
-      address?: string | null;
-    };
-    /** @description Nested payload returned by POST /api/v1/upload/image (field `image` on UploadResponse). */
-    SecureUploadImagePayload: {
-      filename: string;
-      /** @description File size in bytes; may be null after temp file is removed post-S3 upload. */
-      size?: number | null;
-      /** @description Validated MIME type of the uploaded image. */
-      type?: string | null;
-      hash?: string | null;
-      /**
-       * Format: uri
-       * @description S3 URL when configured; otherwise null.
-       */
-      url?: string | null;
-    };
-    SecureUploadImageRequest: {
-      /**
-       * Format: binary
-       * @description Image file (JPEG, PNG, or GIF per handler validation).
-       */
-      file: string;
-    };
-    SendAgreementRequest: {
-      signing_method?: components["schemas"]["SigningMethod"];
-      /** @description Optional selected signer user id */
-      participant_user_id?: string | null;
-      /** @description Optional per-send DocuSign reminder/expiration overrides. */
-      envelope_notification?: components["schemas"]["DocuSignEnvelopeNotificationInput"];
-      /** @description Per-signer text/checkbox tabs to pre-populate at send time. */
-      tab_prefill?: components["schemas"]["DocuSignParticipantTabPrefillInput"][] | null;
-      /** @description Sender-level prefill tabs (not tied to a recipient). */
-      envelope_prefill_tabs?: components["schemas"]["DocuSignEnvelopePrefillTabsInput"];
-      /** @description Required when sending an agreement created with docusign_source_template_id: maps each DocuSign template role name to an agreement participant. */
-      template_role_map?: components["schemas"]["DocusignTemplateRoleMapEntry"][] | null;
-    };
-    SendAgreementResponse: components["schemas"]["SuccessResponse"] & {
-      task_id?: string | null;
-    };
-    SendMessageRequest: {
-      /** @description Use 'new' to create conversation, requires client_id */
-      conversation_id: string;
-      message: string;
-      /** @description Required when conversation_id is 'new' and user is agent */
-      client_id?: string | null;
-      shared_home_id?: string | null;
-      shared_document_id?: string | null;
-    };
-    SendMessageResponse: components["schemas"]["SuccessResponse"] & {
-      message_id?: string | null;
-    };
-    /** @description Resolved server logger category toggles plus logLevel. */
-    ServerLoggerConfig: {
-      polling: boolean;
-      pages: boolean;
-      hooks: boolean;
-      auth: boolean;
-      http: boolean;
-      api: boolean;
-      errors: boolean;
-      security: boolean;
-      search: boolean;
-      polygonSearch: boolean;
-      mapRendering: boolean;
-      propertyDetails: boolean;
-      negotiation: boolean;
-      checklists: boolean;
-      calendar: boolean;
-      dashboard: boolean;
-      messages: boolean;
-      feed: boolean;
-      routing: boolean;
-      docusign: boolean;
-      documents: boolean;
-      profilePreferences: boolean;
-      /** @enum {string} */
-      logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR";
-    };
-    /** @description Partial server logger config for admin updates. All fields optional; server deep-merges into stored deployment overrides. */
-    ServerLoggerConfigPatch: {
-      polling?: boolean;
-      pages?: boolean;
-      hooks?: boolean;
-      auth?: boolean;
-      http?: boolean;
-      api?: boolean;
-      errors?: boolean;
-      security?: boolean;
-      search?: boolean;
-      polygonSearch?: boolean;
-      mapRendering?: boolean;
-      propertyDetails?: boolean;
-      negotiation?: boolean;
-      checklists?: boolean;
-      calendar?: boolean;
-      dashboard?: boolean;
-      messages?: boolean;
-      feed?: boolean;
-      routing?: boolean;
-      docusign?: boolean;
-      documents?: boolean;
-      profilePreferences?: boolean;
-      /** @enum {string} */
-      logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR";
-    };
-    /** @enum {string} */
-    SigningMethod: "embedded" | "email";
-    /**
-     * @description Self-service registration payload. Creates a Cognito user and application row;
-     *     agents may supply optional `brokerage` and `phone` for CRM and notification defaults.
-     * @example {
-     *       "name": "Alex Agent",
-     *       "email": "alex.agent@example.com",
-     *       "password": "Str0ng!Passw0rd",
-     *       "phone": "+15559876543",
-     *       "brokerage": "Silver Key Realty"
-     *     }
-     */
-    SignupData: {
-      /**
-       * @description Display name stored on the user profile and shown in messaging and agreements.
-       * @example Alex Agent
-       */
-      name: string;
-      /**
-       * Format: email
-       * @description Unique account email; becomes the username for Cognito email flows.
-       * @example alex.agent@example.com
-       */
-      email: string;
-      /**
-       * Format: password
-       * @description Initial password meeting Cognito policy; user may change after first login.
-       * @example Str0ng!Passw0rd
-       */
-      password: string;
-      /**
-       * @description E.164-style phone when SMS or voice verification is enabled for the pool.
-       * @example +15559876543
-       */
-      phone?: string | null;
-      /**
-       * @description Optional `users.brokerage` for agents at signup; shown on agent-facing surfaces.
-       * @example Silver Key Realty
-       */
-      brokerage?: string | null;
-    };
-    /**
-     * @description Base success envelope extended via `allOf` across many routes. `success` is always
-     *     true; `message` is optional human copy; `error` is normally null on success responses.
-     * @example {
-     *       "success": true,
-     *       "message": "OK",
-     *       "error": null
-     *     }
-     */
-    SuccessResponse: {
-      /**
-       * @description Always true for this schema; failed requests use ErrorResponse instead.
-       * @enum {boolean}
-       */
-      success: true;
-      /** @description Optional short status (e.g. OK or operation-specific confirmation). */
-      message?: string | null;
-      /** @description Reserved for symmetry with errors; keep null on success. */
-      error?: string | null;
-    };
-    /** @description Empty JSON body for POST /api/v1/docusign/templates/sync. Client may send {}. No fields are required or read by the handler. */
-    SyncTemplatesRequest: Record<string, never>;
-    SyncTemplatesResponse: components["schemas"]["SuccessResponse"] & {
-      task_id?: string | null;
-    };
-    TaskChecklistApiResponse: components["schemas"]["SuccessResponse"] & {
-      data?: components["schemas"]["TaskChecklistResponse"];
-    };
-    TaskChecklistItem: {
-      id: number;
-      label: string;
-      explanation: string;
-      bullets?: string[] | null;
-      tip?: string | null;
-      resource?: {
-        label?: string;
-        href?: string | null;
-      } | null;
-      order?: number | null;
-      integration_key?: string | null;
-      component_key?: string | null;
-      /**
-       * @description Optional checklist-step UI for suggested forms. When omitted, use default compact form cards; document uses DocumentCard-style layout.
-       * @enum {string|null}
-       */
-      forms_card_variant?: "default" | "document" | null;
-      allow_unordered_check?: boolean | null;
-      /** @description When set, unchecked items sharing the same value are treated as concurrent "active" steps in the UI until all are complete (e.g. parallel integrations). */
-      parallel_step_group?: string | null;
-      suggestedFormIds?: string[] | null;
-      optional?: boolean | null;
-      calendar?: {
-        hasDates?: boolean;
-        days?: number;
-        eventSchedule?: number[] | null;
-      } | null;
-      /** @description When set, the user may manually check this step only if this condition holds (in addition to section unlock and sequential ordering). Omitted means no extra gate for manual selection. */
-      selectable_when?: components["schemas"]["ChecklistCondition"] | null;
-      /** @description When this condition holds on the effective checked set, this item id is included in checklist progress (server merge on GET/PUT). */
-      auto_complete_when?: components["schemas"]["ChecklistCondition"] | null;
-      /** @description When this condition holds, an id that was already checked (stored before the request) cannot be removed from checkedIds; server re-adds it on PUT. */
-      lock_uncheck_when?: components["schemas"]["ChecklistCondition"] | null;
-      /** @description When true, agents may configure automatic dispatch (messaging / DocuSign) when this step is checked off, for this client context. */
-      dispatchAutomationAvailable?: boolean | null;
-      /** @description When true, the checklist checkbox must not be used to mark this step complete; the client completes it only via the integration submit action after validating required fields. */
-      completionRequiresSubmit?: boolean | null;
-      /**
-       * @description How the step becomes complete. Omitted or manual allows normal checkbox behavior (subject to completionRequiresSubmit). signature_based steps complete only when linked agreements are fully executed.
-       * @enum {string|null}
-       */
-      completionType?:
-        | "manual"
-        | "signature_based"
-        | "signature_plus_review"
-        | "integration_based"
-        | null;
-    };
-    TaskChecklistProgressSummary: {
-      /** @description Per-category progress keyed by ChecklistType (search, offer, escrow, insurance, financing, closing). */
-      sections: {
-        [key: string]: components["schemas"]["TaskChecklistSectionProgress"];
-      };
-      overall: components["schemas"]["TaskChecklistOverallProgress"];
-    };
-    TaskChecklistProgressSummaryResponse: components["schemas"]["SuccessResponse"] & {
-      data?: components["schemas"]["TaskChecklistProgressSummary"];
-    };
-    TaskChecklistSectionProgress: {
-      completed: number;
-      total: number;
-      isComplete: boolean;
-    };
-    TaskChecklistOverallProgress: {
-      completed: number;
-      total: number;
-      percent: number;
-    };
-    TaskChecklistResponse: {
-      items: components["schemas"]["TaskChecklistItem"][];
-      checkedIds: number[];
-      title?: string | null;
-      subtitle?: string | null;
-      deadline?: string | null;
-      date_finished?: string | null;
-    };
-    TaskStatusResponse: components["schemas"]["SuccessResponse"] & {
-      task_id: string;
-      /** @enum {string} */
-      status: "SUCCESS" | "PENDING" | "PROGRESS" | "FAILURE";
-      /** @description Task result payload when status is SUCCESS; shape depends on task type (Celery/async jobs). additionalProperties stays open because each task defines its own result keys. */
-      result?: {
-        [key: string]: unknown;
-      } | null;
-      /** @description Progress metadata when status is PROGRESS; may include arbitrary progress fields per task. */
-      meta?:
-        | ({
-            status?: string | null;
-          } & {
-            [key: string]: unknown;
-          })
-        | null;
-      status_code?: number | null;
-      elapsed_time?: number | null;
-    };
-    /**
-     * Format: date-time
-     * @example 2024-01-15T10:30:00Z
-     */
-    Timestamp: string;
-    /**
-     * @description Agent-scoped task with optional client linkage. `type` drives reminders and calendar
-     *     treatment; `due_date` may be null for backlog-style manual tasks.
-     * @example {
-     *       "id": "todo-8a7b6c5d-4e3f-2109-8765-43210fedcba9",
-     *       "agent_id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
-     *       "client_id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
-     *       "title": "Send disclosure package",
-     *       "description": "Email PDFs before Friday tour.",
-     *       "type": "follow_up",
-     *       "due_date": "2026-04-11T15:00:00.000Z",
-     *       "completed": false,
-     *       "completed_at": null,
-     *       "created_at": "2026-04-07T10:00:00.000Z",
-     *       "updated_at": "2026-04-07T10:00:00.000Z"
-     *     }
-     */
-    TodoItem: {
-      id: string;
-      agent_id: string;
-      client_id?: string | null;
-      title: string;
-      description?: string | null;
-      /**
-       * @description Task category for UX and automation:
-       *     - `deadline`: Hard cutoff (e.g. contingency date)
-       *     - `follow_up`: Scheduled callback or nudge
-       *     - `inspection`: Inspection-related milestone
-       *     - `offer_expiration`: Offer or counter deadline
-       *     - `closing`: Closing or escrow milestone
-       *     - `manual`: User-defined task without automatic rules
-       * @enum {string}
-       */
-      type: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
-      /** @description Optional ISO 8601 due date or datetime; null for undated backlog items. */
-      due_date: string | null;
-      /** @description Whether the task is closed in the agent dashboard. */
-      completed: boolean;
-      /**
-       * Format: date-time
-       * @description Set when `completed` became true; null while open.
-       */
-      completed_at?: string | null;
-      /** Format: date-time */
-      created_at: string;
-      /** Format: date-time */
-      updated_at: string;
-    };
-    TransactionAddressData: {
-      address: string;
-      street?: string | null;
-      city?: string | null;
-      state?: string | null;
-      postal_code?: string | null;
-      country?: string | null;
-      place_id?: string | null;
-    };
-    TransactionAddressResponse: components["schemas"]["SuccessResponse"] & {
-      data?: components["schemas"]["TransactionAddressData"];
-    };
-    /**
-     * @description Revenue spine row for a buyer deal. Path param `transaction_id` on checklist, documents, rev-share, and calendar APIs MUST be `transactions.id` (UUID) — never the buyer's `users.id`.
-     * @example {
-     *       "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
-     *       "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *       "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-     *       "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
-     *     }
-     */
-    Transaction: {
-      /** @description Primary key (`transactions.id`); sole deal scope id for downstream APIs. */
-      id: string;
-      /** @description Buyer user id for this deal. */
-      buyer_id: string;
-      /** @description Primary agent user id when linked via agent_conversations. */
-      primary_agent_id?: string | null;
-      /** @description Attribution org for brokerage revenue (not tenant isolation). */
-      brokerage_org_id: string;
-      /** @description Deal lifecycle status (e.g. active, closed). Optional until engine assigns values. */
-      status?: string | null;
-      /** @description Short human label (often address line) for multi-deal lists and switchers. */
-      display_label?: string | null;
-      /**
-       * Format: date-time
-       * @description ISO 8601 timestamp when the deal row was created.
-       */
-      created_at?: string | null;
-      /**
-       * Format: date-time
-       * @description ISO 8601 timestamp when the deal row was last updated.
-       */
-      updated_at?: string | null;
-    };
-    /** @description Active deal for the authenticated buyer plus optional address summary. */
-    TransactionMeData: {
-      transaction: components["schemas"]["Transaction"];
-      /** @description Buyer user's active deal pointer (`users.active_transaction_id`); mirrors `transaction.id` when set. */
-      active_transaction_id?: string | null;
-      /** @description Saved finding-home address for this deal when present. */
-      address?: components["schemas"]["TransactionAddressData"] | null;
-    };
-    /**
-     * @example {
-     *       "success": true,
-     *       "data": {
-     *         "transaction": {
-     *           "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
-     *           "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *           "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-     *           "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
-     *         },
-     *         "active_transaction_id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
-     *         "address": null
-     *       }
-     *     }
-     */
-    TransactionMeResponse: {
-      success: boolean;
-      data?: components["schemas"]["TransactionMeData"];
-    };
-    /**
-     * @example {
-     *       "success": true,
-     *       "data": [
-     *         {
-     *           "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
-     *           "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *           "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-     *           "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
-     *         }
-     *       ]
-     *     }
-     */
-    TransactionListResponse: {
-      success: boolean;
-      data: components["schemas"]["Transaction"][];
-    };
-    /** @description Create a new deal row (`transactions.id`). Buyer is implicit for self; agents may set `buyer_id` for a managed client. */
-    CreateTransactionRequest: {
-      /** @description Buyer user id. Required when the caller is an agent creating a deal for a client; omit for buyer self-serve. */
-      buyer_id?: string | null;
-      /** @description Optional primary agent override when creating on behalf of a buyer. */
-      primary_agent_id?: string | null;
-      /** @description Attribution org; defaults from agent membership or platform default. */
-      brokerage_org_id?: string | null;
-      /**
-       * @description When true, sets the buyer's `active_transaction_id` to the new deal.
-       * @default true
-       */
-      set_active: boolean;
-    };
-    CreateTransactionResponse: {
-      success: boolean;
-      data: components["schemas"]["Transaction"];
-    };
-    SetActiveTransactionRequest: {
-      /** @description Revenue spine id (`transactions.id`) to set as the buyer's active deal. */
-      transaction_id: string;
-    };
-    SetActiveTransactionResponse: {
-      success: boolean;
-      data: components["schemas"]["Transaction"];
-    };
-    UpdateAgentStatusRequest: {
-      /** @description When true, ensure the agent role in user_roles; when false, remove it. */
-      agent_role_enabled: boolean;
-      /** @description Optional users.brokerage when toggling agent status (if used by client). */
-      brokerage?: string | null;
-    };
-    UpdateAgentStatusResponse: components["schemas"]["SuccessResponse"] & {
-      user?: components["schemas"]["User"];
-    };
-    /**
-     * @description Dev-only workspace persona for admin self-impersonation (local QA).
-     * @enum {string}
-     */
-    DevWorkspacePersona:
-      | "buyer"
-      | "seller"
-      | "renter"
-      | "agent"
-      | "brokerage"
-      | "integration_partner";
-    SetCurrentUserDevWorkspaceRequest: {
-      /** @description Exclusive workspace persona to apply to the signed-in user. */
-      workspace: components["schemas"]["DevWorkspacePersona"];
-    };
-    SetCurrentUserDevWorkspaceResponse: components["schemas"]["SuccessResponse"] & {
-      user?: components["schemas"]["User"];
-    };
-    ExchangeDevAccountSessionRequest: {
-      /** @description One-time dev session token minted by an admin for a target dev test account. */
-      token: string;
-    };
-    MintDevAccountSessionResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description One-time token for tab-scoped dev account session exchange. */
-      token: string;
-      role: components["schemas"]["DevWorkspacePersona"];
-      user: components["schemas"]["User"];
-    };
-    UpdateChecklistDispatchAutomationRequest: {
-      enabled: boolean;
-      channel: components["schemas"]["ChecklistDispatchChannel"];
-      recipientScope: components["schemas"]["ChecklistDispatchRecipientScope"];
-      selectedClientIds?: string[] | null;
-      noteMode: components["schemas"]["ChecklistDispatchNoteMode"];
-      noteBroadcast?: string | null;
-      notesPerClient?: {
-        [key: string]: string;
-      } | null;
-    };
-    UpdateChecklistRequest: {
-      /** @description Checklist data with items and checkedIds */
-      checklist: {
-        items?: components["schemas"]["TaskChecklistItem"][];
-        checkedIds?: number[];
-        title?: string | null;
-        subtitle?: string | null;
-        deadline?: string | null;
-        date_finished?: string | null;
-      };
-    };
-    UpdateEventRequestStatusRequest: {
-      /**
-       * @description New status for the event request (pending cannot be set manually)
-       * @enum {string}
-       */
-      status: "accepted" | "cancelled";
-    };
-    UpdateLoggerConfigRequest: {
-      updates: components["schemas"]["DeploymentLoggerConfigUpdates"];
-    };
-    UpdateNotInterestedRequest: {
-      address: string;
-      why: string;
-    };
-    UpdateRoutingOrderRequest: {
-      /** @description New routing order for the participant */
-      routing_order: number;
-    };
-    UpdateRoutingOrderResponse: components["schemas"]["SuccessResponse"] & {
-      participant?: components["schemas"]["AgreementParticipant"];
-    };
-    UpdateTaskChecklistRequest: {
-      /** @description Updated checklist data with items and checkedIds */
-      data: components["schemas"]["TaskChecklistResponse"];
-    };
-    UpdateTodoRequest: {
-      title?: string | null;
-      description?: string | null;
-      /** @enum {string|null} */
-      type?:
-        | "deadline"
-        | "follow_up"
-        | "inspection"
-        | "offer_expiration"
-        | "closing"
-        | "manual"
-        | null;
-      due_date?: string | null;
-      completed?: boolean | null;
-      client_id?: string | null;
-    };
-    UpdateTodoResponse: components["schemas"]["SuccessResponse"] & {
-      todo?: components["schemas"]["TodoItem"];
-    };
-    AdminGateUser: {
-      /** @description User primary key (UUID). */
-      user_id: string;
-      /** @description User email address. */
-      email: string;
-      /** @description Display name. */
-      name: string;
-      /** @description SilverKey gate roles assigned to this user (`admin`, `super_admin`). */
-      gate_roles: ("admin" | "super_admin")[];
-    };
-    ListAdminGateUsersResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Users with at least one SilverKey gate role (`admin` or `super_admin`). */
-      admins: components["schemas"]["AdminGateUser"][];
-    };
-    UpdateUserSystemRolesRequest: {
-      /** @description Target user UUID (users.id). */
-      user_id: string;
-      /** @description Gate roles to ensure exist for this user (`admin`, `super_admin`). */
-      grant: ("admin" | "super_admin")[];
-      /** @description Gate roles to remove for this user. */
-      revoke: ("admin" | "super_admin")[];
-    };
-    UpdateUserSystemRolesResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Updated user ID. */
-      user_id: string;
-      /** @description Remaining SilverKey gate roles (`admin`, `super_admin`) for this user after the change. */
-      gate_roles: string[];
-    };
-    /** @description Row from the `documents` table / GET /api/v1/report/documents — file storage and processing pipeline (upload, processing, report generation). Distinct from dashboard workflow docs and unified library rows. */
-    UploadedDocumentRecord: {
-      /**
-       * @description Discriminator for OpenAPI tooling; always `pipeline` for documents-table / pipeline rows.
-       * @constant
-       */
-      document_record_kind: "pipeline";
-      id: string;
-      filename: string;
-      file_path: string;
-      /**
-       * @description Pipeline state for the stored file (DB allows additional values).
-       * @enum {string}
-       */
-      status: "uploaded" | "processing" | "processed" | "error" | "generating";
-      user_id: string;
-      created_at?: string | null;
-      updated_at?: string | null;
-      document_type?: string | null;
-      address?: string | null;
-    };
-    UploadResponse: components["schemas"]["SuccessResponse"] & {
-      file_id?: string | null;
-      /** Format: uri */
-      file_url?: string | null;
-      filename?: string | null;
-      file_size?: number | null;
-      content_type?: string | null;
-      document?: components["schemas"]["SecureUploadDocumentPayload"];
-      image?: components["schemas"]["SecureUploadImagePayload"];
-    };
-    /**
-     * @description Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Agent identity is determined by the presence of role "agent" in user_roles (exposed as roles).
-     * @example {
-     *       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *       "email": "jane.buyer@example.com",
-     *       "name": "Jane Buyer",
-     *       "is_active": true,
-     *       "phone": "+15551234567",
-     *       "cognito_id": "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *       "google_id": null,
-     *       "has_preferences": true,
-     *       "roles": [
-     *         "buyer"
-     *       ],
-     *       "created_at": "2024-01-15T10:30:00.000Z",
-     *       "updated_at": "2026-04-01T14:22:00.000Z",
-     *       "last_logged_in": "2026-04-07T09:15:00.000Z"
-     *     }
-     */
-    User: {
-      id: components["schemas"]["UserId"];
-      /** @description AWS Cognito `sub` when the account uses Cognito credentials; null for Google-only accounts until linked, or when the row predates Cognito linkage. */
-      cognito_id?: string | null;
-      /** @description Google OAuth subject when the account is linked; omit or null for non-Google users. */
-      google_id?: string | null;
-      /** Format: email */
-      email: string;
-      name: string;
-      phone?: string | null;
-      /** Format: date-time */
-      created_at?: string | null;
-      /** Format: date-time */
-      updated_at?: string | null;
-      /**
-       * Format: date-time
-       * @description ISO 8601 timestamp of last successful session activity when tracked.
-       */
-      last_logged_in?: string | null;
-      is_active: boolean;
-      mls_id?: string | null;
-      /** @description Agent brokerage name on the users row (DB column brokerage). API wire name is always brokerage. */
-      brokerage?: string | null;
-      has_preferences?: boolean | null;
-      /** @description Preferences schema version marker on users row (e.g. v1); null when unset. */
-      preferences_version?: string | null;
-      /** @description S3 object key for the profile image when stored server-side. */
-      profile_picture?: string | null;
-      /**
-       * Format: uri
-       * @description Presigned URL when returned by profile/upload handlers.
-       */
-      profile_picture_url?: string | null;
-      /** @description Role names from user_roles (e.g. agent, buyer, seller). Agent UX uses roles includes agent. */
-      roles?: string[];
-      /** @description Brokerage organization ids from `user_org_memberships` for attribution and admin scope. */
-      brokerage_org_ids?: string[] | null;
-    };
-    /**
-     * @description User identifier (UUID or string)
-     * @example 123e4567-e89b-12d3-a456-426614174000
-     */
-    UserId: string;
-    /** @description User search preferences for polygon search */
-    UserPreferencesData: {
-      max_price?: number | null;
-      min_price?: number | null;
-      bedrooms?: number | null;
-      bathrooms?: number | null;
-      homeType?: string | null;
-    } & {
-      [key: string]: unknown;
-    };
-    /**
-     * @description Full application user record as returned by profile and admin user endpoints.
-     *     Wire-identical to User; use this schema name when documenting "profile" responses
-     *     (e.g. GET /api/v1/user/profile). Agent rows may include `mls_id`, `brokerage`, and
-     *     `roles`; `profile_picture_url` is a short-lived presigned URL when present.
-     * @example {
-     *       "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
-     *       "email": "alex.agent@example.com",
-     *       "name": "Alex Agent",
-     *       "is_active": true,
-     *       "mls_id": "MLS-48291",
-     *       "brokerage": "Silver Key Realty",
-     *       "cognito_id": "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *       "google_id": null,
-     *       "roles": [
-     *         "agent"
-     *       ],
-     *       "profile_picture_url": "https://s3.example.com/presigned/profile.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256",
-     *       "created_at": "2024-01-15T10:30:00.000Z",
-     *       "updated_at": "2026-04-07T09:00:00.000Z"
-     *     }
-     */
-    UserProfile: components["schemas"]["User"];
-    /**
-     * @example {
-     *       "success": true,
-     *       "message": null,
-     *       "error": null,
-     *       "user": {
-     *         "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     *         "email": "jane.buyer@example.com",
-     *         "name": "Jane Buyer",
-     *         "is_active": true,
-     *         "roles": [
-     *           "buyer"
-     *         ]
-     *       },
-     *       "data": null
-     *     }
-     */
-    UserResponse: components["schemas"]["SuccessResponse"] & {
-      user?: components["schemas"]["User"];
-      /** @description Alternative field name for user data */
-      data?: components["schemas"]["User"];
-    };
-    UserDataExportResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Machine-readable export of profile-related data for the authenticated user. */
-      data: {
-        [key: string]: unknown;
-      };
-    };
-    ValidationStatsApiResponse: components["schemas"]["SuccessResponse"] & {
-      /** @description Aggregate validation-stats payload from the API (structured log snapshot; may evolve). */
-      data: {
-        [key: string]: unknown;
-      };
-    };
-    Partner: {
-      id: string;
-      name: string;
-      slug: string;
-      destination_url_template: string;
-      logo_url?: string | null;
-      description?: string | null;
-      /** @description Deprecated primary step mirror (step_ids[0]) for analytics compatibility */
-      step_id: string;
-      /** @description Checklist step references (section:item_id), e.g. closing:13 */
-      step_ids: string[];
-      /** @description Workspaces that may see this placement */
-      target_roles: (
-        | "buyer"
-        | "seller"
-        | "renter"
-        | "agent"
-        | "brokerage"
-        | "integration_partner"
-      )[];
-      /**
-       * @description Whether payout is attributed per click or per closed transaction
-       * @enum {string}
-       */
-      payout_type: "on_click" | "on_close";
-      payout_per_conversion: number;
-      /**
-       * @description Checklist integration UI — embedded iframe plus new-tab link, or link only
-       * @default iframe_and_link
-       * @enum {string}
-       */
-      integration_display_mode: "iframe_and_link" | "link_only";
-      /** @description Optional URL loaded in the iframe when integration_display_mode is iframe_and_link; defaults to destination_url_template */
-      embed_url_template?: string | null;
-      is_active: boolean;
-      /** Format: date-time */
-      created_at?: string | null;
-      /** Format: date-time */
-      updated_at?: string | null;
-      total_clicks?: number | null;
-      click_through_rate?: number | null;
-      unique_buyer_step_views?: number | null;
-    };
-    BuyerStepView: {
-      id: string;
-      buyer_id: string;
-      step_id: string;
-      transaction_id: string;
-      /** Format: date-time */
-      viewed_at: string | null;
-      partner_payout_snapshot?:
-        | {
-            [key: string]: unknown;
-          }[]
-        | null;
-    };
-    RevShareRecentClick: {
-      id: string;
-      partner_id: string;
-      link_id: string;
-      agent_id?: string | null;
-      buyer_id?: string | null;
-      transaction_id?: string | null;
-      step_id: string;
-      /** Format: date-time */
-      clicked_at: string | null;
-      payout_per_conversion: number;
-      payout_type: string;
-      utm_source?: string | null;
-      utm_medium?: string | null;
-      utm_campaign?: string | null;
-      geo_city?: string | null;
-      geo_zip?: string | null;
-      geo_region?: string | null;
-      device_class?: string | null;
-      referrer?: string | null;
-      buyer_name?: string | null;
-      agent_name?: string | null;
-    };
-    PartnerCreateRequest: {
-      name: string;
-      slug: string;
-      /** @description Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here. */
-      destination_url_template: string;
-      logo_url?: string | null;
-      description?: string | null;
-      /** @description Required when target_roles includes buyer or seller */
-      step_ids?: string[];
-      target_roles: (
-        | "buyer"
-        | "seller"
-        | "renter"
-        | "agent"
-        | "brokerage"
-        | "integration_partner"
-      )[];
-      /** @enum {string} */
-      payout_type: "on_click" | "on_close";
-      payout_per_conversion?: number | null;
-      /**
-       * @default iframe_and_link
-       * @enum {string}
-       */
-      integration_display_mode: "iframe_and_link" | "link_only";
-      /** @description Optional iframe embed URL; when omitted, destination_url_template is used for the iframe src */
-      embed_url_template?: string | null;
-    };
-    PartnerUpdateRequest: {
-      name?: string;
-      slug?: string;
-      /** @description Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here. */
-      destination_url_template?: string;
-      logo_url?: string | null;
-      description?: string | null;
-      step_ids?: string[];
-      target_roles?: (
-        | "buyer"
-        | "seller"
-        | "renter"
-        | "agent"
-        | "brokerage"
-        | "integration_partner"
-      )[];
-      /** @enum {string} */
-      payout_type?: "on_click" | "on_close";
-      payout_per_conversion?: number | null;
-      /** @enum {string} */
-      integration_display_mode?: "iframe_and_link" | "link_only";
-      embed_url_template?: string | null;
-      /** @description Table activate/deactivate only; not set from create/edit form */
-      is_active?: boolean;
-    };
-    PartnerListResponse: {
-      success: boolean;
-      data: {
-        partners: components["schemas"]["Partner"][];
-      };
-    };
-    PartnerResponse: {
-      success: boolean;
-      data: components["schemas"]["Partner"];
-    };
-    PartnerLogoUploadResponse: {
-      success: boolean;
-      /** @description Presigned view URL for the uploaded logo */
-      logo_url?: string;
-      data?: {
-        logo_key?: string;
-        logo_url?: string;
-      };
-    };
-    RevShareStepViewRequest: {
-      step_id: string;
-      transaction_id: string;
-    };
-    RevShareStepViewResponse: {
-      success: boolean;
-      data: components["schemas"]["BuyerStepView"];
-    };
-    PartnerPlacementsQueryParams: {
-      step_id: string;
-      /** @enum {string} */
-      workspace: "buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner";
-      /** @description Optional; used only to fill embed URL placeholders when the partner template includes them */
-      transaction_id?: string;
-    };
-    RevShareAnalyticsQueryParams: {
-      partner_id: string;
-      step_id?: string;
-      /** Format: date-time */
-      date_from?: string;
-      /** Format: date-time */
-      date_to?: string;
-      agent_id?: string;
-      brokerage?: string;
-      /**
-       * @default day
-       * @enum {string}
-       */
-      bucket: "day" | "week";
-    };
-    RevShareRedirectQueryParams: {
-      buyer_id?: string;
-      transaction_id?: string;
-      step_id?: string;
-      session_id?: string;
-      utm_source?: string;
-      utm_medium?: string;
-      utm_campaign?: string;
-    };
-    RevSharePlacementsResponse: {
-      success: boolean;
-      data: {
-        placements: {
-          partner: components["schemas"]["Partner"];
-          link_id: string;
-          /** @description Resolved partner destination URL for outbound open (no /r redirect required) */
-          destination_url?: string;
-          /** @description Resolved iframe URL when partner integration_display_mode is iframe_and_link */
-          embed_src?: string | null;
-        }[];
-      };
-    };
-    RevShareAnalyticsResponse: {
-      success: boolean;
-      data: {
-        partner_id?: string;
-        total_clicks?: number;
-        unique_buyer_clicks?: number;
-        unique_buyer_step_views?: number;
-        click_through_rate?: number | null;
-        estimated_revenue?: number;
-        estimated_revenue_label?: string;
-        clicks_over_time?: {
-          bucket?: string;
-          points?: {
-            date?: string;
-            count?: number;
-          }[];
+        Timestamp: string;
+        /**
+         * @description Agent-scoped task with optional client linkage. `type` drives reminders and calendar
+         *     treatment; `due_date` may be null for backlog-style manual tasks.
+         * @example {
+         *       "id": "todo-8a7b6c5d-4e3f-2109-8765-43210fedcba9",
+         *       "agent_id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+         *       "client_id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+         *       "title": "Send disclosure package",
+         *       "description": "Email PDFs before Friday tour.",
+         *       "type": "follow_up",
+         *       "due_date": "2026-04-11T15:00:00.000Z",
+         *       "completed": false,
+         *       "completed_at": null,
+         *       "created_at": "2026-04-07T10:00:00.000Z",
+         *       "updated_at": "2026-04-07T10:00:00.000Z"
+         *     }
+         */
+        TodoItem: {
+            id: string;
+            agent_id: string;
+            client_id?: string | null;
+            title: string;
+            description?: string | null;
+            /**
+             * @description Task category for UX and automation:
+             *     - `deadline`: Hard cutoff (e.g. contingency date)
+             *     - `follow_up`: Scheduled callback or nudge
+             *     - `inspection`: Inspection-related milestone
+             *     - `offer_expiration`: Offer or counter deadline
+             *     - `closing`: Closing or escrow milestone
+             *     - `manual`: User-defined task without automatic rules
+             * @enum {string}
+             */
+            type: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual";
+            /** @description Optional ISO 8601 due date or datetime; null for undated backlog items. */
+            due_date: string | null;
+            /** @description Whether the task is closed in the agent dashboard. */
+            completed: boolean;
+            /**
+             * Format: date-time
+             * @description Set when `completed` became true; null while open.
+             */
+            completed_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
         };
-        top_agents?: {
-          agent_id?: string;
-          name?: string;
-          clicks?: number;
-        }[];
-        geo_breakdown?: Record<string, never>[];
-        device_breakdown?: Record<string, never>[];
-        referrer_breakdown?: Record<string, never>[];
-        recent_clicks?: components["schemas"]["RevShareRecentClick"][];
-      };
+        TransactionAddressData: {
+            address: string;
+            street?: string | null;
+            city?: string | null;
+            state?: string | null;
+            postal_code?: string | null;
+            country?: string | null;
+            place_id?: string | null;
+        };
+        TransactionAddressResponse: components["schemas"]["SuccessResponse"] & {
+            data?: components["schemas"]["TransactionAddressData"];
+        };
+        /**
+         * @description Revenue spine row for a buyer deal. Path param `transaction_id` on checklist, documents, rev-share, and calendar APIs MUST be `transactions.id` (UUID) — never the buyer's `users.id`.
+         * @example {
+         *       "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *       "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *       "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+         *       "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+         *     }
+         */
+        Transaction: {
+            /** @description Primary key (`transactions.id`); sole deal scope id for downstream APIs. */
+            id: string;
+            /** @description Buyer user id for this deal. */
+            buyer_id: string;
+            /** @description Primary agent user id when linked via agent_conversations. */
+            primary_agent_id?: string | null;
+            /** @description Attribution org for brokerage revenue (not tenant isolation). */
+            brokerage_org_id: string;
+            /** @description Deal lifecycle status (e.g. active, closed). Optional until engine assigns values. */
+            status?: string | null;
+            /** @description Short human label (often address line) for multi-deal lists and switchers. */
+            display_label?: string | null;
+            /**
+             * Format: date-time
+             * @description ISO 8601 timestamp when the deal row was created.
+             */
+            created_at?: string | null;
+            /**
+             * Format: date-time
+             * @description ISO 8601 timestamp when the deal row was last updated.
+             */
+            updated_at?: string | null;
+        };
+        /** @description Active deal for the authenticated buyer plus optional address summary. */
+        TransactionMeData: {
+            transaction: components["schemas"]["Transaction"];
+            /** @description Buyer user's active deal pointer (`users.active_transaction_id`); mirrors `transaction.id` when set. */
+            active_transaction_id?: string | null;
+            /** @description Saved finding-home address for this deal when present. */
+            address?: components["schemas"]["TransactionAddressData"] | null;
+        };
+        /**
+         * @example {
+         *       "success": true,
+         *       "data": {
+         *         "transaction": {
+         *           "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *           "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *           "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+         *           "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+         *         },
+         *         "active_transaction_id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *         "address": null
+         *       }
+         *     }
+         */
+        TransactionMeResponse: {
+            success: boolean;
+            data?: components["schemas"]["TransactionMeData"];
+        };
+        /**
+         * @example {
+         *       "success": true,
+         *       "data": [
+         *         {
+         *           "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
+         *           "buyer_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *           "primary_agent_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+         *           "brokerage_org_id": "a0000000-0000-4000-8000-000000000001"
+         *         }
+         *       ]
+         *     }
+         */
+        TransactionListResponse: {
+            success: boolean;
+            data: components["schemas"]["Transaction"][];
+        };
+        /** @description Create a new deal row (`transactions.id`). Buyer is implicit for self; agents may set `buyer_id` for a managed client. */
+        CreateTransactionRequest: {
+            /** @description Buyer user id. Required when the caller is an agent creating a deal for a client; omit for buyer self-serve. */
+            buyer_id?: string | null;
+            /** @description Optional primary agent override when creating on behalf of a buyer. */
+            primary_agent_id?: string | null;
+            /** @description Attribution org; defaults from agent membership or platform default. */
+            brokerage_org_id?: string | null;
+            /**
+             * @description When true, sets the buyer's `active_transaction_id` to the new deal.
+             * @default true
+             */
+            set_active: boolean;
+        };
+        CreateTransactionResponse: {
+            success: boolean;
+            data: components["schemas"]["Transaction"];
+        };
+        SetActiveTransactionRequest: {
+            /** @description Revenue spine id (`transactions.id`) to set as the buyer's active deal. */
+            transaction_id: string;
+        };
+        SetActiveTransactionResponse: {
+            success: boolean;
+            data: components["schemas"]["Transaction"];
+        };
+        UpdateAgentStatusRequest: {
+            /** @description When true, ensure the agent role in user_roles; when false, remove it. */
+            agent_role_enabled: boolean;
+            /** @description Optional users.brokerage when toggling agent status (if used by client). */
+            brokerage?: string | null;
+        };
+        UpdateAgentStatusResponse: components["schemas"]["SuccessResponse"] & {
+            user?: components["schemas"]["User"];
+        };
+        /**
+         * @description Dev-only workspace persona for admin self-impersonation (local QA).
+         * @enum {string}
+         */
+        DevWorkspacePersona: "buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner";
+        SetCurrentUserDevWorkspaceRequest: {
+            /** @description Exclusive workspace persona to apply to the signed-in user. */
+            workspace: components["schemas"]["DevWorkspacePersona"];
+        };
+        SetCurrentUserDevWorkspaceResponse: components["schemas"]["SuccessResponse"] & {
+            user?: components["schemas"]["User"];
+        };
+        ExchangeDevAccountSessionRequest: {
+            /** @description One-time dev session token minted by an admin for a target dev test account. */
+            token: string;
+        };
+        MintDevAccountSessionResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description One-time token for tab-scoped dev account session exchange. */
+            token: string;
+            role: components["schemas"]["DevWorkspacePersona"];
+            user: components["schemas"]["User"];
+        };
+        UpdateChecklistDispatchAutomationRequest: {
+            enabled: boolean;
+            channel: components["schemas"]["ChecklistDispatchChannel"];
+            recipientScope: components["schemas"]["ChecklistDispatchRecipientScope"];
+            selectedClientIds?: string[] | null;
+            noteMode: components["schemas"]["ChecklistDispatchNoteMode"];
+            noteBroadcast?: string | null;
+            notesPerClient?: {
+                [key: string]: string;
+            } | null;
+        };
+        UpdateChecklistRequest: {
+            /** @description Checklist data with items and checkedIds */
+            checklist: {
+                items?: components["schemas"]["TaskChecklistItem"][];
+                checkedIds?: number[];
+                title?: string | null;
+                subtitle?: string | null;
+                deadline?: string | null;
+                date_finished?: string | null;
+            };
+        };
+        UpdateEventRequestStatusRequest: {
+            /**
+             * @description New status for the event request (pending cannot be set manually)
+             * @enum {string}
+             */
+            status: "accepted" | "cancelled";
+        };
+        UpdateLoggerConfigRequest: {
+            updates: components["schemas"]["DeploymentLoggerConfigUpdates"];
+        };
+        UpdateNotInterestedRequest: {
+            address: string;
+            why: string;
+        };
+        UpdateRoutingOrderRequest: {
+            /** @description New routing order for the participant */
+            routing_order: number;
+        };
+        UpdateRoutingOrderResponse: components["schemas"]["SuccessResponse"] & {
+            participant?: components["schemas"]["AgreementParticipant"];
+        };
+        UpdateTaskChecklistRequest: {
+            /** @description Updated checklist data with items and checkedIds */
+            data: components["schemas"]["TaskChecklistResponse"];
+        };
+        UpdateTodoRequest: {
+            title?: string | null;
+            description?: string | null;
+            /** @enum {string|null} */
+            type?: "deadline" | "follow_up" | "inspection" | "offer_expiration" | "closing" | "manual" | null;
+            due_date?: string | null;
+            completed?: boolean | null;
+            client_id?: string | null;
+        };
+        UpdateTodoResponse: components["schemas"]["SuccessResponse"] & {
+            todo?: components["schemas"]["TodoItem"];
+        };
+        AdminGateUser: {
+            /** @description User primary key (UUID). */
+            user_id: string;
+            /** @description User email address. */
+            email: string;
+            /** @description Display name. */
+            name: string;
+            /** @description SilverKey gate roles assigned to this user (`admin`, `super_admin`). */
+            gate_roles: ("admin" | "super_admin")[];
+        };
+        ListAdminGateUsersResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Users with at least one SilverKey gate role (`admin` or `super_admin`). */
+            admins: components["schemas"]["AdminGateUser"][];
+        };
+        UpdateUserSystemRolesRequest: {
+            /** @description Target user UUID (users.id). */
+            user_id: string;
+            /** @description Gate roles to ensure exist for this user (`admin`, `super_admin`). */
+            grant: ("admin" | "super_admin")[];
+            /** @description Gate roles to remove for this user. */
+            revoke: ("admin" | "super_admin")[];
+        };
+        UpdateUserSystemRolesResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Updated user ID. */
+            user_id: string;
+            /** @description Remaining SilverKey gate roles (`admin`, `super_admin`) for this user after the change. */
+            gate_roles: string[];
+        };
+        /** @description Row from the `documents` table / GET /api/v1/report/documents — file storage and processing pipeline (upload, processing, report generation). Distinct from dashboard workflow docs and unified library rows. */
+        UploadedDocumentRecord: {
+            /**
+             * @description Discriminator for OpenAPI tooling; always `pipeline` for documents-table / pipeline rows.
+             * @constant
+             */
+            document_record_kind: "pipeline";
+            id: string;
+            filename: string;
+            file_path: string;
+            /**
+             * @description Pipeline state for the stored file (DB allows additional values).
+             * @enum {string}
+             */
+            status: "uploaded" | "processing" | "processed" | "error" | "generating";
+            user_id: string;
+            created_at?: string | null;
+            updated_at?: string | null;
+            document_type?: string | null;
+            address?: string | null;
+        };
+        UploadResponse: components["schemas"]["SuccessResponse"] & {
+            file_id?: string | null;
+            /** Format: uri */
+            file_url?: string | null;
+            filename?: string | null;
+            file_size?: number | null;
+            content_type?: string | null;
+            document?: components["schemas"]["SecureUploadDocumentPayload"];
+            image?: components["schemas"]["SecureUploadImagePayload"];
+        };
+        /**
+         * @description Persisted user row shape. Profile GET may add computed fields (e.g. profile_picture_url, roles). Agent identity is determined by the presence of role "agent" in user_roles (exposed as roles).
+         * @example {
+         *       "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *       "email": "jane.buyer@example.com",
+         *       "name": "Jane Buyer",
+         *       "is_active": true,
+         *       "phone": "+15551234567",
+         *       "cognito_id": "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *       "google_id": null,
+         *       "has_preferences": true,
+         *       "roles": [
+         *         "buyer"
+         *       ],
+         *       "created_at": "2024-01-15T10:30:00.000Z",
+         *       "updated_at": "2026-04-01T14:22:00.000Z",
+         *       "last_logged_in": "2026-04-07T09:15:00.000Z"
+         *     }
+         */
+        User: {
+            id: components["schemas"]["UserId"];
+            /** @description AWS Cognito `sub` when the account uses Cognito credentials; null for Google-only accounts until linked, or when the row predates Cognito linkage. */
+            cognito_id?: string | null;
+            /** @description Google OAuth subject when the account is linked; omit or null for non-Google users. */
+            google_id?: string | null;
+            /** Format: email */
+            email: string;
+            name: string;
+            phone?: string | null;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+            /**
+             * Format: date-time
+             * @description ISO 8601 timestamp of last successful session activity when tracked.
+             */
+            last_logged_in?: string | null;
+            is_active: boolean;
+            mls_id?: string | null;
+            /** @description Agent brokerage name on the users row (DB column brokerage). API wire name is always brokerage. */
+            brokerage?: string | null;
+            has_preferences?: boolean | null;
+            /** @description Preferences schema version marker on users row (e.g. v1); null when unset. */
+            preferences_version?: string | null;
+            /** @description S3 object key for the profile image when stored server-side. */
+            profile_picture?: string | null;
+            /**
+             * Format: uri
+             * @description Presigned URL when returned by profile/upload handlers.
+             */
+            profile_picture_url?: string | null;
+            /** @description Role names from user_roles (e.g. agent, buyer, seller). Agent UX uses roles includes agent. */
+            roles?: string[];
+            /** @description Brokerage organization ids from `user_org_memberships` for attribution and admin scope. */
+            brokerage_org_ids?: string[] | null;
+        };
+        /**
+         * @description User identifier (UUID or string)
+         * @example 123e4567-e89b-12d3-a456-426614174000
+         */
+        UserId: string;
+        /** @description User search preferences for polygon search */
+        UserPreferencesData: {
+            max_price?: number | null;
+            min_price?: number | null;
+            bedrooms?: number | null;
+            bathrooms?: number | null;
+            homeType?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /**
+         * @description Full application user record as returned by profile and admin user endpoints.
+         *     Wire-identical to User; use this schema name when documenting "profile" responses
+         *     (e.g. GET /api/v1/user/profile). Agent rows may include `mls_id`, `brokerage`, and
+         *     `roles`; `profile_picture_url` is a short-lived presigned URL when present.
+         * @example {
+         *       "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+         *       "email": "alex.agent@example.com",
+         *       "name": "Alex Agent",
+         *       "is_active": true,
+         *       "mls_id": "MLS-48291",
+         *       "brokerage": "Silver Key Realty",
+         *       "cognito_id": "us-east-1_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *       "google_id": null,
+         *       "roles": [
+         *         "agent"
+         *       ],
+         *       "profile_picture_url": "https://s3.example.com/presigned/profile.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256",
+         *       "created_at": "2024-01-15T10:30:00.000Z",
+         *       "updated_at": "2026-04-07T09:00:00.000Z"
+         *     }
+         */
+        UserProfile: components["schemas"]["User"];
+        /**
+         * @example {
+         *       "success": true,
+         *       "message": null,
+         *       "error": null,
+         *       "user": {
+         *         "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+         *         "email": "jane.buyer@example.com",
+         *         "name": "Jane Buyer",
+         *         "is_active": true,
+         *         "roles": [
+         *           "buyer"
+         *         ]
+         *       },
+         *       "data": null
+         *     }
+         */
+        UserResponse: components["schemas"]["SuccessResponse"] & {
+            user?: components["schemas"]["User"];
+            /** @description Alternative field name for user data */
+            data?: components["schemas"]["User"];
+        };
+        UserDataExportResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Machine-readable export of profile-related data for the authenticated user. */
+            data: {
+                [key: string]: unknown;
+            };
+        };
+        ValidationStatsApiResponse: components["schemas"]["SuccessResponse"] & {
+            /** @description Aggregate validation-stats payload from the API (structured log snapshot; may evolve). */
+            data: {
+                [key: string]: unknown;
+            };
+        };
+        Partner: {
+            id: string;
+            name: string;
+            slug: string;
+            destination_url_template: string;
+            logo_url?: string | null;
+            description?: string | null;
+            /** @description Deprecated primary step mirror (step_ids[0]) for analytics compatibility */
+            step_id: string;
+            /** @description Checklist step references (section:item_id), e.g. closing:13 */
+            step_ids: string[];
+            /** @description Workspaces that may see this placement */
+            target_roles: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
+            /**
+             * @description Whether payout is attributed per click or per closed transaction
+             * @enum {string}
+             */
+            payout_type: "on_click" | "on_close";
+            payout_per_conversion: number;
+            /**
+             * @description Checklist integration UI — embedded iframe plus new-tab link, or link only
+             * @default iframe_and_link
+             * @enum {string}
+             */
+            integration_display_mode: "iframe_and_link" | "link_only";
+            /** @description Optional URL loaded in the iframe when integration_display_mode is iframe_and_link; defaults to destination_url_template */
+            embed_url_template?: string | null;
+            is_active: boolean;
+            /** Format: date-time */
+            created_at?: string | null;
+            /** Format: date-time */
+            updated_at?: string | null;
+            total_clicks?: number | null;
+            click_through_rate?: number | null;
+            unique_buyer_step_views?: number | null;
+        };
+        BuyerStepView: {
+            id: string;
+            buyer_id: string;
+            step_id: string;
+            transaction_id: string;
+            /** Format: date-time */
+            viewed_at: string | null;
+            partner_payout_snapshot?: {
+                [key: string]: unknown;
+            }[] | null;
+        };
+        RevShareRecentClick: {
+            id: string;
+            partner_id: string;
+            link_id: string;
+            agent_id?: string | null;
+            buyer_id?: string | null;
+            transaction_id?: string | null;
+            step_id: string;
+            /** Format: date-time */
+            clicked_at: string | null;
+            payout_per_conversion: number;
+            payout_type: string;
+            utm_source?: string | null;
+            utm_medium?: string | null;
+            utm_campaign?: string | null;
+            geo_city?: string | null;
+            geo_zip?: string | null;
+            geo_region?: string | null;
+            device_class?: string | null;
+            referrer?: string | null;
+            buyer_name?: string | null;
+            agent_name?: string | null;
+        };
+        PartnerCreateRequest: {
+            name: string;
+            slug: string;
+            /** @description Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here. */
+            destination_url_template: string;
+            logo_url?: string | null;
+            description?: string | null;
+            /** @description Required when target_roles includes buyer or seller */
+            step_ids?: string[];
+            target_roles: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
+            /** @enum {string} */
+            payout_type: "on_click" | "on_close";
+            payout_per_conversion?: number | null;
+            /**
+             * @default iframe_and_link
+             * @enum {string}
+             */
+            integration_display_mode: "iframe_and_link" | "link_only";
+            /** @description Optional iframe embed URL; when omitted, destination_url_template is used for the iframe src */
+            embed_url_template?: string | null;
+        };
+        PartnerUpdateRequest: {
+            name?: string;
+            slug?: string;
+            /** @description Partner-provided rev share / affiliate URL. Outbound clicks log via GET /r/{link_id}, then redirect here. */
+            destination_url_template?: string;
+            logo_url?: string | null;
+            description?: string | null;
+            step_ids?: string[];
+            target_roles?: ("buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner")[];
+            /** @enum {string} */
+            payout_type?: "on_click" | "on_close";
+            payout_per_conversion?: number | null;
+            /** @enum {string} */
+            integration_display_mode?: "iframe_and_link" | "link_only";
+            embed_url_template?: string | null;
+            /** @description Table activate/deactivate only; not set from create/edit form */
+            is_active?: boolean;
+        };
+        PartnerListResponse: {
+            success: boolean;
+            data: {
+                partners: components["schemas"]["Partner"][];
+            };
+        };
+        PartnerResponse: {
+            success: boolean;
+            data: components["schemas"]["Partner"];
+        };
+        PartnerLogoUploadResponse: {
+            success: boolean;
+            /** @description Presigned view URL for the uploaded logo */
+            logo_url?: string;
+            data?: {
+                logo_key?: string;
+                logo_url?: string;
+            };
+        };
+        RevShareStepViewRequest: {
+            step_id: string;
+            transaction_id: string;
+        };
+        RevShareStepViewResponse: {
+            success: boolean;
+            data: components["schemas"]["BuyerStepView"];
+        };
+        PartnerPlacementsQueryParams: {
+            step_id: string;
+            /** @enum {string} */
+            workspace: "buyer" | "seller" | "renter" | "agent" | "brokerage" | "integration_partner";
+            /** @description Optional; used only to fill embed URL placeholders when the partner template includes them */
+            transaction_id?: string;
+        };
+        RevShareAnalyticsQueryParams: {
+            partner_id: string;
+            step_id?: string;
+            /** Format: date-time */
+            date_from?: string;
+            /** Format: date-time */
+            date_to?: string;
+            agent_id?: string;
+            brokerage?: string;
+            /**
+             * @default day
+             * @enum {string}
+             */
+            bucket: "day" | "week";
+        };
+        RevShareRedirectQueryParams: {
+            buyer_id?: string;
+            transaction_id?: string;
+            step_id?: string;
+            session_id?: string;
+            utm_source?: string;
+            utm_medium?: string;
+            utm_campaign?: string;
+        };
+        RevSharePlacementsResponse: {
+            success: boolean;
+            data: {
+                placements: {
+                    partner: components["schemas"]["Partner"];
+                    link_id: string;
+                    /** @description Resolved partner destination URL for outbound open (no /r redirect required) */
+                    destination_url?: string;
+                    /** @description Resolved iframe URL when partner integration_display_mode is iframe_and_link */
+                    embed_src?: string | null;
+                }[];
+            };
+        };
+        RevShareAnalyticsResponse: {
+            success: boolean;
+            data: {
+                partner_id?: string;
+                total_clicks?: number;
+                unique_buyer_clicks?: number;
+                unique_buyer_step_views?: number;
+                click_through_rate?: number | null;
+                estimated_revenue?: number;
+                estimated_revenue_label?: string;
+                clicks_over_time?: {
+                    bucket?: string;
+                    points?: {
+                        date?: string;
+                        count?: number;
+                    }[];
+                };
+                top_agents?: {
+                    agent_id?: string;
+                    name?: string;
+                    clicks?: number;
+                }[];
+                geo_breakdown?: Record<string, never>[];
+                device_breakdown?: Record<string, never>[];
+                referrer_breakdown?: Record<string, never>[];
+                recent_clicks?: components["schemas"]["RevShareRecentClick"][];
+            };
+        };
+        VerifyData: {
+            /**
+             * Format: email
+             * @description User's email address
+             */
+            email: string;
+            /** @description Verification code sent via email */
+            code: string;
+            /**
+             * Format: password
+             * @description User's password for auto-login after verification
+             */
+            password: string;
+        };
+        ViewUrlResponse: components["schemas"]["SuccessResponse"] & {
+            /** Format: uri */
+            viewUrl?: string | null;
+            expires_at?: string | null;
+        };
+        ViewportPolygonPoint: {
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lng: number;
+        };
+        VoidAgreementRequest: {
+            reason?: string | null;
+        };
+        VoidAgreementResponse: components["schemas"]["SuccessResponse"];
+        LibraryTabClientSettings: {
+            /** @enum {string} */
+            layout?: "grid" | "list";
+            /** @description Sort id (allowlist enforced server-side per tab). */
+            sort?: string;
+        };
+        /** @description Optional user id whose preferences drive the isochrone (agent research scope). */
+        preferences_user_id: string;
+        /** @description OAuth authorization code */
+        code: string;
+        /** @description OAuth CSRF state parameter */
+        state: string;
+        /** @description OAuth error code when authorization failed */
+        error: string;
     };
-    VerifyData: {
-      /**
-       * Format: email
-       * @description User's email address
-       */
-      email: string;
-      /** @description Verification code sent via email */
-      code: string;
-      /**
-       * Format: password
-       * @description User's password for auto-login after verification
-       */
-      password: string;
-    };
-    ViewUrlResponse: components["schemas"]["SuccessResponse"] & {
-      /** Format: uri */
-      viewUrl?: string | null;
-      expires_at?: string | null;
-    };
-    ViewportPolygonPoint: {
-      /** Format: double */
-      lat: number;
-      /** Format: double */
-      lng: number;
-    };
-    VoidAgreementRequest: {
-      reason?: string | null;
-    };
-    VoidAgreementResponse: components["schemas"]["SuccessResponse"];
-    LibraryTabClientSettings: {
-      /** @enum {string} */
-      layout?: "grid" | "list";
-      /** @description Sort id (allowlist enforced server-side per tab). */
-      sort?: string;
-    };
-    /** @description Optional user id whose preferences drive the isochrone (agent research scope). */
-    preferences_user_id: string;
-    /** @description OAuth authorization code */
-    code: string;
-    /** @description OAuth CSRF state parameter */
-    state: string;
-    /** @description OAuth error code when authorization failed */
-    error: string;
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  getAgentClients: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Clients retrieved */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AgentClientsResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Caller is not an agent or lacks access */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  login: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["LoginData"];
-      };
-    };
-    responses: {
-      /** @description Login result (success or verification-required shape) */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AuthResponse"];
-        };
-      };
-      /** @description Validation or missing fields */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Invalid credentials */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  logout: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Logged out */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  refreshToken: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Tokens refreshed; new cookies set */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AuthResponse"];
-        };
-      };
-      /** @description Missing or invalid tokens */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Transient upstream error (e.g. Google refresh network failure) */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  signup: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SignupData"];
-      };
-    };
-    responses: {
-      /** @description Signup result (may require email verification) */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AuthResponse"];
-        };
-      };
-      /** @description Validation or missing fields */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getPreferences: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Preferences payload */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GetPreferencesApiResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  upsertPreferences: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreatePreferencesRequest"];
-      };
-    };
-    responses: {
-      /** @description Preferences saved */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UpsertPreferencesApiResponse"];
-        };
-      };
-      /** @description Invalid or empty body */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  deletePreferences: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Preferences cleared */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DeletePreferencesApiResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getPublicAgentProfile: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Agent application user id (users.id). */
-        userId: components["schemas"]["UserId"];
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Public agent profile */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["PublicAgentProfileResponse"];
-        };
-      };
-      /** @description Not found or not a public agent profile */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getPublicAgentListings: {
-    parameters: {
-      query?: {
-        /** @description Optional bucket filter; omit to return both current and former listings. */
-        status?: "active" | "sold";
-      };
-      header?: never;
-      path: {
-        /** @description Agent application user id (users.id). */
-        userId: components["schemas"]["UserId"];
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Public agent listings */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["PublicAgentListingsResponse"];
-        };
-      };
-      /** @description Invalid status filter */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not found or not a public agent profile */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getPublicAgentProfileBySlug: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Value of `PublicAgentProfile.public_profile_slug` / `users.public_profile_slug`. */
-        publicProfileSlug: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Public agent profile */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["PublicAgentProfileResponse"];
-        };
-      };
-      /** @description Not found or not a public agent profile */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  searchPropertiesByPolygon: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SearchByPolygonRequest"];
-      };
-    };
-    responses: {
-      /** @description Search result or cached read */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SearchByPolygonResponse"];
-        };
-      };
-      /** @description Bad request */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Authentication required */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Cannot resolve preferences scope for subject user */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Search pipeline error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  listFavoriteHomes: {
-    parameters: {
-      query?: {
-        limit?: number;
-        offset?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Favorites and listings */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["FavoriteHomesResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  replaceFavoriteHomes: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["BulkUpdateFavoritesRequest"];
-      };
-    };
-    responses: {
-      /** @description Updated favorites */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["FavoriteHomesReplaceResponse"];
-        };
-      };
-      /** @description Invalid body */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  addFavoriteHome: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["AddFavoriteRequest"];
-      };
-    };
-    responses: {
-      /** @description Home added; full favorites list */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["FavoriteHomesReplaceResponse"];
-        };
-      };
-      /** @description Invalid body */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  removeFavoriteHome: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["RemoveFavoriteRequest"];
-      };
-    };
-    responses: {
-      /** @description Home removed from favorites */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["FavoriteHomesReplaceResponse"];
-        };
-      };
-      /** @description Invalid body */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Address not found in favorites */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getUserProfile: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Profile payload (user dict under data) */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UserResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  deleteMyAccount: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["DeleteMyAccountRequest"];
-      };
-    };
-    responses: {
-      /** @description Account deleted */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DeleteUserResponse"];
-        };
-      };
-      /** @description Invalid body (confirm must be true) */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  exportUserData: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Export payload under `data` */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UserDataExportResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  uploadProfilePicture: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": {
-          /** Format: binary */
-          file: string;
-        };
-      };
-    };
-    responses: {
-      /** @description Profile picture uploaded successfully */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ProfilePictureResponse"];
-        };
-      };
-      /** @description Invalid file or file type */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description File storage or signing unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getUserClientSettings: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Client settings payload */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ClientSettingsResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  patchUserClientSettings: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ClientSettings"];
-      };
-    };
-    responses: {
-      /** @description Updated client settings */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ClientSettingsResponse"];
-        };
-      };
-      /** @description Invalid body or payload too large */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  listGoogleEvents: {
-    parameters: {
-      query?: {
-        calendarId?: string;
-        timeMin?: string;
-        timeMax?: string;
-        maxResults?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Events retrieved */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleEventListResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Google Calendar or dependent service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  createGoogleEvent: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["GoogleCalendarEventCreateBody"];
-      };
-    };
-    responses: {
-      /** @description Event created */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleEventCreateResponse"];
-        };
-      };
-      /** @description Invalid event data */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Missing calendar permissions */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Google Calendar or dependent service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getGoogleEvent: {
-    parameters: {
-      query?: {
-        calendarId?: string;
-      };
-      header?: never;
-      path: {
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Event retrieved */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleCalendarApiResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Missing calendar permissions */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Event not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Google Calendar or dependent service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  deleteGoogleEvent: {
-    parameters: {
-      query?: {
-        calendarId?: string;
-      };
-      header?: never;
-      path: {
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Event deleted */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DeleteEventResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Missing calendar permissions */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Event not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Google Calendar or dependent service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  updateGoogleEvent: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["GoogleCalendarEventCreateBody"];
-      };
-    };
-    responses: {
-      /** @description Event updated */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleCalendarApiResponse"];
-        };
-      };
-      /** @description Invalid event data */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Missing calendar permissions */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Event not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Google Calendar or dependent service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getFreebusyInfo: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["FreebusyRequest"];
-      };
-    };
-    responses: {
-      /** @description Freebusy information retrieved */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["FreebusyResponse"];
-        };
-      };
-      /** @description Invalid request body */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Google Calendar or dependent service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  startGoogleOAuth: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Redirect to Google OAuth consent screen */
-      302: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Google Calendar or dependent service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  googleOAuthCallback: {
-    parameters: {
-      query: {
-        state: string;
-        code: string;
-        error?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Redirect to frontend with success indicator */
-      302: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Missing or invalid parameters */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated or invalid state */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Google Calendar or dependent service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  revokeGoogleOAuth: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Access revoked */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["RevokeResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Google Calendar or dependent service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getWorkspaceConversations: {
-    parameters: {
-      query?: {
-        /** @description Comma-separated WorkspaceConversationKind values */
-        kinds?: string;
-        scope?: "admin";
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["WorkspaceConversationsResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  createWorkspaceConversation: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateWorkspaceConversationRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 201 */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateWorkspaceConversationResponse"];
-        };
-      };
-      /** @description Kind not implemented (e.g. group) */
-      501: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  streamWorkspaceConversationEvents: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description text/event-stream */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  getWorkspaceEligibleContacts: {
-    parameters: {
-      query?: {
-        kinds?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["EligibleContactsResponse"];
-        };
-      };
-    };
-  };
-  getWorkspaceConversationHistory: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        conversationId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["WorkspaceConversationHistoryResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  sendWorkspaceConversationMessage: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SendWorkspaceMessageRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-    };
-  };
-  markWorkspaceConversationRead: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        conversationId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-    };
-  };
-  getAgentChats: {
-    parameters: {
-      query?: {
-        client_id?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AgentConversationsResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  createAgentChat: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateConversationRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 201 */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateConversationResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  streamAgentChatEvents: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description SSE stream (`text/event-stream`) */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "text/event-stream": string;
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getAgentChatHistory: {
-    parameters: {
-      query?: {
-        /** @description Max messages to return for this page (capped server-side) */
-        limit?: number;
-        /** @description ISO 8601 timestamp; with before_message_id, fetch messages strictly older than this cursor */
-        before_timestamp?: string;
-        /** @description Message id; with before_timestamp, exclusive cursor for older pages */
-        before_message_id?: string;
-        /** @description ISO 8601 timestamp; with after_message_id, fetch messages strictly newer than this cursor */
-        after_timestamp?: string;
-        /** @description Message id; with after_timestamp, exclusive cursor for newer messages (sync) */
-        after_message_id?: string;
-      };
-      header?: never;
-      path: {
-        conversationId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AgentChatHistoryResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  sendAgentChatMessage: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SendMessageRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SendMessageResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  updateAgentChatEventRequestStatus: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        messageId: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateEventRequestStatusRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  markAgentChatAsRead: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        conversationId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["MarkMessagesAsReadResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  searchAgents: {
-    parameters: {
-      query?: {
-        q?: string;
-        limit?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SearchAgentsResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  recommendedAgents: {
-    parameters: {
-      query?: {
-        /** @description Buyer or search-area ZIP (5 digits preferred). */
-        zip?: string;
-        /** @description Two-letter US state code when known. */
-        state?: string;
-        /** @description Free-text summary of what the buyer is searching for (filters, property type, etc.). */
-        intent?: string;
-        limit?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["RecommendedAgentsResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  searchClients: {
-    parameters: {
-      query?: {
-        q?: string;
-        limit?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SearchClientsResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getConnectionRequests: {
-    parameters: {
-      query?: {
-        /**
-         * @description `inbox` (default) returns pending requests awaiting the user's response.
-         *     For agents, client-initiated requests are auto-accepted on create, so inbox is
-         *     typically empty. For clients, inbox lists pending agent-initiated requests they may
-         *     accept or reject. `initiated` returns requests the user sent (pending, accepted, or rejected).
-         */
-        scope?: "inbox" | "initiated";
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ConnectionRequestsResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  createConnectionRequest: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateConnectionRequestRequest"];
-      };
-    };
-    responses: {
-      /**
-       * @description Connection request created. Client-initiated requests are accepted immediately;
-       *     agent-initiated requests remain pending until the client responds.
-       */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateConnectionRequestResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  respondToConnectionRequest: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        requestId: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["RespondToConnectionRequestRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["RespondToConnectionRequestResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getAgentNotificationCounter: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["NotificationCounterResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getAgentTodos: {
-    parameters: {
-      query?: {
-        include_completed?: boolean;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GetTodosResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  createAgentTodo: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateTodoRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateTodoResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  updateAgentTodo: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        todoId: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateTodoRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UpdateTodoResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  deleteAgentTodo: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        todoId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  forgotPassword: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ForgotPasswordData"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ForgotPasswordResponse"];
-        };
-      };
-      /** @description Validation or missing fields */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Rate limit exceeded */
-      429: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Upstream authentication service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  googleOAuthStart: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Redirect to Google */
-      302: {
-        headers: {
-          Location?: string;
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description OAuth misconfiguration or service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  googleOAuthCallback: {
-    parameters: {
-      query?: {
-        code?: string;
-        state?: string;
-        error?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Redirect to frontend */
-      302: {
-        headers: {
-          Location?: string;
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  resendVerificationCode: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ResendCodeData"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ResendCodeResponse"];
-        };
-      };
-      /** @description Validation or missing fields */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Upstream authentication service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  resetPassword: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ResetPasswordData"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AuthResponse"];
-        };
-      };
-      /** @description Invalid or expired verification code, or weak password */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Upstream authentication service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  verifyEmail: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["VerifyData"];
-      };
-    };
-    responses: {
-      /** @description Verification result (may set cookies) */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AuthResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  generateClientActionPlan: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        client_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ActionPlanResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Agent access required or client not assigned */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Client or preferences not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Action plan generation service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getPreferencesClients: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ClientsPreferencesResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getUserPreferencesById: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        userId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GetUserPreferencesByIdApiResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getSearchDisplay: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SearchDisplayResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  patchSearchDisplay: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SearchDisplayPayload"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SearchDisplayResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getPropertyComps: {
-    parameters: {
-      query?: {
-        address?: string;
-        zpid?: string;
-        property_url?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["PropertyCompsResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Authentication required */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Upstream property data service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getMonthlyCostEstimates: {
-    parameters: {
-      query?: {
-        zipcode?: string;
-        zip?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["MonthlyCostEstimatesResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Authentication required */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getSearchIsochrone: {
-    parameters: {
-      query?: {
-        /** @description See IsochroneQueryParams. */
-        preferences_user_id?: components["schemas"]["preferences_user_id"];
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["IsochroneResponse"];
-        };
-      };
-      /** @description No important locations or no valid addresses (NO_LOCATIONS, NO_VALID_LOCATIONS) */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Preferences user id not allowed for caller */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getAreaSuggestions: {
-    parameters: {
-      query: {
-        /** @description Search keyword (min 2 characters) */
-        keyword: string;
-        /** @description State postal abbreviation filter (e.g. "GA") */
-        state?: string;
-        /** @description Maximum number of results */
-        limit?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Matching geographic areas */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AreaSuggestionsResponse"];
-        };
-      };
-      /** @description Authentication required */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Upstream area search service unavailable (legacy; prefer 503) */
-      502: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Upstream area search service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getAreaBoundary: {
-    parameters: {
-      query: {
-        /** @description Slipstream area ID */
-        id: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Area boundary with GeoJSON geometry and viewport ring */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AreaBoundaryResponse"];
-        };
-      };
-      /** @description Missing area ID */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Authentication required */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Area not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Upstream area boundary service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  researchProperty: {
-    parameters: {
-      query?: {
-        stream?: boolean;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["PropertyRequest"];
-      };
-    };
-    responses: {
-      /** @description SSE when stream=true */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "text/event-stream": string;
-        };
-      };
-      /** @description Celery task queued */
-      202: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TaskStatusResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Forbidden (e.g. task owned by another user) */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  researchCompareProperty: {
-    parameters: {
-      query?: {
-        stream?: boolean;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["PropertyRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "text/event-stream": string;
-        };
-      };
-      /** @description HTTP 202 */
-      202: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TaskStatusResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Forbidden (e.g. task owned by another user) */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getResearchTaskStatus: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        task_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TaskStatusResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Forbidden (task owned by another user) */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  generateNegotiationStrategy: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["NegotiationStrategyRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["NegotiationStrategyResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getMapsScriptUrl: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["MapsScriptResponse"];
-        };
-      };
-      /** @description Maps API key not configured */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  listNotInterestedHomes: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["NotInterestedHomesResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  addNotInterestedHome: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["AddNotInterestedRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["NotInterestedHomesResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  removeNotInterestedHome: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["RemoveNotInterestedRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["NotInterestedHomesResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Home not found in not-interested list */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  updateNotInterestedHome: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateNotInterestedRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["NotInterestedHomesResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Home not found in not-interested list */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  listTransactions: {
-    parameters: {
-      query?: {
-        /** @description Filter to a buyer user id (agents only; must manage the client). */
-        buyer_id?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TransactionListResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  createTransaction: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["CreateTransactionRequest"];
-      };
-    };
-    responses: {
-      /** @description Deal created */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateTransactionResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getMyTransaction: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TransactionMeResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  setMyActiveTransaction: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SetActiveTransactionRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SetActiveTransactionResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getTransactionAddress: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TransactionAddressResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  saveTransactionAddress: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["TransactionAddressData"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TransactionAddressResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getTransactionTaskChecklistProgressSummary: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is returned. */
-        transaction_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TaskChecklistProgressSummaryResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getTransactionTaskChecklist: {
-    parameters: {
-      query?: {
-        /** @description Checklist category (search, offer, escrow, financing, closing, insurance). */
-        type?: components["schemas"]["ChecklistType"];
-      };
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is returned. */
-        transaction_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TaskChecklistApiResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  putTransactionTaskChecklist: {
-    parameters: {
-      query?: {
-        /** @description Checklist category (search, offer, escrow, financing, closing, insurance). */
-        type?: components["schemas"]["ChecklistType"];
-      };
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is updated. */
-        transaction_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateTaskChecklistRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["TaskChecklistApiResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getChecklistItemDocuments: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal. */
-        transaction_id: string;
-        /** @description Checklist category (e.g. escrow, financing). */
-        section: string;
-        /** @description Checklist step id within the section. */
-        item_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ChecklistItemDocumentsResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  linkAgreementToChecklistItem: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal. */
-        transaction_id: string;
-        /** @description Checklist category (e.g. escrow, financing). */
-        section: string;
-        /** @description Checklist step id within the section. */
-        item_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["LinkDocumentToChecklistRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["LinkChecklistDocumentApiResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getChecklistItemForms: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal. */
-        transaction_id: string;
-        /** @description Checklist category (e.g. escrow, financing). */
-        section: string;
-        /** @description Checklist step id within the section. */
-        item_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GetChecklistItemFormsResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  downloadChecklistItemForm: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        transaction_id: string;
-        section: string;
-        item_id: string;
-        form_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DownloadChecklistFormResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Presigned URL or storage dependency unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  sendChecklistItemForm: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        transaction_id: string;
-        section: string;
-        item_id: string;
-        form_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ChecklistFormSendRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ChecklistFormSendResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description External dependency unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getChecklistDispatchAutomation: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal. */
-        transaction_id: string;
-        /** @description Checklist category (e.g. escrow, financing). */
-        section: string;
-        /** @description Checklist step id within the section. */
-        item_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ChecklistDispatchAutomationApiResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  putChecklistDispatchAutomation: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Revenue spine id (`transactions.id`) for the deal. */
-        transaction_id: string;
-        /** @description Checklist category (e.g. escrow, financing). */
-        section: string;
-        /** @description Checklist step id within the section. */
-        item_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateChecklistDispatchAutomationRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ChecklistDispatchAutomationApiResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  reportClientError: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ClientErrorReport"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  listFormsLibrary: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["FormsLibraryResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  downloadFormsLibraryForm: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        form_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["FormsLibraryDownloadResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Presigned URL or storage dependency unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getFeed: {
-    parameters: {
-      query?: {
-        page?: number;
-        limit?: number;
-        filtersHash?: string;
-        cursor?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["FeedResponse"];
-        };
-      };
-    };
-  };
-  getFeedLikes: {
-    parameters: {
-      query?: {
-        ids?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["FeedLikesResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  postFeedLike: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["AddFeedLikeRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  deleteFeedLike: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        home_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getFeedComments: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        home_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["FeedCommentsResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  postFeedComment: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["AddCommentRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AddCommentResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  googleCalendarHealth: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HealthResponse"];
-        };
-      };
-      /** @description Service unhealthy or dependency unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  googleCalendarConnectionStatus: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ConnectionStatusResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Google Calendar or dependent service unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  googleCalendarOAuthEnhance: {
-    parameters: {
-      query: {
-        permissions: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Redirect to Google authorization URL */
-      302: {
-        headers: {
-          Location?: string;
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  listGoogleCalendars: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleCalendarListResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  createGoogleCalendar: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateCalendarRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleCalendarApiResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  addGoogleCalendarAcl: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        calendar_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["AddCalendarACLRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AddCalendarACLResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getSilverkeyCalendar: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleCalendarApiResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  ensureSilverkeyCalendar: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["CreateSilverkeyCalendarRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleCalendarApiResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getGoogleCalendarPermissions: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleCalendarPermissionsResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  putGoogleCalendarPermissions: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["GoogleCalendarPermissionsResponse"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleCalendarPermissionsResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  queryClientAvailability: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        client_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ClientAvailabilityRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ClientAvailabilityResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  listClientGoogleEvents: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        client_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GoogleEventListResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  googleCalendarWebhook: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["GoogleCalendarWebhookBody"];
-      };
-    };
-    responses: {
-      /** @description Acknowledged */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  listReports: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ReportsListResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getReportDownloadUrl: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        report_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DownloadUrlResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description External storage temporarily unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getReportViewUrl: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        report_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ViewUrlResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description External storage temporarily unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  viewReportPdf: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        report_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/pdf": string;
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description External storage temporarily unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  deleteReport: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        report_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["DeleteReportRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  listReportWorkflowDocuments: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocumentsResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getDocumentLibrary: {
-    parameters: {
-      query?: {
-        user_id?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocumentLibraryResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  deleteDocumentLibraryItem: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        library_item_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  uploadSecureDocument: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": components["schemas"]["SecureUploadDocumentRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 201 */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UploadResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description External storage temporarily unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  uploadSecureImage: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": components["schemas"]["SecureUploadImageRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 201 */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UploadResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description External storage temporarily unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminGetLoggerConfig: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GetLoggerConfigResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminUpdateLoggerConfig: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateLoggerConfigRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GetLoggerConfigResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Unexpected failure persisting logger configuration */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminSetCurrentUserAgentStatus: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateAgentStatusRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UpdateAgentStatusResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminSetCurrentUserDevWorkspace: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SetCurrentUserDevWorkspaceResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminMintDevAccountSession: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["MintDevAccountSessionResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminExchangeDevAccountSession: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ExchangeDevAccountSessionRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AuthResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminListGateRoleUsers: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ListAdminGateUsersResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminUpdateUserSystemRoles: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateUserSystemRolesRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UpdateUserSystemRolesResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Target user not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminGetValidationStats: {
-    parameters: {
-      query?: {
-        /** @description Rolling window length in days (passed through to aggregator; placeholder ignores beyond documentation). */
-        days?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ValidationStatsApiResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminDeleteUser: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["DeleteUserRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DeleteUserResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Target user not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  adminResetDevUserData: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["DevUserDataResetRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DevUserDataResetResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Target user not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Dev user data reset disabled in this environment */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignOAuthStart: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocusignOAuthStartResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignOAuthCallback: {
-    parameters: {
-      query?: {
-        code?: components["schemas"]["code"];
-        state?: components["schemas"]["state"];
-        error?: components["schemas"]["error"];
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Redirect after OAuth token exchange */
-      302: {
-        headers: {
-          Location?: string;
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignListTemplates: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocusignListTemplatesResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignCreateTemplate: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "multipart/form-data": components["schemas"]["DocusignCreateTemplateMultipartRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocusignCreateTemplateResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description DocuSign service temporarily unavailable */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignGetTemplateDetail: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description DocuSign template GUID */
-        template_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocusignGetTemplateDetailResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignDeleteTemplate: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description DocuSign template GUID */
-        template_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocusignDeleteTemplateResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignGetTemplateEditUrl: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description DocuSign template GUID */
-        template_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocusignGetTemplateEditUrlResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignSyncTemplates: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["SyncTemplatesRequest"];
-      };
-    };
-    responses: {
-      /** @description Template sync task enqueued */
-      202: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SyncTemplatesResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignListAgreements: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ListAgreementsResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignCreateAgreement: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateAgreementRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateAgreementResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignGetAgreement: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GetAgreementResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 404 */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignAddParticipant: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["CreateParticipantRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateParticipantResponse"];
-        };
-      };
-      /** @description HTTP 400 */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignRemoveParticipant: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-        participant_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignUpdateParticipantRoutingOrder: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-        participant_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["UpdateRoutingOrderRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["UpdateRoutingOrderResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignGetSigningUrl: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["GetSigningUrlRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GetSigningUrlResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignGetSenderView: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["GetSenderViewUrlResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignCreateRevision: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["CreateRevisionResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignSendAgreement: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["SendAgreementRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SendAgreementResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignResendAgreementRecipient: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["DocusignResendRecipientRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocusignResendRecipientResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignUpdateAgreementEnvelopeNotification: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["DocusignUpdateEnvelopeNotificationRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocusignUpdateEnvelopeNotificationResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignVoidAgreement: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["VoidAgreementRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignDiscardAgreement: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["VoidAgreementRequest"];
-      };
-    };
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description HTTP 403 */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignGetAgreementDownloadUrl: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Agreement id */
-        agreement_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Pre-signed download URL */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["DocusignAgreementDownloadUrlResponse"];
-        };
-      };
-      /** @description HTTP 401 */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Access denied */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Agreement not found or document not yet available */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  docusignConnectWebhook: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["DocusignWebhookPayload"];
-      };
-    };
-    responses: {
-      /** @description Acknowledged */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description Invalid webhook payload */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Webhook verification failed */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description HTTP 500 */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  healthz: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HealthResponse"];
-        };
-      };
-      /** @description HTTP 503 */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HealthResponse"];
-        };
-      };
-    };
-  };
-  livez: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["LivezResponse"];
-        };
-      };
-    };
-  };
-  readyz: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description HTTP 200 */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HealthResponse"];
-        };
-      };
-      /** @description HTTP 503 */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["HealthResponse"];
-        };
-      };
-    };
-  };
-  sendChatMessage: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Property report ID */
-        report_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["ChatbotSendRequest"];
-      };
-    };
-    responses: {
-      /** @description Message sent successfully */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ChatbotResponse"];
-        };
-      };
-      /** @description Invalid request */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Report not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getChatHistory: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Property report ID */
-        report_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Chat history retrieved */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ChatbotHistoryResponse"];
-        };
-      };
-      /** @description Not authenticated */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Report not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Server error */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  listAdminPartners: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Partner list */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["PartnerListResponse"];
-        };
-      };
-    };
-  };
-  createAdminPartner: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["PartnerCreateRequest"];
-      };
-    };
-    responses: {
-      /** @description Created */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["PartnerResponse"];
-        };
-      };
-    };
-  };
-  listPartnerChecklistSteps: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Steps */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  getAdminPartner: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        partner_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Partner */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["PartnerResponse"];
-        };
-      };
-      /** @description Partner not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  patchAdminPartner: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        partner_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["PartnerUpdateRequest"];
-      };
-    };
-    responses: {
-      /** @description Updated */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["PartnerResponse"];
-        };
-      };
-      /** @description Partner not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  provisionAdminPartnerLinks: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        partner_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Provisioned */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  getAdminRevShareAnalytics: {
-    parameters: {
-      query: {
-        partner_id: string;
-        step_id?: string;
-        date_from?: string;
-        date_to?: string;
-        agent_id?: string;
-        brokerage?: string;
-        bucket?: "day" | "week";
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Analytics payload */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["RevShareAnalyticsResponse"];
-        };
-      };
-      /** @description Partner not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getAdminBrokerageSkySlopeCredential: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        brokerage_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Credential metadata (no secret values) */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
-        };
-      };
-      /** @description Credential or brokerage not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  updateAdminBrokerageSkySlopeCredential: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        brokerage_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["BrokerageSkySlopeCredentialUpdateRequest"];
-      };
-    };
-    responses: {
-      /** @description Credential updated */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
-        };
-      };
-      /** @description Credential or brokerage not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  createAdminBrokerageSkySlopeCredential: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        brokerage_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["BrokerageSkySlopeCredentialCreateRequest"];
-      };
-    };
-    responses: {
-      /** @description Credential stored */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
-        };
-      };
-      /** @description Brokerage not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description Credential already exists for this brokerage */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  deleteAdminBrokerageSkySlopeCredential: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        brokerage_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Credential deleted */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["SuccessResponse"];
-        };
-      };
-      /** @description Credential not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  testAdminBrokerageSkySlopeConnection: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        brokerage_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Connection test result (safe message only) */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["BrokerageSkySlopeCredentialTestResponse"];
-        };
-      };
-      /** @description Credential not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  getPartnerPlacements: {
-    parameters: {
-      query: {
-        step_id: string;
-        /** @description Revenue spine id (`transactions.id`) for attribution. */
-        transaction_id: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Placements */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["RevSharePlacementsResponse"];
-        };
-      };
-    };
-  };
-  postRevShareStepView: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["RevShareStepViewRequest"];
-      };
-    };
-    responses: {
-      /** @description Recorded */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Transaction not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
-  revShareRedirect: {
-    parameters: {
-      query?: {
-        buyer_id?: string;
-        transaction_id?: string;
-        step_id?: string;
-        utm_source?: string;
-        utm_medium?: string;
-        utm_campaign?: string;
-      };
-      header?: never;
-      path: {
-        link_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Redirect to partner destination */
-      302: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Rev-share link not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
+    getAgentClients: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Clients retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentClientsResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Caller is not an agent or lacks access */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginData"];
+            };
+        };
+        responses: {
+            /** @description Login result (success or verification-required shape) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description Validation or missing fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Logged out */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    refreshToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tokens refreshed; new cookies set */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description Missing or invalid tokens */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Transient upstream error (e.g. Google refresh network failure) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    signup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupData"];
+            };
+        };
+        responses: {
+            /** @description Signup result (may require email verification) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description Validation or missing fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Preferences payload */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetPreferencesApiResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    upsertPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePreferencesRequest"];
+            };
+        };
+        responses: {
+            /** @description Preferences saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpsertPreferencesApiResponse"];
+                };
+            };
+            /** @description Invalid or empty body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deletePreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Preferences cleared */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletePreferencesApiResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPublicAgentProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Agent application user id (users.id). */
+                userId: components["schemas"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public agent profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicAgentProfileResponse"];
+                };
+            };
+            /** @description Not found or not a public agent profile */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPublicAgentListings: {
+        parameters: {
+            query?: {
+                /** @description Optional bucket filter; omit to return both current and former listings. */
+                status?: "active" | "sold";
+            };
+            header?: never;
+            path: {
+                /** @description Agent application user id (users.id). */
+                userId: components["schemas"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public agent listings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicAgentListingsResponse"];
+                };
+            };
+            /** @description Invalid status filter */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found or not a public agent profile */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPublicAgentProfileBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Value of `PublicAgentProfile.public_profile_slug` / `users.public_profile_slug`. */
+                publicProfileSlug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public agent profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicAgentProfileResponse"];
+                };
+            };
+            /** @description Not found or not a public agent profile */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    searchPropertiesByPolygon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchByPolygonRequest"];
+            };
+        };
+        responses: {
+            /** @description Search result or cached read */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchByPolygonResponse"];
+                };
+            };
+            /** @description Bad request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Cannot resolve preferences scope for subject user */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Search pipeline error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listFavoriteHomes: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Favorites and listings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoriteHomesResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    replaceFavoriteHomes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkUpdateFavoritesRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated favorites */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoriteHomesReplaceResponse"];
+                };
+            };
+            /** @description Invalid body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    addFavoriteHome: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddFavoriteRequest"];
+            };
+        };
+        responses: {
+            /** @description Home added; full favorites list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoriteHomesReplaceResponse"];
+                };
+            };
+            /** @description Invalid body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    removeFavoriteHome: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveFavoriteRequest"];
+            };
+        };
+        responses: {
+            /** @description Home removed from favorites */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoriteHomesReplaceResponse"];
+                };
+            };
+            /** @description Invalid body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Address not found in favorites */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getUserProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Profile payload (user dict under data) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteMyAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteMyAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description Account deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteUserResponse"];
+                };
+            };
+            /** @description Invalid body (confirm must be true) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    exportUserData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Export payload under `data` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDataExportResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    uploadProfilePicture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Profile picture uploaded successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfilePictureResponse"];
+                };
+            };
+            /** @description Invalid file or file type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description File storage or signing unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getUserClientSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Client settings payload */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientSettingsResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    patchUserClientSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientSettings"];
+            };
+        };
+        responses: {
+            /** @description Updated client settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientSettingsResponse"];
+                };
+            };
+            /** @description Invalid body or payload too large */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listGoogleEvents: {
+        parameters: {
+            query?: {
+                calendarId?: string;
+                timeMin?: string;
+                timeMax?: string;
+                maxResults?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Events retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleEventListResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createGoogleEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleCalendarEventCreateBody"];
+            };
+        };
+        responses: {
+            /** @description Event created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleEventCreateResponse"];
+                };
+            };
+            /** @description Invalid event data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing calendar permissions */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getGoogleEvent: {
+        parameters: {
+            query?: {
+                calendarId?: string;
+            };
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Event retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleCalendarApiResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing calendar permissions */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Event not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteGoogleEvent: {
+        parameters: {
+            query?: {
+                calendarId?: string;
+            };
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Event deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteEventResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing calendar permissions */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Event not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateGoogleEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleCalendarEventCreateBody"];
+            };
+        };
+        responses: {
+            /** @description Event updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleCalendarApiResponse"];
+                };
+            };
+            /** @description Invalid event data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Missing calendar permissions */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Event not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getFreebusyInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FreebusyRequest"];
+            };
+        };
+        responses: {
+            /** @description Freebusy information retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreebusyResponse"];
+                };
+            };
+            /** @description Invalid request body */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    startGoogleOAuth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to Google OAuth consent screen */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    googleOAuthCallback: {
+        parameters: {
+            query: {
+                state: string;
+                code: string;
+                error?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to frontend with success indicator */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated or invalid state */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    revokeGoogleOAuth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Access revoked */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevokeResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getWorkspaceConversations: {
+        parameters: {
+            query?: {
+                /** @description Comma-separated WorkspaceConversationKind values */
+                kinds?: string;
+                scope?: "admin";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceConversationsResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createWorkspaceConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWorkspaceConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 201 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateWorkspaceConversationResponse"];
+                };
+            };
+            /** @description Kind not implemented (e.g. group) */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    streamWorkspaceConversationEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description text/event-stream */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getWorkspaceEligibleContacts: {
+        parameters: {
+            query?: {
+                kinds?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EligibleContactsResponse"];
+                };
+            };
+        };
+    };
+    getWorkspaceConversationHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceConversationHistoryResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    sendWorkspaceConversationMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendWorkspaceMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+        };
+    };
+    markWorkspaceConversationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+        };
+    };
+    getAgentChats: {
+        parameters: {
+            query?: {
+                client_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentConversationsResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createAgentChat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 201 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateConversationResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    streamAgentChatEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description SSE stream (`text/event-stream`) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getAgentChatHistory: {
+        parameters: {
+            query?: {
+                /** @description Max messages to return for this page (capped server-side) */
+                limit?: number;
+                /** @description ISO 8601 timestamp; with before_message_id, fetch messages strictly older than this cursor */
+                before_timestamp?: string;
+                /** @description Message id; with before_timestamp, exclusive cursor for older pages */
+                before_message_id?: string;
+                /** @description ISO 8601 timestamp; with after_message_id, fetch messages strictly newer than this cursor */
+                after_timestamp?: string;
+                /** @description Message id; with after_timestamp, exclusive cursor for newer messages (sync) */
+                after_message_id?: string;
+            };
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentChatHistoryResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    sendAgentChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendMessageResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateAgentChatEventRequestStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEventRequestStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    markAgentChatAsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkMessagesAsReadResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    searchAgents: {
+        parameters: {
+            query?: {
+                q?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchAgentsResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    recommendedAgents: {
+        parameters: {
+            query?: {
+                /** @description Buyer or search-area ZIP (5 digits preferred). */
+                zip?: string;
+                /** @description Two-letter US state code when known. */
+                state?: string;
+                /** @description Free-text summary of what the buyer is searching for (filters, property type, etc.). */
+                intent?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecommendedAgentsResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    searchClients: {
+        parameters: {
+            query?: {
+                q?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchClientsResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getConnectionRequests: {
+        parameters: {
+            query?: {
+                /**
+                 * @description `inbox` (default) returns pending requests awaiting the user's response.
+                 *     For agents, client-initiated requests are auto-accepted on create, so inbox is
+                 *     typically empty. For clients, inbox lists pending agent-initiated requests they may
+                 *     accept or reject. `initiated` returns requests the user sent (pending, accepted, or rejected).
+                 */
+                scope?: "inbox" | "initiated";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionRequestsResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createConnectionRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConnectionRequestRequest"];
+            };
+        };
+        responses: {
+            /**
+             * @description Connection request created. Client-initiated requests are accepted immediately;
+             *     agent-initiated requests remain pending until the client responds.
+             */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateConnectionRequestResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    respondToConnectionRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RespondToConnectionRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespondToConnectionRequestResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getAgentNotificationCounter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationCounterResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getAgentTodos: {
+        parameters: {
+            query?: {
+                include_completed?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetTodosResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createAgentTodo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTodoRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateTodoResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateAgentTodo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                todoId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTodoRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateTodoResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteAgentTodo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                todoId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    forgotPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordData"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForgotPasswordResponse"];
+                };
+            };
+            /** @description Validation or missing fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream authentication service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    googleOAuthStart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to Google */
+            302: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description OAuth misconfiguration or service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    googleOAuthCallback: {
+        parameters: {
+            query?: {
+                code?: string;
+                state?: string;
+                error?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to frontend */
+            302: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    resendVerificationCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResendCodeData"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResendCodeResponse"];
+                };
+            };
+            /** @description Validation or missing fields */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream authentication service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    resetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordData"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description Invalid or expired verification code, or weak password */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream authentication service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    verifyEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyData"];
+            };
+        };
+        responses: {
+            /** @description Verification result (may set cookies) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    generateClientActionPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionPlanResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Agent access required or client not assigned */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Client or preferences not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Action plan generation service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPreferencesClients: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientsPreferencesResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getUserPreferencesById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetUserPreferencesByIdApiResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getSearchDisplay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchDisplayResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    patchSearchDisplay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchDisplayPayload"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchDisplayResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPropertyComps: {
+        parameters: {
+            query?: {
+                address?: string;
+                zpid?: string;
+                property_url?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropertyCompsResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream property data service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getMonthlyCostEstimates: {
+        parameters: {
+            query?: {
+                zipcode?: string;
+                zip?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyCostEstimatesResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getSearchIsochrone: {
+        parameters: {
+            query?: {
+                /** @description See IsochroneQueryParams. */
+                preferences_user_id?: components["schemas"]["preferences_user_id"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IsochroneResponse"];
+                };
+            };
+            /** @description No important locations or no valid addresses (NO_LOCATIONS, NO_VALID_LOCATIONS) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Preferences user id not allowed for caller */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getAreaSuggestions: {
+        parameters: {
+            query: {
+                /** @description Search keyword (min 2 characters) */
+                keyword: string;
+                /** @description State postal abbreviation filter (e.g. "GA") */
+                state?: string;
+                /** @description Maximum number of results */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Matching geographic areas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreaSuggestionsResponse"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream area search service unavailable (legacy; prefer 503) */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream area search service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getAreaBoundary: {
+        parameters: {
+            query: {
+                /** @description Slipstream area ID */
+                id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Area boundary with GeoJSON geometry and viewport ring */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AreaBoundaryResponse"];
+                };
+            };
+            /** @description Missing area ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Area not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Upstream area boundary service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    researchProperty: {
+        parameters: {
+            query?: {
+                stream?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PropertyRequest"];
+            };
+        };
+        responses: {
+            /** @description SSE when stream=true */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description Celery task queued */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskStatusResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden (e.g. task owned by another user) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    researchCompareProperty: {
+        parameters: {
+            query?: {
+                stream?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PropertyRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description HTTP 202 */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskStatusResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden (e.g. task owned by another user) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getResearchTaskStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskStatusResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden (task owned by another user) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    generateNegotiationStrategy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NegotiationStrategyRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NegotiationStrategyResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getMapsScriptUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MapsScriptResponse"];
+                };
+            };
+            /** @description Maps API key not configured */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listNotInterestedHomes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotInterestedHomesResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    addNotInterestedHome: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddNotInterestedRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotInterestedHomesResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    removeNotInterestedHome: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveNotInterestedRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotInterestedHomesResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Home not found in not-interested list */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateNotInterestedHome: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateNotInterestedRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotInterestedHomesResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Home not found in not-interested list */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listTransactions: {
+        parameters: {
+            query?: {
+                /** @description Filter to a buyer user id (agents only; must manage the client). */
+                buyer_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionListResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateTransactionRequest"];
+            };
+        };
+        responses: {
+            /** @description Deal created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateTransactionResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getMyTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionMeResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    setMyActiveTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetActiveTransactionRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetActiveTransactionResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getTransactionAddress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionAddressResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    saveTransactionAddress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransactionAddressData"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionAddressResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getTransactionTaskChecklistProgressSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is returned. */
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskChecklistProgressSummaryResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getTransactionTaskChecklist: {
+        parameters: {
+            query?: {
+                /** @description Checklist category (search, offer, escrow, financing, closing, insurance). */
+                type?: components["schemas"]["ChecklistType"];
+            };
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is returned. */
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskChecklistApiResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    putTransactionTaskChecklist: {
+        parameters: {
+            query?: {
+                /** @description Checklist category (search, offer, escrow, financing, closing, insurance). */
+                type?: components["schemas"]["ChecklistType"];
+            };
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal whose checklist progress is updated. */
+                transaction_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTaskChecklistRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskChecklistApiResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getChecklistItemDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistItemDocumentsResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    linkAgreementToChecklistItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkDocumentToChecklistRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkChecklistDocumentApiResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getChecklistItemForms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetChecklistItemFormsResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    downloadChecklistItemForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+                section: string;
+                item_id: string;
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadChecklistFormResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Presigned URL or storage dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    sendChecklistItemForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                transaction_id: string;
+                section: string;
+                item_id: string;
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistFormSendRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistFormSendResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description External dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getChecklistDispatchAutomation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistDispatchAutomationApiResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    putChecklistDispatchAutomation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Revenue spine id (`transactions.id`) for the deal. */
+                transaction_id: string;
+                /** @description Checklist category (e.g. escrow, financing). */
+                section: string;
+                /** @description Checklist step id within the section. */
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateChecklistDispatchAutomationRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistDispatchAutomationApiResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    reportClientError: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientErrorReport"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listFormsLibrary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormsLibraryResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    downloadFormsLibraryForm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormsLibraryDownloadResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Presigned URL or storage dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getFeed: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                filtersHash?: string;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedResponse"];
+                };
+            };
+        };
+    };
+    getFeedLikes: {
+        parameters: {
+            query?: {
+                ids?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedLikesResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    postFeedLike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddFeedLikeRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteFeedLike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                home_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getFeedComments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                home_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedCommentsResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    postFeedComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddCommentResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    googleCalendarHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+            /** @description Service unhealthy or dependency unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    googleCalendarConnectionStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionStatusResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Google Calendar or dependent service unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    googleCalendarOAuthEnhance: {
+        parameters: {
+            query: {
+                permissions: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to Google authorization URL */
+            302: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listGoogleCalendars: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleCalendarListResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createGoogleCalendar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCalendarRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleCalendarApiResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    addGoogleCalendarAcl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                calendar_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCalendarACLRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AddCalendarACLResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getSilverkeyCalendar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleCalendarApiResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ensureSilverkeyCalendar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateSilverkeyCalendarRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleCalendarApiResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getGoogleCalendarPermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleCalendarPermissionsResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    putGoogleCalendarPermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleCalendarPermissionsResponse"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleCalendarPermissionsResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    queryClientAvailability: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientAvailabilityRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientAvailabilityResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listClientGoogleEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GoogleEventListResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    googleCalendarWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["GoogleCalendarWebhookBody"];
+            };
+        };
+        responses: {
+            /** @description Acknowledged */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listReports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportsListResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getReportDownloadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DownloadUrlResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description External storage temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getReportViewUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewUrlResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description External storage temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    viewReportPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description External storage temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DeleteReportRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listReportWorkflowDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentsResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getDocumentLibrary: {
+        parameters: {
+            query?: {
+                user_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentLibraryResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteDocumentLibraryItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                library_item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    uploadSecureDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["SecureUploadDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 201 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description External storage temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    uploadSecureImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["SecureUploadImageRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 201 */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description External storage temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminGetLoggerConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetLoggerConfigResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminUpdateLoggerConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLoggerConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetLoggerConfigResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected failure persisting logger configuration */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminSetCurrentUserAgentStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAgentStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateAgentStatusResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminSetCurrentUserDevWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetCurrentUserDevWorkspaceResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminMintDevAccountSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCurrentUserDevWorkspaceRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MintDevAccountSessionResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminExchangeDevAccountSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExchangeDevAccountSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminListGateRoleUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListAdminGateUsersResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminUpdateUserSystemRoles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserSystemRolesRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateUserSystemRolesResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Target user not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminGetValidationStats: {
+        parameters: {
+            query?: {
+                /** @description Rolling window length in days (passed through to aggregator; placeholder ignores beyond documentation). */
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationStatsApiResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminDeleteUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteUserRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeleteUserResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Target user not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    adminResetDevUserData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DevUserDataResetRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DevUserDataResetResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Target user not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Dev user data reset disabled in this environment */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignOAuthStart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocusignOAuthStartResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignOAuthCallback: {
+        parameters: {
+            query?: {
+                code?: components["schemas"]["code"];
+                state?: components["schemas"]["state"];
+                error?: components["schemas"]["error"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect after OAuth token exchange */
+            302: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignListTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocusignListTemplatesResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignCreateTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["DocusignCreateTemplateMultipartRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocusignCreateTemplateResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description DocuSign service temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignGetTemplateDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description DocuSign template GUID */
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocusignGetTemplateDetailResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignDeleteTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description DocuSign template GUID */
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocusignDeleteTemplateResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignGetTemplateEditUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description DocuSign template GUID */
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocusignGetTemplateEditUrlResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignSyncTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SyncTemplatesRequest"];
+            };
+        };
+        responses: {
+            /** @description Template sync task enqueued */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncTemplatesResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignListAgreements: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListAgreementsResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignCreateAgreement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAgreementRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateAgreementResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignGetAgreement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetAgreementResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignAddParticipant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateParticipantRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateParticipantResponse"];
+                };
+            };
+            /** @description HTTP 400 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignRemoveParticipant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+                participant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignUpdateParticipantRoutingOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+                participant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRoutingOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateRoutingOrderResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignGetSigningUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GetSigningUrlRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetSigningUrlResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignGetSenderView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetSenderViewUrlResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignCreateRevision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateRevisionResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignSendAgreement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SendAgreementRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendAgreementResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignResendAgreementRecipient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocusignResendRecipientRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocusignResendRecipientResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignUpdateAgreementEnvelopeNotification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocusignUpdateEnvelopeNotificationRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocusignUpdateEnvelopeNotificationResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignVoidAgreement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidAgreementRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignDiscardAgreement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidAgreementRequest"];
+            };
+        };
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description HTTP 403 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignGetAgreementDownloadUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Agreement id */
+                agreement_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pre-signed download URL */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocusignAgreementDownloadUrlResponse"];
+                };
+            };
+            /** @description HTTP 401 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Agreement not found or document not yet available */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    docusignConnectWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DocusignWebhookPayload"];
+            };
+        };
+        responses: {
+            /** @description Acknowledged */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Invalid webhook payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Webhook verification failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description HTTP 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    healthz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+            /** @description HTTP 503 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    livez: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LivezResponse"];
+                };
+            };
+        };
+    };
+    readyz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description HTTP 200 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+            /** @description HTTP 503 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    sendChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Property report ID */
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatbotSendRequest"];
+            };
+        };
+        responses: {
+            /** @description Message sent successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatbotResponse"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Report not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getChatHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Property report ID */
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chat history retrieved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatbotHistoryResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Report not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listAdminPartners: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Partner list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerListResponse"];
+                };
+            };
+        };
+    };
+    createAdminPartner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PartnerCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerResponse"];
+                };
+            };
+        };
+    };
+    listPartnerChecklistSteps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Steps */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAdminPartner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                partner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Partner */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerResponse"];
+                };
+            };
+            /** @description Partner not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    patchAdminPartner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                partner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PartnerUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerResponse"];
+                };
+            };
+            /** @description Partner not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    provisionAdminPartnerLinks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                partner_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Provisioned */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getAdminRevShareAnalytics: {
+        parameters: {
+            query: {
+                partner_id: string;
+                step_id?: string;
+                date_from?: string;
+                date_to?: string;
+                agent_id?: string;
+                brokerage?: string;
+                bucket?: "day" | "week";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Analytics payload */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevShareAnalyticsResponse"];
+                };
+            };
+            /** @description Partner not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Credential metadata (no secret values) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
+                };
+            };
+            /** @description Credential or brokerage not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrokerageSkySlopeCredentialUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Credential updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
+                };
+            };
+            /** @description Credential or brokerage not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BrokerageSkySlopeCredentialCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Credential stored */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialResponse"];
+                };
+            };
+            /** @description Brokerage not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Credential already exists for this brokerage */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    deleteAdminBrokerageSkySlopeCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Credential deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Credential not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    testAdminBrokerageSkySlopeConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                brokerage_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Connection test result (safe message only) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BrokerageSkySlopeCredentialTestResponse"];
+                };
+            };
+            /** @description Credential not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPartnerPlacements: {
+        parameters: {
+            query: {
+                step_id: string;
+                /** @description Revenue spine id (`transactions.id`) for attribution. */
+                transaction_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Placements */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevSharePlacementsResponse"];
+                };
+            };
+        };
+    };
+    postRevShareStepView: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevShareStepViewRequest"];
+            };
+        };
+        responses: {
+            /** @description Recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Transaction not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    revShareRedirect: {
+        parameters: {
+            query?: {
+                buyer_id?: string;
+                transaction_id?: string;
+                step_id?: string;
+                utm_source?: string;
+                utm_medium?: string;
+                utm_campaign?: string;
+            };
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to partner destination */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Rev-share link not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
 }
