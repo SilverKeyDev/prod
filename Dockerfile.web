@@ -78,6 +78,8 @@
 
   # Python deps (quiet); pins live in Server/requirements/
   COPY Server/requirements ./requirements
+  # Must COPY before the RUN that invokes it (full Server/ copy comes after pip for cache).
+  COPY Server/scripts/install-torch-cpu.sh ./scripts/install-torch-cpu.sh
   # Install the CPU-only torch wheel first. There is no GPU in production, but the bare
   # `torch==2.10.0` pin in runtime.txt resolves to the multi-GB CUDA wheel from PyPI on
   # linux. Installing 2.10.0+cpu up front satisfies that pin, so the runtime.txt install

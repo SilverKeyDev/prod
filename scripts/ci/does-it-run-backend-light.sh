@@ -13,6 +13,11 @@ fail() {
   exit 1
 }
 
+# Always-on: catch Dockerfile.web COPY-order bugs even when full Docker smoke is skipped.
+echo "does-it-run-backend-light: checking Dockerfile.web backend COPY deps..."
+bash "$ROOT/scripts/ci/check-dockerfile-web-backend-deps.sh"
+bash "$ROOT/scripts/ci/test-check-dockerfile-web-backend-deps.sh"
+
 services_compose() {
   docker compose -f "$SERVICES_COMPOSE" -p "$COMPOSE_PROJECT_NAME" "$@"
 }
