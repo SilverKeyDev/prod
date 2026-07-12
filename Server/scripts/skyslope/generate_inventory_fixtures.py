@@ -232,14 +232,14 @@ def main() -> int:
     args = parser.parse_args()
 
     if not args.data_dir.is_dir():
-        print(f"Missing demo data dir: {args.data_dir}", file=sys.stderr)
+        print(f"Missing demo data dir: {args.data_dir}", file=sys.stderr)  # noqa: T201
         return 1
 
     props = _load_rows(args.data_dir)
     listings, summary = build_listings(props, sample_size=args.sample, seed=args.seed)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(render_ts(listings, summary), encoding="utf-8")
-    print(
+    print(  # noqa: T201
         f"Wrote {len(listings)} listings → {args.output} "
         f"(active={summary['active_count']} pending="
         f"{summary['total_count'] - summary['active_count'] - summary['sold_count']} "
