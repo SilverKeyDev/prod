@@ -1,4 +1,5 @@
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
+import type { IconName } from "packages/ui/types/icons";
 
 export type { TimePeriod };
 export type AnalyticsTab = "overview" | "agents" | "leakage" | "forensics" | "market";
@@ -11,12 +12,12 @@ export const TIME_PERIOD_OPTIONS: { value: TimePeriod; label: string }[] = [
   { value: "all", label: "All" },
 ];
 
-export const DASHBOARD_TABS = [
-  { id: "overview", label: "Overview" },
-  { id: "agents", label: "Agents" },
-  { id: "leakage", label: "Leakage" },
-  { id: "forensics", label: "Deal forensics" },
-  { id: "market", label: "Market" },
+export const DASHBOARD_TABS: { id: AnalyticsTab; label: string; iconName: IconName }[] = [
+  { id: "overview", label: "Overview", iconName: "bar-chart-2" },
+  { id: "agents", label: "Agents", iconName: "users" },
+  { id: "leakage", label: "Leakage", iconName: "trending-down" },
+  { id: "forensics", label: "Deal forensics", iconName: "search" },
+  { id: "market", label: "Market", iconName: "map" },
 ];
 
 export const CLOSINGS_LABEL: Record<TimePeriod, string> = {

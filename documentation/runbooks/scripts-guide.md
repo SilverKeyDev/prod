@@ -200,6 +200,7 @@ Python linters:
 | `validate-schema-coverage.py` | OpenAPI decorator coverage report (advisory) |
 | `misc/seed_georgia_forms.py` | Seed Georgia form library data into DB |
 | `skyslope/generate_demo_dataset.py` | Generate synthetic SkySlope brokerage analytics demo dataset (SIL-285) |
+| `skyslope/generate_inventory_fixtures.py` | Sample demo CSVs → Client Market map fixtures with Atlanta-randomized pins |
 | `skyslope/load_demo_to_skyslope.py` | Load SIL-285 demo CSVs into `skyslope_transactions` via SIL-272 upsert |
 | `misc/delete_user_by_id.py` | Delete a user and related data by UUID |
 | `postgres/export_postgres_docs.py` | Export Postgres schema docs |

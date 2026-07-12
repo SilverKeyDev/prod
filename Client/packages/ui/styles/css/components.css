@@ -180,6 +180,11 @@
     --sk-fill: theme("colors.green.600");
   }
 
+  .sk-range-track-dual--gold {
+    --sk-track: theme("colors.border");
+    --sk-fill: theme("colors.gold.DEFAULT");
+  }
+
   .sk-range-track-single {
     pointer-events: none;
     position: absolute;

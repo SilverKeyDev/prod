@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 
+import { Icon } from "@ui/icons";
+
 import { AnalyticsDonutChart } from "packages/features/brokerage/components/charts";
 import { useAncillaryAnalytics } from "packages/features/brokerage/hooks/useAncillaryAnalytics";
 import { formatCompactCurrency } from "packages/features/brokerage/utils/analyticsFormat";
@@ -47,9 +49,12 @@ export function AnalyticsLeakageTab({ timePeriod }: Props) {
   return (
     <Box className="flex flex-col gap-6">
       <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Title size="sm" as="h3" className="mb-1">
-          Ancillary Capture Leakage
-        </Title>
+        <Box className="mb-1 flex items-center gap-2">
+          <Icon name="trending-down" className="text-text-secondary h-4 w-4 shrink-0" />
+          <Title size="sm" as="h3">
+            Ancillary Capture Leakage
+          </Title>
+        </Box>
         <BodyText size="xs" muted className="mb-2">
           Revenue leaking to outside title, lending, escrow, and home warranty vendors
         </BodyText>
@@ -60,7 +65,7 @@ export function AnalyticsLeakageTab({ timePeriod }: Props) {
         </BodyText>
         <AncillaryInsightPanel data={ancillary} />
       </Box>
-      <SectionCard title="Service Revenue Mix">
+      <SectionCard title="Service Revenue Mix" iconName="dollar-sign">
         <AnalyticsDonutChart
           data={revenueMix}
           centerLabel={centerLabel}

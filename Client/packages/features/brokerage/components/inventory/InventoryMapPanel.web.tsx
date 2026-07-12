@@ -36,7 +36,7 @@ function triggerMapResize(map: google.maps.Map, win: Window & { google?: typeof 
 /**
  * Portfolio map — pins only (no floating home cards / hearts).
  */
-export function InventoryMapPanel({ results, colorMode = "price_tier" }: Props) {
+export function InventoryMapPanel({ results, colorMode = "status" }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const fittedResultsKeyRef = useRef<string | null>(null);

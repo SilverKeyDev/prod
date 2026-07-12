@@ -38,7 +38,7 @@ export function AnalyticsAgentsTab({ timePeriod }: Props) {
 
   return (
     <Box className="flex flex-col gap-6" data-testid="analytics-agents-tab">
-      <SectionCard title="Agent Performance">
+      <SectionCard title="Agent Performance" iconName="bar-chart-2">
         <Box className="mb-4">
           <AnalyticsBarChart data={agentPerformanceBarsWithZ} unit=" closings" height={260} />
         </Box>

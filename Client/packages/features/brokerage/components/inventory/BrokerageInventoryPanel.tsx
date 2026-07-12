@@ -1,37 +1,49 @@
 import { useMemo } from "react";
 
+import { Icon } from "@ui/icons";
+
 import {
   type InventoryStatusFilter,
   useBrokerageInventory,
 } from "packages/features/brokerage/hooks/useBrokerageInventory";
-import type { InventoryPriceTier } from "packages/features/brokerage/types/inventory";
+import type { InventoryListingStatus } from "packages/features/brokerage/types/inventory";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 import { inventoryListingsToSearchResults } from "packages/features/brokerage/utils/inventory/inventoryListingToSearchResult";
-import {
-  PRICE_TIER_LABELS,
-  PRICE_TIER_ORDER,
-  priceTierLegendEntries,
-  statusLegendEntries,
-} from "packages/features/brokerage/utils/inventory/inventoryPriceTier";
-import { Button, Input, Label } from "packages/ui";
+import { inventoryStatusToPinScore } from "packages/features/brokerage/utils/inventory/inventoryStatusPinScore";
+import { BudgetRangeSlider, Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { getMapPinColorsForScoreAndStatus } from "packages/utils/core/format/mapMatchPinColors";
+import type { IconName } from "packages/ui/types/icons";
+import { formatCompactNumber, getMapPinColorsForScoreAndStatus } from "packages/utils";
 
 import { InventoryMapPanel } from "./InventoryMapPanel";
 
-const STATUS_FILTERS: { id: InventoryStatusFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "active", label: "Active" },
-  { id: "pending", label: "Pending" },
-  { id: "sold", label: "Sold" },
+const PRICE_TICK_VALUES = [
+  0, 100_000, 250_000, 500_000, 750_000, 1_000_000, 1_500_000, 2_000_000, 3_000_000, 5_000_000,
+  10_000_000,
+];
+const PRICE_SLIDER_DEFAULT_MIN = 0;
+const PRICE_SLIDER_DEFAULT_MAX = 2_000_000;
+
+const STATUS_FILTERS: {
+  id: InventoryStatusFilter;
+  label: string;
+  iconName: IconName;
+}[] = [
+  { id: "all", label: "All", iconName: "grid-3x3" },
+  { id: "active", label: "Active", iconName: "activity" },
+  { id: "pending", label: "Pending", iconName: "clock" },
+  { id: "sold", label: "Sold", iconName: "check-circle" },
 ];
 
-const TIER_FILTERS: { id: InventoryPriceTier | "all"; label: string }[] = [
-  { id: "all", label: "All neighborhoods" },
-  ...PRICE_TIER_ORDER.map((id) => ({ id, label: PRICE_TIER_LABELS[id] })),
-];
+const PROPERTY_TYPE_ICONS: Record<string, IconName> = {
+  "Single Family": "home",
+  Condo: "building",
+  Townhome: "building-2",
+  "Multi Family": "folders",
+  Land: "map",
+};
 
 function formatPrice(price: number | null): string {
   if (price == null) return "—";
@@ -39,25 +51,29 @@ function formatPrice(price: number | null): string {
   return `$${Math.round(price / 1000)}K`;
 }
 
-function parseOptionalPrice(raw: string): number | null {
-  const trimmed = raw.trim().replace(/[$,]/g, "");
-  if (!trimmed) return null;
-  const n = Number(trimmed);
-  return Number.isFinite(n) ? n : null;
+function filterChipClass(active: boolean): string {
+  return active ? "rounded-full" : "rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200";
 }
 
-function filterButtonClass(active: boolean): string {
-  return `rounded-lg border px-2.5 py-1 text-sm ${
-    active ? "border-border-strong bg-background font-semibold" : "border-border bg-background"
-  }`;
-}
-
-function InventoryStat({ label, value }: { label: string; value: string | number }) {
+function InventoryStat({
+  label,
+  value,
+  iconName,
+}: {
+  label: string;
+  value: string | number;
+  iconName?: IconName;
+}) {
   return (
     <Box className="flex flex-col gap-0.5">
-      <BodyText size="xs" muted>
-        {label}
-      </BodyText>
+      <Box className="flex items-center gap-1">
+        {iconName ? (
+          <Icon name={iconName} className="text-text-secondary h-3.5 w-3.5 shrink-0" />
+        ) : null}
+        <BodyText size="xs" muted>
+          {label}
+        </BodyText>
+      </Box>
       <Title size="sm" as="span">
         {value}
       </Title>
@@ -65,14 +81,87 @@ function InventoryStat({ label, value }: { label: string; value: string | number
   );
 }
 
-function LegendDot({ score }: { score: number }) {
-  const colors = getMapPinColorsForScoreAndStatus(score);
+function StatusFilterButton({
+  id,
+  label,
+  iconName,
+  active,
+  onPress,
+}: {
+  id: InventoryStatusFilter;
+  label: string;
+  iconName: IconName;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const tint =
+    id === "all"
+      ? null
+      : getMapPinColorsForScoreAndStatus(inventoryStatusToPinScore(id as InventoryListingStatus));
+
+  const iconColor = tint ? (active ? "#ffffff" : tint.fillColor) : undefined;
+
   return (
     <Box
-      className="h-2.5 w-2.5 shrink-0 rounded-full border"
-      style={{ backgroundColor: colors.fillColor, borderColor: colors.strokeColor }}
-      aria-hidden
-    />
+      data-testid={`inventory-filter-${id}`}
+      className="inline-flex"
+      style={
+        tint && active
+          ? { backgroundColor: tint.fillColor, borderColor: tint.strokeColor }
+          : undefined
+      }
+    >
+      <Button
+        type="button"
+        size="sm"
+        variant={active && !tint ? "primary" : "ghost"}
+        icon={
+          <Icon
+            name={iconName}
+            className="h-4 w-4"
+            style={iconColor ? { color: iconColor } : undefined}
+          />
+        }
+        onPress={onPress}
+        className={
+          tint && active
+            ? "rounded-full bg-transparent text-white hover:opacity-90"
+            : filterChipClass(active)
+        }
+        style={tint && !active ? { color: tint.fillColor } : undefined}
+      >
+        {label}
+      </Button>
+    </Box>
+  );
+}
+
+function FilterChip({
+  active,
+  iconName,
+  label,
+  onPress,
+  testId,
+}: {
+  active: boolean;
+  iconName: IconName;
+  label: string;
+  onPress: () => void;
+  testId: string;
+}) {
+  return (
+    <Box data-testid={testId} className="inline-flex">
+      <Button
+        type="button"
+        size="sm"
+        variant={active ? "primary" : "ghost"}
+        iconName={iconName}
+        onPress={onPress}
+        className={filterChipClass(active)}
+      >
+        {label}
+      </Button>
+    </Box>
   );
 }
 
@@ -90,11 +179,9 @@ export function BrokerageInventoryPanel({ timePeriod = "all" }: Props) {
     filters,
     statusFilter,
     setStatusFilter,
-    setPriceTierFilter,
     setPriceMin,
     setPriceMax,
     setPropertyType,
-    setAgentQuery,
     propertyTypeOptions,
     colorMode,
     setColorMode,
@@ -106,18 +193,15 @@ export function BrokerageInventoryPanel({ timePeriod = "all" }: Props) {
     [listings, colorMode]
   );
 
-  const legend =
-    colorMode === "price_tier"
-      ? priceTierLegendEntries().map((e) => ({
-          key: e.id,
-          label: `${e.label} (${e.band})`,
-          score: e.score,
-        }))
-      : statusLegendEntries().map((e) => ({
-          key: e.id,
-          label: e.label,
-          score: e.score,
-        }));
+  const sliderMin = filters.priceMin ?? PRICE_SLIDER_DEFAULT_MIN;
+  const sliderMax = filters.priceMax ?? PRICE_SLIDER_DEFAULT_MAX;
+
+  const handlePriceRangeChange = (minValue: number, maxValue: number) => {
+    const roundedMin = Math.round(minValue / 1000) * 1000;
+    const roundedMax = Math.round(maxValue / 1000) * 1000;
+    setPriceMin(roundedMin <= PRICE_SLIDER_DEFAULT_MIN ? null : roundedMin);
+    setPriceMax(roundedMax >= PRICE_SLIDER_DEFAULT_MAX ? null : roundedMax);
+  };
 
   return (
     <Box className="flex min-h-0 w-full flex-col gap-4" data-testid="brokerage-inventory-panel">
@@ -126,12 +210,20 @@ export function BrokerageInventoryPanel({ timePeriod = "all" }: Props) {
         data-testid="inventory-kpi-strip"
       >
         <Box className="flex flex-wrap items-end gap-x-5 gap-y-2">
-          <InventoryStat label="Total" value={metrics.total_count} />
-          <InventoryStat label="Active" value={metrics.active_count} />
-          <InventoryStat label="Pending" value={metrics.pending_count} />
-          <InventoryStat label="Sold" value={metrics.sold_count} />
-          <InventoryStat label="Avg price" value={formatPrice(metrics.average_price)} />
-          <InventoryStat label="Median" value={formatPrice(metrics.median_price)} />
+          <InventoryStat label="Total" value={metrics.total_count} iconName="home" />
+          <InventoryStat label="Active" value={metrics.active_count} iconName="activity" />
+          <InventoryStat label="Pending" value={metrics.pending_count} iconName="clock" />
+          <InventoryStat label="Sold" value={metrics.sold_count} iconName="check-circle" />
+          <InventoryStat
+            label="Avg price"
+            value={formatPrice(metrics.average_price)}
+            iconName="dollar-sign"
+          />
+          <InventoryStat
+            label="Median"
+            value={formatPrice(metrics.median_price)}
+            iconName="bar-chart-2"
+          />
           <InventoryStat
             label="Price range"
             value={
@@ -139,150 +231,88 @@ export function BrokerageInventoryPanel({ timePeriod = "all" }: Props) {
                 ? `${formatPrice(metrics.min_price)}–${formatPrice(metrics.max_price)}`
                 : "—"
             }
+            iconName="sliders-horizontal"
           />
         </Box>
 
-        <Box className="flex flex-col gap-2" data-testid="inventory-filters">
-          <Box className="flex flex-wrap gap-1.5" data-testid="inventory-filter-status">
-            {STATUS_FILTERS.map((f) => (
-              <Button
-                key={f.id}
-                type="button"
-                variant="outline"
-                size="sm"
-                onPress={() => setStatusFilter(f.id)}
-                className={filterButtonClass(statusFilter === f.id)}
-                data-testid={`inventory-filter-${f.id}`}
-              >
-                {f.label}
-              </Button>
-            ))}
-          </Box>
-
-          <Box className="flex flex-wrap gap-1.5" data-testid="inventory-filter-neighborhoods">
-            {TIER_FILTERS.map((f) => (
-              <Button
-                key={f.id}
-                type="button"
-                variant="outline"
-                size="sm"
-                onPress={() => setPriceTierFilter(f.id)}
-                className={filterButtonClass(filters.priceTier === f.id)}
-                data-testid={`inventory-filter-tier-${f.id}`}
-              >
-                {f.label}
-              </Button>
-            ))}
-          </Box>
-
-          <Box className="flex flex-wrap gap-1.5" data-testid="inventory-filter-property-types">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onPress={() => setPropertyType(null)}
-              className={filterButtonClass(filters.propertyType == null)}
-              data-testid="inventory-filter-type-all"
+        <Box className="flex flex-col gap-3" data-testid="inventory-filters">
+          <Box className="flex flex-wrap items-stretch gap-2">
+            <Box
+              className="bg-background-muted flex flex-wrap gap-1 rounded-lg p-1"
+              data-testid="inventory-filter-status"
             >
-              All types
-            </Button>
-            {propertyTypeOptions.map((type) => (
-              <Button
-                key={type}
-                type="button"
-                variant="outline"
-                size="sm"
-                onPress={() => setPropertyType(type)}
-                className={filterButtonClass(filters.propertyType === type)}
-                data-testid={`inventory-filter-type-${type.replace(/\s+/g, "-").toLowerCase()}`}
-              >
-                {type}
-              </Button>
-            ))}
-          </Box>
-
-          <Box className="flex flex-wrap items-end gap-2">
-            <Box className="flex min-w-28 flex-col gap-0.5">
-              <Label htmlFor="inventory-price-min" className="sr-only">
-                Min price
-              </Label>
-              <Input
-                id="inventory-price-min"
-                size="sm"
-                type="text"
-                inputMode="numeric"
-                placeholder="Min price"
-                value={filters.priceMin != null ? String(filters.priceMin) : ""}
-                onValueChange={(v) => setPriceMin(parseOptionalPrice(v))}
-                data-testid="inventory-filter-price-min"
-              />
-            </Box>
-            <Box className="flex min-w-28 flex-col gap-0.5">
-              <Label htmlFor="inventory-price-max" className="sr-only">
-                Max price
-              </Label>
-              <Input
-                id="inventory-price-max"
-                size="sm"
-                type="text"
-                inputMode="numeric"
-                placeholder="Max price"
-                value={filters.priceMax != null ? String(filters.priceMax) : ""}
-                onValueChange={(v) => setPriceMax(parseOptionalPrice(v))}
-                data-testid="inventory-filter-price-max"
-              />
+              {STATUS_FILTERS.map((f) => (
+                <StatusFilterButton
+                  key={f.id}
+                  id={f.id}
+                  label={f.label}
+                  iconName={f.iconName}
+                  active={statusFilter === f.id}
+                  onPress={() => setStatusFilter(f.id)}
+                />
+              ))}
             </Box>
 
-            <Box className="flex min-w-40 flex-col gap-0.5">
-              <Label htmlFor="inventory-agent" className="sr-only">
-                Agent
-              </Label>
-              <Input
-                id="inventory-agent"
-                size="sm"
-                type="text"
-                placeholder="Agent name"
-                value={filters.agentQuery}
-                onValueChange={setAgentQuery}
-                data-testid="inventory-filter-agent"
+            <Box
+              className="bg-background-muted flex flex-wrap gap-1 rounded-lg p-1"
+              data-testid="inventory-filter-property-types"
+            >
+              <FilterChip
+                active={filters.propertyType == null}
+                iconName="grid-3x3"
+                label="All types"
+                onPress={() => setPropertyType(null)}
+                testId="inventory-filter-type-all"
               />
+              {propertyTypeOptions.map((type) => (
+                <FilterChip
+                  key={type}
+                  active={filters.propertyType === type}
+                  iconName={PROPERTY_TYPE_ICONS[type] ?? "home"}
+                  label={type}
+                  onPress={() => setPropertyType(type)}
+                  testId={`inventory-filter-type-${type.replace(/\s+/g, "-").toLowerCase()}`}
+                />
+              ))}
             </Box>
 
-            <Box className="flex flex-wrap gap-1.5" data-testid="inventory-color-mode">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onPress={() => setColorMode("price_tier")}
-                className={filterButtonClass(colorMode === "price_tier")}
-                data-testid="inventory-color-price-tier"
-              >
-                Color by price
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
+            <Box
+              className="bg-background-muted flex flex-wrap gap-1 rounded-lg p-1"
+              data-testid="inventory-color-mode"
+            >
+              <FilterChip
+                active={colorMode === "status"}
+                iconName="flag"
+                label="By status"
                 onPress={() => setColorMode("status")}
-                className={filterButtonClass(colorMode === "status")}
-                data-testid="inventory-color-status"
-              >
-                Color by status
-              </Button>
+                testId="inventory-color-status"
+              />
+              <FilterChip
+                active={colorMode === "price_tier"}
+                iconName="dollar-sign"
+                label="By price"
+                onPress={() => setColorMode("price_tier")}
+                testId="inventory-color-price-tier"
+              />
             </Box>
           </Box>
         </Box>
 
-        <Box className="flex flex-wrap items-center gap-3" data-testid="inventory-color-legend">
-          <BodyText size="xs" muted>
-            Legend
+        <Box data-testid="inventory-filter-price-range">
+          <BodyText size="sm" className="text-text-secondary mb-2 font-medium">
+            Price range
           </BodyText>
-          {legend.map((item) => (
-            <Box key={item.key} className="flex items-center gap-1.5">
-              <LegendDot score={item.score} />
-              <BodyText size="xs">{item.label}</BodyText>
-            </Box>
-          ))}
+          <BudgetRangeSlider
+            variant="gold"
+            tickValues={PRICE_TICK_VALUES}
+            minValue={sliderMin}
+            maxValue={sliderMax}
+            onChange={handlePriceRangeChange}
+            formatPrefix="$"
+            formatValue={(v) => `$${formatCompactNumber(v)}`}
+            minGap={25_000}
+            showTextHeader
+          />
         </Box>
 
         {isLoading ? (

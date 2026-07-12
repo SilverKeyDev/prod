@@ -6,6 +6,8 @@
  */
 import { useState } from "react";
 
+import { Icon } from "@ui/icons";
+
 import { useAgentRetentionRisk } from "packages/features/brokerage/hooks/useAgentRetentionRisk";
 import type { AgentRetentionRisk } from "packages/features/brokerage/types/analytics";
 import { exportAnalyticsCsv } from "packages/features/brokerage/utils/analytics/exportCsv";
@@ -14,6 +16,7 @@ import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
+import type { IconName } from "packages/ui/types/icons";
 
 import { AnalyticsDataTable } from "./AnalyticsDataTable";
 import { SectionCard } from "./AnalyticsShellShared";
@@ -35,12 +38,19 @@ const TIER_STYLES: Record<RiskTier, string> = {
   over_comp: "bg-purple-100 text-purple-700",
 };
 
-const TIER_FILTERS: { label: string; value: string }[] = [
+const TIER_ICONS: Record<RiskTier, IconName> = {
+  flight_risk: "alert-triangle",
+  watch: "eye",
+  stable: "check-circle",
+  over_comp: "trending-up",
+};
+
+const TIER_FILTERS: { label: string; value: string; iconName?: IconName }[] = [
   { label: "All", value: "all" },
-  { label: "Flight Risk", value: "flight_risk" },
-  { label: "Watch", value: "watch" },
-  { label: "Stable", value: "stable" },
-  { label: "Over-Comp", value: "over_comp" },
+  { label: "Flight Risk", value: "flight_risk", iconName: "alert-triangle" },
+  { label: "Watch", value: "watch", iconName: "eye" },
+  { label: "Stable", value: "stable", iconName: "check-circle" },
+  { label: "Over-Comp", value: "over_comp", iconName: "trending-up" },
 ];
 
 function exportRetentionCsv(rows: RetentionAgent[]) {
@@ -81,7 +91,7 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: TimePerio
 
   if (isLoading) {
     return (
-      <SectionCard title="Agent Retention Risk">
+      <SectionCard title="Agent Retention Risk" iconName="alert-triangle">
         <BodyText size="sm" muted>
           Loading retention risk data...
         </BodyText>
@@ -91,7 +101,7 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: TimePerio
 
   if (error || !data) {
     return (
-      <SectionCard title="Agent Retention Risk">
+      <SectionCard title="Agent Retention Risk" iconName="alert-triangle">
         <BodyText size="sm" muted>
           Failed to load retention risk data.
         </BodyText>
@@ -102,8 +112,19 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: TimePerio
   const filtered =
     tierFilter === "all" ? data.agents : data.agents.filter((a) => a.risk_tier === tierFilter);
 
+  const summaryCards: { tier: RiskTier; count: number; detail?: string }[] = [
+    {
+      tier: "flight_risk",
+      count: data.summary.flight_risk_count,
+      detail: `$${data.summary.estimated_at_risk_gci.toLocaleString()} GCI at risk`,
+    },
+    { tier: "watch", count: data.summary.watch_count },
+    { tier: "stable", count: data.summary.stable_count },
+    { tier: "over_comp", count: data.summary.over_comp_count },
+  ];
+
   return (
-    <SectionCard title="Agent Retention Risk">
+    <SectionCard title="Agent Retention Risk" iconName="alert-triangle">
       <Box className="mb-4 flex items-start justify-between gap-4">
         <BodyText size="sm" muted>
           Cross-references production volume against split structures to flag flight risks and
@@ -113,6 +134,7 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: TimePerio
           type="button"
           variant="outline"
           size="sm"
+          iconName="download"
           onPress={() => exportRetentionCsv(filtered)}
           className="shrink-0"
         >
@@ -121,41 +143,24 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: TimePerio
       </Box>
 
       <Box className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Box className="border-border bg-background-surface rounded-lg border p-4">
-          <BodyText size="xs" muted className="uppercase tracking-wide">
-            Flight Risk
-          </BodyText>
-          <Title size="lg" className="mt-1">
-            {data.summary.flight_risk_count}
-          </Title>
-          <BodyText size="xs" muted className="mt-1">
-            ${data.summary.estimated_at_risk_gci.toLocaleString()} GCI at risk
-          </BodyText>
-        </Box>
-        <Box className="border-border bg-background-surface rounded-lg border p-4">
-          <BodyText size="xs" muted className="uppercase tracking-wide">
-            Watch
-          </BodyText>
-          <Title size="lg" className="mt-1">
-            {data.summary.watch_count}
-          </Title>
-        </Box>
-        <Box className="border-border bg-background-surface rounded-lg border p-4">
-          <BodyText size="xs" muted className="uppercase tracking-wide">
-            Stable
-          </BodyText>
-          <Title size="lg" className="mt-1">
-            {data.summary.stable_count}
-          </Title>
-        </Box>
-        <Box className="border-border bg-background-surface rounded-lg border p-4">
-          <BodyText size="xs" muted className="uppercase tracking-wide">
-            Over-Comp
-          </BodyText>
-          <Title size="lg" className="mt-1">
-            {data.summary.over_comp_count}
-          </Title>
-        </Box>
+        {summaryCards.map(({ tier, count, detail }) => (
+          <Box key={tier} className="border-border bg-background-surface rounded-lg border p-4">
+            <Box className="flex items-center gap-1.5">
+              <Icon name={TIER_ICONS[tier]} className="text-text-secondary h-3.5 w-3.5 shrink-0" />
+              <BodyText size="xs" muted className="uppercase tracking-wide">
+                {TIER_LABELS[tier]}
+              </BodyText>
+            </Box>
+            <Title size="lg" className="mt-1">
+              {count}
+            </Title>
+            {detail ? (
+              <BodyText size="xs" muted className="mt-1">
+                {detail}
+              </BodyText>
+            ) : null}
+          </Box>
+        ))}
       </Box>
 
       <Box className="border-border bg-background-muted mb-4 rounded-lg border px-4 py-3">
@@ -174,6 +179,7 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: TimePerio
             type="button"
             variant={tierFilter === f.value ? "primary" : "ghost"}
             size="sm"
+            iconName={f.iconName}
             onPress={() => setTierFilter(f.value)}
             className={
               tierFilter === f.value

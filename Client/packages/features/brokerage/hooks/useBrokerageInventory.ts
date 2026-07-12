@@ -9,7 +9,6 @@ import type {
   InventoryClientFilters,
   InventoryColorMode,
   InventoryListing,
-  InventoryPriceTier,
   InventoryStatusFilter,
 } from "packages/features/brokerage/types/inventory";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
@@ -41,7 +40,7 @@ const DEFAULT_FILTERS: InventoryClientFilters = {
 export function useBrokerageInventory(period: TimePeriod = "all") {
   const brokerageOrgId = useBrokerageOrgId();
   const [filters, setFilters] = useState<InventoryClientFilters>(DEFAULT_FILTERS);
-  const [colorMode, setColorMode] = useState<InventoryColorMode>("price_tier");
+  const [colorMode, setColorMode] = useState<InventoryColorMode>("status");
 
   const query = useQuery({
     queryKey: ["brokerage-analytics", "inventory", brokerageOrgId, period],
@@ -68,10 +67,6 @@ export function useBrokerageInventory(period: TimePeriod = "all") {
     setFilters((prev) => ({ ...prev, status }));
   };
 
-  const setPriceTierFilter = (priceTier: InventoryPriceTier | "all") => {
-    setFilters((prev) => ({ ...prev, priceTier }));
-  };
-
   const setPriceMin = (priceMin: number | null) => {
     setFilters((prev) => ({ ...prev, priceMin }));
   };
@@ -95,7 +90,6 @@ export function useBrokerageInventory(period: TimePeriod = "all") {
     filters,
     statusFilter: filters.status,
     setStatusFilter,
-    setPriceTierFilter,
     setPriceMin,
     setPriceMax,
     setPropertyType,

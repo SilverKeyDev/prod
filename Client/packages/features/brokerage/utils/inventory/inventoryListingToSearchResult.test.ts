@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { InventoryListing } from "packages/features/brokerage/types/inventory";
+import { getMapPinColorsForScoreAndStatus } from "packages/utils";
 
 import { getInventoryHouseImage } from "./inventoryHouseImages";
 import {
@@ -9,6 +10,7 @@ import {
   inventoryListingsToSearchResults,
   inventoryListingToSearchResult,
 } from "./inventoryListingToSearchResult";
+import { inventoryStatusToPinScore } from "./inventoryStatusPinScore";
 
 const sample: InventoryListing = {
   id: "inv-1",
@@ -44,6 +46,23 @@ describe("inventoryListingToSearchResult", () => {
     expect(
       inventoryListingToSearchResult({ ...sample, price: 1_200_000 }, 0, "price_tier")._score
     ).toBe(90);
+  });
+
+  it("maps status scores onto distinct search map pin colors", () => {
+    const active = inventoryListingToSearchResult(sample, 0, "status");
+    const pending = inventoryListingToSearchResult({ ...sample, status: "pending" }, 0, "status");
+    const sold = inventoryListingToSearchResult({ ...sample, status: "sold" }, 0, "status");
+
+    expect(active._score).toBe(inventoryStatusToPinScore("active"));
+    expect(pending._score).toBe(inventoryStatusToPinScore("pending"));
+    expect(sold._score).toBe(inventoryStatusToPinScore("sold"));
+
+    const activeColors = getMapPinColorsForScoreAndStatus(active._score ?? 0);
+    const pendingColors = getMapPinColorsForScoreAndStatus(pending._score ?? 0);
+    const soldColors = getMapPinColorsForScoreAndStatus(sold._score ?? 0);
+    expect(activeColors.fillColor).not.toBe(pendingColors.fillColor);
+    expect(pendingColors.fillColor).not.toBe(soldColors.fillColor);
+    expect(activeColors.fillColor).not.toBe(soldColors.fillColor);
   });
 
   it("assigns a distinct house photo per listing index", () => {
