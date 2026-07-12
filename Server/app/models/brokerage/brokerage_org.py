@@ -19,6 +19,15 @@ class BrokerageOrg(db.Model):
     )
     name: Mapped[str] = mapped_column(db.String(255), nullable=False)
     slug: Mapped[str] = mapped_column(db.String(128), nullable=False, unique=True, index=True)
+
+    # Brokerage onboarding profile
+    legal_business_name: Mapped[str | None] = mapped_column(db.String(255), nullable=True)
+    primary_admin_name: Mapped[str | None] = mapped_column(db.String(255), nullable=True)
+    primary_admin_email: Mapped[str | None] = mapped_column(db.String(255), nullable=True)
+    primary_admin_phone: Mapped[str | None] = mapped_column(db.String(64), nullable=True)
+    primary_admin_title: Mapped[str | None] = mapped_column(db.String(128), nullable=True)
+    license_number: Mapped[str | None] = mapped_column(db.String(128), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(timezone.utc), nullable=False
     )
