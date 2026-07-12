@@ -6,11 +6,12 @@ Base path: /api/v1/brokerage/analytics/
 
 Shared query parameters (all routes):
     brokerage_org_id (required): UUID — validated by require_brokerage_scope decorator
-    date_from (optional): ISO 8601 date string, defaults to 30 days ago
-    date_to (optional): ISO 8601 date string, defaults to now
+    timeline (optional): week | month | year | 5years | all — preferred over raw dates (SIL-274)
+    date_from (optional): ISO 8601 date string, defaults to 30 days ago when timeline unset
+    date_to (optional): ISO 8601 date string, defaults to now when timeline unset
 
 Real data path: SkySlope sync (SIL-272) → aggregation service (SIL-202) → these routes.
-Until SkySlope sync lands, service functions return fixture-shaped stub data.
+Until SkySlope sync lands, service functions return fixture-shaped stub data scaled by timeline.
 """
 
 from __future__ import annotations
@@ -39,6 +40,10 @@ from ...services.brokerage.analytics import (
     get_timing_analytics,
     get_type_analytics,
     get_volume_analytics,
+)
+from ...services.brokerage.analytics_timeline import (
+    VALID_TIMELINES,
+    timeline_to_date_range,
 )
 
 brokerage_analytics_bp = Blueprint(
@@ -74,7 +79,29 @@ def _parse_iso_date(value: str, field_name: str):
 def _build_filters(brokerage_org_id: str):
     """Parse shared query params and build BrokerageAnalyticsFilters.
     Returns (filters, None) on success or (None, error_response) on failure.
+
+    Prefer `timeline` when provided (SIL-274). Otherwise accept raw date_from/date_to.
     """
+    timeline = req.args.get("timeline")
+    if timeline is not None:
+        if timeline not in VALID_TIMELINES:
+            return None, (
+                jsonify(
+                    {
+                        "error": ("Invalid timeline. Use one of: week, month, year, 5years, all"),
+                        "success": False,
+                    }
+                ),
+                400,
+            )
+        date_from, date_to = timeline_to_date_range(timeline)
+        return BrokerageAnalyticsFilters(
+            brokerage_org_id=brokerage_org_id,
+            date_from=date_from,
+            date_to=date_to,
+            timeline=timeline,
+        ), None
+
     date_from = None
     date_to = None
 
@@ -95,6 +122,7 @@ def _build_filters(brokerage_org_id: str):
         brokerage_org_id=brokerage_org_id,
         date_from=date_from,
         date_to=date_to,
+        timeline=None,
     ), None
 
 
@@ -307,3 +335,89 @@ def get_analytics_agent_retention_risk(user):
     if err:
         return err
     return _handle_result(get_agent_retention_risk(filters))
+
+
+@brokerage_analytics_bp.route("/campaigns", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def list_analytics_campaigns(user):
+    """GET /api/v1/brokerage/analytics/campaigns — list A/B email campaigns (SIL-306)."""
+    from app.services.brokerage.campaigns.service import list_campaigns
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    return _handle_result(list_campaigns(brokerage_org_id))
+
+
+@brokerage_analytics_bp.route("/campaigns", methods=["POST"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def create_analytics_campaign(user):
+    """POST /api/v1/brokerage/analytics/campaigns — create A/B campaign (SIL-306)."""
+    from app.services.brokerage.campaigns.service import create_campaign
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    body = req.get_json(silent=True) or {}
+    result = create_campaign(
+        brokerage_org_id,
+        name=str(body.get("name") or "").strip(),
+        goal_metric=str(body.get("goal_metric") or "title_attach"),
+        variants=list(body.get("variants") or []),
+        segment=str(body.get("segment") or "targeted_engagement"),
+        send=bool(body.get("send", True)),
+    )
+    if not result.get("success"):
+        error = result.get("error", "unknown_error")
+        if error == "validation_error":
+            return jsonify(
+                {
+                    "success": False,
+                    "error": error,
+                    "message": result.get("message", "Invalid request"),
+                }
+            ), 400
+        return jsonify({"success": False, "error": error}), 500
+    return jsonify(result), 201
+
+
+@brokerage_analytics_bp.route("/campaigns/<campaign_id>", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_analytics_campaign(user, campaign_id: str):
+    """GET /api/v1/brokerage/analytics/campaigns/{id} — campaign detail (SIL-306)."""
+    from app.services.brokerage.campaigns.service import get_campaign
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    result = get_campaign(brokerage_org_id, campaign_id)
+    if not result.get("success"):
+        if result.get("error") == "campaign_not_found":
+            return jsonify({"success": False, "error": "Campaign not found"}), 404
+        return jsonify({"success": False, "error": "Failed to load campaign"}), 500
+    return jsonify(result), 200
+
+
+@brokerage_analytics_bp.route("/campaigns/<campaign_id>/results", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_analytics_campaign_results(user, campaign_id: str):
+    """GET /api/v1/brokerage/analytics/campaigns/{id}/results — lift + $ (SIL-307)."""
+    from app.services.brokerage.campaigns.results import get_campaign_results
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    result = get_campaign_results(brokerage_org_id, campaign_id)
+    if not result.get("success"):
+        if result.get("error") == "campaign_not_found":
+            return jsonify({"success": False, "error": "Campaign not found"}), 404
+        return jsonify({"success": False, "error": "Failed to compute results"}), 500
+    return jsonify(result), 200
+
+
+@brokerage_analytics_bp.route("/inventory", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_brokerage_inventory(user):
+    """GET /api/v1/brokerage/analytics/inventory — portfolio map pins (SIL-310)."""
+    from app.services.brokerage.inventory import get_brokerage_inventory_listings
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    status = req.args.get("status")
+    return _handle_result(get_brokerage_inventory_listings(brokerage_org_id, status_filter=status))

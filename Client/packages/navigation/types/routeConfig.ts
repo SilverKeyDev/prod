@@ -18,8 +18,12 @@ export const ROUTE_CONFIGS = {
     ROUTES.MESSAGING,
     ROUTES.FIND_AGENTS,
     ROUTES.ANALYTICS,
+    ROUTES.CAMPAIGNS,
     ROUTES.AGREEMENT_SIGNING_COMPLETE,
   ],
 
-  specialized: [{ path: ROUTES.SEARCH, providerType: "maps" as const }],
+  specialized: [
+    { path: ROUTES.SEARCH, providerType: "maps" as const },
+    { path: ROUTES.INVENTORY, providerType: "maps" as const },
+  ],
 } as const;

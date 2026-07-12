@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
 
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
-import { buildSharedHomesAttachmentMessage } from "packages/features/messaging/utils/sharedAttachmentSnapshot";
 import type { SearchResult } from "packages/features/search/types/domain/result";
 import { log } from "packages/logger";
+import { buildSharedHomesAttachmentMessage } from "packages/utils/comms/messaging/sharedAttachmentSnapshot";
 import { getShareHomeConversationId } from "packages/utils/comms/share";
 import { searchResultsToSavedHomesForShare } from "packages/utils/product/search/share/searchResultsToSavedHomesForShare";
 

@@ -14,11 +14,11 @@ import {
 import { useMessageScroll } from "packages/features/messaging/hooks/ui";
 import type { WorkspaceMessagingPersonaId } from "packages/features/messaging/types/workspace/personas";
 import { eligibleContactKindsForPersona } from "packages/features/messaging/types/workspace/personas";
-import { getWorkspaceMessagingPersona } from "packages/features/messaging/utils/workspace/personasRegistry";
 import { useUserData } from "packages/hooks/data/user/useUserData";
 import { useMediaQuery } from "packages/hooks/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import { screenUp } from "packages/ui/types/screens";
+import { getWorkspaceMessagingPersona } from "packages/utils/comms/messaging/personas/personasRegistry";
 
 import { BodyText, Button, Title } from "@/components/ui";
 
@@ -64,15 +64,6 @@ export default function WorkspaceMessagingShell({
     return map;
   }, [eligibleContacts]);
 
-  const conversationsBySection = useMemo(() => {
-    return persona.sections.map((section) => ({
-      section,
-      items: conversations.filter((c) =>
-        section.kinds.includes(c.kind as (typeof section.kinds)[number])
-      ),
-    }));
-  }, [conversations, persona.sections]);
-
   const handleSend = useCallback(async () => {
     const text = draft.trim();
     if (!text || !activeConversationId) return;
@@ -105,7 +96,7 @@ export default function WorkspaceMessagingShell({
         <WorkspaceConversationSidebar
           persona={persona}
           isSidebarExpanded={!isDesktop || !activeConversationId}
-          conversationsBySection={conversationsBySection}
+          conversations={conversations}
           eligibleContacts={eligibleContacts}
           isLoading={isLoading}
           isLoadingContacts={isLoadingContacts}

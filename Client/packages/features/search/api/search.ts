@@ -1,5 +1,6 @@
 import { log } from "packages/logger";
 import { apiGet, apiPost, buildApiUrl, HttpError, isAbortError } from "packages/services/http";
+import { isAnonymousViewerNow } from "packages/store/slices/growth/publicSearchRouting";
 import type { components } from "packages/types/api.generated";
 import type {
   AreaBoundaryResponse,
@@ -13,6 +14,9 @@ export type GetIsochroneOptions = {
   preferencesUserId?: string | null;
   signal?: AbortSignal;
 };
+
+// Anonymous viewers (public agent site search embed, SIL-291) use the unauthenticated
+// `/api/v1/public/search/*` variants; the authed routes 401 without a session.
 
 /** Backend returns 400 + JSON when preferences have no usable commute locations (expected). */
 function isIsochroneMissingCommuteHttpError(error: unknown): error is HttpError {
@@ -197,11 +201,16 @@ export const searchApi = {
     params: { keyword: string; state?: string; limit?: number },
     options?: { signal?: AbortSignal }
   ): Promise<AreaSuggestionsResponse> => {
-    const url = buildApiUrl("/api/v1/search/area-suggestions", {
-      keyword: params.keyword,
-      ...(params.state ? { state: params.state } : {}),
-      ...(params.limit ? { limit: String(params.limit) } : {}),
-    });
+    const url = buildApiUrl(
+      isAnonymousViewerNow()
+        ? "/api/v1/public/search/area-suggestions"
+        : "/api/v1/search/area-suggestions",
+      {
+        keyword: params.keyword,
+        ...(params.state ? { state: params.state } : {}),
+        ...(params.limit ? { limit: String(params.limit) } : {}),
+      }
+    );
     return apiGet<AreaSuggestionsResponse>(url, {
       timeout: 10_000,
       ...options,
@@ -222,9 +231,12 @@ export const searchApi = {
     params: { id: string },
     options?: { signal?: AbortSignal }
   ): Promise<AreaBoundaryResponse> => {
-    const url = buildApiUrl("/api/v1/search/area-boundary", {
-      id: params.id,
-    });
+    const url = buildApiUrl(
+      isAnonymousViewerNow() ? "/api/v1/public/search/area-boundary" : "/api/v1/search/area-boundary",
+      {
+        id: params.id,
+      }
+    );
     return apiGet<AreaBoundaryResponse>(url, {
       timeout: 30_000,
       ...options,

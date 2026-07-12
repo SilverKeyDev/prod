@@ -35,7 +35,7 @@ export function SellerAddressStep({ formData, updateFormData }: Props) {
           <Input
             type="text"
             value={formData.seller_address_street ?? ""}
-            onChange={(e) => updateFormData("seller_address_street", e.target.value)}
+            onValueChange={(text) => updateFormData("seller_address_street", text)}
             placeholder="e.g. 123 Main St"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />
@@ -48,7 +48,7 @@ export function SellerAddressStep({ formData, updateFormData }: Props) {
             <Input
               type="text"
               value={formData.seller_address_city ?? ""}
-              onChange={(e) => updateFormData("seller_address_city", e.target.value)}
+              onValueChange={(text) => updateFormData("seller_address_city", text)}
               placeholder="e.g. Atlanta"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
@@ -60,7 +60,7 @@ export function SellerAddressStep({ formData, updateFormData }: Props) {
             <Input
               type="text"
               value={formData.seller_address_state ?? ""}
-              onChange={(e) => updateFormData("seller_address_state", e.target.value)}
+              onValueChange={(text) => updateFormData("seller_address_state", text)}
               placeholder="e.g. GA"
               maxLength={2}
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
@@ -73,7 +73,7 @@ export function SellerAddressStep({ formData, updateFormData }: Props) {
             <Input
               type="text"
               value={formData.seller_address_zip ?? ""}
-              onChange={(e) => updateFormData("seller_address_zip", e.target.value)}
+              onValueChange={(text) => updateFormData("seller_address_zip", text)}
               placeholder="e.g. 30301"
               maxLength={5}
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"

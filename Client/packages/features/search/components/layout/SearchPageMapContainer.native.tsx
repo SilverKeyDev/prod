@@ -117,7 +117,7 @@ export function SearchPageMapContainerNative({
                     key={`isochrone-individual-${idx}`}
                     coordinates={coords}
                     strokeColor={color("brown.DEFAULT")}
-                    strokeWidth={1}
+                    strokeWidth={1.5}
                     fillColor="transparent"
                     zIndex={polygonIndividualZ}
                   />
@@ -128,7 +128,7 @@ export function SearchPageMapContainerNative({
                 key="isochrone-main"
                 coordinates={isochronePolygons.main}
                 strokeColor={color("olive.DEFAULT")}
-                strokeWidth={2}
+                strokeWidth={2.5}
                 fillColor={getIsochroneUnionFillNativeRgba()}
                 zIndex={polygonUnionZ}
               />

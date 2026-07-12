@@ -38,6 +38,7 @@ import { screenDown } from "packages/ui/types/screens";
 
 import { userPreferencesHasImportantLocations } from "@/features/search/utils/searchArea/resolveSearchArea";
 
+import { useResumePendingPublicSearch } from "./useResumePendingPublicSearch";
 import { useSearchFeatureLifecycle } from "./useSearchFeatureLifecycle";
 import { useSearchFeaturePreciseAddressNavigation } from "./useSearchFeaturePreciseAddressNavigation";
 
@@ -284,6 +285,13 @@ export function useSearchFeatureController({
   ]);
 
   const memoizedSearchFunction = handleSearchUpdated;
+
+  // Restore + run a search handed off from the public agent page bar (SIL-291).
+  // Ready = live map bounds AND no search already in flight (mount-time loads).
+  useResumePendingPublicSearch(
+    handleLocationSearchSubmit,
+    () => !isSearching && Boolean(map.googleMapRef.current?.getBounds?.())
+  );
 
   useSearchFeatureLifecycle({
     setTriggerRefresh: searchRefresh?.setTriggerRefresh,

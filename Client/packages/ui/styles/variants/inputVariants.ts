@@ -78,17 +78,17 @@ export const FIELD_SHELL_ERROR_STYLES =
 export const INPUT_CONTAINER_CLASSES = "relative";
 
 export const INPUT_ICON_CLASSES = {
-  left: "absolute left-3 top-1/2 -translate-y-1/2 z-10 text-text-secondary",
+  left: "absolute left-3 top-1/2 z-header -translate-y-1/2 text-text-secondary",
   right: "absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary",
 };
 
 /** FieldShell/Input: left icon wrapper with pointer-events-none (static for NativeWind) */
 export const INPUT_LEFT_ICON_WRAPPER_CLASSES =
-  "absolute left-3 top-1/2 -translate-y-1/2 z-10 text-text-secondary pointer-events-none";
+  "text-text-secondary pointer-events-none absolute left-3 top-1/2 z-header -translate-y-1/2";
 
 /** FieldShell/Input: right icon wrapper with pointer-events-none (static for NativeWind) */
 export const INPUT_RIGHT_ICON_WRAPPER_CLASSES =
-  "absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none z-10";
+  "text-text-secondary pointer-events-none absolute right-3 top-1/2 z-header -translate-y-1/2";
 
 /** Input.native: right icon container with icon group (static for NativeWind) */
 export const INPUT_RIGHT_ICON_GROUP_WRAPPER_CLASSES =
@@ -266,7 +266,7 @@ export const WEB_FORM_INPUT_ICON_CLASSES = {
 
 /** `FieldShell` icons sit above the field with `pointer-events-none`. */
 export const WEB_FORM_FIELD_SHELL_ICON_CLASSES = {
-  left: "absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary z-1 pointer-events-none",
+  left: "text-text-secondary pointer-events-none absolute left-3 top-1/2 z-header -translate-y-1/2 transform",
   right:
-    "absolute right-3 top-1/2 transform -translate-y-1/2 text-text-secondary z-1 pointer-events-none",
+    "text-text-secondary pointer-events-none absolute right-3 top-1/2 z-header -translate-y-1/2 transform",
 } as const;

@@ -21,7 +21,8 @@ vi.mock("packages/utils/core/platform", () => ({
   }),
 }));
 
-import { AuthenticationError, HttpError } from "../errors";
+import { AuthenticationError, HttpError } from "packages/services/http/client/errors";
+
 import { handleHttpResponse } from "./responseHandler";
 
 function callHandler(status: number, body: unknown, url: string): void {

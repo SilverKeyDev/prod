@@ -38,6 +38,7 @@ type PreferencesFormContentProps = {
   renderContent?: (props: {
     formData: Partial<OnboardingData>;
     updateFormData: (field: keyof OnboardingData, value: unknown) => void;
+    updateFormFields: (patch: Partial<OnboardingData>) => void;
     saveStatus: "idle" | "saving" | "saved";
     patchBuyerPreferenceExtensions: (
       fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions
@@ -82,6 +83,7 @@ export default function PreferencesFormContent({
     saveStatus,
     scriptsReady,
     updateFormData,
+    updateFormFields,
     patchBuyerPreferenceExtensions,
     flushPreferencesSave,
     cancelPendingSave,
@@ -101,6 +103,7 @@ export default function PreferencesFormContent({
         {renderContent({
           formData,
           updateFormData,
+          updateFormFields,
           saveStatus,
           patchBuyerPreferenceExtensions,
           scriptsReady,

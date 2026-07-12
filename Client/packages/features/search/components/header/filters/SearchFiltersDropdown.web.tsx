@@ -44,12 +44,13 @@ export default function SearchFiltersDropdown({
   const preferencesFormActionsRef = useRef<PreferencesFormActionsRef | null>(null);
   return (
     <PreferencesFormContent
-      showErrorToastOnError={false}
+      showErrorToastOnError={true}
       preferencesSubjectUserId={selectedClientId ?? null}
       preferencesFormActionsRef={preferencesFormActionsRef}
       renderContent={({
         formData,
         updateFormData,
+        updateFormFields,
         patchBuyerPreferenceExtensions,
         scriptsReady,
         cancelPendingSave,
@@ -60,6 +61,7 @@ export default function SearchFiltersDropdown({
           <SearchFilterBar
             formData={formData}
             updateFormData={updateFormData}
+            updateFormFields={updateFormFields}
             variant={variant}
             selectedClientId={selectedClientId}
             onClientChange={onClientChange}

@@ -2008,6 +2008,7 @@ class ServerLoggerConfig(BaseModel):
     docusign: bool
     documents: bool
     transactions: bool
+    email: bool
     profilePreferences: bool
     logLevel: LogLevel
 
@@ -2054,6 +2055,7 @@ class ServerLoggerConfigPatch(BaseModel):
     docusign: bool | None = None
     documents: bool | None = None
     transactions: bool | None = None
+    email: bool | None = None
     profilePreferences: bool | None = None
     logLevel: LogLevel | None = None
 
@@ -4361,6 +4363,7 @@ class ClientLoggerConfig(BaseModel):
     docusign: bool
     documents: bool
     transactions: bool
+    email: bool
     profilePreferences: bool
     logLevel: LogLevel
 
@@ -4396,6 +4399,7 @@ class ClientLoggerConfigPatch(BaseModel):
     docusign: bool | None = None
     documents: bool | None = None
     transactions: bool | None = None
+    email: bool | None = None
     profilePreferences: bool | None = None
     logLevel: LogLevel | None = None
 

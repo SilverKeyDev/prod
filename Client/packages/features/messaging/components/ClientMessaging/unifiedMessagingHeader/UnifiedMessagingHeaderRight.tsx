@@ -134,6 +134,8 @@ export function UnifiedMessagingHeaderRight({
           {collapseBtn}
         </Box>
       );
+    case "messages":
+      return <Box className="flex items-center gap-2">{collapseBtn}</Box>;
     case "chat":
       return (
         <Box className="flex items-center gap-2">

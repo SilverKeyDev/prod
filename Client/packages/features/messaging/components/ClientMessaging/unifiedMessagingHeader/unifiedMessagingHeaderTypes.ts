@@ -6,4 +6,6 @@ export type HeaderMode =
   /** Agent inbox: no client selected — same chrome as buyer empty state, but client-search actions. */
   | "no-client"
   | "clients"
-  | "agents";
+  | "agents"
+  /** Brokerage / workspace flat inbox sidebar title. */
+  | "messages";

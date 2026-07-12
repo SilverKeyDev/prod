@@ -50,7 +50,7 @@ export function LandingSectionShell({
       className={`relative overflow-hidden ${TONE_CLASS[resolvedTone]} ${LANDING_NAV_SCROLL_MARGIN_CLASS} ${className}`}
     >
       {resolvedDividerBefore ? (
-        <Box className="relative z-20">
+        <Box className="z-header relative">
           <LandingSectionDivider />
         </Box>
       ) : null}
@@ -59,7 +59,7 @@ export function LandingSectionShell({
           <RippleBackground overlay />
         </Box>
       ) : null}
-      <Box className={`relative z-10 ${fullBleed ? "" : contentClassName}`}>{children}</Box>
+      <Box className={`z-header relative ${fullBleed ? "" : contentClassName}`}>{children}</Box>
     </Tag>
   );
 }

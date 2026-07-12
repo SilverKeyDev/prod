@@ -19,7 +19,7 @@ export function LandingNav() {
     <header
       className={`safe-top border-border z-header bg-background-base/95 fixed left-0 right-0 top-0 border-b backdrop-blur-md ${LANDING_NAV_SCROLL_MARGIN_CLASS}`}
     >
-      <Box className="px-responsive-sm mx-auto flex h-[58px] max-w-[1100px] items-center justify-between gap-3">
+      <Box className="px-responsive-sm mx-auto flex h-14 max-w-6xl items-center justify-between gap-3">
         <Link to="/" className="flex shrink-0 touch-manipulation items-center gap-2">
           <Image src={MINI_LOGO} alt={nav.landmarkLabel} className="h-9 w-9 object-contain" />
           <Title as="span" size="sm" className="!text-brand-primary !font-serif font-bold">

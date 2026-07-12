@@ -8,6 +8,7 @@ import BodyText from "@ui/text/BodyText";
 import { Box, Row } from "packages/ui/components/structure/primitives";
 
 import type { DropdownOption } from "./Dropdown.types";
+import { DROPDOWN_TRIGGER_INNER_FOCUS_RESET } from "./dropdownStyles";
 
 export type DropdownTriggerProps<T> = {
   menuListId: string;
@@ -70,7 +71,7 @@ export function DropdownTrigger<T>({
         aria-expanded={isOpen}
         aria-controls={isOpen ? menuListId : undefined}
         aria-haspopup="listbox"
-        className="h-auto min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 shadow-none outline-none hover:bg-transparent focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        className={`h-auto min-h-0 min-w-0 flex-1 border-0 bg-transparent p-0 shadow-none hover:bg-transparent ${DROPDOWN_TRIGGER_INNER_FOCUS_RESET}`}
       >
         <Box className="flex min-w-0 flex-1 items-center gap-2">
           {selectedOption?.icon ? (
@@ -97,7 +98,7 @@ export function DropdownTrigger<T>({
           icon={<Icon name="x" className="h-4 w-4" />}
           label={t("form.clear_aria")}
           disabled={disabled}
-          className="shrink-0 cursor-pointer rounded p-1 transition-colors hover:bg-gray-100"
+          className={`shrink-0 cursor-pointer rounded p-1 transition-colors hover:bg-gray-100 ${DROPDOWN_TRIGGER_INNER_FOCUS_RESET}`}
           tabIndex={-1}
         />
       ) : null}

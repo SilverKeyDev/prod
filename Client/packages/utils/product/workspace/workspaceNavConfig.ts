@@ -2,7 +2,14 @@ import type { Workspace } from "./deriveAllowedWorkspaces";
 import { isPlaceholderWorkspace } from "./isPlaceholderWorkspace";
 
 /** Matches `SidebarTabKey` in apps/web sidebar — kept in packages to avoid app imports. */
-export type WorkspaceNavTabKey = "dashboard" | "search" | "decide" | "agent" | "profile";
+export type WorkspaceNavTabKey =
+  | "dashboard"
+  | "search"
+  | "inventory"
+  | "campaigns"
+  | "decide"
+  | "agent"
+  | "profile";
 
 export type WorkspaceNavTabConfig = {
   key: WorkspaceNavTabKey;
@@ -11,7 +18,15 @@ export type WorkspaceNavTabConfig = {
   visible: boolean;
 };
 
-const TAB_ORDER: WorkspaceNavTabKey[] = ["dashboard", "search", "decide", "agent", "profile"];
+const TAB_ORDER: WorkspaceNavTabKey[] = [
+  "dashboard",
+  "search",
+  "inventory",
+  "campaigns",
+  "decide",
+  "agent",
+  "profile",
+];
 
 function labelKeyForTab(workspace: Workspace, key: WorkspaceNavTabKey): string {
   switch (key) {
@@ -22,6 +37,10 @@ function labelKeyForTab(workspace: Workspace, key: WorkspaceNavTabKey): string {
       return `workspace.nav.dashboard.${workspace}`;
     case "search":
       return "workspace.nav.search";
+    case "inventory":
+      return "workspace.nav.inventory";
+    case "campaigns":
+      return "workspace.nav.campaigns";
     case "decide":
       return workspace === "agent" ? "workspace.nav.library.agent" : "workspace.nav.library.buyer";
     case "agent":
@@ -40,6 +59,14 @@ function isTabVisible(workspace: Workspace, key: WorkspaceNavTabKey, _isMobile: 
   if (isPlaceholderWorkspace(workspace)) {
     return key === "dashboard" || key === "agent";
   }
+  // Inventory lives in dashboard Market tab — never a top-level nav item
+  if (key === "inventory") return false;
+  if (workspace === "brokerage") {
+    if (key === "search") return false;
+    return true;
+  }
+  // Non-brokerage: hide campaigns
+  if (key === "campaigns") return false;
   return true;
 }
 
