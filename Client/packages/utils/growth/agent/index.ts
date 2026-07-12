@@ -20,6 +20,14 @@ export {
   PENDING_PUBLIC_AGENT_CONNECT_KEY,
   setPendingPublicAgentConnect,
 } from "./pendingPublicAgentConnect";
+export type { PendingPublicSearch } from "./pendingPublicSearch";
+export {
+  clearPendingPublicSearch,
+  hasPendingPublicSearch,
+  PENDING_PUBLIC_SEARCH_KEY,
+  setPendingPublicSearch,
+  takePendingPublicSearch,
+} from "./pendingPublicSearch";
 export { getAgentPublicProfileAbsoluteUrl } from "./publicUrl";
 export {
   buildAgentProfileUrl,

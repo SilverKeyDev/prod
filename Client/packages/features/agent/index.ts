@@ -19,6 +19,7 @@ export {
 } from "./components/messaging/screen/messagingConfig";
 export * from "./components/modals";
 export { PublicAgentProfileConnect } from "./components/PublicAgentProfileConnect";
+export { PublicAgentSearchGate } from "./components/PublicAgentSearchGate";
 export { default as AgentDashboard } from "./components/workspace/AgentDashboard";
 export { useEventRequests } from "./hooks/data/calendar/useEventRequests";
 export { useAgentClients } from "./hooks/data/clients/useAgentClients";
