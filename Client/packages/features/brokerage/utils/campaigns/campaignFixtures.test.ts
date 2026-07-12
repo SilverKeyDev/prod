@@ -35,14 +35,18 @@ describe("campaignFixtures category parity", () => {
     }
   });
 
-  it("campaign-only categories have no dashboard_service mapping", () => {
+  it("campaign-only categories have demo fees without dashboard_service", () => {
     const campaignOnly = CAMPAIGN_CATEGORIES_FIXTURE.filter((c) => !c.dashboard_service);
     expect(campaignOnly.map((c) => c.id).sort()).toEqual(
       ["homeowners_insurance", "move_concierge"].sort()
     );
-    for (const category of campaignOnly) {
-      expect(category.baseline_attach_rate_percent).toBeNull();
-      expect(category.fee_assumption).toBeNull();
-    }
+    const homeowners = campaignOnly.find((c) => c.id === "homeowners_insurance")!;
+    const move = campaignOnly.find((c) => c.id === "move_concierge")!;
+    expect(homeowners.baseline_attach_rate_percent).toBe(41);
+    expect(homeowners.post_attach_rate_percent).toBe(47);
+    expect(homeowners.fee_assumption).toBe(200);
+    expect(move.baseline_attach_rate_percent).toBe(35);
+    expect(move.post_attach_rate_percent).toBe(44);
+    expect(move.fee_assumption).toBe(75);
   });
 });

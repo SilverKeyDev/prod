@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import {
   cleanupMapPropertyCard,
@@ -13,56 +13,63 @@ import { getWindow } from "packages/utils/core/platform";
 
 type Props = {
   results: SearchResult[];
-  currentPage: number;
-  onSelectListing: (id: string) => void;
-  onPageChange: (page: number) => void;
+  /** Remount key when pin color mode changes. */
+  colorMode?: string;
 };
 
+/** Stable noops — inventory map never shows save hearts or listing cards. */
 const noopSave = async () => {};
 const neverSaved = () => false;
+const noopRemove = async () => {};
+const noopSetIsochrone = () => {};
+const noopFetchIsochrone = async () => null;
+const noopMarkerClick = () => {};
 const calculatePropertyScore = (property: SearchResult) =>
   typeof property._score === "number" ? property._score : 0;
 
+function triggerMapResize(map: google.maps.Map, win: Window & { google?: typeof google }) {
+  const maps = win.google?.maps;
+  if (!maps?.event) return;
+  maps.event.trigger(map, "resize");
+}
+
 /**
- * Portfolio map using Search useMapMarkers + MapPropertyCard home cards.
+ * Portfolio map — pins only (no floating home cards / hearts).
  */
-export function InventoryMapPanel({ results, currentPage, onSelectListing, onPageChange }: Props) {
+export function InventoryMapPanel({ results, colorMode = "price_tier" }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
+  const fittedResultsKeyRef = useRef<string | null>(null);
   const { isLoaded, createMap, error } = useGoogleMaps();
-
-  const handleMarkerClick = useCallback(
-    (property: SearchResult) => {
-      onSelectListing(property.id);
-      const index = results.findIndex((r) => r.id === property.id);
-      onPageChange(index >= 0 ? index : 0);
-    },
-    [onSelectListing, onPageChange, results]
-  );
 
   const { updateMapMarkers, clearMapMarkers } = useMapMarkers({
     activeTab: "saved",
     googleMapRef,
-    currentPage,
+    currentPage: 0,
     propertiesPerPage: 1,
     isochroneData: null,
-    setIsochroneData: () => {},
-    fetchIsochroneForMapOnly: async () => null,
+    setIsochroneData: noopSetIsochrone,
+    fetchIsochroneForMapOnly: noopFetchIsochrone,
     calculatePropertyScore,
     isHomeSaved: neverSaved,
     saveHome: noopSave,
-    removeSavedHome: async () => {},
-    onMarkerClick: handleMarkerClick,
-    onMapPreviewNavigate: handleMarkerClick,
-    contextKey: "inventory-market",
+    removeSavedHome: noopRemove,
+    onMarkerClick: noopMarkerClick,
+    onMapPreviewNavigate: noopMarkerClick,
+    contextKey: `inventory-market-${colorMode}`,
     renderMapPropertyCard,
     cleanupMapPropertyCard,
-    mapListingPreviewsEnabled: true,
+    mapListingPreviewsEnabled: false,
   });
 
+  const updateMapMarkersRef = useRef(updateMapMarkers);
+  updateMapMarkersRef.current = updateMapMarkers;
+  const clearMapMarkersRef = useRef(clearMapMarkers);
+  clearMapMarkersRef.current = clearMapMarkers;
+
   const resultsKey = useMemo(
-    () => results.map((r) => `${r.id}:${r._score ?? 0}`).join("|"),
-    [results]
+    () => `${colorMode}|${results.map((r) => `${r.id}:${r.lat}:${r.lng}:${r._score}`).join("|")}`,
+    [results, colorMode]
   );
 
   useEffect(() => {
@@ -74,7 +81,11 @@ export function InventoryMapPanel({ results, currentPage, onSelectListing, onPag
       streetViewControl: false,
       fullscreenControl: false,
     }) as google.maps.Map | null;
-    if (map) googleMapRef.current = map;
+    if (map) {
+      googleMapRef.current = map;
+      const win = getWindow() as (Window & { google?: typeof google }) | null;
+      if (win) triggerMapResize(map, win);
+    }
   }, [isLoaded, createMap]);
 
   useEffect(() => {
@@ -83,24 +94,29 @@ export function InventoryMapPanel({ results, currentPage, onSelectListing, onPag
     if (!map || !isLoaded || !win?.google?.maps) return;
 
     if (results.length === 0) {
-      clearMapMarkers();
+      clearMapMarkersRef.current();
+      fittedResultsKeyRef.current = resultsKey;
       return;
     }
 
-    const bounds = new win.google.maps.LatLngBounds();
-    for (const r of results) {
-      bounds.extend({ lat: r.lat, lng: r.lng });
+    if (fittedResultsKeyRef.current !== resultsKey) {
+      const bounds = new win.google.maps.LatLngBounds();
+      for (const r of results) {
+        bounds.extend({ lat: r.lat, lng: r.lng });
+      }
+      map.fitBounds(bounds, 48);
+      fittedResultsKeyRef.current = resultsKey;
+      triggerMapResize(map, win);
     }
-    map.fitBounds(bounds, 48);
 
-    void updateMapMarkers(results);
-  }, [results, resultsKey, currentPage, isLoaded, updateMapMarkers, clearMapMarkers]);
+    void updateMapMarkersRef.current(results);
+  }, [results, resultsKey, isLoaded]);
 
   if (error) {
     return (
-      <Box className="border-border bg-background-surface flex h-full min-h-96 items-center justify-center rounded-xl border">
+      <Box className="border-border bg-background-surface flex h-96 min-h-96 items-center justify-center rounded-xl border">
         <BodyText muted size="sm">
-          Map unavailable — listings still shown in the list.
+          Map unavailable. Check your connection or try again later.
         </BodyText>
       </Box>
     );
@@ -108,7 +124,7 @@ export function InventoryMapPanel({ results, currentPage, onSelectListing, onPag
 
   return (
     <Box
-      className="border-border relative h-72 w-full overflow-hidden rounded-tl-lg border md:h-full md:min-h-96"
+      className="border-border relative h-96 w-full overflow-hidden rounded-xl border"
       data-testid="inventory-map"
     >
       {!isLoaded ? (

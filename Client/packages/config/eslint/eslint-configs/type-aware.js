@@ -70,6 +70,8 @@ export default function getTypeAwareConfig({ silverkey }) {
               "^\\.[/]?[^/]+$",
               // Platform pair PdfModalBridge.web.tsx / PdfModalBridge.native.tsx
               "^packages/features/documents/components/pdf/PdfModalBridge$",
+              // Vite virtual module from apps/web/vite.plugin.wiki.js
+              "^virtual:silverkey-wiki$",
             ],
           },
         ],

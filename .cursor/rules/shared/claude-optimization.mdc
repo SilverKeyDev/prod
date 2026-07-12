@@ -2,14 +2,14 @@
 description: Claude Code usage guidance for context hygiene, file exclusion, MCP scope, and low-noise sessions
 globs:
   - ".claude/**"
-  - "documentation/client/tooling/**"
+  - "documentation/reference/**"
   - "CLAUDE.md"
 alwaysApply: false
 ---
 
 # Claude Code optimization
 
-Keep this as a short operations guide. Put long tutorials in `documentation/client/tooling/`.
+Keep this as a short operations guide. Put long tutorials in `documentation/reference/`.
 
 ## Session context hygiene
 
@@ -41,6 +41,6 @@ Claude Code does **not** use `.cloudignore` or `.claudeignore`. SilverKey uses:
 
 ## References
 
-- Full guide: [claude-code-configuration.md](../../../documentation/client/tooling/claude-code-configuration.md)
+- Full guide: [claude-code-configuration.md](../../../documentation/guides/tooling/claude-code-configuration.md)
 - Entrypoint: [CLAUDE.md](../../../CLAUDE.md)
 - Adapter map: [.claude/README.md](../../../.claude/README.md)

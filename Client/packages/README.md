@@ -36,7 +36,7 @@ Global styles: **`packages/ui/styles/`** (wired from `apps/web`).
 
 - **Canonical paths:** `packages/...` from anywhere under `Client/`.
 - **`@/...`:** Only under **`apps/web/`**.
-- **API barrel:** `packages/api` — [shared-packages.md](../../documentation/client/architecture/shared-packages.md#api-client-import-path-canonical).
+- **API barrel:** `packages/api` — [shared-packages.md](../../documentation/architecture/shared-packages.md#api-client-import-path-canonical).
 
 ## Package index
 
@@ -49,7 +49,7 @@ Global styles: **`packages/ui/styles/`** (wired from `apps/web`).
 | `schemas/` / `types/` | Shared types; OpenAPI-generated in `types/` |
 | `contexts/` | Providers (theme, i18n, …) |
 | `features/` | Feature modules — see [features/README.md](./features/README.md) |
-| `ui/` | Cross-platform UI — [LINTING.md](../../documentation/client/standards/LINTING.md) |
+| `ui/` | Cross-platform UI — [LINTING.md](../../documentation/reference/linting.md) |
 
 ## Patterns
 
@@ -60,8 +60,8 @@ Global styles: **`packages/ui/styles/`** (wired from `apps/web`).
 ## Further reading
 
 - [Client/ARCHITECTURE.md](../ARCHITECTURE.md)
-- [documentation/client/README.md](../../documentation/client/README.md)
-- [shared-packages.md](../../documentation/client/architecture/shared-packages.md)
-- [layered-architecture-imports.md](../../documentation/client/architecture/layered-architecture-imports.md)
+- [documentation/README.md](../../documentation/README.md)
+- [shared-packages.md](../../documentation/architecture/shared-packages.md)
+- [layered-architecture-imports.md](../../documentation/architecture/layered-architecture-imports.md)
 - [frontend-architecture.mdc](../../.cursor/rules/frontend/frontend-architecture.mdc)
 - [AGENTS.md](../../AGENTS.md)

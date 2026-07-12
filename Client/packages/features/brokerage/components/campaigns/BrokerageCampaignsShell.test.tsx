@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -84,10 +85,15 @@ vi.mock("packages/ui", async () => {
 import { BrokerageCampaignsShell } from "./BrokerageCampaignsShell";
 
 function renderShell() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <LocalizationProvider>
-      <BrokerageCampaignsShell />
-    </LocalizationProvider>
+    <QueryClientProvider client={queryClient}>
+      <LocalizationProvider>
+        <BrokerageCampaignsShell />
+      </LocalizationProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -111,11 +117,35 @@ describe("BrokerageCampaignsShell", () => {
     expect(screen.getAllByTestId("analytics-line-chart").length).toBeGreaterThanOrEqual(5);
   });
 
+  it("renders projected recovery summary as sum of all five campaigns", async () => {
+    renderShell();
+    expect(await screen.findByTestId("campaign-revenue-projection-summary")).toBeTruthy();
+    expect(screen.getByText("Projected recovery")).toBeTruthy();
+    expect(screen.getByText("Sum of campaigns")).toBeTruthy();
+    expect(screen.getByTestId("campaign-revenue-projection-total")).toBeTruthy();
+    expect(screen.getByTestId("campaign-revenue-projection-breakdown")).toBeTruthy();
+    expect(screen.getByTestId("campaign-revenue-projection-year-series")).toBeTruthy();
+    expect(screen.getByTestId("campaign-revenue-projection-row-title_insurance")).toBeTruthy();
+    expect(screen.getByTestId("campaign-revenue-projection-row-mortgage")).toBeTruthy();
+    expect(screen.getByTestId("campaign-revenue-projection-row-homeowners_insurance")).toBeTruthy();
+    expect(screen.getByTestId("campaign-revenue-projection-row-home_warranty")).toBeTruthy();
+    expect(screen.getByTestId("campaign-revenue-projection-row-move_concierge")).toBeTruthy();
+
+    expect(screen.getByTestId("campaign-category-year-projection-title_insurance")).toBeTruthy();
+    expect(
+      screen.getByTestId("campaign-category-year-projection-homeowners_insurance")
+    ).toBeTruthy();
+    expect(screen.getByTestId("campaign-category-year-projection-move_concierge")).toBeTruthy();
+    expect(screen.getAllByText("Winner").length).toBeGreaterThanOrEqual(1);
+  });
+
   it("adds a new variant from the create modal", async () => {
     renderShell();
     expect(await screen.findByTestId("brokerage-campaigns-shell")).toBeTruthy();
 
-    const newVariantButtons = screen.getAllByRole("button", { name: "New variant" });
+    const newVariantButtons = screen.getAllByRole("button", {
+      name: "New variant",
+    });
     fireEvent.click(newVariantButtons[0]!);
 
     expect(screen.getByTestId("create-campaign-variant-form")).toBeTruthy();

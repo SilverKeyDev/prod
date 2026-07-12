@@ -12,6 +12,7 @@ import AdminLoggingOutlet from "@/pages/workspace/admin/AdminLoggingOutlet";
 import AdminPartnersOutlet from "@/pages/workspace/admin/AdminPartnersOutlet";
 import AdminSuperadminOutlet from "@/pages/workspace/admin/AdminSuperadminOutlet";
 import AdminSupportMessagingOutlet from "@/pages/workspace/admin/AdminSupportMessagingOutlet";
+import AdminWikiOutlet from "@/pages/workspace/admin/AdminWikiOutlet";
 import AdminPage from "@/pages/workspace/AdminPage";
 
 import { createProtectedRoute } from "./RouteConfig";
@@ -46,6 +47,7 @@ function useStableNonDashboardRoutes(): ReactElement[] {
         <Route path="platform-health" element={<Navigate to="/admin/logging" replace />} />
         <Route path="notifications" element={<Navigate to="/admin/logging" replace />} />
         <Route path="logging" element={<AdminLoggingOutlet />} />
+        <Route path="wiki/*" element={<AdminWikiOutlet />} />
         <Route path="integrations" element={<AdminIntegrationsOutlet />} />
         <Route path="partners" element={<AdminPartnersOutlet />} />
         <Route path="support-messaging" element={<AdminSupportMessagingOutlet />} />

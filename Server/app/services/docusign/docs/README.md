@@ -1,6 +1,6 @@
 # DocuSign Integration (server)
 
-**Product doc:** [documentation/client/features/docusign-integration.md](../../../../documentation/client/features/docusign-integration.md). This folder is API/ops reference for the Flask DocuSign service.
+**Product doc:** [documentation/features/transaction-management/docusign-integration.md](../../../../documentation/features/transaction-management/docusign-integration.md). This folder is API/ops reference for the Flask DocuSign service.
 
 ## Architecture Overview
 

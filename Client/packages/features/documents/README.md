@@ -1,6 +1,6 @@
 # Documents feature package
 
-DocuSign e-signature integration for real estate agreements. **Canonical product doc:** [documentation/client/features/docusign-integration.md](../../../../documentation/client/features/docusign-integration.md). **Server API/ops:** [Server/app/services/docusign/docs/README.md](../../../../Server/app/services/docusign/docs/README.md).
+DocuSign e-signature integration for real estate agreements. **Canonical product doc:** [documentation/features/transaction-management/docusign-integration.md](../../../../documentation/features/transaction-management/docusign-integration.md). **Server API/ops:** [Server/app/services/docusign/docs/README.md](../../../../Server/app/services/docusign/docs/README.md).
 
 ## Layout
 
@@ -35,5 +35,5 @@ import { EmbeddedSigning } from "packages/features/documents";
 
 ## Related
 
-- [DocuSign integration doc](../../../../documentation/client/features/docusign-integration.md)
-- [Transactions: documents + S3](../../../../documentation/transactions/integrations/09-documents-docusign-and-s3.md)
+- [DocuSign integration doc](../../../../documentation/features/transaction-management/docusign-integration.md)
+- [Transactions: documents + S3](../../../../REMOVED — see documentation/features/integrations/09-documents-docusign-and-s3.md)

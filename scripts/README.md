@@ -4,7 +4,7 @@ Implementation scripts for the SilverKey monorepo. The **Makefile** (repo root) 
 
 For the full inventory, caller map, naming conventions, and add-a-script guide see:
 
-> **[documentation/server/ops/scripts-guide.md](../documentation/server/ops/scripts-guide.md)**
+> **[documentation/runbooks/scripts-guide.md](../documentation/runbooks/scripts-guide.md)**
 
 ## Subdirectory map
 

@@ -157,9 +157,9 @@ export const CAMPAIGN_CATEGORIES_FIXTURE: CategoryCampaign[] = [
   {
     id: "homeowners_insurance",
     label: "Homeowners Insurance",
-    baseline_attach_rate_percent: null,
-    post_attach_rate_percent: null,
-    fee_assumption: null,
+    baseline_attach_rate_percent: 41,
+    post_attach_rate_percent: 47,
+    fee_assumption: 200,
     emails: [
       {
         id: "hoi-email-a",
@@ -224,9 +224,9 @@ export const CAMPAIGN_CATEGORIES_FIXTURE: CategoryCampaign[] = [
   {
     id: "move_concierge",
     label: "MoveConcierge",
-    baseline_attach_rate_percent: null,
-    post_attach_rate_percent: null,
-    fee_assumption: null,
+    baseline_attach_rate_percent: 35,
+    post_attach_rate_percent: 44,
+    fee_assumption: 75,
     emails: [
       {
         id: "mc-email-a",

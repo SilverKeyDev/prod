@@ -4,7 +4,7 @@
 
 ## Do
 
-1. New prose → `documentation/client/` or `documentation/server/` (not repo-root `docs/` expansion).
+1. New prose → `documentation/` or `documentation/` (not repo-root `docs/` expansion).
 2. Update folder README index rows when adding guides.
 3. Prefer links over copy-paste from `AGENTS.md`.
 

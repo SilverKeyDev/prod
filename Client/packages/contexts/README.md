@@ -47,5 +47,5 @@ import { ThemeContext } from "packages/contexts/ThemeContext";
 ## Further Reading
 
 - [packages/README.md](../README.md)
-- [documentation/client/architecture/shared-packages.md](../../../documentation/client/architecture/shared-packages.md)
+- [documentation/architecture/shared-packages.md](../../../documentation/architecture/shared-packages.md)
 - [store/README.md](../store/README.md)

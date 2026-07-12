@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { InventoryListing } from "packages/features/brokerage/utils/inventory/inventoryFixtures";
-import { getPlaceholderImage } from "packages/utils/product/media/placeholderAssets";
+import type { InventoryListing } from "packages/features/brokerage/types/inventory";
 
+import { getInventoryHouseImage } from "./inventoryHouseImages";
 import {
   INVENTORY_PLACEHOLDER_LOT_SIZE,
   INVENTORY_PLACEHOLDER_SQFT,
@@ -23,7 +23,7 @@ const sample: InventoryListing = {
 };
 
 describe("inventoryListingToSearchResult", () => {
-  it("maps inventory fields onto SearchResult for shared cards/markers", () => {
+  it("maps inventory fields onto SearchResult for shared markers", () => {
     const result = inventoryListingToSearchResult(sample);
     expect(result.id).toBe("inv-1");
     expect(result.address).toContain("Peachtree");
@@ -33,22 +33,32 @@ describe("inventoryListingToSearchResult", () => {
     expect(result._score).toBe(90);
     expect(result.lat).toBe(33.759);
     expect(result.lng).toBe(-84.388);
-    expect(result.imageUrl).toBe(getPlaceholderImage(0));
-    expect(result.images).toEqual([getPlaceholderImage(0)]);
+    expect(result.imageUrl).toBe(getInventoryHouseImage(0));
+    expect(result.images).toEqual([getInventoryHouseImage(0)]);
     expect(result.sqft).toBe(INVENTORY_PLACEHOLDER_SQFT);
     expect(result.lotSize).toBe(INVENTORY_PLACEHOLDER_LOT_SIZE);
   });
 
-  it("assigns a distinct filler image per listing index", () => {
+  it("colors pins by price tier when colorMode is price_tier", () => {
+    expect(inventoryListingToSearchResult(sample, 0, "price_tier")._score).toBe(60);
+    expect(
+      inventoryListingToSearchResult({ ...sample, price: 1_200_000 }, 0, "price_tier")._score
+    ).toBe(90);
+  });
+
+  it("assigns a distinct house photo per listing index", () => {
     const results = inventoryListingsToSearchResults([
       sample,
       { ...sample, id: "inv-2", address: "88 Midtown Ave" },
       { ...sample, id: "inv-3", address: "450 Buckhead Pl" },
     ]);
-    expect(results[0].imageUrl).toBe(getPlaceholderImage(0));
-    expect(results[1].imageUrl).toBe(getPlaceholderImage(1));
-    expect(results[2].imageUrl).toBe(getPlaceholderImage(2));
+    expect(results[0].imageUrl).toBe(getInventoryHouseImage(0));
+    expect(results[1].imageUrl).toBe(getInventoryHouseImage(1));
+    expect(results[2].imageUrl).toBe(getInventoryHouseImage(2));
     expect(new Set(results.map((r) => r.imageUrl)).size).toBe(3);
+    for (const r of results) {
+      expect(r.imageUrl).toMatch(/^https:\/\/images\.unsplash\.com\//);
+    }
   });
 
   it("maps pending and sold statuses and null price", () => {

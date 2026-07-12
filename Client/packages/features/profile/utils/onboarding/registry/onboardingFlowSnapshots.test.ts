@@ -86,15 +86,18 @@ describe("onboarding flow snapshots (buyer and agent parity)", () => {
     expect(stepSnapshot(getOnboardingStepsMobile({ isAgent: true }))).toEqual(AGENT_SNAPSHOT);
   });
 
-  const SHELL_FLOW_SNAPSHOT = [
+  const SELLER_SNAPSHOT = [
     { id: "onboarding_role", title: "Who I am" },
-    { id: "seller_shell_setup", title: "Seller setup" },
+    { id: "seller_property", title: "Property" },
+    { id: "seller_address", title: "Address" },
+    { id: "seller_timeline", title: "Timeline" },
+    { id: "seller_motivation", title: "Motivation" },
+    { id: "seller_pricing", title: "Pricing" },
+    { id: "seller_demographics", title: "About" },
   ];
 
-  it("seller web — shell onboarding snapshot", () => {
-    expect(stepSnapshot(getOnboardingSteps({ primaryRole: "seller" }))).toEqual(
-      SHELL_FLOW_SNAPSHOT
-    );
+  it("seller web — full onboarding snapshot", () => {
+    expect(stepSnapshot(getOnboardingSteps({ primaryRole: "seller" }))).toEqual(SELLER_SNAPSHOT);
   });
 
   it("renter web — full onboarding snapshot", () => {

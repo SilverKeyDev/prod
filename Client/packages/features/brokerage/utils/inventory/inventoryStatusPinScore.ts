@@ -1,4 +1,4 @@
-import type { InventoryListing } from "packages/features/brokerage/utils/inventory/inventoryFixtures";
+import type { InventoryListing } from "packages/features/brokerage/types/inventory";
 
 /**
  * Map inventory listing status onto match-score pin tiers used by createScorePinElement.

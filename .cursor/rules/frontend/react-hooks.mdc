@@ -11,7 +11,7 @@ alwaysApply: false
 
 Avoid **unstable dependencies**, **derived state in `useEffect`**, and **`setState` without a dependency array**. Most loop bugs come from object/array literals in dependency arrays, Zustand selectors returning new objects each render, or syncing state that should be `useMemo`.
 
-**Full patterns, guardrails, and debugging:** [documentation/client/patterns/react-hooks-patterns.md](../../../documentation/client/patterns/react-hooks-patterns.md)
+**Full patterns, guardrails, and debugging:** [documentation/architecture/patterns/react-hooks-patterns.md](../../../documentation/architecture/patterns/react-hooks-patterns.md)
 
 ## Example — unstable callback in config object (useSessionTimeout)
 
@@ -66,4 +66,4 @@ const normalized = useMemo(() => normalize(data ?? []), [data]);
 2. Dependency arrays: primitives, or stable references via `useMemo` / `useCallback`; use `shallow` for Zustand object selectors.
 3. Do not call `refetch()` in an effect to drive queries — use a stable `queryKey` and `enabled`.
 
-See [react-hooks-patterns.md](../../../documentation/client/patterns/react-hooks-patterns.md) for the full checklist.
+See [react-hooks-patterns.md](../../../documentation/architecture/patterns/react-hooks-patterns.md) for the full checklist.

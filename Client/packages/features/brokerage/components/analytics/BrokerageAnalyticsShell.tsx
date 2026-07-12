@@ -33,33 +33,31 @@ export function BrokerageAnalyticsShell() {
           />
         </Box>
 
-        {activeTab !== "market" ? (
-          <Box className="flex shrink-0 items-center gap-2 pb-2">
-            {TIME_PERIOD_OPTIONS.map((opt) => (
-              <Button
-                key={opt.value}
-                type="button"
-                size="sm"
-                variant={timePeriod === opt.value ? "primary" : "ghost"}
-                onPress={() => setTimePeriod(opt.value)}
-                className={
-                  timePeriod === opt.value
-                    ? "rounded-lg"
-                    : "rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }
-              >
-                {opt.label}
-              </Button>
-            ))}
-          </Box>
-        ) : null}
+        <Box className="flex shrink-0 items-center gap-2 pb-2">
+          {TIME_PERIOD_OPTIONS.map((opt) => (
+            <Button
+              key={opt.value}
+              type="button"
+              size="sm"
+              variant={timePeriod === opt.value ? "primary" : "ghost"}
+              onPress={() => setTimePeriod(opt.value)}
+              className={
+                timePeriod === opt.value
+                  ? "rounded-lg"
+                  : "rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }
+            >
+              {opt.label}
+            </Button>
+          ))}
+        </Box>
       </Box>
 
       {activeTab === "overview" && <AnalyticsOverviewTab timePeriod={timePeriod} />}
       {activeTab === "agents" && <AnalyticsAgentsTab timePeriod={timePeriod} />}
       {activeTab === "leakage" && <AnalyticsLeakageTab timePeriod={timePeriod} />}
       {activeTab === "forensics" && <AnalyticsForensicsTab timePeriod={timePeriod} />}
-      {activeTab === "market" && <AnalyticsMarketTab />}
+      {activeTab === "market" && <AnalyticsMarketTab timePeriod={timePeriod} />}
     </Box>
   );
 }
