@@ -8,8 +8,10 @@ vi.mock("packages/services/http", () => ({
 
 import {
   buildAnalyticsQueryUrl,
+  buildInventoryQueryUrl,
   fetchAncillaryAnalytics,
   fetchBrokerageAnalyticsOverview,
+  fetchBrokerageInventory,
   fetchDealFailureForensics,
 } from "./analytics";
 
@@ -45,5 +47,22 @@ describe("brokerage analytics API client", () => {
     expect(apiGet.mock.calls[0]?.[0]).toContain("/ancillary?");
     expect(apiGet.mock.calls[1]?.[0]).toContain("timeline=5years");
     expect(apiGet.mock.calls[1]?.[0]).toContain("/deal-failure?");
+  });
+
+  it("builds inventory URLs with optional status", () => {
+    const all = buildInventoryQueryUrl({ brokerageOrgId: "org-inv" });
+    expect(all).toContain("/api/v1/brokerage/analytics/inventory?");
+    expect(all).toContain("brokerage_org_id=org-inv");
+    expect(all).not.toContain("status=");
+
+    const active = buildInventoryQueryUrl({ brokerageOrgId: "org-inv", status: "active" });
+    expect(active).toContain("status=active");
+  });
+
+  it("fetches inventory by brokerage org id", async () => {
+    await fetchBrokerageInventory({ brokerageOrgId: "org-map", status: "pending" });
+    expect(apiGet).toHaveBeenCalledWith(expect.stringMatching(/\/inventory\?/));
+    expect(apiGet).toHaveBeenCalledWith(expect.stringMatching(/brokerage_org_id=org-map/));
+    expect(apiGet).toHaveBeenCalledWith(expect.stringMatching(/status=pending/));
   });
 });

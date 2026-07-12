@@ -4,16 +4,14 @@ import BodyText from "packages/ui/components/structure/text/BodyText";
 
 type Props = {
   results: SearchResult[];
-  currentPage: number;
-  onSelectListing: (id: string) => void;
-  onPageChange: (page: number) => void;
+  colorMode?: string;
 };
 
 /** Native / default: map pins as text until a native map panel ships. */
 export function InventoryMapPanel({ results }: Props) {
   return (
     <Box
-      className="border-border bg-background-surface flex h-72 flex-col justify-center gap-2 rounded-xl border p-4 md:min-h-96"
+      className="border-border bg-background-surface flex h-96 flex-col justify-center gap-2 rounded-xl border p-4"
       data-testid="inventory-map"
     >
       <BodyText size="sm" muted>

@@ -33,7 +33,9 @@ vi.mock("packages/features/brokerage/components/analytics/AgentRetentionRiskPane
 }));
 
 vi.mock("packages/features/brokerage/components/inventory/BrokerageInventoryPanel", () => ({
-  BrokerageInventoryPanel: () => <div data-testid="inventory-panel" />,
+  BrokerageInventoryPanel: ({ timePeriod }: { timePeriod?: string }) => (
+    <div data-testid="inventory-panel" data-period={timePeriod} />
+  ),
 }));
 
 import { CLOSINGS_LABEL, TREND_TITLE } from "./analyticsShellConstants";
@@ -94,7 +96,7 @@ describe("BrokerageAnalyticsShell", () => {
 
     await user.click(screen.getByRole("tab", { name: "Market" }));
     expect(screen.getByTestId("inventory-panel")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "7D" })).toBeNull();
+    expect(screen.getByRole("button", { name: "7D" })).toBeTruthy();
   });
 
   it("updates leakage dollars when period changes", async () => {

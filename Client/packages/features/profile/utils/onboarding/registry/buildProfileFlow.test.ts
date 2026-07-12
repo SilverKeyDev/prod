@@ -46,12 +46,20 @@ describe("resolveTemplateId", () => {
 });
 
 describe("buildOnboardingFlowFromOptions", () => {
-  it("seller flow includes shell setup step", () => {
+  it("seller flow includes seller onboarding steps", () => {
     const ids = buildOnboardingFlowFromOptions({
       primaryRole: "seller",
       excludeFinancial: true,
     }).map((s) => s.id);
-    expect(ids).toEqual(["onboarding_role", "seller_shell_setup"]);
+    expect(ids).toEqual([
+      "onboarding_role",
+      "seller_property",
+      "seller_address",
+      "seller_timeline",
+      "seller_motivation",
+      "seller_pricing",
+      "seller_demographics",
+    ]);
   });
 
   it("renter flow includes renter preference steps", () => {

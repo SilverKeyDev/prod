@@ -138,12 +138,6 @@ export const BROKERAGE_AGENT_RETENTION_FIXTURE = {
     { tier: "stable", count: 0, estimated_gci_at_risk: 0 },
     { tier: "over_comp", count: 0, estimated_gci_at_risk: 0 },
   ],
-  market_benchmarks: [
-    { tier: "Under $2M GCI", market_split_percent: 70 },
-    { tier: "$2M–$5M GCI", market_split_percent: 75 },
-    { tier: "$5M–$10M GCI", market_split_percent: 80 },
-    { tier: "Over $10M GCI", market_split_percent: 85 },
-  ],
 };
 
 export type BrokerageAgentRetentionFixture = typeof BROKERAGE_AGENT_RETENTION_FIXTURE;

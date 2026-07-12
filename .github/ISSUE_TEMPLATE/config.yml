@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security reporting
-    url: https://github.com/SilverKeyDev/prod/blob/main/documentation/security/SECURITY.md
+    url: https://github.com/SilverKeyDev/prod/blob/main/documentation/policies/security.md
     about: Report vulnerabilities per our security policy — do not file public issues with secrets.
   - name: Documentation
     url: https://github.com/SilverKeyDev/prod/tree/main/documentation

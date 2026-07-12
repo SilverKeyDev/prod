@@ -1,5 +1,5 @@
 ---
 alwaysApply: false
-paths: .cursor/**, documentation/client/tooling/**, setup.md
+paths: .cursor/**, documentation/reference/**, setup.md
 ---
 @../../.cursor/rules/shared/cursor-optimization.mdc

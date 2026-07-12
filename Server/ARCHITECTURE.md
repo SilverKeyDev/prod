@@ -638,7 +638,7 @@ See: `.cursor/rules/shared/security.mdc`
 
 ### Local Setup
 
-From repo root, prefer `make setup` then `make dev-backend` (Redis + Flask + Celery) or `make dev` (adds Vite web). See [setup.md](../setup.md) and [documentation/server/ops/postgres.md](../documentation/server/ops/postgres.md).
+From repo root, prefer `make setup` then `make dev-backend` (Redis + Flask + Celery) or `make dev` (adds Vite web). See [setup.md](../setup.md) and [documentation/runbooks/postgres.md](../documentation/runbooks/postgres.md).
 
 Manual Server-only setup:
 
@@ -689,7 +689,7 @@ python -m ruff check .
 
 - **Root Architecture:** `/ARCHITECTURE.md`
 - **Client Architecture:** `/Client/ARCHITECTURE.md`
-- **Server docs index:** [documentation/server/README.md](../documentation/server/README.md)
-- **Ops runbooks:** [documentation/server/ops/postgres.md](../documentation/server/ops/postgres.md), [redis-celery.md](../documentation/server/ops/redis-celery.md), [deployment.md](../documentation/server/deployment.md), [scripts-guide.md](../documentation/server/ops/scripts-guide.md)
+- **Server docs index:** [documentation/README.md](../documentation/README.md)
+- **Ops runbooks:** [documentation/runbooks/postgres.md](../documentation/runbooks/postgres.md), [redis-celery.md](../documentation/runbooks/redis-celery.md), [deployment.md](../documentation/guides/deployment.md), [scripts-guide.md](../documentation/runbooks/scripts-guide.md)
 - **Documentation tree:** [documentation/README.md](../documentation/README.md)
 - **Backend Rules:** `.cursor/rules/backend/`

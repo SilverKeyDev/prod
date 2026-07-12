@@ -9,6 +9,7 @@ export {
   AdminSuperadminSections,
   AdminSupportMessagingSection,
   AdminUserSystemRolesSection,
+  AdminWikiSection,
   DevPersonaActiveBanner,
 } from "./components/sections";
 export type { AdminScope, AdminSectionBaseProps } from "./types/adminScope";

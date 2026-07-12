@@ -7,7 +7,7 @@ alwaysApply: false
 
 # Accessibility (WCAG 2.1 AA)
 
-**Canonical reference:** [documentation/client/standards/accessibility-standards.md](../../../documentation/client/standards/accessibility-standards.md).
+**Canonical reference:** [documentation/guides/accessibility-standards.md](../../../documentation/guides/accessibility-standards.md).
 
 ## Must follow
 
@@ -27,4 +27,4 @@ alwaysApply: false
 
 ## After edits
 
-Run `pnpm lint` and relevant a11y tests from `Client/`. See [ACCESSIBILITY_CHECKLIST.md](../../../documentation/client/qa/ACCESSIBILITY_CHECKLIST.md) for manual release checks.
+Run `pnpm lint` and relevant a11y tests from `Client/`. See [accessibility-checklist.md](../../../documentation/runbooks/qa/accessibility-checklist.md) for manual release checks.

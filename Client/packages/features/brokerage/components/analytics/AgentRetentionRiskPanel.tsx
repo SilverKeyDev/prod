@@ -268,24 +268,6 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: TimePerio
           },
         ]}
       />
-
-      <Box className="mt-4">
-        <BodyText size="xs" muted className="mb-3 font-medium uppercase tracking-wide">
-          Market Benchmark Splits by Production Tier
-        </BodyText>
-        <Box className="flex flex-wrap gap-3">
-          {data.market_benchmarks.map((b) => (
-            <Box key={b.tier} className="border-border rounded-lg border px-3 py-2 text-sm">
-              <BodyText as="span" muted>
-                {b.tier}
-              </BodyText>
-              <BodyText as="span" className="ml-2 font-semibold">
-                {b.market_split_percent}/{100 - b.market_split_percent}
-              </BodyText>
-            </Box>
-          ))}
-        </Box>
-      </Box>
     </SectionCard>
   );
 }

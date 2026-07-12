@@ -1,23 +1,13 @@
-export type InventoryListing = {
-  id: string;
-  external_id: string;
-  address: string;
-  status: "active" | "sold" | "pending";
-  price: number | null;
-  lat: number;
-  lng: number;
-  agent_name: string | null;
-  property_type: string | null;
-};
+import type {
+  InventoryListing,
+  InventorySummary,
+} from "packages/features/brokerage/types/inventory";
+
+export type { InventoryListing } from "packages/features/brokerage/types/inventory";
 
 export const INVENTORY_FIXTURE: {
   listings: InventoryListing[];
-  summary: {
-    active_count: number;
-    sold_count: number;
-    total_count: number;
-    median_price: number | null;
-  };
+  summary: InventorySummary;
 } = {
   listings: [
     {
@@ -86,11 +76,33 @@ export const INVENTORY_FIXTURE: {
       agent_name: "Andrew Harris",
       property_type: "Single Family",
     },
+    {
+      id: "inv-7",
+      external_id: "demo-7",
+      address: "1 West Paces Ferry Rd, Atlanta, GA",
+      status: "active",
+      price: 1250000,
+      lat: 33.84,
+      lng: -84.38,
+      agent_name: "Dean Houston",
+      property_type: "Single Family",
+    },
+    {
+      id: "inv-8",
+      external_id: "demo-8",
+      address: "220 Bankhead Hwy, Atlanta, GA",
+      status: "active",
+      price: 245000,
+      lat: 33.77,
+      lng: -84.42,
+      agent_name: "Joe Taylor",
+      property_type: "Condo",
+    },
   ],
   summary: {
-    active_count: 3,
+    active_count: 5,
     sold_count: 2,
-    total_count: 6,
+    total_count: 8,
     median_price: 515000,
   },
 };

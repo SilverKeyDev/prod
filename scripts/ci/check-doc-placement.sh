@@ -13,7 +13,7 @@ echo "check-doc-placement: repo root = $ROOT"
 
 # 1. Repo-root docs/ must not exist
 if [[ -d "$ROOT/docs" ]]; then
-  echo "::error::Repo-root docs/ is forbidden. Move content to documentation/ (e.g. documentation/server/ops/)."
+  echo "::error::Repo-root docs/ is forbidden. Move content to documentation/ (e.g. documentation/runbooks/)."
   errors=$((errors + 1))
 fi
 

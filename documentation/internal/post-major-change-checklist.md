@@ -4,8 +4,8 @@ Use this when shipping **cross-cutting** work (routing shells, workspace/auth mo
 
 ## Documentation (`documentation/`)
 
-- [ ] **New or changed behavior** is described under `documentation/client/` or `documentation/server/` (not repo-root `docs/` for cross-cutting product/architecture prose — see `.cursor/rules/shared/documentation.mdc`).
-- [ ] **Folder README** — If you added a new long-form doc, add a row to the relevant subfolder README (`documentation/client/<area>/README.md`) and `documentation/client/README.md`, or `documentation/server/README.md`.
+- [ ] **New or changed behavior** is described under `documentation/` or `documentation/` (not repo-root `docs/` for cross-cutting product/architecture prose — see `.cursor/rules/shared/documentation.mdc`).
+- [ ] **Folder README** — If you added a new long-form doc, add a row to the relevant subfolder README (`documentation/<area>/README.md`) and `documentation/README.md`, or `documentation/README.md`.
 - [ ] **Links** — Fix broken relative links from READMEs, rules, and other docs.
 - [ ] **Feature copy** — If you added `t("feature.*")` keys, follow `.cursor/skills/feature-translations/SKILL.md` (typed feature translation maps + aggregator).
 
@@ -28,7 +28,7 @@ Use this when shipping **cross-cutting** work (routing shells, workspace/auth mo
 - [ ] **`CLAUDE.md`** — Update when always-on rule includes, stable memory wiring, or Claude entrypoint paths change.
 - [ ] **`.cursor/README.md`** — Update when extension process, always-on rule policy, or rule/skill/agent layout changes.
 - [ ] **`.claude/README.md`** — Update when Claude adapter layout or sync process changes.
-- [ ] **Claude tooling doc** — Update [documentation/client/tooling/claude-code-configuration.md](../client/tooling/claude-code-configuration.md) when Claude-specific setup materially changes.
+- [ ] **Claude tooling doc** — Update [documentation/guides/tooling/claude-code-configuration.md](../guides/tooling/claude-code-configuration.md) when Claude-specific setup materially changes.
 
 ## Inventory
 
@@ -45,6 +45,6 @@ Use this when shipping **cross-cutting** work (routing shells, workspace/auth mo
 
 ## Related docs
 
-- [Workspace-first client architecture](../client/architecture/workspace-first-architecture.md) — example of architecture prose living under `documentation/client/`.
-- [How we document](../HOW_WE_DOCUMENT.md) — canonical tree and README policy.
+- [Workspace-first client architecture](../architecture/workspace-first-architecture.md) — example of architecture prose living under `documentation/`.
+- [How we document](../how-we-document.md) — canonical tree and README policy.
 - [Cursor meta: `.cursor/README.md`](../../.cursor/README.md) — rule vs skill vs agent.

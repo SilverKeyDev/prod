@@ -11,7 +11,7 @@
       "Read(./.mcp.json)",
       "Read(./**/*.pem)",
       "Read(./key.pem)",
-      "Read(./documentation/client/qa/test-accounts.local.json)",
+      "Read(./documentation/runbooks/qa/test-accounts.local.json)",
       "Read(./Client/coverage/**)",
       "Read(./Client/dist/**)",
       "Read(./htmlcov/**)",

@@ -7,6 +7,7 @@ import { defineConfig, loadEnv } from "vite";
 
 import { buildWebViteResolve } from "./vite.config.resolve.js";
 import { seoStaticFilesPlugin } from "./vite.plugin.seo.js";
+import { silverkeyWikiPlugin } from "./vite.plugin.wiki.js";
 import { webManualChunks } from "./vite/build.manualChunks.js";
 import { createProcessShimPlugins } from "./vite/plugin.processShim.js";
 import { createWebStubNativePlugin } from "./vite/plugin.webStubNative.js";
@@ -15,6 +16,7 @@ import { REACT_NATIVE_STUB } from "./vite/reactNativeStub.js";
 var root = path.resolve(__dirname, "../..");
 var packages = path.join(root, "packages");
 var uiComponents = path.join(packages, "ui/components");
+var documentationRoot = path.resolve(root, "../documentation");
 
 export default defineConfig(function (_a) {
   var mode = _a.mode;
@@ -64,6 +66,7 @@ export default defineConfig(function (_a) {
     envPrefix: "EXPO_PUBLIC_",
     plugins: [
       react(),
+      silverkeyWikiPlugin({ docsRoot: documentationRoot }),
       seoStaticFilesPlugin({
         root: root,
         publicSiteUrl: seoPublicSiteUrl,
@@ -103,7 +106,7 @@ export default defineConfig(function (_a) {
       strictPort: true,
       // Allow resolving/serving from Client root so node_modules (zustand, react, etc.) is accessible
       fs: {
-        allow: [root],
+        allow: [root, documentationRoot],
       },
       watch: {
         usePolling: true,

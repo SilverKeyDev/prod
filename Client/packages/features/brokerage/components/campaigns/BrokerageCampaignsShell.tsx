@@ -3,13 +3,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { CampaignCategorySection } from "packages/features/brokerage/components/campaigns/CampaignCategorySection";
+import { CampaignRevenueProjectionSummary } from "packages/features/brokerage/components/campaigns/CampaignRevenueProjectionSummary";
 import { CreateCampaignVariantModal } from "packages/features/brokerage/components/campaigns/CreateCampaignVariantModal";
+import { useAncillaryAnalytics } from "packages/features/brokerage/hooks/useAncillaryAnalytics";
 import {
   type CampaignVariantDraft,
   useCampaignCategories,
 } from "packages/features/brokerage/hooks/useCampaigns";
 import { useCampaignScrollActiveSection } from "packages/features/brokerage/hooks/useCampaignScrollActiveSection";
 import type { CategoryCampaign } from "packages/features/brokerage/utils/campaigns/campaignFixtures";
+import { buildCampaignRevenueProjections } from "packages/features/brokerage/utils/campaigns/campaignRevenueProjections";
 import { scrollToCampaignSection } from "packages/features/brokerage/utils/campaigns/campaignScrollActiveSection";
 import type { NavItem } from "packages/navigation";
 import { BodyText } from "packages/ui";
@@ -29,8 +32,19 @@ const CATEGORY_ICONS: Record<string, "shield" | "key" | "home" | "file" | "build
 export function BrokerageCampaignsShell() {
   const { categories, sectionIds, addVariant, statusMessage, clearStatusMessage } =
     useCampaignCategories();
+  const { data: ancillary } = useAncillaryAnalytics("year");
   const [activeSection, setActiveSection] = useState(sectionIds[0] ?? "");
   const [composerCategory, setComposerCategory] = useState<CategoryCampaign | null>(null);
+
+  const projection = useMemo(
+    () => buildCampaignRevenueProjections(categories, ancillary.total_transactions),
+    [categories, ancillary.total_transactions]
+  );
+
+  const projectionByCategoryId = useMemo(() => {
+    const map = new Map(projection.rows.map((row) => [row.categoryId, row] as const));
+    return map;
+  }, [projection.rows]);
 
   useCampaignScrollActiveSection(sectionIds, setActiveSection);
 
@@ -95,13 +109,19 @@ export function BrokerageCampaignsShell() {
             {statusMessage}
           </BodyText>
         ) : null}
-        {categories.map((category) => (
-          <CampaignCategorySection
-            key={category.id}
-            category={category}
-            onNewVariant={setComposerCategory}
-          />
-        ))}
+        <CampaignRevenueProjectionSummary projection={projection} />
+        {categories.map((category) => {
+          const yearProjection = projectionByCategoryId.get(category.id);
+          if (!yearProjection) return null;
+          return (
+            <CampaignCategorySection
+              key={category.id}
+              category={category}
+              yearProjection={yearProjection}
+              onNewVariant={setComposerCategory}
+            />
+          );
+        })}
       </Box>
       <CreateCampaignVariantModal
         isOpen={composerCategory !== null}
