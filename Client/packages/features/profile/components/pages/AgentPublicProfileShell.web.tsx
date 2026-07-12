@@ -21,20 +21,13 @@ type AgentPublicProfileShellProps = {
  *
  * The Connect flow for non-owner viewers stays in the page hero.
  */
-export function AgentPublicProfileShell({
-  children,
-}: AgentPublicProfileShellProps) {
+export function AgentPublicProfileShell({ children }: AgentPublicProfileShellProps) {
   const { t } = useLocalization();
   const { navigate } = useNavigation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const endActions = isAuthenticated ? (
-    <Button
-      variant="primary"
-      size="sm"
-      iconName="arrow-left"
-      onPress={() => navigate("DASHBOARD")}
-    >
+    <Button variant="primary" size="sm" iconName="arrow-left" onPress={() => navigate("DASHBOARD")}>
       {t("profile.public.back_to_dashboard")}
     </Button>
   ) : undefined;

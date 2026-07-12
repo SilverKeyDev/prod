@@ -4,7 +4,8 @@
  * TODO SIL-272: Swap for real API call once SkySlope sync lands.
  */
 import { useMemo } from "react";
-import { BROKERAGE_DEAL_FAILURE_FIXTURE } from "../fixtures/brokerageAnalyticsFixtures";
+
+import { BROKERAGE_DEAL_FAILURE_FIXTURE } from "../utils/brokerageAnalyticsFixtures";
 import type { TimePeriod } from "./useBrokerageAnalytics";
 
 const TREND_12M = [
@@ -27,7 +28,7 @@ const STAGE_RATIOS = [0.38, 0.27, 0.18, 0.11, 0.06];
 const STAGE_NAMES = ["Inspection", "Financing", "Appraisal", "Title", "Unknown"];
 
 // Lender distribution ratios
-const LENDER_RATIOS = [0.28, 0.24, 0.21, 0.17, 0.10];
+const LENDER_RATIOS = [0.28, 0.24, 0.21, 0.17, 0.1];
 const LENDER_NAMES = ["Commonwealth Bank", "Westpac", "ANZ", "NAB", "Cash / Other"];
 
 // Price band ratios
@@ -43,10 +44,12 @@ function buildFailureData(period: TimePeriod) {
   let trend: { month: string; total: number; cancelled: number }[];
 
   if (period === "week") {
-    total = 500; cancelled = 25;
+    total = 500;
+    cancelled = 25;
     trend = [{ month: "This week", total: 500, cancelled: 25 }];
   } else if (period === "month") {
-    total = 2059; cancelled = 111;
+    total = 2059;
+    cancelled = 111;
     trend = [{ month: "Dec", total: 2059, cancelled: 111 }];
   } else if (period === "year") {
     total = TREND_12M.reduce((s, m) => s + m.total, 0);
@@ -56,10 +59,14 @@ function buildFailureData(period: TimePeriod) {
     // 5years / all — double the year
     total = TREND_12M.reduce((s, m) => s + m.total * 2, 0);
     cancelled = TREND_12M.reduce((s, m) => s + m.cancelled * 2, 0);
-    trend = TREND_12M.map(m => ({ month: m.month, total: m.total * 2, cancelled: m.cancelled * 2 }));
+    trend = TREND_12M.map((m) => ({
+      month: m.month,
+      total: m.total * 2,
+      cancelled: m.cancelled * 2,
+    }));
   }
 
-  const fall_rate = +(cancelled / total * 100).toFixed(1);
+  const fall_rate = +((cancelled / total) * 100).toFixed(1);
 
   // Scale by_stage from cancelled count
   const by_stage = STAGE_NAMES.map((stage, i) => ({
@@ -75,7 +82,7 @@ function buildFailureData(period: TimePeriod) {
       lender_name,
       total_deals,
       cancelled: lender_cancelled,
-      fall_through_rate_percent: +(lender_cancelled / total_deals * 100).toFixed(1),
+      fall_through_rate_percent: +((lender_cancelled / total_deals) * 100).toFixed(1),
     };
   });
 
@@ -87,21 +94,26 @@ function buildFailureData(period: TimePeriod) {
       band,
       total_deals,
       cancelled: band_cancelled,
-      fall_through_rate_percent: +(band_cancelled / total_deals * 100).toFixed(1),
+      fall_through_rate_percent: +((band_cancelled / total_deals) * 100).toFixed(1),
     };
   });
 
   // Scale by_agent total_deals proportionally (keep fall rates real)
   const scale = period === "week" ? 0.05 : period === "month" ? 1 : period === "year" ? 12 : 24;
-  const by_agent = base.by_agent.map(a => ({
+  const by_agent = base.by_agent.map((a) => ({
     ...a,
-    total_deals: Math.round(a.total_deals * scale / 12),
-    cancelled: Math.round(a.cancelled * scale / 12),
+    total_deals: Math.round((a.total_deals * scale) / 12),
+    cancelled: Math.round((a.cancelled * scale) / 12),
   }));
 
   return {
     ...base,
-    summary: { total_transactions: total, total_cancelled: cancelled, fall_through_rate_percent: fall_rate, avg_days_to_cancellation: 22 },
+    summary: {
+      total_transactions: total,
+      total_cancelled: cancelled,
+      fall_through_rate_percent: fall_rate,
+      avg_days_to_cancellation: 22,
+    },
     trend,
     by_stage,
     by_lender,

@@ -3,19 +3,21 @@ import { useMemo, useState } from "react";
 import { color } from "packages/design-tokens";
 import { useBrokerageAnalytics } from "packages/features/brokerage/hooks/useBrokerageAnalytics";
 import { useDealFailureForensics } from "packages/features/brokerage/hooks/useDealFailureForensics";
+import Button from "packages/ui/components/actions/button/Button";
 import { Box } from "packages/ui/components/structure/primitives";
+import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTabs";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTabs";
-import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
-import { TargetedAgentEngagementPanel } from "./TargetedAgentEngagementPanel";
-import { AgentRetentionRiskPanel } from "./AgentRetentionRiskPanel";
+
 import {
-  AnalyticsLineChart,
   AnalyticsBarChart,
   AnalyticsDonutChart,
   AnalyticsHeatMap,
+  AnalyticsLineChart,
 } from "../charts";
+import { AgentRetentionRiskPanel } from "./AgentRetentionRiskPanel";
+import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
+import { TargetedAgentEngagementPanel } from "./TargetedAgentEngagementPanel";
 
 type TimePeriod = "week" | "month" | "year" | "5years" | "all";
 type Tab = "overview" | "agents" | "leakage" | "forensics" | "market";
@@ -153,7 +155,9 @@ export function BrokerageAnalyticsShell() {
   return (
     <Box className="flex flex-col gap-6 p-6">
       <Box>
-        <Title size="md" as="h2">Brokerage Analytics</Title>
+        <Title size="md" as="h2">
+          Brokerage Analytics
+        </Title>
         <BodyText size="sm" muted className="mt-1">
           Real data — 50,122 transactions across 500 agents
         </BodyText>
@@ -169,17 +173,14 @@ export function BrokerageAnalyticsShell() {
 
       <Box className="flex items-center gap-2">
         {TIME_PERIOD_OPTIONS.map((opt) => (
-          <button
+          <Button
             key={opt.value}
             onClick={() => setTimePeriod(opt.value)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-              timePeriod === opt.value
-                ? "bg-gray-900 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
+            variant={timePeriod === opt.value ? "primary" : "secondary"}
+            size="sm"
           >
             {opt.label}
-          </button>
+          </Button>
         ))}
       </Box>
 
@@ -189,8 +190,16 @@ export function BrokerageAnalyticsShell() {
           <Box className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard label="Active Agents" value={overview.activeAgents} />
             <KpiCard label="Open Transactions" value={overview.openTransactions.toLocaleString()} />
-            <KpiCard label="Messaging SLA" value={`${overview.messagingSlaPercent}%`} delta="Response within 24h" />
-            <KpiCard label="At-Risk Agents" value={overview.atRiskCount} delta="Stalled > 14 days" />
+            <KpiCard
+              label="Messaging SLA"
+              value={`${overview.messagingSlaPercent}%`}
+              delta="Response within 24h"
+            />
+            <KpiCard
+              label="At-Risk Agents"
+              value={overview.atRiskCount}
+              delta="Stalled > 14 days"
+            />
             <KpiCard
               label={CLOSINGS_LABEL[timePeriod]}
               value={overview.closingsThisMonth.toLocaleString()}
@@ -205,7 +214,12 @@ export function BrokerageAnalyticsShell() {
 
           <Box className="grid gap-4 lg:grid-cols-2">
             <SectionCard title="Transaction Funnel">
-              <AnalyticsBarChart data={funnelBars} orientation="vertical" color={chartColor1} height={220} />
+              <AnalyticsBarChart
+                data={funnelBars}
+                orientation="vertical"
+                color={chartColor1}
+                height={220}
+              />
             </SectionCard>
             <SectionCard title="Agent Status Breakdown">
               <AnalyticsDonutChart
@@ -263,12 +277,25 @@ export function BrokerageAnalyticsShell() {
                       <td className="py-2 pr-4">{agent.closings}</td>
                       <td className="py-2 pr-4 font-mono text-xs">{agent.stall ?? "—"}</td>
                       <td className="py-2">
-                        <span style={{
-                          color: agent.status === "top" ? successColor : agent.status === "at_risk" ? dangerColor : chartColor1,
-                          fontWeight: 500,
-                        }}>
-                          {agent.status === "top" ? "Top Performer" : agent.status === "at_risk" ? "At Risk" : "Healthy"}
-                        </span>
+                        <BodyText
+                          as="span"
+                          size="sm"
+                          style={{
+                            color:
+                              agent.status === "top"
+                                ? successColor
+                                : agent.status === "at_risk"
+                                  ? dangerColor
+                                  : chartColor1,
+                            fontWeight: 500,
+                          }}
+                        >
+                          {agent.status === "top"
+                            ? "Top Performer"
+                            : agent.status === "at_risk"
+                              ? "At Risk"
+                              : "Healthy"}
+                        </BodyText>
                       </td>
                     </tr>
                   ))}
@@ -285,7 +312,9 @@ export function BrokerageAnalyticsShell() {
       {activeTab === "leakage" && (
         <Box className="flex flex-col gap-6">
           <Box className="border-border bg-background-surface rounded-xl border p-5">
-            <Title size="sm" as="h3" className="mb-1">Ancillary Capture Leakage</Title>
+            <Title size="sm" as="h3" className="mb-1">
+              Ancillary Capture Leakage
+            </Title>
             <BodyText size="xs" muted className="mb-4">
               Revenue leaking to outside title, lending, escrow, and home warranty vendors
             </BodyText>
@@ -312,12 +341,14 @@ export function BrokerageAnalyticsShell() {
       {activeTab === "forensics" && (
         <Box className="flex flex-col gap-6">
           <Box className="border-border bg-background-surface rounded-xl border p-5">
-            <Title size="sm" as="h3" className="mb-1">Deal Failure Forensics</Title>
+            <Title size="sm" as="h3" className="mb-1">
+              Deal Failure Forensics
+            </Title>
             <BodyText size="xs" muted className="mb-4">
               Fall-through rate:{" "}
-              <span className="font-medium" style={{ color: dangerColor }}>
+              <BodyText as="span" size="xs" className="font-medium" style={{ color: dangerColor }}>
                 {failureData.summary.fall_through_rate_percent}%
-              </span>{" "}
+              </BodyText>{" "}
               · {failureData.summary.total_cancelled.toLocaleString()} cancelled of{" "}
               {failureData.summary.total_transactions.toLocaleString()} transactions · avg{" "}
               {failureData.summary.avg_days_to_cancellation} days to cancellation
@@ -325,16 +356,32 @@ export function BrokerageAnalyticsShell() {
 
             <Box className="mb-6 grid gap-4 lg:grid-cols-2">
               <Box>
-                <BodyText size="xs" muted className="mb-2">Cancellations by Month</BodyText>
-                <AnalyticsLineChart data={failureTrendLine} height={200} color={dangerColor} showConfidenceBand={false} />
+                <BodyText size="xs" muted className="mb-2">
+                  Cancellations by Month
+                </BodyText>
+                <AnalyticsLineChart
+                  data={failureTrendLine}
+                  height={200}
+                  color={dangerColor}
+                  showConfidenceBand={false}
+                />
               </Box>
               <Box>
-                <BodyText size="xs" muted className="mb-2">Failure Stage Breakdown</BodyText>
-                <AnalyticsBarChart data={failureStageBars} orientation="vertical" color={dangerColor} height={200} />
+                <BodyText size="xs" muted className="mb-2">
+                  Failure Stage Breakdown
+                </BodyText>
+                <AnalyticsBarChart
+                  data={failureStageBars}
+                  orientation="vertical"
+                  color={dangerColor}
+                  height={200}
+                />
               </Box>
             </Box>
 
-            <BodyText size="xs" muted className="mb-2">Agent Fall-Through Rates</BodyText>
+            <BodyText size="xs" muted className="mb-2">
+              Agent Fall-Through Rates
+            </BodyText>
             <Box className="mb-6 overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -354,9 +401,21 @@ export function BrokerageAnalyticsShell() {
                         <td className="py-2 pr-4">{agent.total_deals.toLocaleString()}</td>
                         <td className="py-2 pr-4">{agent.cancelled}</td>
                         <td className="py-2">
-                          <span style={{ color: agent.fall_through_rate_percent >= 30 ? dangerColor : agent.fall_through_rate_percent >= 15 ? warningColor : successColor, fontWeight: 500 }}>
+                          <BodyText
+                            as="span"
+                            size="sm"
+                            style={{
+                              color:
+                                agent.fall_through_rate_percent >= 30
+                                  ? dangerColor
+                                  : agent.fall_through_rate_percent >= 15
+                                    ? warningColor
+                                    : successColor,
+                              fontWeight: 500,
+                            }}
+                          >
                             {agent.fall_through_rate_percent}%
-                          </span>
+                          </BodyText>
                         </td>
                       </tr>
                     ))}
@@ -364,7 +423,9 @@ export function BrokerageAnalyticsShell() {
               </table>
             </Box>
 
-            <BodyText size="xs" muted className="mb-2">Lender Fall-Through Rates</BodyText>
+            <BodyText size="xs" muted className="mb-2">
+              Lender Fall-Through Rates
+            </BodyText>
             <Box className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -384,9 +445,21 @@ export function BrokerageAnalyticsShell() {
                         <td className="py-2 pr-4">{lender.total_deals.toLocaleString()}</td>
                         <td className="py-2 pr-4">{lender.cancelled}</td>
                         <td className="py-2">
-                          <span style={{ color: lender.fall_through_rate_percent >= 25 ? dangerColor : lender.fall_through_rate_percent >= 15 ? warningColor : successColor, fontWeight: 500 }}>
+                          <BodyText
+                            as="span"
+                            size="sm"
+                            style={{
+                              color:
+                                lender.fall_through_rate_percent >= 25
+                                  ? dangerColor
+                                  : lender.fall_through_rate_percent >= 15
+                                    ? warningColor
+                                    : successColor,
+                              fontWeight: 500,
+                            }}
+                          >
                             {lender.fall_through_rate_percent}%
-                          </span>
+                          </BodyText>
                         </td>
                       </tr>
                     ))}
@@ -394,7 +467,9 @@ export function BrokerageAnalyticsShell() {
               </table>
             </Box>
 
-            <BodyText size="xs" muted className="mb-2 mt-6">Fall-Through Rates by Price Band</BodyText>
+            <BodyText size="xs" muted className="mb-2 mt-6">
+              Fall-Through Rates by Price Band
+            </BodyText>
             <Box className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -412,9 +487,21 @@ export function BrokerageAnalyticsShell() {
                       <td className="py-2 pr-4">{band.total_deals.toLocaleString()}</td>
                       <td className="py-2 pr-4">{band.cancelled}</td>
                       <td className="py-2">
-                        <span style={{ color: band.fall_through_rate_percent >= 25 ? dangerColor : band.fall_through_rate_percent >= 15 ? warningColor : successColor, fontWeight: 500 }}>
+                        <BodyText
+                          as="span"
+                          size="sm"
+                          style={{
+                            color:
+                              band.fall_through_rate_percent >= 25
+                                ? dangerColor
+                                : band.fall_through_rate_percent >= 15
+                                  ? warningColor
+                                  : successColor,
+                            fontWeight: 500,
+                          }}
+                        >
                           {band.fall_through_rate_percent}%
-                        </span>
+                        </BodyText>
                       </td>
                     </tr>
                   ))}
@@ -433,16 +520,98 @@ export function BrokerageAnalyticsShell() {
               Activity by day and hour — real dataset patterns
             </BodyText>
             <AnalyticsHeatMap
-              xLabels={["8:00","9:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"]}
-              yLabels={["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]}
+              xLabels={[
+                "8:00",
+                "9:00",
+                "10:00",
+                "11:00",
+                "12:00",
+                "13:00",
+                "14:00",
+                "15:00",
+                "16:00",
+                "17:00",
+                "18:00",
+              ]}
+              yLabels={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}
               data={[
-                {x:0,y:0,value:6},{x:1,y:0,value:18},{x:2,y:0,value:22},{x:3,y:0,value:14},{x:4,y:0,value:8},{x:5,y:0,value:10},{x:6,y:0,value:16},{x:7,y:0,value:20},{x:8,y:0,value:12},{x:9,y:0,value:7},{x:10,y:0,value:4},
-                {x:0,y:1,value:5},{x:1,y:1,value:20},{x:2,y:1,value:24},{x:3,y:1,value:16},{x:4,y:1,value:9},{x:5,y:1,value:11},{x:6,y:1,value:18},{x:7,y:1,value:22},{x:8,y:1,value:14},{x:9,y:1,value:8},{x:10,y:1,value:3},
-                {x:0,y:2,value:7},{x:1,y:2,value:16},{x:2,y:2,value:20},{x:3,y:2,value:18},{x:4,y:2,value:10},{x:5,y:2,value:12},{x:6,y:2,value:15},{x:7,y:2,value:19},{x:8,y:2,value:11},{x:9,y:2,value:6},{x:10,y:2,value:3},
-                {x:0,y:3,value:4},{x:1,y:3,value:14},{x:2,y:3,value:19},{x:3,y:3,value:21},{x:4,y:3,value:8},{x:5,y:3,value:9},{x:6,y:3,value:17},{x:7,y:3,value:21},{x:8,y:3,value:13},{x:9,y:3,value:7},{x:10,y:3,value:2},
-                {x:0,y:4,value:5},{x:1,y:4,value:12},{x:2,y:4,value:17},{x:3,y:4,value:15},{x:4,y:4,value:7},{x:5,y:4,value:8},{x:6,y:4,value:14},{x:7,y:4,value:18},{x:8,y:4,value:10},{x:9,y:4,value:5},{x:10,y:4,value:2},
-                {x:0,y:5,value:1},{x:1,y:5,value:3},{x:2,y:5,value:4},{x:3,y:5,value:3},{x:4,y:5,value:2},{x:5,y:5,value:2},{x:6,y:5,value:3},{x:7,y:5,value:4},{x:8,y:5,value:2},{x:9,y:5,value:1},{x:10,y:5,value:0},
-                {x:0,y:6,value:1},{x:1,y:6,value:2},{x:2,y:6,value:3},{x:3,y:6,value:2},{x:4,y:6,value:1},{x:5,y:6,value:1},{x:6,y:6,value:2},{x:7,y:6,value:3},{x:8,y:6,value:2},{x:9,y:6,value:1},{x:10,y:6,value:0},
+                { x: 0, y: 0, value: 6 },
+                { x: 1, y: 0, value: 18 },
+                { x: 2, y: 0, value: 22 },
+                { x: 3, y: 0, value: 14 },
+                { x: 4, y: 0, value: 8 },
+                { x: 5, y: 0, value: 10 },
+                { x: 6, y: 0, value: 16 },
+                { x: 7, y: 0, value: 20 },
+                { x: 8, y: 0, value: 12 },
+                { x: 9, y: 0, value: 7 },
+                { x: 10, y: 0, value: 4 },
+                { x: 0, y: 1, value: 5 },
+                { x: 1, y: 1, value: 20 },
+                { x: 2, y: 1, value: 24 },
+                { x: 3, y: 1, value: 16 },
+                { x: 4, y: 1, value: 9 },
+                { x: 5, y: 1, value: 11 },
+                { x: 6, y: 1, value: 18 },
+                { x: 7, y: 1, value: 22 },
+                { x: 8, y: 1, value: 14 },
+                { x: 9, y: 1, value: 8 },
+                { x: 10, y: 1, value: 3 },
+                { x: 0, y: 2, value: 7 },
+                { x: 1, y: 2, value: 16 },
+                { x: 2, y: 2, value: 20 },
+                { x: 3, y: 2, value: 18 },
+                { x: 4, y: 2, value: 10 },
+                { x: 5, y: 2, value: 12 },
+                { x: 6, y: 2, value: 15 },
+                { x: 7, y: 2, value: 19 },
+                { x: 8, y: 2, value: 11 },
+                { x: 9, y: 2, value: 6 },
+                { x: 10, y: 2, value: 3 },
+                { x: 0, y: 3, value: 4 },
+                { x: 1, y: 3, value: 14 },
+                { x: 2, y: 3, value: 19 },
+                { x: 3, y: 3, value: 21 },
+                { x: 4, y: 3, value: 8 },
+                { x: 5, y: 3, value: 9 },
+                { x: 6, y: 3, value: 17 },
+                { x: 7, y: 3, value: 21 },
+                { x: 8, y: 3, value: 13 },
+                { x: 9, y: 3, value: 7 },
+                { x: 10, y: 3, value: 2 },
+                { x: 0, y: 4, value: 5 },
+                { x: 1, y: 4, value: 12 },
+                { x: 2, y: 4, value: 17 },
+                { x: 3, y: 4, value: 15 },
+                { x: 4, y: 4, value: 7 },
+                { x: 5, y: 4, value: 8 },
+                { x: 6, y: 4, value: 14 },
+                { x: 7, y: 4, value: 18 },
+                { x: 8, y: 4, value: 10 },
+                { x: 9, y: 4, value: 5 },
+                { x: 10, y: 4, value: 2 },
+                { x: 0, y: 5, value: 1 },
+                { x: 1, y: 5, value: 3 },
+                { x: 2, y: 5, value: 4 },
+                { x: 3, y: 5, value: 3 },
+                { x: 4, y: 5, value: 2 },
+                { x: 5, y: 5, value: 2 },
+                { x: 6, y: 5, value: 3 },
+                { x: 7, y: 5, value: 4 },
+                { x: 8, y: 5, value: 2 },
+                { x: 9, y: 5, value: 1 },
+                { x: 10, y: 5, value: 0 },
+                { x: 0, y: 6, value: 1 },
+                { x: 1, y: 6, value: 2 },
+                { x: 2, y: 6, value: 3 },
+                { x: 3, y: 6, value: 2 },
+                { x: 4, y: 6, value: 1 },
+                { x: 5, y: 6, value: 1 },
+                { x: 6, y: 6, value: 2 },
+                { x: 7, y: 6, value: 3 },
+                { x: 8, y: 6, value: 2 },
+                { x: 9, y: 6, value: 1 },
+                { x: 10, y: 6, value: 0 },
               ]}
               height={200}
               valueLabel="transactions"

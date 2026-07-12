@@ -50,6 +50,8 @@ properties:
     type: boolean
   documents:
     type: boolean
+  transactions:
+    type: boolean
   profilePreferences:
     type: boolean
   logLevel:

@@ -12,10 +12,7 @@ import {
   buildShortPublicProfilePath,
   generateAgentProfileSlug,
 } from "packages/utils/growth/agent";
-import {
-  applySocialMetaTags,
-  setDocumentTitle,
-} from "packages/utils/seo/documentMeta";
+import { applySocialMetaTags, setDocumentTitle } from "packages/utils/seo/documentMeta";
 import { setJsonLdScript } from "packages/utils/seo/jsonLd";
 import { getSiteOrigin } from "packages/utils/seo/siteOrigin";
 
@@ -62,15 +59,7 @@ export function AgentProfilePageContent() {
         state,
       });
     }
-  }, [
-    agent,
-    agentId,
-    canonicalNameSlug,
-    getCurrentRoute,
-    nameSegment,
-    navigateToPath,
-    pathname,
-  ]);
+  }, [agent, agentId, canonicalNameSlug, getCurrentRoute, nameSegment, navigateToPath, pathname]);
 
   useEffect(() => {
     if (!agent?.name?.trim()) {
@@ -83,11 +72,8 @@ export function AgentProfilePageContent() {
     const pageUrl = origin ? `${origin}${pathname}${search}` : "";
     const fallbackDesc = getRouteSeoMeta(pathname).description;
     const desc =
-      (agent.agent_bio ?? "").trim().slice(0, 160) ||
-      agent.brokerage_name?.trim() ||
-      fallbackDesc;
-    const rawImage =
-      agent.profile_picture_url ?? agent.professional_headshot_url ?? "";
+      (agent.agent_bio ?? "").trim().slice(0, 160) || agent.brokerage_name?.trim() || fallbackDesc;
+    const rawImage = agent.profile_picture_url ?? agent.professional_headshot_url ?? "";
     const imageUrl =
       rawImage && /^https?:\/\//i.test(rawImage)
         ? rawImage
@@ -99,9 +85,7 @@ export function AgentProfilePageContent() {
     }
     const sameAs =
       agent.social_links &&
-      Object.values(agent.social_links).filter(
-        (u): u is string => typeof u === "string",
-      );
+      Object.values(agent.social_links).filter((u): u is string => typeof u === "string");
     setJsonLdScript("seo-agent-person", {
       "@context": "https://schema.org",
       "@type": "Person",
@@ -130,11 +114,7 @@ export function AgentProfilePageContent() {
             <BodyText size="md" muted className="mb-6">
               {t("profile.public.invalid_link_body")}
             </BodyText>
-            <Button
-              variant="primary"
-              onClick={() => navigate("HOME")}
-              iconName="home"
-            >
+            <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
               {t("profile.public.back_home")}
             </Button>
           </Box>
@@ -162,15 +142,9 @@ export function AgentProfilePageContent() {
               {t("profile.public.load_error_title")}
             </Title>
             <BodyText size="md" muted className="mb-6">
-              {error instanceof Error
-                ? error.message
-                : t("profile.public.generic_error")}
+              {error instanceof Error ? error.message : t("profile.public.generic_error")}
             </BodyText>
-            <Button
-              variant="primary"
-              onClick={() => navigate("HOME")}
-              iconName="home"
-            >
+            <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
               {t("profile.public.back_home")}
             </Button>
           </Box>
@@ -190,11 +164,7 @@ export function AgentProfilePageContent() {
             <BodyText size="md" muted className="mb-6">
               {t("profile.public.unavailable_body")}
             </BodyText>
-            <Button
-              variant="primary"
-              onClick={() => navigate("HOME")}
-              iconName="home"
-            >
+            <Button variant="primary" onClick={() => navigate("HOME")} iconName="home">
               {t("profile.public.back_home")}
             </Button>
           </Box>
@@ -215,11 +185,7 @@ export function AgentProfilePageContent() {
           agentId={agent.id}
           isOwnProfile={isOwnProfile}
           agentName={agent.name ?? undefined}
-          agentPhotoUrl={
-            agent.profile_picture_url ??
-            agent.professional_headshot_url ??
-            undefined
-          }
+          agentPhotoUrl={agent.profile_picture_url ?? agent.professional_headshot_url ?? undefined}
         />
       }
     />

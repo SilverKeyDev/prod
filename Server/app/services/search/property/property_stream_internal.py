@@ -264,9 +264,9 @@ def _generate_property_stream_internal(
                                     "cons": cached_hl.cons,
                                 }
                                 if cached_hl.highlights_context:
-                                    property_analysis[
-                                        "highlights_context"
-                                    ] = cached_hl.highlights_context
+                                    property_analysis["highlights_context"] = (
+                                        cached_hl.highlights_context
+                                    )
                                 highlights_from_cache = True
                                 log.info("PROPERTY_DETAILS", "Using cached highlights for user")
 

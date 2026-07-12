@@ -1,5 +1,6 @@
-import ReactECharts from 'echarts-for-react';
-import { color } from 'packages/design-tokens';
+import ReactECharts from "echarts-for-react";
+
+import { color } from "packages/design-tokens";
 
 export interface DonutSlice {
   label: string;
@@ -47,18 +48,18 @@ export function AnalyticsDonutChart({
 
   const option = {
     tooltip: {
-      trigger: 'item',
+      trigger: "item",
       formatter: (params: { dataIndex: number; percent: number }) => {
         const d = data[params.dataIndex];
-        const detailLine = d.detail ? `<br/>${d.detail}` : '';
+        const detailLine = d.detail ? `<br/>${d.detail}` : "";
         return `${d.label}<br/><b>${params.percent}%</b>${detailLine}`;
       },
     },
     series: [
       {
-        type: 'pie',
-        radius: ['58%', '78%'],
-        center: ['50%', '50%'],
+        type: "pie",
+        radius: ["58%", "78%"],
+        center: ["50%", "50%"],
         data: data.map((d, i) => ({
           value: d.value,
           name: d.label,
@@ -66,21 +67,21 @@ export function AnalyticsDonutChart({
           label: { show: false },
           emphasis: { scale: true, scaleSize: 4 },
         })),
-        itemStyle: { borderColor: '#ffffff', borderWidth: 2 },
+        itemStyle: { borderColor: "#ffffff", borderWidth: 2 },
       },
     ],
     graphic: [
       ...(centerLabel
         ? [
             {
-              type: 'text',
-              left: 'center',
-              top: centerSub ? '39%' : '45%',
+              type: "text",
+              left: "center",
+              top: centerSub ? "39%" : "45%",
               style: {
                 text: centerLabel,
                 fontSize: 18,
-                fontWeight: '500',
-                textAlign: 'center',
+                fontWeight: "500",
+                textAlign: "center",
               },
             },
           ]
@@ -88,13 +89,13 @@ export function AnalyticsDonutChart({
       ...(centerSub
         ? [
             {
-              type: 'text',
-              left: 'center',
-              top: '51%',
+              type: "text",
+              left: "center",
+              top: "51%",
               style: {
                 text: centerSub,
                 fontSize: 11,
-                textAlign: 'center',
+                textAlign: "center",
               },
             },
           ]
@@ -102,13 +103,13 @@ export function AnalyticsDonutChart({
       ...(showEntropy
         ? [
             {
-              type: 'text',
+              type: "text",
               right: 8,
               bottom: 8,
               style: {
                 text: `H = ${entropy.toFixed(2)} / ${maxEntropy.toFixed(2)} bits`,
                 fontSize: 10,
-                textAlign: 'right',
+                textAlign: "right",
               },
             },
           ]

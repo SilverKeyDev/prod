@@ -40,6 +40,7 @@ class LoggerConfig:
         self.routing: bool = config_dict.get("routing", False)
         self.docusign: bool = config_dict.get("docusign", False)
         self.documents: bool = config_dict.get("documents", False)
+        self.transactions: bool = config_dict.get("transactions", False)
         self.profilePreferences: bool = config_dict.get("profilePreferences", False)
         self.logLevel: LogLevel = config_dict.get("logLevel", "ERROR")
 
@@ -66,6 +67,7 @@ class LoggerConfig:
             "routing": self.routing,
             "docusign": self.docusign,
             "documents": self.documents,
+            "transactions": self.transactions,
             "profilePreferences": self.profilePreferences,
             "logLevel": self.logLevel,
         }

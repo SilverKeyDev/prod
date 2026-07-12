@@ -1,5 +1,6 @@
-import ReactECharts from 'echarts-for-react';
-import { color } from 'packages/design-tokens';
+import ReactECharts from "echarts-for-react";
+
+import { color } from "packages/design-tokens";
 
 export interface HeatMapCell {
   x: number;
@@ -22,7 +23,7 @@ export function AnalyticsHeatMap({
   yLabels,
   data,
   height = 200,
-  valueLabel = 'transactions',
+  valueLabel = "transactions",
   colorLow,
   colorHigh,
 }: Props) {
@@ -32,7 +33,7 @@ export function AnalyticsHeatMap({
 
   const option = {
     tooltip: {
-      position: 'top',
+      position: "top",
       formatter: (params: { data: [number, number, number] }) => {
         const [x, y, v] = params.data;
         return `${yLabels[y]} ${xLabels[x]}<br/><b>${v}</b> ${valueLabel}`;
@@ -40,7 +41,7 @@ export function AnalyticsHeatMap({
     },
     grid: { left: 44, right: 16, top: 10, bottom: 28 },
     xAxis: {
-      type: 'category',
+      type: "category",
       data: xLabels,
       axisLabel: { fontSize: 10 },
       axisLine: { show: false },
@@ -49,7 +50,7 @@ export function AnalyticsHeatMap({
       splitLine: { show: false },
     },
     yAxis: {
-      type: 'category',
+      type: "category",
       data: yLabels,
       axisLabel: { fontSize: 10 },
       axisLine: { show: false },
@@ -65,10 +66,10 @@ export function AnalyticsHeatMap({
     },
     series: [
       {
-        type: 'heatmap',
+        type: "heatmap",
         data: data.map((d) => [d.x, d.y, d.value]),
         label: { show: false },
-        itemStyle: { borderColor: '#ffffff', borderWidth: 2, borderRadius: 2 },
+        itemStyle: { borderColor: "#ffffff", borderWidth: 2, borderRadius: 2 },
         emphasis: { itemStyle: { borderColor: high, borderWidth: 2 } },
       },
     ],

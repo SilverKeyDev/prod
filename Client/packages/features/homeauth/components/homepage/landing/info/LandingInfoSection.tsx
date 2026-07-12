@@ -36,7 +36,12 @@ export function LandingInfoSection() {
         <LandingEyebrow>{info.eyebrow}</LandingEyebrow>
         <Title as="h2" size="lg" className="mb-3 text-center !font-serif">
           {info.headlineBefore}
-          <span className={LANDING_HEADLINE_ACCENT_CLASS}>{info.headlineAccent}</span>
+          <BodyText
+            as="span"
+            className={`${LANDING_HEADLINE_ACCENT_CLASS} font-[inherit] text-[length:inherit] leading-[inherit]`}
+          >
+            {info.headlineAccent}
+          </BodyText>
           {info.headlineAfter}
         </Title>
         <BodyText as="p" size="md" muted className="mx-auto max-w-md text-center">

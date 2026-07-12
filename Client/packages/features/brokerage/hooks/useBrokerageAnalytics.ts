@@ -4,10 +4,11 @@
  * Shape mirrors planned GET /api/v1/brokerage/analytics/overview response.
  */
 import { useMemo } from "react";
+
 import {
   BROKERAGE_AGENTS_FIXTURE,
   BROKERAGE_ANALYTICS_FIXTURE,
-} from "../fixtures/brokerageAnalyticsFixtures";
+} from "../utils/brokerageAnalyticsFixtures";
 
 export type TimePeriod = "week" | "month" | "year" | "5years" | "all";
 
@@ -72,7 +73,7 @@ const MESSAGING_7D = [
 function agentStatusForPeriod(period: TimePeriod) {
   // Scale proportionally: top 20%, healthy 71%, at_risk 9%
   const total = period === "week" ? 25 : period === "month" ? 100 : period === "year" ? 500 : 1000;
-  const top = Math.round(total * 0.20);
+  const top = Math.round(total * 0.2);
   const atRisk = Math.round(total * 0.09);
   const healthy = total - top - atRisk;
   return [
@@ -86,49 +87,92 @@ function overviewForPeriod(period: TimePeriod) {
   const base = BROKERAGE_ANALYTICS_FIXTURE.overview;
   switch (period) {
     case "week":
-      return { ...base, closingsThisMonth: 395, closingsLastMonth: 412, openTransactions: 610, atRiskCount: 11, activeAgents: 500, activeClientsThisMonth: 640, activeClientsLastMonth: 580 };
+      return {
+        ...base,
+        closingsThisMonth: 395,
+        closingsLastMonth: 412,
+        openTransactions: 610,
+        atRiskCount: 11,
+        activeAgents: 500,
+        activeClientsThisMonth: 640,
+        activeClientsLastMonth: 580,
+      };
     case "month":
-      return { ...base, closingsThisMonth: 1854, closingsLastMonth: 1845, openTransactions: 2455, atRiskCount: 44, activeAgents: 500, activeClientsThisMonth: 2655, activeClientsLastMonth: 2535 };
+      return {
+        ...base,
+        closingsThisMonth: 1854,
+        closingsLastMonth: 1845,
+        openTransactions: 2455,
+        atRiskCount: 44,
+        activeAgents: 500,
+        activeClientsThisMonth: 2655,
+        activeClientsLastMonth: 2535,
+      };
     case "year":
-      return { ...base, closingsThisMonth: 22726, closingsLastMonth: 21465, openTransactions: 2455, atRiskCount: 44, activeAgents: 500, activeClientsThisMonth: 24500, activeClientsLastMonth: 23200 };
+      return {
+        ...base,
+        closingsThisMonth: 22726,
+        closingsLastMonth: 21465,
+        openTransactions: 2455,
+        atRiskCount: 44,
+        activeAgents: 500,
+        activeClientsThisMonth: 24500,
+        activeClientsLastMonth: 23200,
+      };
     case "5years":
     case "all":
     default:
-      return { ...base, closingsThisMonth: 45224, closingsLastMonth: 43578, openTransactions: 2455, atRiskCount: 44, activeAgents: 500, activeClientsThisMonth: 47800, activeClientsLastMonth: 45600 };
+      return {
+        ...base,
+        closingsThisMonth: 45224,
+        closingsLastMonth: 43578,
+        openTransactions: 2455,
+        atRiskCount: 44,
+        activeAgents: 500,
+        activeClientsThisMonth: 47800,
+        activeClientsLastMonth: 45600,
+      };
   }
 }
 
 function trendForPeriod(period: TimePeriod) {
   switch (period) {
-    case "week": return SEVEN_DAY_TREND;
-    case "month": return ONE_MONTH_TREND;
-    case "year": return FULL_YEAR_TREND;
+    case "week":
+      return SEVEN_DAY_TREND;
+    case "month":
+      return ONE_MONTH_TREND;
+    case "year":
+      return FULL_YEAR_TREND;
     case "5years":
     case "all":
-    default: return FIVE_YEAR_TREND;
+    default:
+      return FIVE_YEAR_TREND;
   }
 }
 
 function funnelForPeriod(period: TimePeriod) {
   const scale = period === "week" ? 0.05 : period === "month" ? 0.2 : period === "year" ? 1 : 2;
   return [
-    { stage: "Search",   count: Math.round(3255 * scale), dropOffPercent: 0 },
-    { stage: "Tour",     count: Math.round(2855 * scale), dropOffPercent: 12 },
-    { stage: "Offer",    count: Math.round(2555 * scale), dropOffPercent: 10 },
+    { stage: "Search", count: Math.round(3255 * scale), dropOffPercent: 0 },
+    { stage: "Tour", count: Math.round(2855 * scale), dropOffPercent: 12 },
+    { stage: "Offer", count: Math.round(2555 * scale), dropOffPercent: 10 },
     { stage: "Contract", count: Math.round(2455 * scale), dropOffPercent: 4 },
-    { stage: "Closing",  count: Math.round(1854 * scale), dropOffPercent: 24 },
+    { stage: "Closing", count: Math.round(1854 * scale), dropOffPercent: 24 },
   ];
 }
 
 export function useBrokerageAnalytics(period: TimePeriod = "all") {
-  const data = useMemo(() => ({
-    ...BROKERAGE_ANALYTICS_FIXTURE,
-    overview: overviewForPeriod(period),
-    closingsTrend: trendForPeriod(period),
-    transactionFunnel: funnelForPeriod(period),
-    agentStatusBreakdown: agentStatusForPeriod(period),
-    messagingActivity: MESSAGING_7D, // always last 7 days regardless of period
-  }), [period]);
+  const data = useMemo(
+    () => ({
+      ...BROKERAGE_ANALYTICS_FIXTURE,
+      overview: overviewForPeriod(period),
+      closingsTrend: trendForPeriod(period),
+      transactionFunnel: funnelForPeriod(period),
+      agentStatusBreakdown: agentStatusForPeriod(period),
+      messagingActivity: MESSAGING_7D, // always last 7 days regardless of period
+    }),
+    [period]
+  );
 
   return {
     data,

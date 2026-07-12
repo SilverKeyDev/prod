@@ -17,6 +17,7 @@
  * TODO SIL-211: Reuse this panel in brokerage performance dashboard.
  */
 import { useMemo } from "react";
+
 import ReactECharts from "echarts-for-react";
 
 import { color } from "packages/design-tokens";
@@ -120,7 +121,11 @@ function AttachRatesChart({ services }: { services: ServiceData[] }) {
   return <ReactECharts option={option} style={{ height: services.length * 56 + 24 }} />;
 }
 
-export function AncillaryInsightPanel({ period = "all" }: { period?: import("packages/features/brokerage/hooks/useBrokerageAnalytics").TimePeriod }) {
+export function AncillaryInsightPanel({
+  period = "all",
+}: {
+  period?: import("packages/features/brokerage/hooks/useBrokerageAnalytics").TimePeriod;
+}) {
   const { data, isLoading } = useAncillaryAnalytics(period);
 
   const sortedAgents = useMemo(
@@ -188,7 +193,9 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
                 <th className="py-2 pr-4 font-medium">Transactions</th>
                 <th className="py-2 pr-4 font-medium">Title Attach</th>
                 <th className="py-2 pr-4 font-medium">Lending Attach</th>
-                <th className="py-2 font-medium" style={{ color: dangerColor }}>Total Leakage</th>
+                <th className="py-2 font-medium" style={{ color: dangerColor }}>
+                  Total Leakage
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -196,20 +203,53 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
                 <tr key={agent.agent_id} className="border-border/60 border-b">
                   <td className="py-2 pr-4">
                     <Box className="flex items-center gap-2">
-                      {index === 0 && <span className="text-xs font-bold" style={{ color: dangerColor }}>▲</span>}
-                      <span className="font-medium">{agent.name}</span>
+                      {index === 0 && (
+                        <BodyText
+                          as="span"
+                          size="xs"
+                          className="font-bold"
+                          style={{ color: dangerColor }}
+                        >
+                          ▲
+                        </BodyText>
+                      )}
+                      <BodyText as="span" size="sm" className="font-medium">
+                        {agent.name}
+                      </BodyText>
                     </Box>
                   </td>
                   <td className="py-2 pr-4">{agent.transactions}</td>
                   <td className="py-2 pr-4">
-                    <span style={{ color: agent.title_attach >= 60 ? successColor : agent.title_attach >= 40 ? warningColor : dangerColor }}>
+                    <BodyText
+                      as="span"
+                      size="sm"
+                      style={{
+                        color:
+                          agent.title_attach >= 60
+                            ? successColor
+                            : agent.title_attach >= 40
+                              ? warningColor
+                              : dangerColor,
+                      }}
+                    >
                       {agent.title_attach.toFixed(1)}%
-                    </span>
+                    </BodyText>
                   </td>
                   <td className="py-2 pr-4">
-                    <span style={{ color: agent.lending_attach >= 60 ? successColor : agent.lending_attach >= 40 ? warningColor : dangerColor }}>
+                    <BodyText
+                      as="span"
+                      size="sm"
+                      style={{
+                        color:
+                          agent.lending_attach >= 60
+                            ? successColor
+                            : agent.lending_attach >= 40
+                              ? warningColor
+                              : dangerColor,
+                      }}
+                    >
                       {agent.lending_attach.toFixed(1)}%
-                    </span>
+                    </BodyText>
                   </td>
                   <td className="py-2 font-bold" style={{ color: dangerColor }}>
                     {formatDollars(agent.total_leakage_dollars)}

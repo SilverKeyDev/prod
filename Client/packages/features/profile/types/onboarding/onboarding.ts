@@ -182,6 +182,4 @@ export type DropdownOption = {
   label: string;
 };
 
-export type ImportantLocation = NonNullable<
-  OnboardingData["important_locations"]
->[number];
+export type ImportantLocation = NonNullable<OnboardingData["important_locations"]>[number];

@@ -26,6 +26,7 @@ ALLOWED_LOGGER_CONFIG_KEYS: frozenset[str] = frozenset(
         "routing",
         "docusign",
         "documents",
+        "transactions",
         "profilePreferences",
         "logLevel",
     }

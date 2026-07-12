@@ -87,6 +87,8 @@ __all__ = [
     "RevShareLinkClick",
     "BuyerStepView",
     "User",
+    "BuyerBrokerReview",
+    "BuyerBrokerReviewEvent",
     "ChecklistItemDispatchSetting",
     "Transaction",
     "TransactionAddress",

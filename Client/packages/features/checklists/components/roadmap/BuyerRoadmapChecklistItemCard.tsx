@@ -269,9 +269,7 @@ function BuyerRoadmapChecklistItemCardInner({
           />
         </Box>
       </Box>
-      <Box
-        className="flex w-full flex-row flex-wrap items-center justify-end gap-2 px-4 pb-2 sm:mt-0.5 sm:w-auto sm:flex-shrink-0 sm:px-0 sm:pb-0 sm:py-0"
-      >
+      <Box className="flex w-full flex-row flex-wrap items-center justify-end gap-2 px-4 pb-2 sm:mt-0.5 sm:w-auto sm:flex-shrink-0 sm:px-0 sm:py-0 sm:pb-0">
         {showDispatchGear ? (
           <Box
             onClick={(e: React.MouseEvent) => e.stopPropagation()}

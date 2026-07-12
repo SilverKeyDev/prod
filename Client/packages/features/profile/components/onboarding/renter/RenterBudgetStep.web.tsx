@@ -4,11 +4,13 @@
  * Rental-specific copy — no purchase language.
  */
 import React from "react";
-import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
+
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
+import { Input, Label } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { Box } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -28,10 +30,10 @@ export function RenterBudgetStep({ formData, updateFormData }: Props) {
       </Box>
       <Box className="grid gap-4 sm:grid-cols-2">
         <Box className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+          <Label className="text-sm font-medium text-gray-700">
             {RENTER_TRANSLATIONS.RENTER_BUDGET_MIN_LABEL}
-          </label>
-          <input
+          </Label>
+          <Input
             type="number"
             min={0}
             step={100}
@@ -47,10 +49,10 @@ export function RenterBudgetStep({ formData, updateFormData }: Props) {
           />
         </Box>
         <Box className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+          <Label className="text-sm font-medium text-gray-700">
             {RENTER_TRANSLATIONS.RENTER_BUDGET_MAX_LABEL}
-          </label>
-          <input
+          </Label>
+          <Input
             type="number"
             min={0}
             step={100}

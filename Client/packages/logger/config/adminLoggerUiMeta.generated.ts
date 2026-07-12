@@ -24,6 +24,7 @@ export const LOGGER_CONFIG_KEY_TO_LOG_PATH: Record<string, string> = {
   routing: "ROUTING",
   docusign: "DOCUSIGN",
   documents: "DOCUMENTS",
+  transactions: "TRANSACTIONS",
   profilePreferences: "PROFILE_PREFERENCES",
 };
 
@@ -48,6 +49,7 @@ export const ADMIN_LOGGER_UI_GROUPS = {
       "routing",
       "docusign",
       "documents",
+      "transactions",
       "profilePreferences",
     ] as const,
   },

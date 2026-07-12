@@ -15,10 +15,7 @@ import RippleBackground from "packages/ui/components/surfaces/backgrounds/Ripple
 import { ExternalAnchor } from "packages/ui/components/system/accessibility";
 
 import { PublicProfileChip } from "./PublicProfileDetails.web";
-import {
-  PUBLIC_PROFILE_CONTAINER_CLASS,
-  PublicProfileEyebrow,
-} from "./PublicProfileSection.web";
+import { PUBLIC_PROFILE_CONTAINER_CLASS, PublicProfileEyebrow } from "./PublicProfileSection.web";
 
 const QUICK_ACTION_CLASS =
   "border-border bg-background-base text-text-primary hover:border-brand-primary hover:text-brand-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-5 text-sm font-semibold !break-normal !no-underline motion-safe:transition-colors";
@@ -44,11 +41,7 @@ type PublicProfileHeroProps = {
   heroActions?: ReactNode;
 };
 
-export function PublicProfileHero({
-  agent,
-  model,
-  heroActions,
-}: PublicProfileHeroProps) {
+export function PublicProfileHero({ agent, model, heroActions }: PublicProfileHeroProps) {
   const { t } = useLocalization();
   const [mounted, setMounted] = useState(false);
 
@@ -61,8 +54,7 @@ export function PublicProfileHero({
   const specialties = (agent.specialties ?? [])
     .filter((s) => s?.trim())
     .slice(0, HERO_SPECIALTY_LIMIT);
-  const serviceAreas =
-    agent.primary_service_zips?.filter((z) => z?.trim()) ?? [];
+  const serviceAreas = agent.primary_service_zips?.filter((z) => z?.trim()) ?? [];
   const shownAreas = serviceAreas.slice(0, HERO_AREA_LIMIT).join(", ");
   const extraAreaCount = serviceAreas.length - HERO_AREA_LIMIT;
   const photoAria = t("profile.public.photo_aria", { name: model.displayName });
@@ -90,15 +82,11 @@ export function PublicProfileHero({
         <RippleBackground overlay />
       </Box>
       {/* Positioned after the ripple so DOM order keeps content on top without z-index. */}
-      <Box
-        className={`${PUBLIC_PROFILE_CONTAINER_CLASS} relative py-16 sm:py-24`}
-      >
+      <Box className={`${PUBLIC_PROFILE_CONTAINER_CLASS} relative py-16 sm:py-24`}>
         <Box className="flex flex-col-reverse items-center gap-12 md:flex-row md:justify-between md:gap-16">
           <Box className="min-w-0 max-w-xl flex-1 gap-0 text-center md:text-left">
             <Box className={revealClass(mounted, "delay-75")}>
-              <PublicProfileEyebrow>
-                {t("profile.public.site.hero_eyebrow")}
-              </PublicProfileEyebrow>
+              <PublicProfileEyebrow>{t("profile.public.site.hero_eyebrow")}</PublicProfileEyebrow>
             </Box>
 
             <Title
@@ -110,11 +98,7 @@ export function PublicProfileHero({
             </Title>
 
             {agent.brokerage?.trim() ? (
-              <BodyText
-                size="lg"
-                muted
-                className={`mt-3 ${revealClass(mounted, "delay-150")}`}
-              >
+              <BodyText size="lg" muted className={`mt-3 ${revealClass(mounted, "delay-150")}`}>
                 {agent.brokerage}
               </BodyText>
             ) : null}
@@ -129,16 +113,10 @@ export function PublicProfileHero({
             ) : null}
 
             {licensedStates.length || serviceAreas.length ? (
-              <Box
-                className={`mt-5 gap-2 ${revealClass(mounted, "delay-200")}`}
-              >
+              <Box className={`mt-5 gap-2 ${revealClass(mounted, "delay-200")}`}>
                 {licensedStates.length ? (
                   <Box className="flex flex-row items-center justify-center gap-1.5 md:justify-start">
-                    <Icon
-                      name="shield"
-                      size={14}
-                      className="text-text-secondary shrink-0"
-                    />
+                    <Icon name="shield" size={14} className="text-text-secondary shrink-0" />
                     <BodyText size="sm" className="text-text-secondary">
                       {t("profile.public.site.licensed_in", {
                         states: licensedStates.join(", "),
@@ -148,11 +126,7 @@ export function PublicProfileHero({
                 ) : null}
                 {serviceAreas.length ? (
                   <Box className="flex flex-row items-center justify-center gap-1.5 md:justify-start">
-                    <Icon
-                      name="map-pin"
-                      size={14}
-                      className="text-text-secondary shrink-0"
-                    />
+                    <Icon name="map-pin" size={14} className="text-text-secondary shrink-0" />
                     <BodyText size="sm" className="text-text-secondary">
                       {extraAreaCount > 0
                         ? t("profile.public.site.serving_areas_more", {

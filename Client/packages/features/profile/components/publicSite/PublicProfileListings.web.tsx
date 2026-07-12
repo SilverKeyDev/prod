@@ -6,10 +6,7 @@ import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 
 import { PublicListingCard } from "./PublicListingCard.web";
-import {
-  PublicProfileEyebrow,
-  PublicProfileSection,
-} from "./PublicProfileSection.web";
+import { PublicProfileEyebrow, PublicProfileSection } from "./PublicProfileSection.web";
 
 const GRID_CLASS = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
 const SKELETON_CARD_CLASS =
@@ -58,8 +55,7 @@ type PublicProfileListingsProps = {
  */
 export function PublicProfileListings({ agentId }: PublicProfileListingsProps) {
   const { t } = useLocalization();
-  const { current, former, data, isPending, isError } =
-    usePublicAgentListings(agentId);
+  const { current, former, data, isPending, isError } = usePublicAgentListings(agentId);
 
   // 404 (not a public agent) or transport error: the rest of the page already
   // handles messaging; a broken band adds nothing for visitors.
@@ -87,10 +83,7 @@ export function PublicProfileListings({ agentId }: PublicProfileListingsProps) {
             listings={current}
             emptyBody={t("profile.public.listings.current_empty")}
           />
-          <ListingsGroup
-            heading={t("profile.public.listings.former_heading")}
-            listings={former}
-          />
+          <ListingsGroup heading={t("profile.public.listings.former_heading")} listings={former} />
         </Box>
       )}
     </PublicProfileSection>

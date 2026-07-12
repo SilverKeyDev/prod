@@ -4,11 +4,12 @@
  */
 import React from "react";
 
-import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
+import { Input, Label } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { Box } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -28,10 +29,10 @@ export function SellerAddressStep({ formData, updateFormData }: Props) {
       </Box>
       <Box className="flex flex-col gap-4">
         <Box className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+          <Label className="text-sm font-medium text-gray-700">
             {SELLER_TRANSLATIONS.SELLER_ADDRESS_STREET_LABEL}
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             value={formData.seller_address_street ?? ""}
             onChange={(e) => updateFormData("seller_address_street", e.target.value)}
@@ -41,10 +42,10 @@ export function SellerAddressStep({ formData, updateFormData }: Props) {
         </Box>
         <Box className="grid gap-4 sm:grid-cols-3">
           <Box className="flex flex-col gap-1 sm:col-span-1">
-            <label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-gray-700">
               {SELLER_TRANSLATIONS.SELLER_ADDRESS_CITY_LABEL}
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               value={formData.seller_address_city ?? ""}
               onChange={(e) => updateFormData("seller_address_city", e.target.value)}
@@ -53,10 +54,10 @@ export function SellerAddressStep({ formData, updateFormData }: Props) {
             />
           </Box>
           <Box className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-gray-700">
               {SELLER_TRANSLATIONS.SELLER_ADDRESS_STATE_LABEL}
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               value={formData.seller_address_state ?? ""}
               onChange={(e) => updateFormData("seller_address_state", e.target.value)}
@@ -66,10 +67,10 @@ export function SellerAddressStep({ formData, updateFormData }: Props) {
             />
           </Box>
           <Box className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-gray-700">
               {SELLER_TRANSLATIONS.SELLER_ADDRESS_ZIP_LABEL}
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               value={formData.seller_address_zip ?? ""}
               onChange={(e) => updateFormData("seller_address_zip", e.target.value)}
