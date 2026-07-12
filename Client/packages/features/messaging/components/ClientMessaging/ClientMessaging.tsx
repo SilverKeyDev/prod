@@ -1,10 +1,9 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import type { ReactNode } from "react";
 
 import MessagingModals from "packages/features/messaging/components/layout/chrome/MessagingModals";
-import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
-import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
+import UnifiedMessagingShell from "packages/features/messaging/components/layout/UnifiedMessagingShell";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useAgentChatsSse } from "packages/features/messaging/hooks/data/useAgentChatsSse";
 import { useMessagingComposerStoreIntegration } from "packages/features/messaging/hooks/store/useMessagingComposerStoreIntegration";
@@ -17,25 +16,16 @@ import {
   useMessageScroll,
   useMessagingHandlers,
 } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/structure/primitives";
 import { screenUp } from "packages/ui/types/screens";
-import { traceLazyImport } from "packages/utils/core/perf/shellRouteLoadTiming";
 import { getDocument } from "packages/utils/core/platform";
 
-import { Region } from "@/components/ui";
 import { ConnectionRequestsInboxSidebar } from "@/features/agent/components/messaging/chrome";
 import { getMessagingConfig } from "@/features/agent/components/messaging/screen/messagingConfig";
 import { useConnectionRequests } from "@/features/agent/hooks/data/connections/useConnectionRequests";
-import MessagingSidebarShell from "@/features/messaging/components/layout/chrome/MessagingSidebarShell";
-import UnifiedMessageInput from "@/features/messaging/components/layout/input/UnifiedMessageInput";
 import { isSameMessagingUserId } from "@/features/messaging/utils";
 
 import ClientMessagingConversationList from "./ClientMessagingConversationList";
 import UnifiedMessagingHeader from "./UnifiedMessagingHeader";
-
-const UnifiedMessagesList = lazy(
-  traceLazyImport("MESSAGES", "lazy:UnifiedMessagesList(client)", loadUnifiedMessagesListModule)
-);
 
 type ClientMessagingProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
@@ -105,8 +95,6 @@ export default function ClientMessaging({
     },
     [activeConversationId, setDraft]
   );
-
-  const isTyping = false;
 
   const { requests: pendingConnectionRequests } = useConnectionRequests({ inboxEnabled: true });
   const pendingConnectionRequestCount = pendingConnectionRequests.length;
@@ -239,114 +227,95 @@ export default function ClientMessaging({
   ]);
 
   return (
-    <Box className="flex h-full w-full overflow-hidden">
-      <Box className="relative flex h-full w-full overflow-hidden">
-        <MessagingSidebarShell
+    <UnifiedMessagingShell
+      mode="client"
+      isSidebarExpanded={isSidebarExpanded}
+      onOverlayDismiss={() => setIsSidebarExpanded(false)}
+      sidebarHeader={
+        <UnifiedMessagingHeader
+          mode={showInbox ? "connection-requests" : "agents"}
           isSidebarExpanded={isSidebarExpanded}
-          onOverlayDismiss={() => setIsSidebarExpanded(false)}
-          header={
-            <UnifiedMessagingHeader
-              mode={showInbox ? "connection-requests" : "agents"}
-              isSidebarExpanded={isSidebarExpanded}
-              setIsSidebarExpanded={setIsSidebarExpanded}
-              onInboxClick={() => setShowInbox(true)}
-              onBackClick={() => setShowInbox(false)}
-              onSearchClick={
-                showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined
-              }
-              pendingConnectionRequestCount={pendingConnectionRequestCount}
-              className="xl:rounded-tl-xl xl:rounded-tr-none"
-            />
+          setIsSidebarExpanded={setIsSidebarExpanded}
+          onInboxClick={() => setShowInbox(true)}
+          onBackClick={() => setShowInbox(false)}
+          onSearchClick={
+            showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined
           }
-        >
-          {showInbox ? (
-            <ConnectionRequestsInboxSidebar onRequestAccepted={() => setShowInbox(false)} />
-          ) : (
-            <ClientMessagingConversationList
-              clientConversations={clientConversations}
-              isLoadingClientConversations={isChatsLoading}
-              activeConversationId={activeConversationId}
-              setActiveConversationId={setActiveConversationId}
-              setIsSidebarExpanded={setIsSidebarExpanded}
-              emptyMessage={clientMessagingConfig.sidebar.emptyMessage}
-            />
-          )}
-        </MessagingSidebarShell>
-        <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">
-          <Box className="flex min-h-0 flex-1 flex-col">
-            {!showInbox && (
-              <Box className="hidden flex-shrink-0 md:block">
-                <UnifiedMessagingHeader
-                  mode={getHeaderMode()}
-                  isSidebarExpanded={isSidebarExpanded}
-                  setIsSidebarExpanded={setIsSidebarExpanded}
-                  onSearchClick={
-                    showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined
-                  }
-                  onInboxClick={() => setShowInbox(true)}
-                  onBackClick={() => setShowInbox(false)}
-                  pendingConnectionRequestCount={pendingConnectionRequestCount}
-                  agentName={activeConversation?.agent_name}
-                  suppressListColumnActionDuplicates={suppressDetailHeaderDuplicateActions}
-                />
-              </Box>
-            )}
-            <Box className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-              <Region
-                label="Message list"
-                className="scrollbar-hide min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
-                onScroll={handleMessageListScroll}
-              >
-                <Suspense fallback={<UnifiedMessagesListLoadingHistory />}>
-                  <UnifiedMessagesList
-                    mode="client"
-                    canSendMessage={canSendMessage}
-                    isLoadingHistory={isLoadingHistory}
-                    localMessages={localMessages}
-                    isTyping={isTyping}
-                    formatTime={formatTime}
-                    onSearchClick={() => setShowSearchModal(true)}
-                    messagesEndRef={messagesEndRef}
-                    onRetryMessage={retryMessage}
-                    activeConversation={activeConversation ?? null}
-                    onAcceptEventRequest={handlers.handleAcceptEventRequest}
-                    onCancelEventRequest={handlers.handleCancelEventRequest}
-                    acceptedEventRequestIds={new Set()}
-                    acceptingEventRequestId={acceptingEventRequestId}
-                    isLoadingOlder={isLoadingOlder}
-                    hasMoreOlder={hasMoreOlder}
-                  />
-                </Suspense>
-              </Region>
-            </Box>
-            <UnifiedMessageInput
-              mode="client"
-              message={message}
-              setMessage={setMessage}
-              isTyping={isTyping}
-              onSendMessage={handleSendMessage}
-              onAttachmentHome={() => setShowSelectHomeModal(true)}
-              onAttachmentDocument={() => setShowSelectDocumentModal(true)}
-              onAttachmentCalendar={() => setShowCalendarEventModal(true)}
-            />
-          </Box>
-        </section>
-      </Box>
-      <MessagingModals
-        mode="client"
-        showSearchModal={showSearchModal}
-        setShowSearchModal={setShowSearchModal}
-        showSelectHomeModal={showSelectHomeModal}
-        setShowSelectHomeModal={setShowSelectHomeModal}
-        showSelectDocumentModal={showSelectDocumentModal}
-        setShowSelectDocumentModal={setShowSelectDocumentModal}
-        showCalendarEventModal={showCalendarEventModal}
-        setShowCalendarEventModal={setShowCalendarEventModal}
-        onSelectHomes={handlers.handleSelectHomes}
-        onSelectDocument={handlers.handleSelectDocument}
-        onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
-        sendCalendarEventMessage={sendMessageApi}
-      />
-    </Box>
+          pendingConnectionRequestCount={pendingConnectionRequestCount}
+          className="xl:rounded-tl-xl xl:rounded-tr-none"
+        />
+      }
+      sidebarContent={
+        showInbox ? (
+          <ConnectionRequestsInboxSidebar onRequestAccepted={() => setShowInbox(false)} />
+        ) : (
+          <ClientMessagingConversationList
+            clientConversations={clientConversations}
+            isLoadingClientConversations={isChatsLoading}
+            activeConversationId={activeConversationId}
+            setActiveConversationId={setActiveConversationId}
+            setIsSidebarExpanded={setIsSidebarExpanded}
+            emptyMessage={clientMessagingConfig.sidebar.emptyMessage}
+          />
+        )
+      }
+      hideThread={showInbox}
+      detailHeader={
+        showInbox ? null : (
+          <UnifiedMessagingHeader
+            mode={getHeaderMode()}
+            isSidebarExpanded={isSidebarExpanded}
+            setIsSidebarExpanded={setIsSidebarExpanded}
+            onSearchClick={
+              showFindAgentInMessagingHeader ? () => setShowSearchModal(true) : undefined
+            }
+            onInboxClick={() => setShowInbox(true)}
+            onBackClick={() => setShowInbox(false)}
+            pendingConnectionRequestCount={pendingConnectionRequestCount}
+            agentName={activeConversation?.agent_name}
+            suppressListColumnActionDuplicates={suppressDetailHeaderDuplicateActions}
+          />
+        )
+      }
+      canSendMessage={canSendMessage}
+      isLoadingHistory={isLoadingHistory}
+      localMessages={localMessages}
+      formatTime={formatTime}
+      messagesEndRef={messagesEndRef}
+      onMessageListScroll={handleMessageListScroll}
+      onRetryMessage={retryMessage}
+      activeConversation={activeConversation ?? null}
+      onSearchClick={() => setShowSearchModal(true)}
+      onAcceptEventRequest={handlers.handleAcceptEventRequest}
+      onCancelEventRequest={handlers.handleCancelEventRequest}
+      acceptingEventRequestId={acceptingEventRequestId}
+      hasMoreOlder={hasMoreOlder}
+      isLoadingOlder={isLoadingOlder}
+      message={message}
+      setMessage={setMessage}
+      onSendMessage={() => {
+        void handleSendMessage();
+      }}
+      onAttachmentHome={() => setShowSelectHomeModal(true)}
+      onAttachmentDocument={() => setShowSelectDocumentModal(true)}
+      onAttachmentCalendar={() => setShowCalendarEventModal(true)}
+      modals={
+        <MessagingModals
+          mode="client"
+          showSearchModal={showSearchModal}
+          setShowSearchModal={setShowSearchModal}
+          showSelectHomeModal={showSelectHomeModal}
+          setShowSelectHomeModal={setShowSelectHomeModal}
+          showSelectDocumentModal={showSelectDocumentModal}
+          setShowSelectDocumentModal={setShowSelectDocumentModal}
+          showCalendarEventModal={showCalendarEventModal}
+          setShowCalendarEventModal={setShowCalendarEventModal}
+          onSelectHomes={handlers.handleSelectHomes}
+          onSelectDocument={handlers.handleSelectDocument}
+          onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
+          sendCalendarEventMessage={sendMessageApi}
+        />
+      }
+    />
   );
 }

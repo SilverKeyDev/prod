@@ -2,6 +2,10 @@ import React from "react";
 
 import { Icon } from "@ui/icons";
 
+import {
+  DROPDOWN_SUGGESTION_LIST_CLASSES,
+  DROPDOWN_SUGGESTION_OPTION_CLASSES,
+} from "packages/ui/components/inputs/form/dropdown/dropdownStyles";
 import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button } from "@/components/ui";
@@ -26,24 +30,20 @@ export function ImportantLocationSuggestionsList({
   }
 
   return (
-    <ul
-      id={suggestionsListId}
-      role="listbox"
-      className="bg-background-surface z-dropdown relative mt-2 flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md shadow-sm"
-    >
+    <ul id={suggestionsListId} role="listbox" className={DROPDOWN_SUGGESTION_LIST_CLASSES}>
       {suggestions.map((suggestion, index) => (
         <li
           key={index}
           id={`${suggestionsListId}-option-${index}`}
           role="option"
           aria-selected={highlightedIndex === index}
-          className="rounded border border-dotted border-neutral-300 first:border-t-0"
+          className={index > 0 ? "border-t border-neutral-200" : undefined}
         >
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onSelect(suggestion)}
-            className={`w-full cursor-pointer !justify-start px-3 py-2 text-sm [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start ${
+            className={`${DROPDOWN_SUGGESTION_OPTION_CLASSES} ${
               highlightedIndex === index ? "bg-neutral-200" : "hover:bg-neutral-100"
             }`}
           >

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { LandingSectionShell } from "packages/features/homeauth/components/homepage/landing/shared/LandingSectionShell";
 import { openLandingBookDemo } from "packages/features/homeauth/utils/landingBookDemo";
 import { LANDING_GOLD_SIGNUP_BUTTON_CLASS } from "packages/features/homeauth/utils/landingChrome";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
@@ -7,10 +8,9 @@ import { LANDING_SECTION_IDS } from "packages/features/homeauth/utils/landingSec
 import { LANDING_SECTION_LAYOUT } from "packages/features/homeauth/utils/landingSectionLayout";
 import { Link, ROUTES } from "packages/navigation";
 import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import { BodyText, Button, Title } from "@/components/ui";
-
-import { LandingSectionShell } from "../shared/LandingSectionShell";
 
 const WORD_DELAYS = [
   "delay-[180ms]",
@@ -29,8 +29,10 @@ export function LandingHero() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setMounted(true), 80);
-    return () => window.clearTimeout(timer);
+    const win = getWindow();
+    if (!win) return;
+    const timer = win.setTimeout(() => setMounted(true), 80);
+    return () => win.clearTimeout(timer);
   }, []);
 
   return (
@@ -40,7 +42,7 @@ export function LandingHero() {
       className="px-responsive-sm pb-24 pt-28 text-center sm:pb-28 sm:pt-32"
       fullBleed
     >
-      <Box className="relative z-10 mx-auto max-w-[760px]">
+      <Box className="z-header relative mx-auto max-w-3xl">
         <Title
           as="h1"
           size="xl"

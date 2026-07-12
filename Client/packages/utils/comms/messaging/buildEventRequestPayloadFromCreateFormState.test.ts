@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { BuildEventRequestPayloadFromCreateFormStateInput } from "@/features/messaging/utils/buildEventRequestPayloadFromCreateFormState";
-import { buildEventRequestPayloadFromCreateFormState } from "@/features/messaging/utils/buildEventRequestPayloadFromCreateFormState";
+import type { BuildEventRequestPayloadFromCreateFormStateInput } from "./buildEventRequestPayloadFromCreateFormState";
+import { buildEventRequestPayloadFromCreateFormState } from "./buildEventRequestPayloadFromCreateFormState";
 
 const baseInput: BuildEventRequestPayloadFromCreateFormStateInput = {
   eventTitle: "Meeting",

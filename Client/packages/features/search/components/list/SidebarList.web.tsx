@@ -32,6 +32,8 @@ export function SidebarList(props: {
   };
   /** Agent: bottom share dock is visible (≥1 home selected); drives top-left icon (share vs +). */
   agentShareDockVisible?: boolean;
+  /** Override listing card image height (e.g. taller Market inventory cards). */
+  imageHeight?: "sm" | "md" | "lg" | "responsive" | "tall";
 }): JSX.Element {
   const {
     items,
@@ -44,6 +46,7 @@ export function SidebarList(props: {
     removeSavedHome,
     agentShareBundle,
     agentShareDockVisible = false,
+    imageHeight,
   } = props;
   const SIDEBAR_INITIAL = 10;
   const SIDEBAR_PAGE_SIZE = 10;
@@ -221,6 +224,7 @@ export function SidebarList(props: {
                 saveHome={saveHome}
                 removeSavedHome={removeSavedHome}
                 isLcpImage={index === 0}
+                imageHeight={imageHeight}
                 showNotInterested={activeTab === "results"}
                 onMarkNotInterested={() => setReasonCardPropertyId(property.id)}
                 topLeftOverlay={

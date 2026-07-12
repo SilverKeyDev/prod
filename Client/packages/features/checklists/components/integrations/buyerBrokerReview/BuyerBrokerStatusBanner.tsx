@@ -4,8 +4,10 @@
  * Shows current review status and hides signing footer until agreement_sent.
  */
 import { useEffect, useState } from "react";
+
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
+import { getFetch } from "packages/utils/core/platform";
 
 type ReviewStatus = "pending_review" | "meeting_requested" | "approved" | "agreement_sent";
 
@@ -42,7 +44,7 @@ export function BuyerBrokerStatusBanner({ transactionId }: Props) {
   const [status, setStatus] = useState<ReviewStatus | null>(null);
 
   useEffect(() => {
-    void fetch(`/api/v1/transactions/${transactionId}/buyer-broker-review`)
+    void getFetch()(`/api/v1/transactions/${transactionId}/buyer-broker-review`)
       .then((r) => r.json())
       .then((json) => {
         if (json?.data?.status) {

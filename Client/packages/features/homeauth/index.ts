@@ -6,6 +6,7 @@
 export type { HomeFeatureComponent, HomeFeatureProps } from "./components/homepage";
 export { HomeFeature } from "./components/homepage";
 export { runAuthBootstrap } from "./hooks/data/authBootstrap";
+export { LANDING_NAV_MAIN_OFFSET_CLASS } from "./utils/landingChrome";
 export {
   useActiveWorkspace,
   useAllowedWorkspaces,

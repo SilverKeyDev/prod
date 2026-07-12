@@ -43,7 +43,6 @@ def mock_analytics_result():
             "active_agents": 5,
             "open_transactions": 12,
             "at_risk_agents": 1,
-            "messaging_sla_percent": 85,
         },
         "transaction_funnel": [
             {"stage": "Search", "count": 10, "drop_off_percent": 0},
@@ -53,7 +52,6 @@ def mock_analytics_result():
             {"stage": "Closing", "count": 3, "drop_off_percent": 25},
         ],
         "agent_performance": [],
-        "messaging_activity": [],
     }
 
 

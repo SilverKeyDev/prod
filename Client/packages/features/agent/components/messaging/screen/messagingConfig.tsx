@@ -3,7 +3,7 @@ import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations
 import type { IconName } from "packages/ui/types/icons";
 import { ACTION_LABELS } from "packages/utils/product/domain/actionLabels";
 
-export type MessagingMode = "client" | "agent";
+export type MessagingMode = "client" | "agent" | "brokerage";
 export type ClientPersona = "buyer" | "seller" | "renter";
 export type MessageRole = "user" | "agent";
 export type MessagingConfig = {
@@ -191,11 +191,50 @@ export const AGENT_MESSAGING_CONFIG: MessagingConfig = {
     },
   },
 };
+/** Brokerage uses client-style bubbles (own messages as "user") with workspace copy. */
+export const BROKERAGE_MESSAGING_CONFIG: MessagingConfig = {
+  mode: "brokerage",
+  messageStyles: CLIENT_MESSAGING_CONFIG.messageStyles,
+  typingIndicator: CLIENT_MESSAGING_CONFIG.typingIndicator,
+  sidebar: {
+    title: "Messages",
+    emptyTitle: "No conversations yet",
+    emptyMessage:
+      "Message platform support or agents at your brokerage. Conversations appear here.",
+  },
+  header: {
+    chatTitle: "Messages",
+    noSelectionTitle: "Select a conversation",
+    noSelectionMessage: "Choose a thread from the sidebar or start a new one.",
+  },
+  input: {
+    placeholder: "Message…",
+    buttonVariant: "olive",
+  },
+  searchModal: CLIENT_MESSAGING_CONFIG.searchModal,
+  emptyStates: {
+    noSelection: {
+      title: "Select a conversation",
+      message: "Choose a thread from the sidebar or start a new one.",
+    },
+    noMessages: {
+      title: "Start a conversation",
+      message: "Send a message to begin this thread.",
+    },
+    noAgent: {
+      title: "Select a conversation",
+      message: "Choose a thread from the sidebar or start a new one.",
+      actionLabel: "",
+    },
+  },
+};
+
 export const getMessagingConfig = (
   mode: MessagingMode,
   options?: { clientPersona?: ClientPersona }
 ): MessagingConfig => {
   if (mode === "agent") return AGENT_MESSAGING_CONFIG;
+  if (mode === "brokerage") return BROKERAGE_MESSAGING_CONFIG;
   if (options?.clientPersona === "seller") {
     return {
       ...CLIENT_MESSAGING_CONFIG,

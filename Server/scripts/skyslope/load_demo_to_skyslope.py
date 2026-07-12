@@ -32,6 +32,7 @@ from app.services.skyslope.persistence import (  # noqa: E402
     count_skyslope_transactions,
     upsert_skyslope_transactions,
 )
+from logger import log  # noqa: E402
 from scripts.skyslope.demo_to_skyslope_mapping import map_demo_deal_to_transaction_row  # noqa: E402
 
 DEFAULT_DATA_DIR = _SERVER_ROOT / "data" / "skyslope-demo"
@@ -168,7 +169,7 @@ def main() -> int:
 
     data_dir = args.data_dir.resolve()
     if not data_dir.is_dir():
-        sys.stderr.write(f"Data directory not found: {data_dir}\n")
+        log.error("API", f"Data directory not found: {data_dir}")
         return 1
 
     app = create_app()
@@ -177,11 +178,11 @@ def main() -> int:
             select(BrokerageOrg).where(BrokerageOrg.id == args.brokerage_id)
         )
         if not brokerage:
-            sys.stderr.write(f"Brokerage not found: {args.brokerage_id}\n")
+            log.error("API", f"Brokerage not found: {args.brokerage_id}")
             return 1
 
-        sys.stdout.write(
-            f"Loading demo data for brokerage '{brokerage.name}' ({args.brokerage_id})...\n"
+        log.info(
+            "API", f"Loading demo data for brokerage '{brokerage.name}' ({args.brokerage_id})..."
         )
         summary = load_demo_to_skyslope(
             args.brokerage_id,
@@ -192,7 +193,7 @@ def main() -> int:
         )
 
     for key, value in summary.items():
-        sys.stdout.write(f"  {key}: {value}\n")
+        log.info("API", f"  {key}: {value}")
 
     return 0
 

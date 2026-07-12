@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { LandingNav } from "packages/features/homeauth/components/homepage/landing/nav/LandingNav.web";
-import { LANDING_NAV_MAIN_OFFSET_CLASS } from "packages/features/homeauth/utils/landingChrome";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 import { Box, Button } from "packages/ui";
+import { LANDING_NAV_MAIN_OFFSET_CLASS } from "packages/utils/product/homeauth/landingChrome";
 
 type AgentPublicProfileShellProps = {
   children: ReactNode;

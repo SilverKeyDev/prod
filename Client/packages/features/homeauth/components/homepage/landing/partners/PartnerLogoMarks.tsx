@@ -21,8 +21,8 @@ export function PartnerLogoMark({ logoKey, title, alt, band = false }: PartnerLo
           alt={alt}
           className={
             band
-              ? "max-h-9 w-auto max-w-[132px] object-contain opacity-90"
-              : "max-h-10 w-auto max-w-[140px] object-contain"
+              ? "max-h-9 w-auto max-w-32 object-contain opacity-90"
+              : "max-h-10 w-auto max-w-36 object-contain"
           }
           loading="lazy"
         />

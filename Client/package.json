@@ -141,6 +141,7 @@
       "@tanstack/query-core": "5.90.20",
       "react-native-svg": "15.12.1",
       "tar": ">=7.5.10",
+      "shell-quote": ">=1.8.4",
       "minimatch": ">=10.2.3",
       "rollup": ">=4.59.0",
       "prismjs": ">=1.30.0",

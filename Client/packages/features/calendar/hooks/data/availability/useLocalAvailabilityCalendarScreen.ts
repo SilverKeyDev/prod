@@ -12,13 +12,13 @@ import type {
   ExtendedGoogleEvent,
 } from "packages/features/calendar/types/calendar";
 import type { GoogleEvent } from "packages/features/calendar/types/googleEvent";
-import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
-import { expandProfileAvailabilityToEvents } from "packages/features/profile/utils/availability/expandProfileAvailabilityToEvents";
 import {
   addAvailabilityFromQuickCreate,
   deleteAvailabilityByEventId,
+  expandProfileAvailabilityToEvents,
   updateAvailabilityFromEditedEvent,
-} from "packages/features/profile/utils/availability/profileAvailabilityMutations";
+} from "packages/features/profile/api/availabilityCalendar";
+import type { BuyerPreferenceExtensions } from "packages/features/profile/types/sections/buyerPreferenceExtensions";
 import { useMediaQuery } from "packages/hooks/ui";
 import { log } from "packages/logger";
 import { SILVERKEY_MODAL_ROOT_SELECTOR } from "packages/ui/components/surfaces/modals/BaseModalTypes";

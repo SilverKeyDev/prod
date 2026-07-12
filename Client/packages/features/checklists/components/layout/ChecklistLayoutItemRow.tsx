@@ -216,9 +216,7 @@ function ChecklistLayoutItemRowInner({
       />
       <Box
         className={`${checklistRowShellClassNames.fullWidth} rounded-lg ${checklistRowShellClassNames.innerPadding} ${DOTTED_BORDER_LIGHT_GRAY} ${
-          isActive
-            ? "ring-gold relative z-10 overflow-visible shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1"
-            : ""
+          isActive ? "ring-gold z-header relative overflow-visible shadow-md ring-1" : ""
         }`}
       >
         {headerRow}

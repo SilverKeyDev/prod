@@ -67,7 +67,7 @@ export function AnalyticsDonutChart({
           label: { show: false },
           emphasis: { scale: true, scaleSize: 4 },
         })),
-        itemStyle: { borderColor: "#ffffff", borderWidth: 2 },
+        itemStyle: { borderColor: color("background-surface"), borderWidth: 2 },
       },
     ],
     graphic: [

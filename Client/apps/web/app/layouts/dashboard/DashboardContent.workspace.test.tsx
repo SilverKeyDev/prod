@@ -30,6 +30,9 @@ vi.mock("@/pages/account/ProfilePage", () => ({ default: () => <div>ProfilePage<
 vi.mock("@/pages/workspace/BrokerageDashboardPage", () => ({
   default: () => <div data-testid="workspace-shell-brokerage">Brokerage</div>,
 }));
+vi.mock("@/pages/workspace/BrokerageCampaignsPage", () => ({
+  default: () => <div data-testid="workspace-shell-campaigns">Campaigns</div>,
+}));
 vi.mock("@/pages/workspace/IntegrationPartnerDashboardPage", () => ({
   default: () => <div data-testid="workspace-shell-integration-partner">Integration partner</div>,
 }));
@@ -43,6 +46,13 @@ vi.mock("@/pages/workspace/DashboardPage", () => ({
   default: () => <div data-testid="workspace-shell-buyer">Buyer</div>,
 }));
 vi.mock("@/pages/workspace/AgentPage", () => ({ default: () => <div>AgentPage</div> }));
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
+  return {
+    ...actual,
+    Navigate: ({ to }: { to: string }) => <div data-testid="navigate">{to}</div>,
+  };
+});
 import { DashboardContent } from "./DashboardContent";
 
 describe("DashboardContent workspace shells", () => {
@@ -50,6 +60,8 @@ describe("DashboardContent workspace shells", () => {
     mockUseDashboardRoute.mockReturnValue({
       activeKey: "dashboard",
       isSearch: false,
+      isInventory: false,
+      isCampaigns: false,
       isMessaging: false,
       widthPercent: 85,
       isDashboard: true,
@@ -90,11 +102,13 @@ describe("DashboardContent workspace shells", () => {
     expect(await screen.findByTestId("workspace-shell-integration-partner")).toBeTruthy();
   });
 
-  it("renders placeholder shell for blocked routes when workspace is a placeholder", async () => {
+  it("buyer /search mounts SearchPage", async () => {
     mockUseActiveWorkspace.mockReturnValue("buyer");
     mockUseDashboardRoute.mockReturnValue({
       activeKey: "search",
       isSearch: true,
+      isInventory: false,
+      isCampaigns: false,
       isMessaging: false,
       widthPercent: 85,
       isDashboard: false,
@@ -107,5 +121,89 @@ describe("DashboardContent workspace shells", () => {
       <DashboardContent searchPageRef={{ current: null }} setMobileHeaderActions={() => {}} />
     );
     expect(await screen.findByText("SearchPage")).toBeTruthy();
+  });
+
+  it("agent /search mounts SearchPage", async () => {
+    mockUseActiveWorkspace.mockReturnValue("agent");
+    mockUseDashboardRoute.mockReturnValue({
+      activeKey: "search",
+      isSearch: true,
+      isInventory: false,
+      isCampaigns: false,
+      isMessaging: false,
+      widthPercent: 85,
+      isDashboard: false,
+      isProfile: false,
+      isLibrary: false,
+      isAgreementSigningComplete: false,
+      pathname: "/search",
+    });
+    render(
+      <DashboardContent searchPageRef={{ current: null }} setMobileHeaderActions={() => {}} />
+    );
+    expect(await screen.findByText("SearchPage")).toBeTruthy();
+  });
+
+  it("brokerage /search redirects to /dashboard", async () => {
+    mockUseActiveWorkspace.mockReturnValue("brokerage");
+    mockUseDashboardRoute.mockReturnValue({
+      activeKey: "search",
+      isSearch: true,
+      isInventory: false,
+      isCampaigns: false,
+      isMessaging: false,
+      widthPercent: 85,
+      isDashboard: false,
+      isProfile: false,
+      isLibrary: false,
+      isAgreementSigningComplete: false,
+      pathname: "/search",
+    });
+    render(
+      <DashboardContent searchPageRef={{ current: null }} setMobileHeaderActions={() => {}} />
+    );
+    expect(await screen.findByTestId("navigate")).toHaveTextContent("/dashboard");
+  });
+
+  it("brokerage /inventory redirects to /dashboard", async () => {
+    mockUseActiveWorkspace.mockReturnValue("brokerage");
+    mockUseDashboardRoute.mockReturnValue({
+      activeKey: "inventory",
+      isSearch: false,
+      isInventory: true,
+      isCampaigns: false,
+      isMessaging: false,
+      widthPercent: 100,
+      isDashboard: false,
+      isProfile: false,
+      isLibrary: false,
+      isAgreementSigningComplete: false,
+      pathname: "/inventory",
+    });
+    render(
+      <DashboardContent searchPageRef={{ current: null }} setMobileHeaderActions={() => {}} />
+    );
+    expect(await screen.findByTestId("navigate")).toHaveTextContent("/dashboard");
+  });
+
+  it("brokerage /campaigns mounts Campaigns shell", async () => {
+    mockUseActiveWorkspace.mockReturnValue("brokerage");
+    mockUseDashboardRoute.mockReturnValue({
+      activeKey: "campaigns",
+      isSearch: false,
+      isInventory: false,
+      isCampaigns: true,
+      isMessaging: false,
+      widthPercent: 90,
+      isDashboard: false,
+      isProfile: false,
+      isLibrary: false,
+      isAgreementSigningComplete: false,
+      pathname: "/campaigns",
+    });
+    render(
+      <DashboardContent searchPageRef={{ current: null }} setMobileHeaderActions={() => {}} />
+    );
+    expect(await screen.findByTestId("workspace-shell-campaigns")).toBeTruthy();
   });
 });

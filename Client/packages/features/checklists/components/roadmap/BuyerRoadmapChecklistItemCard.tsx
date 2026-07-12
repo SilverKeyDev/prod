@@ -338,11 +338,7 @@ function BuyerRoadmapChecklistItemCardInner({
       border={itemBorder}
       padding="none"
       hover={false}
-      className={`m-1.5 w-full overflow-hidden ${
-        isActive
-          ? "ring-gold shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1"
-          : ""
-      }`}
+      className={`m-1.5 w-full overflow-hidden ${isActive ? "ring-gold shadow-md ring-1" : ""}`}
     >
       {rowInner}
     </Card>

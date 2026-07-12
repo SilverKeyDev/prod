@@ -315,6 +315,13 @@
     "reason": "Web uses getElementById; native uses registered ScrollView."
   },
   {
+    "id": "landing-book-demo",
+    "description": "Open landing demo booking URL in a new tab (web) or system browser (native).",
+    "webPath": "packages/features/homeauth/utils/landingBookDemo.ts",
+    "nativePath": "packages/features/homeauth/utils/landingBookDemo.native.ts",
+    "reason": "Web uses window.open via getWindow; native uses React Native Linking.openURL."
+  },
+  {
     "id": "landing-analytics",
     "description": "Landing PostHog capture helpers — web only.",
     "webPath": "packages/hooks/analytics/trackLandingAnalytics.web.ts",

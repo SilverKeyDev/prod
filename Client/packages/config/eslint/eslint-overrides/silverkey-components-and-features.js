@@ -139,14 +139,14 @@ export function silverkeyComponentsAndFeatures(silverkey) {
       files: [
         "packages/ui/**/*.{ts,tsx}",
         "packages/features/**/*.{ts,tsx}",
-        "apps/web/pages/**/*.{ts,tsx}",
+        "apps/web/**/*.{ts,tsx}",
       ],
       plugins: { silverkey },
       rules: {
         "silverkey/no-literal-hex-colors": [
           "warn",
           {
-            includePaths: ["packages/ui/", "packages/features/", "apps/web/pages/"],
+            includePaths: ["packages/ui/", "packages/features/", "apps/web/"],
             allowedPaths: ["packages/design-tokens/"],
           },
         ],

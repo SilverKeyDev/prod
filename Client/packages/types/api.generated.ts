@@ -4613,6 +4613,7 @@ export interface components {
       docusign: boolean;
       documents: boolean;
       transactions: boolean;
+      email: boolean;
       profilePreferences: boolean;
       /** @enum {string} */
       logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR";
@@ -4641,6 +4642,7 @@ export interface components {
       docusign?: boolean;
       documents?: boolean;
       transactions?: boolean;
+      email?: boolean;
       profilePreferences?: boolean;
       /** @enum {string} */
       logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR";
@@ -6257,6 +6259,7 @@ export interface components {
       docusign: boolean;
       documents: boolean;
       transactions: boolean;
+      email: boolean;
       profilePreferences: boolean;
       /** @enum {string} */
       logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR";
@@ -6285,6 +6288,7 @@ export interface components {
       docusign?: boolean;
       documents?: boolean;
       transactions?: boolean;
+      email?: boolean;
       profilePreferences?: boolean;
       /** @enum {string} */
       logLevel?: "DEBUG" | "INFO" | "WARN" | "ERROR";

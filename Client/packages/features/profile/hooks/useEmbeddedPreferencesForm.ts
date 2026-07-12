@@ -169,6 +169,18 @@ export function useEmbeddedPreferencesForm({
     [formData, updateFormDataWithAutoSave]
   );
 
+  const updateFormFields = useCallback(
+    (patch: Partial<OnboardingData>) => {
+      if (Object.keys(patch).length === 0) return;
+      setFormData((prev) => {
+        const next = { ...prev, ...patch };
+        autoSave(next);
+        return next;
+      });
+    },
+    [autoSave]
+  );
+
   const patchBuyerPreferenceExtensions = useCallback(
     (fn: (prev: BuyerPreferenceExtensions | undefined) => BuyerPreferenceExtensions) => {
       setFormData((prev) => {
@@ -192,6 +204,7 @@ export function useEmbeddedPreferencesForm({
     saveStatus,
     scriptsReady,
     updateFormData,
+    updateFormFields,
     patchBuyerPreferenceExtensions,
     flushPreferencesSave,
     cancelPendingSave,
