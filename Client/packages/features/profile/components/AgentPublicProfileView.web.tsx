@@ -27,24 +27,17 @@ export type AgentPublicProfileViewProps = {
  * links. Contact channels are deliberately not rendered in the body —
  * visitors reach the agent via the hero Connect CTA.
  */
-export function AgentPublicProfileView({
-  agent,
-  heroActions,
-}: AgentPublicProfileViewProps) {
+export function AgentPublicProfileView({ agent, heroActions }: AgentPublicProfileViewProps) {
   const { t } = useLocalization();
   const fallbackName = t("profile.public.hero_fallback_name");
   const model = useMemo(
     () => buildAgentPublicProfileViewModel(agent, fallbackName),
-    [agent, fallbackName],
+    [agent, fallbackName]
   );
 
   return (
     <Box className="w-full">
-      <PublicProfileHero
-        agent={agent}
-        model={model}
-        heroActions={heroActions}
-      />
+      <PublicProfileHero agent={agent} model={model} heroActions={heroActions} />
       <PublicProfileSearchBand agent={agent} model={model} />
       <PublicProfileListings agentId={agent.id} />
       <PublicProfileTestimonials model={model} />

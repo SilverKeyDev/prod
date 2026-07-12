@@ -9,12 +9,10 @@ import Title from "packages/ui/components/structure/text/Title";
 export type PublicProfileSectionTone = "base" | "surface";
 
 /** Content container matching the landing nav width so sections align with the header. */
-export const PUBLIC_PROFILE_CONTAINER_CLASS =
-  "px-responsive-sm mx-auto w-full max-w-[1100px]";
+export const PUBLIC_PROFILE_CONTAINER_CLASS = "px-responsive-sm mx-auto w-full max-w-[1100px]";
 
 /** Anchor offset for the fixed nav; re-exported so sibling sections avoid re-importing landing chrome. */
-export const PUBLIC_PROFILE_SECTION_ANCHOR_CLASS =
-  LANDING_NAV_SCROLL_MARGIN_CLASS;
+export const PUBLIC_PROFILE_SECTION_ANCHOR_CLASS = LANDING_NAV_SCROLL_MARGIN_CLASS;
 
 /** Small uppercase label above section headings, mirroring the landing eyebrow. */
 export function PublicProfileEyebrow({ children }: { children: string }) {
@@ -61,9 +59,7 @@ export function PublicProfileSection({
   children,
 }: PublicProfileSectionProps) {
   const { ref, inView } = useLandingReveal({ threshold: 0.1 });
-  const rhythmClass = compact
-    ? "gap-4 py-10 sm:py-12"
-    : "gap-5 py-14 sm:gap-6 sm:py-16";
+  const rhythmClass = compact ? "gap-4 py-10 sm:py-12" : "gap-5 py-14 sm:gap-6 sm:py-16";
   const alignClass = centered ? "items-center text-center" : "";
 
   return (
@@ -74,15 +70,11 @@ export function PublicProfileSection({
       <Box
         ref={ref}
         className={`${PUBLIC_PROFILE_CONTAINER_CLASS} ${rhythmClass} ${alignClass} motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
-          inView
-            ? "translate-y-0 opacity-100"
-            : "motion-safe:translate-y-8 motion-safe:opacity-0"
+          inView ? "translate-y-0 opacity-100" : "motion-safe:translate-y-8 motion-safe:opacity-0"
         }`}
       >
         <Box className="gap-1.5">
-          {eyebrow ? (
-            <PublicProfileEyebrow>{eyebrow}</PublicProfileEyebrow>
-          ) : null}
+          {eyebrow ? <PublicProfileEyebrow>{eyebrow}</PublicProfileEyebrow> : null}
           <Title as="h2" size={compact ? "md" : "lg"} className="!font-serif">
             {heading}
           </Title>
