@@ -1,3 +1,5 @@
+import { Icon } from "@ui/icons";
+
 import { AnalyticsBarChart, AnalyticsHeatMap } from "packages/features/brokerage/components/charts";
 import { useActivityDistribution } from "packages/features/brokerage/hooks/useActivityDistribution";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
@@ -32,9 +34,12 @@ export function TransactionActivityDistribution({ chartColor, period = "all" }: 
       data-testid="transaction-activity-distribution"
       data-period={period}
     >
-      <Title size="sm" as="h3" className="mb-1">
-        Transaction Activity Distribution
-      </Title>
+      <Box className="mb-1 flex items-center gap-2">
+        <Icon name="calendar" className="text-text-secondary h-4 w-4 shrink-0" />
+        <Title size="sm" as="h3">
+          Transaction Activity Distribution
+        </Title>
+      </Box>
       <BodyText size="xs" muted className="mb-4">
         When deals close across a typical week, month, and year
       </BodyText>

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+import { Icon } from "@ui/icons";
 
 import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
@@ -20,12 +22,22 @@ export function BrokerageAnalyticsShell() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all");
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("overview");
 
+  const tabItems = useMemo(
+    () =>
+      DASHBOARD_TABS.map((tab) => ({
+        id: tab.id,
+        label: tab.label,
+        icon: <Icon name={tab.iconName} className="h-full w-full" />,
+      })),
+    []
+  );
+
   return (
     <Box className="flex flex-col gap-6 p-6">
       <Box className="border-border flex flex-wrap items-center justify-between gap-3 border-b">
         <Box className="min-w-0 flex-1 [&>*]:border-b-0">
           <UnderlineTabs
-            items={DASHBOARD_TABS}
+            items={tabItems}
             activeId={activeTab}
             onChange={(id) => setActiveTab(id as AnalyticsTab)}
             size="sm"

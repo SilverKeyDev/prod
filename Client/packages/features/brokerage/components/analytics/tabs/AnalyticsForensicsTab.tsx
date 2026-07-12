@@ -117,15 +117,17 @@ export function AnalyticsForensicsTab({ timePeriod }: Props) {
 
   return (
     <Box className="flex flex-col gap-6" data-testid="analytics-forensics-tab">
-      <SectionCard title="Contract-to-close">
+      <SectionCard title="Contract-to-close" iconName="clock">
         <Box className="mb-4 grid gap-4 sm:grid-cols-2" data-testid="cycle-time-kpis">
           <KpiCard
             label="Avg contract-to-close"
             value={`${cycleTime.avgContractToCloseDays} days`}
+            iconName="clock"
           />
           <KpiCard
             label="Median contract-to-close"
             value={`${cycleTime.medianContractToCloseDays} days`}
+            iconName="activity"
           />
         </Box>
         <BodyText size="xs" muted className="mb-2">
@@ -142,7 +144,7 @@ export function AnalyticsForensicsTab({ timePeriod }: Props) {
 
       <TransactionActivityDistribution chartColor={chartColor1} period={timePeriod} />
 
-      <SectionCard title="Deal Failure Forensics">
+      <SectionCard title="Deal Failure Forensics" iconName="alert-triangle">
         <BodyText size="xs" muted className="mb-4">
           Fall-through rate:{" "}
           <BodyText as="span" className="font-medium" style={{ color: dangerColor }}>

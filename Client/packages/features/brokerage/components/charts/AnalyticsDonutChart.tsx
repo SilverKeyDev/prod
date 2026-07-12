@@ -1,6 +1,8 @@
 import ReactECharts from "echarts-for-react";
 
 import { color } from "packages/design-tokens";
+import { ChartLegend } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 
 export interface DonutSlice {
   label: string;
@@ -45,6 +47,13 @@ export function AnalyticsDonutChart({
 
   const entropy = shannonEntropy(data);
   const maxEntropy = Math.log2(data.length);
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+
+  const legendItems = data.map((d, i) => ({
+    label: d.label,
+    color: palette[i % palette.length],
+    valueLabel: total > 0 ? `${((d.value / total) * 100).toFixed(1)}%` : "0.0%",
+  }));
 
   const option = {
     tooltip: {
@@ -117,5 +126,10 @@ export function AnalyticsDonutChart({
     ],
   };
 
-  return <ReactECharts option={option} style={{ height }} />;
+  return (
+    <Box className="relative">
+      <ReactECharts option={option} style={{ height }} />
+      <ChartLegend className="absolute right-0 top-0" items={legendItems} />
+    </Box>
+  );
 }

@@ -21,11 +21,10 @@ import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeri
 import { Box } from "packages/ui/components/structure/primitives";
 import DashedDivider from "packages/ui/components/structure/primitives/divider/DashedDivider";
 import BodyText from "packages/ui/components/structure/text/BodyText";
-import Title from "packages/ui/components/structure/text/Title";
 
 import { AnalyticsDataTable } from "../AnalyticsDataTable";
 import { CLOSINGS_LABEL, DELTA_LABEL, TREND_TITLE } from "../analyticsShellConstants";
-import { KpiCard, SectionCard } from "../AnalyticsShellShared";
+import { KpiCard, SectionCard, SectionHeading } from "../AnalyticsShellShared";
 
 type Props = {
   timePeriod: TimePeriod;
@@ -84,22 +83,31 @@ export function AnalyticsOverviewTab({ timePeriod }: Props) {
   return (
     <Box className="flex flex-col gap-6" data-testid="analytics-overview-tab">
       <Box data-testid="overview-section-snapshot">
-        <Title size="sm" as="h2" className="mb-4">
-          Snapshot
-        </Title>
+        <SectionHeading title="Snapshot" iconName="activity" />
         <Box className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiCard label="Active Agents" value={overview.activeAgents} />
-          <KpiCard label="Open Transactions" value={overview.openTransactions.toLocaleString()} />
-          <KpiCard label="At-Risk Agents" value={overview.atRiskCount} delta="Stalled > 14 days" />
+          <KpiCard label="Active Agents" value={overview.activeAgents} iconName="users" />
+          <KpiCard
+            label="Open Transactions"
+            value={overview.openTransactions.toLocaleString()}
+            iconName="clipboard-check"
+          />
+          <KpiCard
+            label="At-Risk Agents"
+            value={overview.atRiskCount}
+            delta="Stalled > 14 days"
+            iconName="alert-triangle"
+          />
           <KpiCard
             label={CLOSINGS_LABEL[timePeriod]}
             value={overview.closingsThisMonth.toLocaleString()}
             delta={`${closingsDelta >= 0 ? "+" : ""}${closingsDelta.toLocaleString()} ${DELTA_LABEL[timePeriod]}`}
+            iconName="check-circle"
           />
           <KpiCard
             label="Active Clients"
             value={overview.activeClientsThisMonth.toLocaleString()}
             delta={`${clientsDelta >= 0 ? "+" : ""}${clientsDelta.toLocaleString()} ${DELTA_LABEL[timePeriod]}`}
+            iconName="user"
           />
         </Box>
       </Box>
@@ -107,51 +115,67 @@ export function AnalyticsOverviewTab({ timePeriod }: Props) {
       <DashedDivider className="my-2" />
 
       <Box data-testid="overview-section-production">
-        <Title size="sm" as="h2" className="mb-4">
-          Production
-        </Title>
+        <SectionHeading title="Production" iconName="dollar-sign" />
         <Box
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
           data-testid="production-kpi-row"
         >
-          <KpiCard label="Closed volume" value={formatCompactCurrency(closedVolume)} />
-          <KpiCard label="Pending volume" value={formatCompactCurrency(pendingVolume)} />
-          <KpiCard label="Active volume" value={formatCompactCurrency(activeVolume)} />
+          <KpiCard
+            label="Closed volume"
+            value={formatCompactCurrency(closedVolume)}
+            iconName="check-circle"
+          />
+          <KpiCard
+            label="Pending volume"
+            value={formatCompactCurrency(pendingVolume)}
+            iconName="clock"
+          />
+          <KpiCard
+            label="Active volume"
+            value={formatCompactCurrency(activeVolume)}
+            iconName="activity"
+          />
           <KpiCard
             label="GCI closed"
             value={formatCompactCurrency(production.gci.closed)}
             delta={`Pending ${formatCompactCurrency(production.gci.pending)} · Projected ${formatCompactCurrency(production.gci.projected)}`}
+            iconName="dollar-sign"
           />
           <KpiCard
             label="Avg commission / side"
             value={formatCompactCurrency(production.gci.avgCommissionPerSide)}
+            iconName="receipt"
           />
           <KpiCard
             label="Avg sale price"
             value={formatCompactCurrency(production.pricing.avgSalePrice)}
             delta={`L2S ${(production.pricing.listToSaleRatio * 100).toFixed(1)}% · DOM ${production.pricing.avgDom}d`}
+            iconName="home"
           />
         </Box>
       </Box>
 
       <DashedDivider className="my-2" />
 
-      <SectionCard title="Goals & pacing">
+      <SectionCard title="Goals & pacing" iconName="target">
         <Box className="grid gap-4 sm:grid-cols-3" data-testid="goals-pacing">
           <KpiCard
             label="Volume pace"
             value={`${volumePace}%`}
             delta={`${formatCompactCurrency(production.goals.volumeActual)} of ${formatCompactCurrency(production.goals.volumeTarget)}`}
+            iconName="bar-chart-2"
           />
           <KpiCard
             label="GCI pace"
             value={`${gciPace}%`}
             delta={`${formatCompactCurrency(production.goals.gciActual)} of ${formatCompactCurrency(production.goals.gciTarget)}`}
+            iconName="trending-up"
           />
           <KpiCard
             label="Attach pace"
             value={`${attachPace}%`}
             delta={`${production.goals.attachActualPercent}% of ${production.goals.attachTargetPercent}% target`}
+            iconName="link-2"
           />
         </Box>
       </SectionCard>
@@ -159,11 +183,9 @@ export function AnalyticsOverviewTab({ timePeriod }: Props) {
       <DashedDivider className="my-2" />
 
       <Box data-testid="overview-section-pipeline">
-        <Title size="sm" as="h2" className="mb-4">
-          Pipeline
-        </Title>
+        <SectionHeading title="Pipeline" iconName="bar-chart-2" />
         <Box className="grid gap-4 lg:grid-cols-2">
-          <SectionCard title="Transaction Funnel">
+          <SectionCard title="Transaction Funnel" iconName="activity">
             <BodyText size="xs" muted className="mb-2">
               Stage counts
             </BodyText>
@@ -184,7 +206,7 @@ export function AnalyticsOverviewTab({ timePeriod }: Props) {
               unit=""
             />
           </SectionCard>
-          <SectionCard title="Sales volume by status">
+          <SectionCard title="Sales volume by status" iconName="dollar-sign">
             <AnalyticsBarChart
               data={volumeByStatusBars}
               orientation="vertical"
@@ -198,11 +220,9 @@ export function AnalyticsOverviewTab({ timePeriod }: Props) {
       <DashedDivider className="my-2" />
 
       <Box data-testid="overview-section-mix">
-        <Title size="sm" as="h2" className="mb-4">
-          Mix
-        </Title>
+        <SectionHeading title="Mix" iconName="grid-3x3" />
         <Box className="grid gap-4 lg:grid-cols-2">
-          <SectionCard title="Agent Status Breakdown">
+          <SectionCard title="Agent Status Breakdown" iconName="users">
             <AnalyticsDonutChart
               data={agentStatusDonut}
               centerLabel={String(overview.activeAgents)}
@@ -211,7 +231,7 @@ export function AnalyticsOverviewTab({ timePeriod }: Props) {
               colors={[successColor, chartColor1, dangerColor]}
             />
           </SectionCard>
-          <SectionCard title="Property Class">
+          <SectionCard title="Property Class" iconName="building-2">
             <AnalyticsDonutChart
               data={propertyClassDonut}
               centerLabel={propertyClassTotal.toLocaleString()}
@@ -226,11 +246,9 @@ export function AnalyticsOverviewTab({ timePeriod }: Props) {
       <DashedDivider className="my-2" />
 
       <Box data-testid="overview-section-closings">
-        <Title size="sm" as="h2" className="mb-4">
-          Closings
-        </Title>
+        <SectionHeading title="Closings" iconName="check-circle" />
         <Box className="grid gap-4 lg:grid-cols-2">
-          <SectionCard title="Representation Side">
+          <SectionCard title="Representation Side" iconName="handshake">
             <AnalyticsDonutChart
               data={transactionSideDonut}
               centerLabel={transactionSideTotal.toLocaleString()}
@@ -239,7 +257,7 @@ export function AnalyticsOverviewTab({ timePeriod }: Props) {
               colors={[successColor, chartColor1, chartColor3]}
             />
           </SectionCard>
-          <SectionCard title={TREND_TITLE[timePeriod]}>
+          <SectionCard title={TREND_TITLE[timePeriod]} iconName="trending-up">
             <AnalyticsLineChart
               data={data.closingsTrend.map((d) => ({ label: d.label, value: d.value }))}
               height={280}
@@ -250,7 +268,7 @@ export function AnalyticsOverviewTab({ timePeriod }: Props) {
 
       <DashedDivider className="my-2" />
 
-      <SectionCard title="Office production">
+      <SectionCard title="Office production" iconName="building">
         <Box data-testid="office-production-table">
           <AnalyticsDataTable
             rows={production.officeRollups}

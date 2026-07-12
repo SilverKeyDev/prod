@@ -43,7 +43,7 @@ export function CampaignCategorySection({
   return (
     <Box
       id={category.id}
-      className="border-border border-l-gold bg-background-surface flex scroll-mt-24 flex-col gap-4 rounded-xl border border-l-4 p-5"
+      className="border-border bg-background-surface flex scroll-mt-24 flex-col gap-4 rounded-xl border p-5 shadow-sm"
       data-testid={`campaign-category-${category.id}`}
     >
       <Box className="flex flex-wrap items-center justify-between gap-3">

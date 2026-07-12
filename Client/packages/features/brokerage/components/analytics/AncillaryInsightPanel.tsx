@@ -6,6 +6,7 @@
  */
 import { useMemo } from "react";
 
+import { Icon } from "@ui/icons";
 import ReactECharts from "echarts-for-react";
 
 import { color } from "packages/design-tokens";
@@ -99,9 +100,16 @@ export function AncillaryInsightPanel({ data }: { data: AncillaryAnalytics }) {
   return (
     <Box className="flex flex-col gap-6">
       <Box className="border-border-danger bg-background-surface rounded-xl border p-6">
-        <BodyText size="sm" muted className="mb-1">
-          Estimated Annual Revenue Leakage
-        </BodyText>
+        <Box className="mb-1 flex items-center gap-1.5">
+          <Icon
+            name="trending-down"
+            className="h-3.5 w-3.5 shrink-0"
+            style={{ color: dangerColor }}
+          />
+          <BodyText size="sm" muted>
+            Estimated Annual Revenue Leakage
+          </BodyText>
+        </Box>
         <Title size="xl" style={{ color: dangerColor }}>
           {formatAncillaryDollars(data.summary.total_leakage_dollars)}
         </Title>
@@ -115,9 +123,12 @@ export function AncillaryInsightPanel({ data }: { data: AncillaryAnalytics }) {
       </Box>
 
       <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Title size="sm" as="h3" className="mb-1">
-          Attach Rates by Service
-        </Title>
+        <Box className="mb-1 flex items-center gap-2">
+          <Icon name="bar-chart-2" className="text-text-secondary h-4 w-4 shrink-0" />
+          <Title size="sm" as="h3">
+            Attach Rates by Service
+          </Title>
+        </Box>
         <BodyText size="xs" muted className="mb-4">
           Hover any bar to see in-house vs outside breakdown and leakage amount
         </BodyText>
@@ -125,9 +136,12 @@ export function AncillaryInsightPanel({ data }: { data: AncillaryAnalytics }) {
       </Box>
 
       <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Title size="sm" as="h3" className="mb-1">
-          Agent Leakage Leaderboard
-        </Title>
+        <Box className="mb-1 flex items-center gap-2">
+          <Icon name="users" className="text-text-secondary h-4 w-4 shrink-0" />
+          <Title size="sm" as="h3">
+            Agent Leakage Leaderboard
+          </Title>
+        </Box>
         <BodyText size="xs" muted className="mb-4">
           Agents sorted by total estimated leakage — highest opportunity for coaching
         </BodyText>
@@ -143,14 +157,11 @@ export function AncillaryInsightPanel({ data }: { data: AncillaryAnalytics }) {
                 return (
                   <Box className="flex items-center gap-2">
                     {index === 0 ? (
-                      <BodyText
-                        as="span"
-                        size="xs"
-                        className="font-bold"
+                      <Icon
+                        name="trending-up"
+                        className="h-3.5 w-3.5 shrink-0"
                         style={{ color: dangerColor }}
-                      >
-                        ▲
-                      </BodyText>
+                      />
                     ) : null}
                     <BodyText as="span" className="font-medium">
                       {agent.name}

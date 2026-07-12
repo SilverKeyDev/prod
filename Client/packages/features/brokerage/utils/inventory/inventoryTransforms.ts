@@ -3,15 +3,18 @@
  * overviewTransforms / useBrokerageAnalytics (SIL-207).
  */
 import type { InventoryListing } from "packages/features/brokerage/types/inventory";
-import { periodScale, type TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
+import { periodScale,type TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 
 import { INVENTORY_FIXTURE } from "./inventoryFixtures";
 
 const BASE_LISTINGS = INVENTORY_FIXTURE.listings;
 
+/** Cap map markers so year/all period repeats stay interactive. */
+const MAX_PERIOD_LISTINGS = 360;
+
 /**
  * Scale listing count by period (month = baseline). Week shows a subsample;
- * longer periods repeat the seed set with unique ids.
+ * longer periods repeat the seed set with unique ids and slight pin offsets.
  */
 export function buildBrokerageInventory(period: TimePeriod): InventoryListing[] {
   const scale = periodScale(period);
@@ -26,6 +29,9 @@ export function buildBrokerageInventory(period: TimePeriod): InventoryListing[] 
   const out: InventoryListing[] = [];
   for (let r = 0; r < repeats; r++) {
     for (const listing of BASE_LISTINGS) {
+      if (out.length >= MAX_PERIOD_LISTINGS) {
+        return out;
+      }
       const suffix = r === 0 ? "" : `-p${r}`;
       out.push({
         ...listing,

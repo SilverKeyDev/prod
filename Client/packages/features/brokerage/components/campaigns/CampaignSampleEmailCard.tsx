@@ -44,7 +44,7 @@ export function CampaignSampleEmailCard({ email }: CampaignSampleEmailCardProps)
 
   return (
     <Box
-      className="border-border bg-background flex flex-col gap-3 rounded-lg border p-4"
+      className="border-border bg-background flex flex-col gap-3 rounded-lg border p-4 shadow-sm"
       data-testid={`campaign-email-${email.id}`}
     >
       <Box className="flex items-start justify-between gap-2">

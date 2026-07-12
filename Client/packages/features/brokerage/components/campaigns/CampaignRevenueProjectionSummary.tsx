@@ -29,7 +29,7 @@ export function CampaignRevenueProjectionSummary({ projection }: Props) {
 
   return (
     <Box
-      className="border-border border-l-gold bg-background-surface flex w-full flex-col gap-4 rounded-xl border border-l-4 p-5"
+      className="border-border bg-background-surface flex w-full flex-col gap-4 rounded-xl border p-5 shadow-sm"
       data-testid="campaign-revenue-projection-summary"
     >
       <Box className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-8">

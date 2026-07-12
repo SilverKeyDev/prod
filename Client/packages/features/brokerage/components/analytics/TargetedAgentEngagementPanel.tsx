@@ -5,6 +5,8 @@
  */
 import { useState } from "react";
 
+import { Icon } from "@ui/icons";
+
 import { useTargetedAgentEngagement } from "packages/features/brokerage/hooks/useTargetedAgentEngagement";
 import type { TargetedAgentEngagement } from "packages/features/brokerage/types/analytics";
 import { exportAnalyticsCsv } from "packages/features/brokerage/utils/analytics/exportCsv";
@@ -14,6 +16,7 @@ import { Button, Label, Select } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
+import type { IconName } from "packages/ui/types/icons";
 
 import { AnalyticsDataTable } from "./AnalyticsDataTable";
 import { SectionCard } from "./AnalyticsShellShared";
@@ -24,6 +27,12 @@ const PRIORITY_STYLES: Record<string, string> = {
   high: "bg-red-100 text-red-700",
   medium: "bg-yellow-100 text-yellow-700",
 };
+
+const SUMMARY_CARDS: { key: string; label: string; iconName: IconName }[] = [
+  { key: "analyzed", label: "Agents Analyzed", iconName: "users" },
+  { key: "flagged", label: "Flagged Agents", iconName: "flag" },
+  { key: "recoverable", label: "Recoverable Revenue", iconName: "dollar-sign" },
+];
 
 function exportEngagementCsv(rows: FlaggedAgent[]) {
   exportAnalyticsCsv(
@@ -64,7 +73,7 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: Time
 
   if (isLoading) {
     return (
-      <SectionCard title="Targeted Agent Engagement">
+      <SectionCard title="Targeted Agent Engagement" iconName="target">
         <BodyText size="sm" muted>
           Loading engagement targets...
         </BodyText>
@@ -74,7 +83,7 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: Time
 
   if (error || !data) {
     return (
-      <SectionCard title="Targeted Agent Engagement">
+      <SectionCard title="Targeted Agent Engagement" iconName="target">
         <BodyText size="sm" muted>
           Failed to load engagement data.
         </BodyText>
@@ -101,8 +110,14 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: Time
     { value: "medium", label: "Medium" },
   ];
 
+  const summaryValues: Record<string, string | number> = {
+    analyzed: data.summary.total_agents_analyzed,
+    flagged: data.summary.agents_flagged,
+    recoverable: `$${data.summary.estimated_recoverable_dollars.toLocaleString()}`,
+  };
+
   return (
-    <SectionCard title="Targeted Agent Engagement">
+    <SectionCard title="Targeted Agent Engagement" iconName="target">
       <Box className="mb-4 flex items-start justify-between gap-4">
         <BodyText size="sm" muted>
           Agents with low in-house ancillary attach rates — prioritized by estimated recoverable
@@ -112,6 +127,7 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: Time
           type="button"
           variant="outline"
           size="sm"
+          iconName="download"
           onPress={() => exportEngagementCsv(filtered)}
           className="shrink-0"
         >
@@ -120,30 +136,19 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: Time
       </Box>
 
       <Box className="mb-4 grid grid-cols-3 gap-4">
-        <Box className="border-border bg-background-surface rounded-lg border p-4">
-          <BodyText size="xs" muted className="uppercase tracking-wide">
-            Agents Analyzed
-          </BodyText>
-          <Title size="lg" className="mt-1">
-            {data.summary.total_agents_analyzed}
-          </Title>
-        </Box>
-        <Box className="border-border bg-background-surface rounded-lg border p-4">
-          <BodyText size="xs" muted className="uppercase tracking-wide">
-            Flagged Agents
-          </BodyText>
-          <Title size="lg" className="mt-1">
-            {data.summary.agents_flagged}
-          </Title>
-        </Box>
-        <Box className="border-border bg-background-surface rounded-lg border p-4">
-          <BodyText size="xs" muted className="uppercase tracking-wide">
-            Recoverable Revenue
-          </BodyText>
-          <Title size="lg" className="mt-1">
-            ${data.summary.estimated_recoverable_dollars.toLocaleString()}
-          </Title>
-        </Box>
+        {SUMMARY_CARDS.map((card) => (
+          <Box key={card.key} className="border-border bg-background-surface rounded-lg border p-4">
+            <Box className="flex items-center gap-1.5">
+              <Icon name={card.iconName} className="text-text-secondary h-3.5 w-3.5 shrink-0" />
+              <BodyText size="xs" muted className="uppercase tracking-wide">
+                {card.label}
+              </BodyText>
+            </Box>
+            <Title size="lg" className="mt-1">
+              {summaryValues[card.key]}
+            </Title>
+          </Box>
+        ))}
       </Box>
 
       <Box className="mb-4 flex flex-wrap gap-3">
@@ -247,9 +252,12 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: Time
       />
 
       <Box className="mt-4">
-        <BodyText size="xs" muted className="mb-3 font-medium uppercase tracking-wide">
-          Most Common Service Gaps
-        </BodyText>
+        <Box className="mb-3 flex items-center gap-1.5">
+          <Icon name="alert-circle" className="text-text-secondary h-3.5 w-3.5 shrink-0" />
+          <BodyText size="xs" muted className="font-medium uppercase tracking-wide">
+            Most Common Service Gaps
+          </BodyText>
+        </Box>
         <Box className="flex flex-wrap gap-3">
           {data.by_service_gap.map((g) => (
             <Box key={g.service} className="border-border rounded-lg border px-3 py-2 text-sm">
