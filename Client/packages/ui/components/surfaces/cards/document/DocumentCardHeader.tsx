@@ -78,7 +78,7 @@ export default function DocumentCardHeader({
         <Box className="text-foreground flex-shrink-0">
           <Icon name={documentIconName} size={24} />
         </Box>
-        <Box className="h-[2.75rem] min-w-0 flex-1 overflow-hidden">
+        <Box className="min-h-[3.5rem] min-w-0 flex-1">
           <Title as="h3" size="sm" className="line-clamp-2">
             {title}
           </Title>
