@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { Instagram, Linkedin } from "lucide-react";
 
+import { LandingSectionShell } from "packages/features/homeauth/components/homepage/landing/shared/LandingSectionShell";
 import type { LandingSocialIcon } from "packages/features/homeauth/types/landingContent";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
 import { LANDING_FOOTER_LAYOUT } from "packages/features/homeauth/utils/landingSectionLayout";
@@ -10,8 +11,6 @@ import { Box, Image } from "packages/ui/components/structure/primitives";
 import { getWindow } from "packages/utils/core/platform";
 
 import { BodyText, Button, Title } from "@/components/ui";
-
-import { LandingSectionShell } from "../shared/LandingSectionShell";
 
 function XIcon({ size = 16, className }: { size?: number; className?: string }) {
   return (
@@ -44,7 +43,7 @@ export function LandingFooter() {
       className="safe-bottom px-responsive-sm py-10 sm:px-10"
       fullBleed
     >
-      <Box className="mx-auto flex max-w-[900px] flex-wrap items-start justify-between gap-7">
+      <Box className="mx-auto flex max-w-4xl flex-wrap items-start justify-between gap-7">
         <Box>
           <Box className="mb-1 flex items-center gap-2">
             <Image src={MINI_LOGO} alt="SilverKey" className="h-7 w-7 object-contain" />
@@ -91,7 +90,7 @@ export function LandingFooter() {
         </Box>
       </Box>
 
-      <Box className="border-border mx-auto mt-5 max-w-[900px] border-t pt-4">
+      <Box className="border-border mx-auto mt-5 max-w-4xl border-t pt-4">
         <BodyText as="p" size="xs" muted>
           {footer.copyright} {footer.disclaimer}
         </BodyText>

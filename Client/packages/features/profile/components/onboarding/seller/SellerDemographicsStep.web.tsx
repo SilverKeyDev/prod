@@ -4,11 +4,12 @@
  */
 import React from "react";
 
-import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
+import { Input, Label } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { Box } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -29,38 +30,38 @@ export function SellerDemographicsStep({ formData, updateFormData }: Props) {
       <Box className="flex flex-col gap-4">
         <Box className="grid gap-4 sm:grid-cols-2">
           <Box className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-gray-700">
               {SELLER_TRANSLATIONS.SELLER_DEMOGRAPHICS_FIRST_NAME_LABEL}
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               value={formData.first_name ?? ""}
-              onChange={(e) => updateFormData("first_name", e.target.value)}
+              onValueChange={(text) => updateFormData("first_name", text)}
               placeholder="e.g. Jane"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
           </Box>
           <Box className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-gray-700">
               {SELLER_TRANSLATIONS.SELLER_DEMOGRAPHICS_LAST_NAME_LABEL}
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               value={formData.last_name ?? ""}
-              onChange={(e) => updateFormData("last_name", e.target.value)}
+              onValueChange={(text) => updateFormData("last_name", text)}
               placeholder="e.g. Smith"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
           </Box>
         </Box>
         <Box className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+          <Label className="text-sm font-medium text-gray-700">
             {SELLER_TRANSLATIONS.SELLER_DEMOGRAPHICS_PHONE_LABEL}
-          </label>
-          <input
+          </Label>
+          <Input
             type="tel"
             value={formData.phone ?? ""}
-            onChange={(e) => updateFormData("phone", e.target.value)}
+            onValueChange={(text) => updateFormData("phone", text)}
             placeholder="e.g. (404) 555-0123"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />

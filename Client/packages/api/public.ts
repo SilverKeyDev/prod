@@ -22,13 +22,10 @@ export const publicApi = {
     options?: { signal?: AbortSignal }
   ): Promise<PublicAgentListingsResponse> => {
     const encoded = encodeURIComponent(userId.trim());
-    return apiGet<PublicAgentListingsResponse>(
-      `/api/v1/public/agent-profile/${encoded}/listings`,
-      {
-        signal: options?.signal,
-        includeAuth: false,
-      }
-    );
+    return apiGet<PublicAgentListingsResponse>(`/api/v1/public/agent-profile/${encoded}/listings`, {
+      signal: options?.signal,
+      includeAuth: false,
+    });
   },
   getAgentProfileBySlug: async (
     publicProfileSlug: string,

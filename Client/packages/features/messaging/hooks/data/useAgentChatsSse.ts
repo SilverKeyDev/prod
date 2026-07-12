@@ -69,11 +69,7 @@ export function useAgentChatsSse(enabled: boolean): void {
     let retryMs = 2000;
 
     const run = async () => {
-      while (
-        !cancelled &&
-        runId === runIdRef.current &&
-        !ac.signal.aborted
-      ) {
+      while (!cancelled && runId === runIdRef.current && !ac.signal.aborted) {
         try {
           const res = await fetchFn(url, {
             method: "GET",
@@ -90,11 +86,7 @@ export function useAgentChatsSse(enabled: boolean): void {
           const decoder = new TextDecoder();
           let buf = "";
 
-          while (
-            !cancelled &&
-            runId === runIdRef.current &&
-            !ac.signal.aborted
-          ) {
+          while (!cancelled && runId === runIdRef.current && !ac.signal.aborted) {
             const { done, value } = await reader.read();
             if (done) break;
 
@@ -130,11 +122,7 @@ export function useAgentChatsSse(enabled: boolean): void {
             retryMs = 2000;
           }
         } catch (e) {
-          if (
-            cancelled ||
-            ac.signal.aborted ||
-            runId !== runIdRef.current
-          ) {
+          if (cancelled || ac.signal.aborted || runId !== runIdRef.current) {
             break;
           }
           log.warn("POLLING", "Agent chats SSE reconnecting", {

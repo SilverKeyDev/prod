@@ -1,17 +1,17 @@
 import { useCallback } from "react";
 
-import { buildEventRequestPayloadFromCreateFormState } from "packages/features/messaging/utils/buildEventRequestPayloadFromCreateFormState";
-import { buildEventRequestMessage } from "packages/features/messaging/utils/eventRequestPayload";
 import { log } from "packages/logger";
 import type { UIState } from "packages/store";
+import {
+  type CalendarEventKindId,
+  explicitEventTypeForCalendarKind,
+} from "packages/utils/comms/calendar/createEvent/calendarEventKinds";
+import { buildEventRequestPayloadFromCreateFormState } from "packages/utils/comms/messaging/buildEventRequestPayloadFromCreateFormState";
+import { buildEventRequestMessage } from "packages/utils/comms/messaging/eventRequestPayload";
 
 import type { ExtendedGoogleEvent } from "@/features/calendar/types/calendar";
 import type { CreateEventModalAddWithoutSchedulePayload } from "@/features/calendar/types/createEventModal";
 import type { GoogleEvent } from "@/features/calendar/types/googleEvent";
-import {
-  type CalendarEventKindId,
-  explicitEventTypeForCalendarKind,
-} from "@/features/calendar/utils/createEventModal/calendarEventKinds";
 import { runCreateEventModalSubmit } from "@/features/calendar/utils/createEventModal/createEventModalSubmit";
 
 import type { CalendarEventRequestModalIntegration } from "./useCreateEventModal.types";

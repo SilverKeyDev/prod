@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+
 import {
   getOnboardingSteps,
   getOnboardingStepsMobile,
 } from "packages/features/profile/utils/onboarding/steps/steps";
+
 import { buildOnboardingFlowFromOptions } from "./buildProfileFlow";
 
 function stepSnapshot(steps: { id: string; title: string }[]) {

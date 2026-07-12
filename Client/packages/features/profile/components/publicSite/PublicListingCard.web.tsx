@@ -36,12 +36,8 @@ export function PublicListingCard({ listing }: PublicListingCardProps) {
 
   const address = listing.address?.trim() ?? "";
   const streetLine = address ? addressStreetLineForCard(address) : "";
-  const localityLine = [listing.city, listing.state]
-    .filter((part) => part?.trim())
-    .join(", ");
-  const locality = [localityLine, listing.zipcode?.trim()]
-    .filter(Boolean)
-    .join(" ");
+  const localityLine = [listing.city, listing.state].filter((part) => part?.trim()).join(", ");
+  const locality = [localityLine, listing.zipcode?.trim()].filter(Boolean).join(" ");
   const isSold = listing.status_category === "sold";
 
   const attribution = [
@@ -74,19 +70,11 @@ export function PublicListingCard({ listing }: PublicListingCardProps) {
       </Box>
       <Box className="gap-1 p-4">
         {listing.price?.trim() ? (
-          <BodyText
-            as="p"
-            size="md"
-            className="text-text-primary font-semibold tabular-nums"
-          >
+          <BodyText as="p" size="md" className="text-text-primary font-semibold tabular-nums">
             {listing.price}
           </BodyText>
         ) : null}
-        <Title
-          as="h4"
-          size="sm"
-          className="text-text-primary line-clamp-1 font-medium"
-        >
+        <Title as="h4" size="sm" className="text-text-primary line-clamp-1 font-medium">
           {streetLine || t("profile.public.listings.address_fallback")}
         </Title>
         {locality ? (
@@ -99,7 +87,7 @@ export function PublicListingCard({ listing }: PublicListingCardProps) {
           bathrooms={asNumber(listing.baths)}
           sqft={asNumber(listing.sqft)}
           variant="horizontal"
-          className="mt-1 justify-start [&_*]:!text-text-secondary"
+          className="[&_*]:!text-text-secondary mt-1 justify-start"
         />
         {attribution.length ? (
           <BodyText as="p" size="xs" muted className="mt-2 line-clamp-1">

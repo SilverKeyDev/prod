@@ -26,6 +26,8 @@ required:
   - routing
   - docusign
   - documents
+  - transactions
+  - email
   - profilePreferences
   - logLevel
 properties:
@@ -72,6 +74,10 @@ properties:
   docusign:
     type: boolean
   documents:
+    type: boolean
+  transactions:
+    type: boolean
+  email:
     type: boolean
   profilePreferences:
     type: boolean

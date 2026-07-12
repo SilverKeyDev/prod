@@ -14,6 +14,7 @@ export type SearchFiltersSheetProps = {
   onClose: () => void;
   formData: Partial<OnboardingData>;
   updateFormData: (field: keyof OnboardingData, value: unknown) => void;
+  updateFormFields: (patch: Partial<OnboardingData>) => void;
   scriptsReady: boolean;
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
@@ -30,6 +31,7 @@ export default function SearchFiltersSheet({
   onClose,
   formData,
   updateFormData,
+  updateFormFields,
   scriptsReady,
   selectedClientId,
   patchBuyerPreferenceExtensions,
@@ -85,6 +87,7 @@ export default function SearchFiltersSheet({
                 <SearchPreferencesContent
                   formData={formData}
                   updateFormData={updateFormData}
+                  updateFormFields={updateFormFields}
                   patchBuyerPreferenceExtensions={patchBuyerPreferenceExtensions}
                   scriptsReady={scriptsReady}
                   viewingClientId={selectedClientId ?? null}

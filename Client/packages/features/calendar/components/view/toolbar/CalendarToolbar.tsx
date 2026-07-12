@@ -52,13 +52,13 @@ export function CalendarToolbar({
         style={styles.headerSection}
         className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
-        <Box className="flex min-w-0 w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+        <Box className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
           {sectionTitle ? (
             <Text style={styles.sectionTitle} className="shrink-0">
               {sectionTitle}
             </Text>
           ) : null}
-          <Box className="flex min-w-0 w-full flex-row items-center gap-2 sm:w-auto">
+          <Box className="flex w-full min-w-0 flex-row items-center gap-2 sm:w-auto">
             <IconButton
               iconName="chevron-left"
               variant="outline"

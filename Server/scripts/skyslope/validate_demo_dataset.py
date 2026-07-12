@@ -58,7 +58,6 @@ def validate_demo_dataset(
 
     office_ids = set(offices["office_id"].astype(str))
     agent_ids = set(agents["agent_id"].astype(str))
-    client_ids = set(clients["client_id"].astype(str))
     property_ids = set(properties["property_id"].astype(str))
     deal_ids = set(deals["deal_id"].astype(str))
 

@@ -142,7 +142,7 @@ function ChecklistLayoutItemRowInner({
   };
 
   const headerRowContent = (
-    <Box className="flex flex-row items-start gap-2">
+    <Box className="flex flex-col gap-2 sm:flex-row sm:items-start">
       <Box className="min-w-0 flex-1">
         <ChecklistCheckbox
           item={checklistItem}
@@ -157,7 +157,7 @@ function ChecklistLayoutItemRowInner({
           showDetails={showDetails}
         />
       </Box>
-      <Box className="mt-0.5 flex flex-shrink-0 flex-row items-center gap-2">
+      <Box className="flex w-full flex-row flex-wrap items-center justify-end gap-2 sm:mt-0.5 sm:w-auto sm:flex-shrink-0">
         <ChecklistStepHeaderSubmitButton integrationVisible={showIntegrationBlock} />
         <IconButton
           variant="ghost"
@@ -165,7 +165,7 @@ function ChecklistLayoutItemRowInner({
           iconName={expanded ? "chevron-down" : "chevron-right"}
           label={expanded ? "Collapse step" : "Expand step"}
           onPress={() => toggleExpand(item.id)}
-          className="text-text-secondary hover:text-text-primary flex h-6 w-6 flex-shrink-0"
+          className="text-text-secondary hover:text-text-primary min-h-touch min-w-touch sm:h-6 sm:w-6 sm:flex-shrink-0"
         />
       </Box>
     </Box>
@@ -216,9 +216,7 @@ function ChecklistLayoutItemRowInner({
       />
       <Box
         className={`${checklistRowShellClassNames.fullWidth} rounded-lg ${checklistRowShellClassNames.innerPadding} ${DOTTED_BORDER_LIGHT_GRAY} ${
-          isActive
-            ? "ring-gold relative z-10 overflow-visible shadow-[0_0_3px_rgba(181,168,138,0.6),0_0_10px_rgba(181,168,138,0.35),0_0_20px_rgba(181,168,138,0.15)] ring-1"
-            : ""
+          isActive ? "ring-gold z-header relative overflow-visible shadow-md ring-1" : ""
         }`}
       >
         {headerRow}

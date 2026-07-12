@@ -21,6 +21,7 @@ type MessagingScreenNativeMessageListProps = {
   localMessages: ChatMessage[];
   isLoadingHistory: boolean;
   centeredStyle: object;
+  listStyle: object;
   listContentStyle: object;
   isAgent: boolean;
   formatTime: (date: Date) => string;
@@ -42,6 +43,7 @@ export function MessagingScreenNativeMessageList({
   localMessages,
   isLoadingHistory,
   centeredStyle,
+  listStyle,
   listContentStyle,
   isAgent,
   formatTime,
@@ -82,6 +84,7 @@ export function MessagingScreenNativeMessageList({
       ref={listRef}
       data={localMessages}
       keyExtractor={(item) => item.id}
+      style={listStyle}
       contentContainerStyle={listContentStyle}
       ListHeaderComponent={
         isLoadingOlder ? (

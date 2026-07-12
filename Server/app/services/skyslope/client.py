@@ -32,11 +32,9 @@ from logger import log
 class SkySlopeClientProtocol(Protocol):
     def iter_transactions(
         self, *, updated_since: datetime | None = None
-    ) -> Iterator[list[dict[str, Any]]]:
-        ...
+    ) -> Iterator[list[dict[str, Any]]]: ...
 
-    def test_connection(self) -> None:
-        ...
+    def test_connection(self) -> None: ...
 
 
 class MockSkySlopeClient:

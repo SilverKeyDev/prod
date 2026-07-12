@@ -1,5 +1,7 @@
 import { lazy, type ReactNode, Suspense, useEffect, useRef } from "react";
 
+import { Navigate } from "react-router-dom";
+
 import { WorkspacePlaceholderPage } from "packages/features/workspace";
 import { useActiveWorkspace } from "packages/hooks/store";
 import { useIsMobile } from "packages/hooks/ui";
@@ -33,6 +35,13 @@ const BrokerageDashboardPage = lazy(
     "DASHBOARD",
     "lazy:BrokerageDashboardPage",
     () => import("@/pages/workspace/BrokerageDashboardPage")
+  )
+);
+const BrokerageCampaignsPage = lazy(
+  traceLazyImport(
+    "ROUTING",
+    "lazy:BrokerageCampaignsPage",
+    () => import("@/pages/workspace/BrokerageCampaignsPage")
   )
 );
 const IntegrationPartnerDashboardPage = lazy(
@@ -133,23 +142,29 @@ export function DashboardContent({
     activeKey !== "messaging" &&
     activeKey !== null;
   const contentTopMargin =
-    route.isDashboard || route.isProfile || route.isFindAgents || route.isAnalytics;
+    route.isDashboard ||
+    route.isProfile ||
+    route.isFindAgents ||
+    route.isAnalytics ||
+    route.isCampaigns;
   const contentBottomMargin =
     route.isDashboard ||
     route.isProfile ||
     route.isLibrary ||
     route.isFindAgents ||
     route.isAnalytics ||
+    route.isCampaigns ||
     route.isAgreementSigningComplete;
 
+  const mapLikeFullHeight = isSearch;
   const searchHeightClass =
-    isSearch && isMobile
+    mapLikeFullHeight && isMobile
       ? "flex-1 min-h-0 overflow-hidden md:h-[calc(100dvh-0px)] mx-0"
-      : isSearch
+      : mapLikeFullHeight
         ? "h-[calc(100dvh-80px)] md:h-[calc(100dvh-0px)] mx-0"
         : "";
 
-  const wrapperClass = isSearch
+  const wrapperClass = mapLikeFullHeight
     ? searchHeightClass
     : isMessaging
       ? "relative mx-0 flex min-h-0 w-full flex-1 flex-col overflow-hidden"
@@ -157,7 +172,7 @@ export function DashboardContent({
           contentTopMargin ? "pt-4 md:pt-8" : ""
         } ${contentBottomMargin ? "pb-4 sm:pb-6 md:pb-8" : ""}`;
 
-  const fullWidth = isSearch || isMessaging;
+  const fullWidth = mapLikeFullHeight || isMessaging;
   const style = fullWidth
     ? ({ "--max-width-desktop": "100" } as React.CSSProperties & {
         "--max-width-desktop": string;
@@ -186,12 +201,26 @@ export function DashboardContent({
 
   const content = showPlaceholderForRoute ? (
     <WorkspacePlaceholderPage workspace={activeWorkspace} />
+  ) : activeKey === "search" && activeWorkspace === "brokerage" ? (
+    <Navigate to="/dashboard" replace />
   ) : activeKey === "search" ? (
     <PageErrorBoundary key="search" pageLabel="Search">
       <Suspense fallback={loadingFallback}>
         <SearchPage setMobileHeaderActions={setMobileHeaderActions} searchRef={searchPageRef} />
       </Suspense>
     </PageErrorBoundary>
+  ) : activeKey === "inventory" ? (
+    <Navigate to="/dashboard" replace />
+  ) : activeKey === "campaigns" ? (
+    activeWorkspace === "brokerage" ? (
+      <PageErrorBoundary key="campaigns" pageLabel="Campaigns">
+        <Suspense fallback={loadingFallback}>
+          <BrokerageCampaignsPage />
+        </Suspense>
+      </PageErrorBoundary>
+    ) : (
+      <Navigate to="/dashboard" replace />
+    )
   ) : activeKey === "profile" ? (
     <Suspense fallback={loadingFallback}>
       <ProfilePage setMobileHeaderActions={setMobileHeaderActions} />

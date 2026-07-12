@@ -20,8 +20,7 @@ from ...services.research.property.property_params import build_property_params
 class _CeleryTaskWithDelay(Protocol):
     """Protocol for Celery task so Pyright accepts .delay()."""
 
-    def delay(self, **kwargs: Any) -> Any:
-        ...
+    def delay(self, **kwargs: Any) -> Any: ...
 
 
 research_bp = Blueprint("research", __name__, url_prefix="/api/v1/research")

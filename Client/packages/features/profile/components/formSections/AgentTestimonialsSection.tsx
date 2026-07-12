@@ -3,12 +3,7 @@ import type {
   OnboardingData,
 } from "packages/features/profile/types/onboarding/onboarding";
 import { FormFieldLabel as Label } from "packages/ui";
-import {
-  Box,
-  Pressable,
-  PrimitiveInput,
-  Text,
-} from "packages/ui/components/structure/primitives";
+import { Box, Pressable, PrimitiveInput, Text } from "packages/ui/components/structure/primitives";
 
 export const AGENT_TESTIMONIALS_MAX = 12;
 
@@ -32,9 +27,7 @@ export default function AgentTestimonialsSection({
   isEditMode,
   updateFormData,
 }: AgentTestimonialsSectionProps) {
-  const items = Array.isArray(formData.agent_testimonials)
-    ? formData.agent_testimonials
-    : [];
+  const items = Array.isArray(formData.agent_testimonials) ? formData.agent_testimonials : [];
 
   const setItems = (next: AgentTestimonial[]) => {
     updateFormData("agent_testimonials", next);
@@ -72,9 +65,7 @@ export default function AgentTestimonialsSection({
     if (!items.length) {
       return (
         <Box className="border-border bg-background-base rounded-lg border px-4 py-3">
-          <Text className="text-text-secondary text-sm">
-            No testimonials yet.
-          </Text>
+          <Text className="text-text-secondary text-sm">No testimonials yet.</Text>
         </Box>
       );
     }
@@ -100,13 +91,8 @@ export default function AgentTestimonialsSection({
   return (
     <Box className="gap-4">
       {items.map((item, index) => (
-        <Box
-          key={index}
-          className="border-border bg-background-base gap-2 rounded-lg border p-4"
-        >
-          <Label className="block">
-            Testimonial {items.length > 1 ? index + 1 : ""}
-          </Label>
+        <Box key={index} className="border-border bg-background-base gap-2 rounded-lg border p-4">
+          <Label className="block">Testimonial {items.length > 1 ? index + 1 : ""}</Label>
           <PrimitiveInput
             value={item.author_name ?? ""}
             onValueChange={(v) => updateItem(index, { author_name: v ?? "" })}
@@ -123,9 +109,7 @@ export default function AgentTestimonialsSection({
           <Box className="flex flex-row gap-2">
             <PrimitiveInput
               value={item.date ?? ""}
-              onValueChange={(v) =>
-                updateItem(index, { date: v?.trim() ? v : null })
-              }
+              onValueChange={(v) => updateItem(index, { date: v?.trim() ? v : null })}
               placeholder="Date (YYYY-MM-DD, optional)"
               className={`${INPUT_CLASS} flex-1`}
             />

@@ -16,13 +16,7 @@ function RatingStars({ rating }: { rating: number }) {
   return (
     <Box className="flex flex-row items-center gap-0.5" aria-hidden>
       {Array.from({ length: rating }, (_, i) => (
-        <Icon
-          key={i}
-          name="star"
-          size={14}
-          fill="currentColor"
-          className="text-gold"
-        />
+        <Icon key={i} name="star" size={14} fill="currentColor" className="text-gold" />
       ))}
     </Box>
   );
@@ -59,10 +53,7 @@ function TestimonialBand({
   ariaHidden?: boolean;
 }) {
   return (
-    <Box
-      className="flex shrink-0 items-stretch"
-      aria-hidden={ariaHidden || undefined}
-    >
+    <Box className="flex shrink-0 items-stretch" aria-hidden={ariaHidden || undefined}>
       {items.map((item, index) => (
         <TestimonialCard
           key={`${item.authorName}-${index}${ariaHidden ? "-duplicate" : ""}`}
@@ -82,9 +73,7 @@ type PublicProfileTestimonialsProps = {
  * (`#testimonials`): centered serif heading, duplicated card band with edge
  * fades, paused on hover, static under reduced motion. Hidden when empty.
  */
-export function PublicProfileTestimonials({
-  model,
-}: PublicProfileTestimonialsProps) {
+export function PublicProfileTestimonials({ model }: PublicProfileTestimonialsProps) {
   const { t } = useLocalization();
   const { ref, inView } = useLandingReveal({ threshold: 0.1 });
   if (!model.hasTestimonials) return null;
@@ -96,10 +85,8 @@ export function PublicProfileTestimonials({
     >
       <Box
         ref={ref}
-        className={`pb-14 pt-12 sm:pb-16 sm:pt-14 motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
-          inView
-            ? "translate-y-0 opacity-100"
-            : "motion-safe:translate-y-8 motion-safe:opacity-0"
+        className={`pb-14 pt-12 motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 sm:pb-16 sm:pt-14 ${
+          inView ? "translate-y-0 opacity-100" : "motion-safe:translate-y-8 motion-safe:opacity-0"
         }`}
       >
         <Title

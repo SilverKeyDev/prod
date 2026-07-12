@@ -22,6 +22,8 @@ import numpy as np
 import pandas as pd
 from faker import Faker
 
+from logger import log
+
 # Allow running as `python scripts/skyslope/generate_demo_dataset.py` from Server/
 _SERVER_ROOT = Path(__file__).resolve().parents[2]
 if str(_SERVER_ROOT) not in sys.path:
@@ -419,14 +421,14 @@ def write_outputs(tables: dict[str, pd.DataFrame], output_dir: Path) -> None:
 
 
 def _print_validation(result: ValidationResult) -> None:
-    print("=== QA validation ===")
-    print(f"Passed: {result.passed}")
+    log.info("API", "=== QA validation ===")
+    log.info("API", f"Passed: {result.passed}")
     for key, value in result.stats.items():
-        print(f"  {key}: {value}")
+        log.info("API", f"  {key}: {value}")
     for warning in result.warnings:
-        print(f"  WARNING: {warning}")
+        log.warn("API", f"WARNING: {warning}")
     for error in result.errors:
-        print(f"  ERROR: {error}")
+        log.error("API", f"ERROR: {error}")
 
 
 def main() -> int:
@@ -450,7 +452,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    print(f"Generating dataset (seed={args.seed}, deals={args.deals})...")
+    log.info("API", f"Generating dataset (seed={args.seed}, deals={args.deals})...")
     tables = generate_demo_dataset(
         seed=args.seed,
         num_offices=args.offices,
@@ -462,11 +464,11 @@ def main() -> int:
         result = validate_demo_dataset(**tables)
         _print_validation(result)
         if not result.passed:
-            print("Validation failed — fix generator before writing output.")
+            log.error("API", "Validation failed — fix generator before writing output.")
             return 1
 
     write_outputs(tables, args.output.resolve())
-    print(f"Wrote CSV + Excel to {args.output.resolve()}")
+    log.info("API", f"Wrote CSV + Excel to {args.output.resolve()}")
     return 0
 
 

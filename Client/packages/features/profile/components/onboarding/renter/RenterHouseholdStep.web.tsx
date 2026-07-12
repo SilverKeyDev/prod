@@ -3,11 +3,13 @@
  * Captures household size and pet information for renter onboarding.
  */
 import React from "react";
-import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
+
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";
+import { Button, Input, Label } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { Box } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -32,10 +34,10 @@ export function RenterHouseholdStep({ formData, updateFormData }: Props) {
 
       {/* Household size */}
       <Box className="flex flex-col gap-1">
-        <label className="text-sm font-medium text-gray-700">
+        <Label className="text-sm font-medium text-gray-700">
           {RENTER_TRANSLATIONS.RENTER_HOUSEHOLD_SIZE_LABEL}
-        </label>
-        <input
+        </Label>
+        <Input
           type="number"
           min={1}
           max={20}
@@ -53,14 +55,17 @@ export function RenterHouseholdStep({ formData, updateFormData }: Props) {
 
       {/* Pets toggle */}
       <Box className="flex flex-col gap-3">
-        <label className="text-sm font-medium text-gray-700">
+        <Label className="text-sm font-medium text-gray-700">
           {RENTER_TRANSLATIONS.RENTER_HOUSEHOLD_PETS_LABEL}
-        </label>
+        </Label>
         <Box className="flex gap-3">
           {["Yes", "No"].map((opt) => (
-            <button
+            <Button
               key={opt}
               type="button"
+              variant="outline"
+              size="sm"
+              label={opt}
               onClick={() => updateFormData("renter_has_pets", opt === "Yes")}
               className={`rounded-xl border px-6 py-2 text-sm font-medium transition-colors ${
                 hasPets === (opt === "Yes")
@@ -68,24 +73,33 @@ export function RenterHouseholdStep({ formData, updateFormData }: Props) {
                   : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
-              {opt}
-            </button>
+              <Button.Label
+                variant="outline"
+                size="sm"
+                className={hasPets === (opt === "Yes") ? "text-blue-700" : "text-gray-700"}
+              >
+                {opt}
+              </Button.Label>
+            </Button>
           ))}
         </Box>
 
         {/* Pet types — shown only if has pets */}
         {hasPets && (
           <Box className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-gray-700">
               {RENTER_TRANSLATIONS.RENTER_HOUSEHOLD_PET_TYPES_LABEL}
-            </label>
+            </Label>
             <Box className="flex flex-wrap gap-2">
               {PET_TYPES.map((pet) => {
                 const selected = (formData.renter_pet_types ?? []).includes(pet);
                 return (
-                  <button
+                  <Button
                     key={pet}
                     type="button"
+                    variant="outline"
+                    size="sm"
+                    label={pet}
                     onClick={() => {
                       const current = formData.renter_pet_types ?? [];
                       updateFormData(
@@ -99,8 +113,14 @@ export function RenterHouseholdStep({ formData, updateFormData }: Props) {
                         : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                     }`}
                   >
-                    {pet}
-                  </button>
+                    <Button.Label
+                      variant="outline"
+                      size="sm"
+                      className={selected ? "text-blue-700" : "text-gray-600"}
+                    >
+                      {pet}
+                    </Button.Label>
+                  </Button>
                 );
               })}
             </Box>

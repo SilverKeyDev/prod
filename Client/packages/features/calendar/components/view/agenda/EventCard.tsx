@@ -162,7 +162,7 @@ export function EventCard({
           <Box className="flex flex-row items-stretch">
             <Box className="w-1 shrink-0" style={{ backgroundColor: stripeColor }} />
             <Box className="min-w-0 flex-1 p-3 text-left">
-              <Box className="flex flex-row items-start gap-2">
+              <Box className="flex flex-col gap-2">
                 <Box className="min-w-0 flex-1">
                   {showAgendaComplete ? (
                     <Box className="space-y-1">

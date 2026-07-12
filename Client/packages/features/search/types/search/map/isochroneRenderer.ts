@@ -105,8 +105,8 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
           const individualPolygon = new google.maps.Polygon({
             paths,
             strokeColor: color("brown.DEFAULT"), // Brownish color matching app theme
-            strokeOpacity: 0.6,
-            strokeWeight: 1,
+            strokeOpacity: 0.75,
+            strokeWeight: 1.5,
             fillColor: "transparent",
             fillOpacity: 0,
             clickable: false,
@@ -159,8 +159,8 @@ export const renderIsochronePolygon = (isochroneData: unknown, options: Isochron
     const polygon = new google.maps.Polygon({
       paths,
       strokeColor: color("olive.DEFAULT"), // Match the app's green theme
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
+      strokeOpacity: 0.92,
+      strokeWeight: 2.5,
       fillColor: unionFill.fillColor,
       fillOpacity: unionFill.fillOpacity,
       clickable: false,

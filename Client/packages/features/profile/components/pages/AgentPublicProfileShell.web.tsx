@@ -2,12 +2,12 @@ import type { ReactNode } from "react";
 
 import { useLocalization } from "packages/contexts";
 import { LandingNav } from "packages/features/homeauth/components/homepage/landing/nav/LandingNav.web";
-import { LANDING_NAV_MAIN_OFFSET_CLASS } from "packages/features/homeauth/utils/landingChrome";
 import { scrollToLandingSection } from "packages/features/homeauth/utils/landingScroll";
 import { PUBLIC_PROFILE_SECTION_IDS } from "packages/features/profile/utils/public/publicProfileSectionIds";
 import { Link, useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 import { Box, Button } from "packages/ui";
+import { LANDING_NAV_MAIN_OFFSET_CLASS } from "packages/utils/product/homeauth/landingChrome";
 
 type AgentPublicProfileShellProps = {
   children: ReactNode;
@@ -27,9 +27,7 @@ const NAV_LINK_CLASS =
  *
  * The Connect flow for non-owner viewers stays in the page hero.
  */
-export function AgentPublicProfileShell({
-  children,
-}: AgentPublicProfileShellProps) {
+export function AgentPublicProfileShell({ children }: AgentPublicProfileShellProps) {
   const { t } = useLocalization();
   const { navigate } = useNavigation();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -60,23 +58,14 @@ export function AgentPublicProfileShell({
   );
 
   const endActions = isAuthenticated ? (
-    <Button
-      variant="primary"
-      size="sm"
-      iconName="arrow-left"
-      onPress={() => navigate("DASHBOARD")}
-    >
+    <Button variant="primary" size="sm" iconName="arrow-left" onPress={() => navigate("DASHBOARD")}>
       {t("profile.public.back_to_dashboard")}
     </Button>
   ) : undefined;
 
   return (
     <Box className="bg-background-base min-h-screen">
-      <LandingNav
-        endActions={endActions}
-        variant="publicAgent"
-        centerLinks={centerLinks}
-      />
+      <LandingNav endActions={endActions} variant="publicAgent" centerLinks={centerLinks} />
       <main className={LANDING_NAV_MAIN_OFFSET_CLASS}>{children}</main>
     </Box>
   );

@@ -32,5 +32,4 @@ export const AGENT_PROFILE_FORM_FIELD_KEYS = [
   ...AGENT_PROFILE_SERVICE_FIELD_KEYS,
 ] as const satisfies ReadonlyArray<keyof OnboardingData>;
 
-export type AgentProfileFormFieldKey =
-  (typeof AGENT_PROFILE_FORM_FIELD_KEYS)[number];
+export type AgentProfileFormFieldKey = (typeof AGENT_PROFILE_FORM_FIELD_KEYS)[number];

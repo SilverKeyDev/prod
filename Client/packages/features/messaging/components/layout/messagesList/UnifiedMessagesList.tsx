@@ -195,10 +195,25 @@ export default function UnifiedMessagesList({
   );
 
   if (!canSendMessage) {
-    if (mode === "agent") {
-      return <UnifiedMessagesListAgentBlockedEmpty config={config} />;
+    if (mode === "client") {
+      return (
+        <UnifiedMessagesListClientNoAgentEmpty config={config} onSearchClick={onSearchClick} />
+      );
     }
-    return <UnifiedMessagesListClientNoAgentEmpty config={config} onSearchClick={onSearchClick} />;
+    if (mode === "brokerage") {
+      return (
+        <UnifiedMessagesListAgentBlockedEmpty
+          config={{
+            ...config,
+            emptyStates: {
+              ...config.emptyStates,
+              noMessages: config.emptyStates.noSelection,
+            },
+          }}
+        />
+      );
+    }
+    return <UnifiedMessagesListAgentBlockedEmpty config={config} />;
   }
   if (isLoadingHistory) {
     return <UnifiedMessagesListLoadingHistory />;

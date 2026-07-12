@@ -35,7 +35,12 @@ export function LandingPricing() {
         <LandingEyebrow>{pricing.eyebrow}</LandingEyebrow>
         <Title as="h2" size="lg" className="mb-3 !font-serif">
           {pricing.headlineBefore}
-          <span className={LANDING_HEADLINE_ACCENT_CLASS}>{pricing.headlineAccent}</span>
+          <BodyText
+            as="span"
+            className={`${LANDING_HEADLINE_ACCENT_CLASS} font-[inherit] text-[length:inherit] leading-[inherit]`}
+          >
+            {pricing.headlineAccent}
+          </BodyText>
           {pricing.headlineAfter}
         </Title>
         <BodyText as="p" size="md" muted className="mx-auto mb-8 max-w-md">
