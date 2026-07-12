@@ -23,6 +23,7 @@ export const FRONTEND_LOGGER_BOOLEAN_KEYS = [
   "docusign",
   "documents",
   "transactions",
+  "email",
   "profilePreferences",
 ] as const;
 
@@ -54,6 +55,7 @@ export const SERVER_EXTRA_LOGGER_BOOLEAN_KEYS = [
   "docusign",
   "documents",
   "transactions",
+  "email",
   "profilePreferences",
 ] as const;
 

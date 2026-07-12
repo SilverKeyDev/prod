@@ -34,6 +34,8 @@ export type DashboardRouteResult = {
   pathname: string;
   search: string;
   isSearch: boolean;
+  isInventory: boolean;
+  isCampaigns: boolean;
   isDashboard: boolean;
   isProfile: boolean;
   isLibrary: boolean;
@@ -69,6 +71,8 @@ export function useDashboardRoute(defaultWidthPercent = 85): DashboardRouteResul
     pathname,
     search,
     isSearch: activeKey === "search",
+    isInventory: activeKey === "inventory",
+    isCampaigns: activeKey === "campaigns",
     isDashboard: activeKey === "dashboard",
     isProfile: activeKey === "profile",
     isLibrary: activeKey === "library",

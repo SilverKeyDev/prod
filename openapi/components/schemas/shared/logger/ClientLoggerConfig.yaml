@@ -27,6 +27,7 @@ required:
   - docusign
   - documents
   - transactions
+  - email
   - profilePreferences
   - logLevel
 properties:
@@ -75,6 +76,8 @@ properties:
   documents:
     type: boolean
   transactions:
+    type: boolean
+  email:
     type: boolean
   profilePreferences:
     type: boolean

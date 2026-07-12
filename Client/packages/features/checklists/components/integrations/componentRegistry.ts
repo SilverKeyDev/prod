@@ -1,17 +1,19 @@
 import React from "react";
+
 import type {
   ChecklistComponentKey,
   ChecklistIntegrationComponentProps,
 } from "packages/features/checklists/types/componentRegistry";
 import { isChecklistComponentKey } from "packages/features/checklists/types/componentRegistry";
 import PartnerTransactionIntegration from "packages/features/partners/components/PartnerTransactionIntegration";
+
 import ChooseAreasSection from "./areas/ChooseAreasSection";
 import SetBudgetSection from "./budget/SetBudgetSection";
+import BuyerBrokerReviewSection from "./buyerBrokerReview/BuyerBrokerReviewSection";
 import ReviewComparablesSection from "./comparables/ReviewComparablesSection";
 import DefineCriteriaSection from "./criteria/DefineCriteriaSection";
 import FindingHome from "./findingHome/FindingHome";
 import PartnerAgentSection from "./partnerAgent/PartnerAgentSection";
-import BuyerBrokerReviewSection from "./buyerBrokerReview/BuyerBrokerReviewSection";
 
 export const COMPONENT_REGISTRY: Record<
   ChecklistComponentKey,

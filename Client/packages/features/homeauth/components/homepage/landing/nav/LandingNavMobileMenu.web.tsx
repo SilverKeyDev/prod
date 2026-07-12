@@ -68,7 +68,7 @@ export function LandingNavMobileMenu({
             leaveTo="translate-y-full"
           >
             <AccessibleDialog.Panel
-              className="bg-background-surface safe-bottom pointer-events-auto flex w-full max-w-[1100px] flex-col rounded-t-2xl"
+              className="bg-background-surface safe-bottom pointer-events-auto flex w-full max-w-6xl flex-col rounded-t-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <Box className="border-border flex shrink-0 flex-col items-center border-b pt-2">

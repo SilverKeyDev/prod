@@ -57,7 +57,11 @@ export function AnalyticsLineChart({
     data: values,
     smooth: 0.35,
     lineStyle: { color: lineColor, width: 2 },
-    itemStyle: { color: lineColor, borderColor: "#fff", borderWidth: 2 },
+    itemStyle: {
+      color: lineColor,
+      borderColor: color("background-surface"),
+      borderWidth: 2,
+    },
     symbolSize: 5,
     z: 10,
   });
@@ -75,7 +79,7 @@ export function AnalyticsLineChart({
       type: "category",
       data: labels,
       axisLabel: { fontSize: 11 },
-      axisLine: { lineStyle: { color: "rgba(11,11,11,0.08)" } },
+      axisLine: { lineStyle: { color: color("border-card-subtle") } },
       axisTick: { show: false },
       splitLine: { show: false },
     },
@@ -84,7 +88,7 @@ export function AnalyticsLineChart({
       axisLabel: { fontSize: 11 },
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: "rgba(11,11,11,0.05)" } },
+      splitLine: { lineStyle: { color: color("border-card-muted") } },
     },
     series,
   };

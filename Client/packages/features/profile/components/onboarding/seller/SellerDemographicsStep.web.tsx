@@ -36,7 +36,7 @@ export function SellerDemographicsStep({ formData, updateFormData }: Props) {
             <Input
               type="text"
               value={formData.first_name ?? ""}
-              onChange={(e) => updateFormData("first_name", e.target.value)}
+              onValueChange={(text) => updateFormData("first_name", text)}
               placeholder="e.g. Jane"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
@@ -48,7 +48,7 @@ export function SellerDemographicsStep({ formData, updateFormData }: Props) {
             <Input
               type="text"
               value={formData.last_name ?? ""}
-              onChange={(e) => updateFormData("last_name", e.target.value)}
+              onValueChange={(text) => updateFormData("last_name", text)}
               placeholder="e.g. Smith"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
@@ -61,7 +61,7 @@ export function SellerDemographicsStep({ formData, updateFormData }: Props) {
           <Input
             type="tel"
             value={formData.phone ?? ""}
-            onChange={(e) => updateFormData("phone", e.target.value)}
+            onValueChange={(text) => updateFormData("phone", text)}
             placeholder="e.g. (404) 555-0123"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />

@@ -1,7 +1,7 @@
 import type { IconName } from "packages/ui/types/icons";
 import { stripWorkspaceShellPrefix } from "packages/utils/core/layout/dashboardLayoutConfig";
 
-export type SidebarTabKey = "dashboard" | "search" | "decide" | "profile" | "agent";
+export type SidebarTabKey = "dashboard" | "search" | "campaigns" | "decide" | "profile" | "agent";
 
 export type SidebarTab = {
   key: SidebarTabKey;
@@ -25,6 +25,13 @@ export const SIDEBAR_TABS: Record<SidebarTabKey, SidebarTab> = {
     description: "Explore homes and neighborhoods",
     icon: "search",
     href: "/search",
+  },
+  campaigns: {
+    key: "campaigns",
+    name: "Campaigns",
+    description: "A/B email campaigns and attach-rate results",
+    icon: "mail",
+    href: "/campaigns",
   },
   decide: {
     key: "decide",
@@ -53,6 +60,7 @@ export const getTabByPath = (pathname: string): SidebarTab | undefined => {
   const p = stripWorkspaceShellPrefix(pathname);
   if (p.startsWith("/dashboard")) return SIDEBAR_TABS.dashboard;
   if (p.startsWith("/profile")) return SIDEBAR_TABS.profile;
+  if (p.startsWith("/campaigns")) return SIDEBAR_TABS.campaigns;
   if (p.startsWith("/search")) return SIDEBAR_TABS.search;
   if (p.startsWith("/library") || p.startsWith("/saved") || p.startsWith("/compare-reports"))
     return SIDEBAR_TABS.decide;

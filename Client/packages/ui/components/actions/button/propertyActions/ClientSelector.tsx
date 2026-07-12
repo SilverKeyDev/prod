@@ -7,6 +7,10 @@ import { useLocalization } from "packages/contexts";
 import { useIsAgent } from "packages/hooks/store";
 import { useAuthStore } from "packages/store";
 import Button from "packages/ui/components/actions/button/core/Button";
+import {
+  DROPDOWN_OPTION_ROW_BASE_CLASSES,
+  DROPDOWN_TRIGGER_INNER_FOCUS_RESET,
+} from "packages/ui/components/inputs/form/dropdown/dropdownStyles";
 import { Box } from "packages/ui/components/structure/primitives";
 import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 
@@ -55,7 +59,7 @@ export default function ClientSelector({
         contentAlign="start"
         label={triggerLabel}
         onClick={() => setIsOpen(!isOpen)}
-        className={`focus:border-input-variant-focus-border border-border bg-background-surface text-text-primary flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-400 ${HEADER_ROW_CONTROL_HEIGHT}`}
+        className={`focus:border-input-variant-focus-border border-border bg-background-surface text-text-primary flex items-center gap-2 rounded-md border px-3 text-sm font-medium hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-0 ${HEADER_ROW_CONTROL_HEIGHT}`}
         icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
       >
         <>
@@ -85,23 +89,23 @@ export default function ClientSelector({
 
           {/* Dropdown */}
           <Box
-            className={`border-border bg-background-surface z-dropdown absolute left-0 w-60 min-w-56 rounded-md border py-1 shadow-lg ${
-              menuPlacement === "above" ? "bottom-full mb-2" : "top-full mt-2"
+            className={`border-border bg-background-surface z-dropdown absolute left-0 w-60 min-w-56 overflow-hidden rounded-md border shadow-lg ${
+              menuPlacement === "above" ? "bottom-full mb-1" : "top-full mt-1"
             }`}
           >
-            <Box className="flex flex-col gap-1 px-1">
+            <Box className="flex flex-col">
               {!hideMeOption ? (
                 <>
                   <Button
                     type="button"
                     variant="ghost"
                     contentAlign="start"
-                    rounded="md"
+                    rounded="none"
                     onClick={() => handleSelect(null)}
-                    className={`w-full px-3 py-3 text-left text-sm hover:bg-neutral-100 ${
+                    className={`${DROPDOWN_OPTION_ROW_BASE_CLASSES} ${DROPDOWN_TRIGGER_INNER_FOCUS_RESET} text-sm ${
                       selectedClientId === null
                         ? "bg-primary-muted text-primary font-medium"
-                        : "text-text-primary"
+                        : "text-text-primary hover:bg-neutral-100"
                     }`}
                     icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
                   >
@@ -109,19 +113,19 @@ export default function ClientSelector({
                       {t("client_selector.me")}
                     </BodyText>
                   </Button>
-                  {clients.length > 0 ? <Box className="border-border mx-1 my-1 border-t" /> : null}
+                  {clients.length > 0 ? <Box className="border-border border-t" /> : null}
                 </>
               ) : null}
 
               {/* Client options */}
               {isClientListLoading ? (
-                <Box className="text-text-secondary px-3 py-3 text-left text-sm">
+                <Box className="text-text-secondary px-3 py-2 text-left text-sm">
                   {t("client_selector.loading_clients", {
                     defaultValue: "Loading clients...",
                   })}
                 </Box>
               ) : clients.length === 0 ? (
-                <Box className="flex items-start gap-3 px-3 py-3">
+                <Box className="flex items-start gap-3 px-3 py-2">
                   <Icon name="users" className="text-text-secondary mt-0.5 h-5 w-5 shrink-0" />
                   <Box className="flex min-w-0 flex-col gap-1">
                     <BodyText as="span" size="sm" muted className="text-left">
@@ -144,16 +148,16 @@ export default function ClientSelector({
                     type="button"
                     variant="ghost"
                     contentAlign="start"
-                    rounded="md"
+                    rounded="none"
                     onClick={() => handleSelect(client.id)}
-                    className={`w-full px-3 py-3 text-left text-sm hover:bg-neutral-100 ${
+                    className={`${DROPDOWN_OPTION_ROW_BASE_CLASSES} ${DROPDOWN_TRIGGER_INNER_FOCUS_RESET} text-sm ${
                       selectedClientId === client.id
                         ? "bg-primary-muted text-primary font-medium"
-                        : "text-text-primary"
+                        : "text-text-primary hover:bg-neutral-100"
                     }`}
                     icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
                   >
-                    <Box className="flex min-w-0 flex-1 flex-col items-start gap-1 text-left">
+                    <Box className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left">
                       <BodyText as="span" className="w-full truncate text-left">
                         {client.name}
                       </BodyText>

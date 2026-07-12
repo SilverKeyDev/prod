@@ -96,4 +96,29 @@ describe("useEmbeddedPreferencesForm", () => {
 
     expect(result.current.formData.home_budget_min).toBe(999000);
   });
+
+  it("updateFormFields patches multiple keys and autosaves once", async () => {
+    const { result } = renderHook(() => useEmbeddedPreferencesForm());
+
+    await waitFor(() => {
+      expect(result.current.formData.home_budget_min).toBe(300000);
+    });
+
+    act(() => {
+      result.current.updateFormFields({
+        home_budget_min: 400000,
+        home_budget_max: 900000,
+      });
+    });
+
+    expect(result.current.formData.home_budget_min).toBe(400000);
+    expect(result.current.formData.home_budget_max).toBe(900000);
+    expect(mockAutoSave).toHaveBeenCalledTimes(1);
+    expect(mockAutoSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        home_budget_min: 400000,
+        home_budget_max: 900000,
+      })
+    );
+  });
 });

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports -- Tailwind/Metro use CJS */
 const path = require("node:path");
 
 const foundation = require(

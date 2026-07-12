@@ -81,8 +81,8 @@ function MobilePhaseNode({
     : "text-xs font-medium md:text-xs";
 
   const shellClass = emphasize
-    ? "relative min-h-[52px] min-w-0 flex-1 flex-col items-center justify-center px-1 py-2"
-    : "relative min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center px-1 py-1.5";
+    ? "relative min-h-12 min-w-0 flex-1 flex-col items-center justify-center px-1 py-2"
+    : "relative min-h-11 min-w-0 flex-1 flex-col items-center justify-center px-1 py-1.5";
 
   const widthStyle =
     mobileStripSlotPercent != null
@@ -173,7 +173,7 @@ function desktopCellShellClass(
   isDominant: boolean
 ): string {
   if (isDominant) {
-    return `${DESKTOP_CELL_ROW} border-gold bg-gold-muted/35 shadow-sm z-10 min-h-9 border-solid hover:bg-gold-muted/45 active:bg-gold-muted/50`;
+    return `${DESKTOP_CELL_ROW} border-gold bg-gold-muted/35 shadow-sm z-header min-h-9 border-solid hover:bg-gold-muted/45 active:bg-gold-muted/50`;
   }
   const muted = "opacity-65 hover:opacity-80";
   if (status === "locked") {
@@ -225,7 +225,7 @@ function DesktopPhaseNode({
       aria-current={isJourney ? "step" : undefined}
       onPress={onPress}
       onFocus={onFocus}
-      className={`focus-visible:ring-gold/40 w-full min-w-0 flex-1 cursor-pointer flex-col items-stretch rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${isDominant ? "relative z-10" : ""}`}
+      className={`focus-visible:ring-gold/40 w-full min-w-0 flex-1 cursor-pointer flex-col items-stretch rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${isDominant ? "z-header relative" : ""}`}
     >
       <Box className="relative flex w-full flex-col items-center justify-center px-0.5 pb-2.5 pt-0.5">
         <Box
