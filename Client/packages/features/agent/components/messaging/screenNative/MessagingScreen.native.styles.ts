@@ -4,6 +4,9 @@ import { color } from "packages/design-tokens";
 
 export const messagingScreenNativeStyles = StyleSheet.create({
   container: { flex: 1 },
+  // `flex: 1` bounds the list to the available space so it scrolls instead of
+  // growing to its content height and pushing the composer off-screen (SIL-262).
+  list: { flex: 1 },
   listContent: { padding: 16, paddingBottom: 8, flexGrow: 1 },
   inputRow: {
     flexDirection: "row",
