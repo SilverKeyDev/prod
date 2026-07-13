@@ -3,11 +3,11 @@ import { lazy, Suspense, useEffect } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 
 import { useActiveWorkspace, useIsAgent } from "packages/features/homeauth";
-import { getMessagingSurfaceForWorkspace } from "packages/features/messaging/utils/workspace/getMessagingSurfaceForWorkspace";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { useNavigation } from "packages/navigation";
 import { useAuthStore } from "packages/store";
 import { Box } from "packages/ui/components/structure/primitives";
+import { getMessagingSurfaceForWorkspace } from "packages/utils/comms/messaging/getMessagingSurfaceForWorkspace";
 import { stripWorkspaceShellPrefix } from "packages/utils/core/layout/dashboardLayoutConfig";
 import { traceLazyImport } from "packages/utils/core/perf/shellRouteLoadTiming";
 
@@ -15,12 +15,16 @@ import { KeyTurnLoader } from "@/components/ui";
 
 import {
   loadAgentDashboardModule,
+  loadBrokerageMessagingModule,
   loadClientMessagingModule,
   loadWorkspaceMessagingShellModule,
 } from "./loading/agentFeatureDynamicImports";
 
 const ClientMessaging = lazy(
   traceLazyImport("MESSAGES", "lazy:ClientMessaging", loadClientMessagingModule)
+);
+const BrokerageMessaging = lazy(
+  traceLazyImport("MESSAGES", "lazy:BrokerageMessaging", loadBrokerageMessagingModule)
 );
 const WorkspaceMessagingShell = lazy(
   traceLazyImport("MESSAGES", "lazy:WorkspaceMessagingShell", loadWorkspaceMessagingShellModule)
@@ -80,6 +84,13 @@ export default function AgentFeature({ setMobileHeaderActions }: AgentFeaturePro
   if (isOnMessagingPath) {
     const surface = getMessagingSurfaceForWorkspace(activeWorkspace);
     if (surface?.stack === "workspace") {
+      if (surface.persona === "brokerage") {
+        return (
+          <Suspense fallback={messagingBranchFallback}>
+            <BrokerageMessaging setMobileHeaderActions={setMobileHeaderActions} />
+          </Suspense>
+        );
+      }
       return (
         <Suspense fallback={messagingBranchFallback}>
           <WorkspaceMessagingShell

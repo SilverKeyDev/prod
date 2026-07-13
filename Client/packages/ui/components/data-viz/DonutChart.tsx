@@ -3,6 +3,8 @@ import React from "react";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 
+import { ChartLegend } from "./ChartLegend";
+
 export type DonutChartProps = {
   data: Array<{ label: string; value: number; color: string }>;
 };
@@ -61,7 +63,7 @@ export function DonutChart({ data }: DonutChartProps): React.ReactElement {
   });
 
   return (
-    <Box className="space-y-4">
+    <Box className="relative">
       <Box className="flex justify-center">
         <svg viewBox="0 0 100 100" className="h-48 w-48">
           {segments.map((segment, index) => (
@@ -74,21 +76,14 @@ export function DonutChart({ data }: DonutChartProps): React.ReactElement {
           ))}
         </svg>
       </Box>
-      <Box className="space-y-2">
-        {segments.map((segment, index) => (
-          <Box key={index} className="flex items-center justify-between">
-            <Box className="flex items-center gap-2">
-              <Box className="h-3 w-3 rounded-full" style={{ backgroundColor: segment.color }} />
-              <BodyText as="span" size="sm" className="text-text-secondary">
-                {segment.label}
-              </BodyText>
-            </Box>
-            <BodyText as="span" size="sm" className="text-text-secondary font-medium">
-              {segment.percentage.toFixed(1)}%
-            </BodyText>
-          </Box>
-        ))}
-      </Box>
+      <ChartLegend
+        className="absolute right-0 top-0"
+        items={segments.map((segment) => ({
+          label: segment.label,
+          color: segment.color,
+          valueLabel: `${segment.percentage.toFixed(1)}%`,
+        }))}
+      />
     </Box>
   );
 }

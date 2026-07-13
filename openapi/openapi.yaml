@@ -532,10 +532,16 @@ components:
       $ref: "./components/schemas/preferences/UpsertPreferencesApiResponse.yaml"
     ProfilePictureResponse:
       $ref: "./components/schemas/auth/ProfilePictureResponse.yaml"
+    AgentTestimonial:
+      $ref: "./components/schemas/user/profile/AgentTestimonial.yaml"
     PublicAgentProfile:
       $ref: "./components/schemas/user/profile/PublicAgentProfile.yaml"
     PublicAgentProfileResponse:
       $ref: "./components/schemas/user/profile/PublicAgentProfileResponse.yaml"
+    PublicAgentListing:
+      $ref: "./components/schemas/user/profile/PublicAgentListing.yaml"
+    PublicAgentListingsResponse:
+      $ref: "./components/schemas/user/profile/PublicAgentListingsResponse.yaml"
     PropertyCompsRequest:
       $ref: "./components/schemas/search/properties/PropertyCompsRequest.yaml"
     PropertyCompsResponse:
@@ -1097,6 +1103,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/public/agent-profile/{userId}/listings:
+    get:
+      tags:
+        - Public
+      summary: Get public agent listings (current and former)
+      description: >
+        Unauthenticated MLS listings attributed to the agent for the public agent site
+        (`#listings` section). Matched from the shared property cache by the agent's MLS id
+        or listing agent email. Returns 404 if the user does not exist, is not an agent,
+        or is inactive; returns an empty list when the agent has no MLS-linked listings.
+        Cards must render MLS attribution; no partner placement on this surface.
+      operationId: getPublicAgentListings
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Agent application user id (users.id).
+          schema:
+            $ref: "#/components/schemas/UserId"
+        - name: status
+          in: query
+          required: false
+          description: Optional bucket filter; omit to return both current and former listings.
+          schema:
+            type: string
+            enum:
+              - active
+              - sold
+      responses:
+        "200":
+          description: Public agent listings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicAgentListingsResponse"
+        "400":
+          description: Invalid status filter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found or not a public agent profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/public/agent-profile/slug/{publicProfileSlug}:
     get:
       tags:
@@ -1129,6 +1188,96 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/public/search/area-suggestions:
+    get:
+      tags:
+        - Public
+      summary: Anonymous area autocomplete for public agent pages
+      description: Unauthenticated variant of `getAreaSuggestions` (same Slipstream lookup).
+      operationId: publicGetAreaSuggestions
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search keyword (min 2 characters)
+        - name: state
+          in: query
+          schema:
+            type: string
+          description: State postal abbreviation filter (e.g. "GA")
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 25
+          description: Maximum number of results
+      responses:
+        "200":
+          description: Matching geographic areas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AreaSuggestionsResponse"
+        "503":
+          description: Upstream area search service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/public/search/area-boundary:
+    get:
+      tags:
+        - Public
+      summary: Anonymous area boundary lookup for public agent pages
+      description: Unauthenticated variant of `getAreaBoundary` (same Slipstream lookup).
+      operationId: publicGetAreaBoundary
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Slipstream area ID
+      responses:
+        "200":
+          description: Area boundary with GeoJSON geometry and viewport ring
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AreaBoundaryResponse"
+        "400":
+          description: Missing area id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Area not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Upstream area search service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: HTTP 500
           content:
             application/json:
               schema:

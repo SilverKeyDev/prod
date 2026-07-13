@@ -36,6 +36,29 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
   "profile.public.unavailable_body":
     "This agent profile is unavailable or the link may be incorrect.",
   "profile.public.back_home": "Back to home",
+  "profile.public.back_to_dashboard": "Back to dashboard",
+
+  // Public agent site sections (web redesign)
+  "profile.public.site.hero_eyebrow": "Real estate agent",
+  "profile.public.site.licensed_in": "Licensed in {{states}}",
+  "profile.public.site.serving_areas": "Serving {{areas}}",
+  "profile.public.site.serving_areas_more": "Serving {{areas}} and {{count}} more areas",
+  "profile.public.site.email_action": "Email",
+  "profile.public.site.call_action": "Call",
+  "profile.public.site.social_eyebrow": "Connect",
+  "profile.public.site.licenses_fineprint": "License {{numbers}}",
+  "profile.public.testimonials_heading": "What clients say",
+
+  // Public agent site listings section (SIL-290)
+  "profile.public.listings.heading": "Listings",
+  "profile.public.listings.current_heading": "Current listings",
+  "profile.public.listings.former_heading": "Former listings",
+  "profile.public.listings.empty": "No MLS-linked listings to show right now. Check back soon.",
+  "profile.public.listings.current_empty": "No active listings right now.",
+  "profile.public.listings.sold_badge": "Sold",
+  "profile.public.listings.mls_number": "MLS # {{id}}",
+  "profile.public.listings.photo_fallback_alt": "Listing photo",
+  "profile.public.listings.address_fallback": "Address unavailable",
   "profile.public.contact_heading": "Contact",
   "profile.public.contact_subtitle": "How clients can reach you on your public profile.",
   "profile.public.email_label": "Email",
@@ -65,6 +88,19 @@ export const PROFILE_TRANSLATIONS: Record<string, string> = {
     "Could not complete your connection automatically. Open this profile again and tap Connect.",
   "profile.public.connect_request_error": "Failed to send connection request",
   "profile.public.connect_profile_not_ready": "Profile not loaded. Please try again in a moment.",
+
+  // Public agent site inline search bar (SIL-291)
+  "profile.public.site.nav_about": "About",
+  "profile.public.site.nav_search": "Search homes",
+  "profile.public.site.search_heading": "Search homes with {{agentName}}",
+  "profile.public.site.search_heading_generic": "Search homes",
+  "profile.public.site.search_placeholder": "Search by city, neighborhood, or ZIP",
+  "profile.public.site.search_body":
+    "Pick a place to continue in the full search experience — map, filters, and every listing.",
+  "profile.public.search_gate_title": "Sign in to search homes",
+  "profile.public.search_gate_body_with_agent":
+    "Create a free account or sign in to continue your search — we'll also connect you with {{agentName}} to help along the way.",
+  "profile.public.search_gate_body": "Create a free account or sign in to continue your search.",
 
   // Buyer onboarding — About Me (SIL-182)
   "profile.onboarding.about.title": "About you",

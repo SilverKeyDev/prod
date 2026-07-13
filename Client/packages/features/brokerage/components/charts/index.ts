@@ -1,11 +1,8 @@
-export { AnalyticsLineChart } from './AnalyticsLineChart';
-export type { LineDataPoint } from './AnalyticsLineChart';
-
-export { AnalyticsBarChart } from './AnalyticsBarChart';
-export type { BarDataPoint } from './AnalyticsBarChart';
-
-export { AnalyticsDonutChart } from './AnalyticsDonutChart';
-export type { DonutSlice } from './AnalyticsDonutChart';
-
-export { AnalyticsHeatMap } from './AnalyticsHeatMap';
-export type { HeatMapCell } from './AnalyticsHeatMap'; 
+export type { BarDataPoint } from "./AnalyticsBarChart";
+export { AnalyticsBarChart } from "./AnalyticsBarChart";
+export type { DonutSlice } from "./AnalyticsDonutChart";
+export { AnalyticsDonutChart } from "./AnalyticsDonutChart";
+export type { HeatMapCell } from "./AnalyticsHeatMap";
+export { AnalyticsHeatMap } from "./AnalyticsHeatMap";
+export type { LineDataPoint } from "./AnalyticsLineChart";
+export { AnalyticsLineChart } from "./AnalyticsLineChart";

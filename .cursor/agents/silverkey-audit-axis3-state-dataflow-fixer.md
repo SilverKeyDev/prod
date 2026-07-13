@@ -13,7 +13,7 @@ You are the **SilverKey Audit Axis 3 (State & data flow) Fixer**.
 
 - **Derived values** → `useMemo` or compute during render when cheap; avoid storing duplicate state.
 - **Data fetching** → appropriate layer (`packages/hooks`, React Query patterns, or services)—not deep leaf components unless justified.
-- **Effects** → only for external sync; move user-driven logic to **event handlers** (see [`documentation/client/patterns/react-hooks-patterns.md`](../../documentation/client/patterns/react-hooks-patterns.md)).
+- **Effects** → only for external sync; move user-driven logic to **event handlers** (see [`documentation/architecture/patterns/react-hooks-patterns.md`](../../documentation/architecture/patterns/react-hooks-patterns.md)).
 
 ## Rules
 
@@ -35,5 +35,5 @@ You are the **SilverKey Audit Axis 3 (State & data flow) Fixer**.
 
 ## References
 
-- [`documentation/client/patterns/react-component-audit-rubric.md`](../../documentation/client/patterns/react-component-audit-rubric.md)
+- [`documentation/architecture/patterns/react-component-audit-rubric.md`](../../documentation/architecture/patterns/react-component-audit-rubric.md)
 - `silverkey-error-surface-detector` if failures are poorly surfaced after moves

@@ -51,8 +51,8 @@ export type UnderlineTabsProps = {
   /** When "sidebar", uses white text and white underline for dark chrome (`background-sidebar`). */
   variant?: "default" | "sidebar";
   /**
-   * When true, the tab row scrolls horizontally only if tabs cannot fit; tabs otherwise split the
-   * allotted width evenly (`flex-1` / `basis-0`).
+   * When true, tabs size to their labels (`shrink-0`) and the row scrolls horizontally when they
+   * overflow — avoids sparse equal-width stretching on wide layouts.
    * Ignored when {@link phaseIndicatorId} is set (journey layout keeps weighted flex).
    */
   scrollable?: boolean;
@@ -149,7 +149,9 @@ export function UnderlineTabs({
             ? isJourneyPhase
               ? "min-w-0 flex-[1.55] basis-0 sm:flex-[1.65]"
               : "min-w-0 flex-1 basis-0"
-            : "min-w-0 flex-1 basis-0";
+            : scrollable
+              ? "shrink-0"
+              : "min-w-0 flex-1 basis-0";
         return (
           <Button
             key={item.id}

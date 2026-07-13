@@ -4,7 +4,10 @@
  * 1. Website — opens /a/:slug public profile
  * 2. Analytics — navigates to per-agent analytics page
  */
+import { useNavigation } from "packages/navigation";
+import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 interface Props {
   agentId: string;
@@ -12,35 +15,34 @@ interface Props {
   slug?: string;
 }
 
-export function AgentRowActions({ agentId, agentName, slug }: Props) {
-  function handleWebsite() {
-    if (slug) {
-      window.open(`/a/${slug}`, "_blank", "noopener,noreferrer");
-    } else {
-      window.open(`/a/unclaimed?name=${encodeURIComponent(agentName)}`, "_blank", "noopener,noreferrer");
-    }
-  }
+function openAgentWebsite(agentName: string, slug?: string) {
+  const path = slug ? `/a/${slug}` : `/a/unclaimed?name=${encodeURIComponent(agentName)}`;
+  getWindow()?.open(path, "_blank", "noopener,noreferrer");
+}
 
-  function handleAnalytics() {
-    window.location.href = `/dashboard/agent/${agentId}`;
-  }
+export function AgentRowActions({ agentId, agentName, slug }: Props) {
+  const { navigateToPath } = useNavigation();
 
   return (
     <Box className="flex items-center gap-1">
-      <button
-        onClick={handleWebsite}
-        className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
-        title={`Open ${agentName}'s public site`}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onPress={() => openAgentWebsite(agentName, slug)}
+        label={`Open ${agentName}'s public site`}
       >
         Website ↗
-      </button>
-      <button
-        onClick={handleAnalytics}
-        className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
-        title={`View ${agentName}'s analytics`}
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onPress={() => navigateToPath(`/dashboard/agent/${agentId}`)}
+        label={`View ${agentName}'s analytics`}
       >
         Analytics
-      </button>
+      </Button>
     </Box>
   );
 }

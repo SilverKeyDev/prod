@@ -8,6 +8,7 @@ import { Box } from "packages/ui/components/structure/primitives";
 import { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
 import type { DropdownOption } from "./Dropdown.types";
+import { DROPDOWN_OPTION_ROW_BASE_CLASSES } from "./dropdownStyles";
 
 export type DropdownMenuBodyProps<T> = {
   menuListId: string;
@@ -84,15 +85,13 @@ export function DropdownMenuBody<T>({
               aria-selected={option.value === value}
               onClick={() => handleOptionSelect(option)}
               disabled={option.disabled}
-              className={`touch-friendly flex w-full items-center justify-between gap-2 px-4 py-4 text-left outline-none transition-colors duration-150 ${sharedInputText} ${
+              className={`${DROPDOWN_OPTION_ROW_BASE_CLASSES} ${sharedInputText} ${
                 option.disabled
                   ? "text-text-disabled cursor-not-allowed"
                   : option.value === value
                     ? "text-text-primary cursor-pointer bg-neutral-100 font-medium hover:bg-neutral-100"
-                    : "text-text-secondary hover:text-text-primary cursor-pointer hover:bg-neutral-50"
-              } ${option.menuRowClassName ?? ""} ${
-                index > 0 ? "border-t border-neutral-200" : ""
-              } hover:font-normal focus:bg-neutral-50 active:bg-neutral-100`}
+                    : "text-text-secondary hover:text-text-primary cursor-pointer hover:bg-neutral-50 focus:bg-neutral-50"
+              } ${option.menuRowClassName ?? ""} ${index > 0 ? "border-t border-neutral-200" : ""}`}
             >
               <Box className="relative flex min-w-0 flex-1 items-center gap-2">
                 <BodyText

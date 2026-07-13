@@ -3,9 +3,9 @@ import os
 
 from dotenv import load_dotenv
 
-from app import create_app
-
 load_dotenv()
+
+from app import create_app  # noqa: E402  # load .env before importing app config
 
 app = create_app()
 

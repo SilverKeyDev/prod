@@ -10,7 +10,7 @@ type CardImageContainerProps = {
   /** Alt text for the image */
   alt: string;
   /** Height variant */
-  height?: "sm" | "md" | "lg" | "responsive";
+  height?: "sm" | "md" | "lg" | "responsive" | "tall";
   /** Image style variant for professional appearance */
   imageVariant?: ImageStyleVariant;
   /** Additional className */
@@ -43,6 +43,9 @@ export default function CardImageContainer({
         return "h-40 sm:h-48 md:h-56";
       case "responsive":
         return "h-32 sm:h-36 md:h-40";
+      case "tall":
+        // Portrait-leaning crop for narrow sidebar / market inventory cards
+        return "aspect-[4/5] h-auto min-h-40";
       default:
         return "h-32 sm:h-40 md:h-48";
     }

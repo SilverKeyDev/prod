@@ -398,5 +398,13 @@
     "nativePath": null,
     "reason": "Web-only property details route composes modal + document/window SEO helpers; native property flow not yet shared.",
     "category": "layout"
+  },
+  {
+    "id": "agent-public-profile-shell",
+    "description": "Public agent site chrome: marketing landing nav wrapped around /a/{slug} and /agent-profile pages (SIL-287)",
+    "webPath": "packages/features/profile/components/pages/AgentPublicProfileShell.web.tsx",
+    "nativePath": null,
+    "reason": "Public agent profile sites are web-only URL destinations sharing the marketing landing nav (fixed DOM header, backdrop-blur, react-router links). Native opens agent profiles inside its own navigation stack and has no public marketing chrome.",
+    "category": "app-shell"
   }
 ]

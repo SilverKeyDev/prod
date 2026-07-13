@@ -13,22 +13,37 @@ describe("getOnboardingSteps", () => {
     expect(ids).not.toContain("seller_shell_setup");
   });
 
-  it("seller flow includes shell setup step", () => {
+  it("seller flow includes seller onboarding steps", () => {
     const ids = getOnboardingSteps({
       excludeFinancial: true,
       isAgent: false,
       primaryRole: "seller",
     }).map((s) => s.id);
-    expect(ids).toEqual(["onboarding_role", "seller_shell_setup"]);
+    expect(ids).toEqual([
+      "onboarding_role",
+      "seller_property",
+      "seller_address",
+      "seller_timeline",
+      "seller_motivation",
+      "seller_pricing",
+      "seller_demographics",
+    ]);
   });
 
-  it("renter flow includes shell setup step", () => {
+  it("renter flow includes renter preference steps", () => {
     const ids = getOnboardingSteps({
       excludeFinancial: true,
       isAgent: false,
       primaryRole: "renter",
     }).map((s) => s.id);
-    expect(ids).toEqual(["onboarding_role", "renter_shell_setup"]);
+    expect(ids).toEqual([
+      "onboarding_role",
+      "renter_budget",
+      "renter_location",
+      "renter_move_timeline",
+      "renter_household",
+      "renter_amenities",
+    ]);
   });
 
   it("brokerage flow includes shell setup step", () => {

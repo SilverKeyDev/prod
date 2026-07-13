@@ -1,5 +1,6 @@
 import React from "react";
 
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import Loading from "@ui/asset/loading/Loading";
 import { KeyboardAvoidingView, Platform, View } from "react-native";
 
@@ -17,6 +18,9 @@ const styles = messagingScreenNativeStyles;
 
 export function MessagingScreenNative() {
   const c = useMessagingScreenNativeController();
+  // The screen sits above the bottom tab bar, so keyboard avoidance must offset
+  // by the tab bar height rather than a hardcoded value (SIL-262).
+  const tabBarHeight = useBottomTabBarHeight();
 
   if (!c.authReady) {
     return (
@@ -59,7 +63,7 @@ export function MessagingScreenNative() {
       style={styles.container}
       /* eslint-disable-next-line silverkey/no-platform-feature-check -- Keyboard behavior differs by platform; useFeature is for product rollout, not layout */
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={80}
+      keyboardVerticalOffset={tabBarHeight}
     >
       <MessagingScreenNativeHeader
         config={c.config}
@@ -77,6 +81,7 @@ export function MessagingScreenNative() {
         localMessages={c.localMessages}
         isLoadingHistory={c.isLoadingHistory}
         centeredStyle={styles.centered}
+        listStyle={styles.list}
         listContentStyle={styles.listContent}
         isAgent={c.isAgent}
         formatTime={c.formatTime}

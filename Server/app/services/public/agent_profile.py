@@ -120,6 +120,7 @@ def build_public_agent_profile(user_id: str) -> PublicAgentProfile | None:
     profile_url = _try_presigned_profile_picture_url(user)
 
     mls_affiliations: list[dict[str, Any]] | None = None
+    testimonials: list[dict[str, Any]] | None = None
     social_links: dict[str, str] | None = None
     agent_bio = None
     brokerage_name = None
@@ -156,6 +157,7 @@ def build_public_agent_profile(user_id: str) -> PublicAgentProfile | None:
         mls_affiliations = _nullable_dict_list(
             _parse_json_list_of_dicts(agent_row.mls_affiliations)
         )
+        testimonials = _nullable_dict_list(_parse_json_list_of_dicts(agent_row.testimonials))
         social_links = _parse_social_links_str_map(agent_row.social_links)
 
     return PublicAgentProfile(
@@ -181,5 +183,6 @@ def build_public_agent_profile(user_id: str) -> PublicAgentProfile | None:
         license_numbers=license_numbers,
         license_expiration_dates=license_expiration_dates,
         mls_affiliations=mls_affiliations,
+        testimonials=testimonials,
         social_links=social_links,
     )

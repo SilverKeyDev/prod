@@ -4,11 +4,12 @@
  */
 import React from "react";
 
-import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { SELLER_TRANSLATIONS } from "packages/features/seller/types/translations";
+import { Input, Label } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
-import { Box } from "packages/ui/components/structure/primitives";
 
 type Props = {
   formData: OnboardingData;
@@ -28,38 +29,32 @@ export function SellerPricingStep({ formData, updateFormData }: Props) {
       </Box>
       <Box className="grid gap-4 sm:grid-cols-2">
         <Box className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+          <Label className="text-sm font-medium text-gray-700">
             {SELLER_TRANSLATIONS.SELLER_PRICING_TARGET_LABEL}
-          </label>
-          <input
+          </Label>
+          <Input
             type="number"
             min={0}
             step={10000}
             value={formData.seller_price_target ?? ""}
-            onChange={(e) =>
-              updateFormData(
-                "seller_price_target",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+            onValueChange={(text) =>
+              updateFormData("seller_price_target", text ? Number(text) : undefined)
             }
             placeholder="e.g. 450000"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />
         </Box>
         <Box className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+          <Label className="text-sm font-medium text-gray-700">
             {SELLER_TRANSLATIONS.SELLER_PRICING_MIN_LABEL}
-          </label>
-          <input
+          </Label>
+          <Input
             type="number"
             min={0}
             step={10000}
             value={formData.seller_price_min ?? ""}
-            onChange={(e) =>
-              updateFormData(
-                "seller_price_min",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+            onValueChange={(text) =>
+              updateFormData("seller_price_min", text ? Number(text) : undefined)
             }
             placeholder="e.g. 400000"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"

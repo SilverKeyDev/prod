@@ -1,19 +1,5 @@
 import React from "react";
 
-import {
-  RenterBudgetStep,
-  RenterMoveTimelineStep,
-  RenterHouseholdStep,
-  RenterAmenitiesStep,
-} from "packages/features/profile/components/onboarding/renter";
-import {
-  SellerPropertyStep,
-  SellerAddressStep,
-  SellerTimelineStep,
-  SellerMotivationStep,
-  SellerPricingStep,
-  SellerDemographicsStep,
-} from "packages/features/profile/components/onboarding/seller";
 import { BROKERAGE_TRANSLATIONS } from "packages/features/brokerage/types/translations";
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
 import {
@@ -26,6 +12,20 @@ import {
   BuyerAboutMeStepContent,
   BuyerFinancingStepContent,
 } from "packages/features/profile/components/onboarding/buyer";
+import {
+  RenterAmenitiesStep,
+  RenterBudgetStep,
+  RenterHouseholdStep,
+  RenterMoveTimelineStep,
+} from "packages/features/profile/components/onboarding/renter";
+import {
+  SellerAddressStep,
+  SellerDemographicsStep,
+  SellerMotivationStep,
+  SellerPricingStep,
+  SellerPropertyStep,
+  SellerTimelineStep,
+} from "packages/features/profile/components/onboarding/seller";
 import { ProfileSearchPropertySection } from "packages/features/profile/components/profileScreen/tabs/search/ProfileSearchPropertySection";
 import { shouldShowBuyerOnboardingUi } from "packages/features/profile/utils/onboarding/role/onboardingRoleSelection";
 import { RENTER_TRANSLATIONS } from "packages/features/renter/types/translations";

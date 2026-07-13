@@ -17,9 +17,9 @@
  * - [features.json](./features.json) — SilverKey domain (`match`, `calendar.eventKind`).
  * Tailwind preset merges both so `theme("colors.match…")` and `color("calendar.eventKind…")` stay stable.
  */
+import chartPaletteColors from "./chart-palette.json";
 import featureColors from "./features.json";
 import foundationColors from "./foundation.json";
-import chartPaletteColors from "./chart-palette.json";
 import stateColors from "./state-colors.json";
 
 export const colors = {

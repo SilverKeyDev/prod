@@ -34,6 +34,6 @@ You are the **SilverKey Audit Axis 5 (Bundle weight) Fixer**.
 
 ## References
 
-- [`documentation/client/patterns/react-component-audit-rubric.md`](../../documentation/client/patterns/react-component-audit-rubric.md)
-- [`documentation/client/tooling/config-files-reference.md`](../../documentation/client/tooling/config-files-reference.md)
+- [`documentation/architecture/patterns/react-component-audit-rubric.md`](../../documentation/architecture/patterns/react-component-audit-rubric.md)
+- [`documentation/reference/config-files.md`](../../documentation/reference/config-files.md)
 - Discovery: `silverkey-bundle-build-optimizer`

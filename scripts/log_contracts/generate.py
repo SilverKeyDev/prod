@@ -273,7 +273,7 @@ LOG_CATEGORIES: dict[str, LogCategory] = {{
 }}
 
 LOG_PATHS: tuple[str, ...] = (
-    {", ".join(repr(p) for p in log_paths)},
+    {", ".join(f'"{p}"' for p in log_paths)},
 )
 
 

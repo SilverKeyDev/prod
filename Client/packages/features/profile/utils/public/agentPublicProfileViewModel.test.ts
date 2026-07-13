@@ -34,4 +34,35 @@ describe("buildAgentPublicProfileViewModel", () => {
     );
     expect(model.displayName).toBe("Agent");
   });
+
+  it("has no testimonials when absent or null", () => {
+    const model = buildAgentPublicProfileViewModel(
+      { id: "u1", name: "Test Agent", email: "a@b.co", testimonials: null },
+      "Agent"
+    );
+    expect(model.hasTestimonials).toBe(false);
+    expect(model.testimonials).toEqual([]);
+  });
+
+  it("derives testimonials, dropping malformed items and out-of-range ratings", () => {
+    const model = buildAgentPublicProfileViewModel(
+      {
+        id: "u1",
+        name: "Test Agent",
+        email: "a@b.co",
+        testimonials: [
+          { author_name: "Jane B.", quote: "Great agent!", date: "2026-01-15", rating: 5 },
+          { author_name: "  ", quote: "No author" },
+          { author_name: "No Quote", quote: "" },
+          { author_name: "Sam", quote: "Solid.", rating: 9 },
+        ],
+      },
+      "Agent"
+    );
+    expect(model.hasTestimonials).toBe(true);
+    expect(model.testimonials).toEqual([
+      { authorName: "Jane B.", quote: "Great agent!", date: "2026-01-15", rating: 5 },
+      { authorName: "Sam", quote: "Solid.", date: null, rating: null },
+    ]);
+  });
 });

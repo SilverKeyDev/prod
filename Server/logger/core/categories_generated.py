@@ -39,6 +39,8 @@ class LogCategory(StrEnum):
     ROUTING = "ROUTING"
     DOCUSIGN = "DOCUSIGN"
     DOCUMENTS = "DOCUMENTS"
+    TRANSACTIONS = "TRANSACTIONS"
+    EMAIL = "EMAIL"
     PROFILE_PREFERENCES = "PROFILE_PREFERENCES"
 
 
@@ -64,6 +66,8 @@ LOG_CATEGORIES: dict[str, LogCategory] = {
     "ROUTING": LogCategory.ROUTING,
     "DOCUSIGN": LogCategory.DOCUSIGN,
     "DOCUMENTS": LogCategory.DOCUMENTS,
+    "TRANSACTIONS": LogCategory.TRANSACTIONS,
+    "EMAIL": LogCategory.EMAIL,
     "PROFILE_PREFERENCES": LogCategory.PROFILE_PREFERENCES,
 }
 
@@ -93,6 +97,9 @@ LOG_PATHS: tuple[str, ...] = (
     "ROUTING",
     "DOCUSIGN",
     "DOCUMENTS",
+    "TRANSACTIONS",
+    "TRANSACTIONS.BBA_REVIEW",
+    "EMAIL",
     "PROFILE_PREFERENCES",
 )
 
@@ -120,6 +127,8 @@ def category_to_config_key(category: LogCategory) -> str:
         LogCategory.ROUTING: "routing",
         LogCategory.DOCUSIGN: "docusign",
         LogCategory.DOCUMENTS: "documents",
+        LogCategory.TRANSACTIONS: "transactions",
+        LogCategory.EMAIL: "email",
         LogCategory.PROFILE_PREFERENCES: "profilePreferences",
     }
     return mapping[category]

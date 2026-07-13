@@ -17,6 +17,8 @@ import { Box } from "packages/ui/components/structure/primitives";
 
 import { Input, Title } from "@/components/ui";
 
+import AgentTestimonialsSection from "./AgentTestimonialsSection";
+
 export type AgentProfileServiceSectionProps = {
   formData: OnboardingData;
   isEditMode: boolean;
@@ -79,6 +81,16 @@ export default function AgentProfileServiceSection({
             onChange={(v) => updateFormData("agent_specialties", v)}
             placeholder="e.g. First-time buyers, Luxury"
             isEditMode={isEditMode}
+          />
+        </ProfileFullWidthField>
+
+        <ProfileFullWidthField
+          label={<Label className="block">{FIELD_LABELS.AGENT_TESTIMONIALS}</Label>}
+        >
+          <AgentTestimonialsSection
+            formData={formData}
+            isEditMode={isEditMode}
+            updateFormData={updateFormData}
           />
         </ProfileFullWidthField>
       </ProfileSectionBody>

@@ -75,4 +75,4 @@ Import without the extension: `import './Sidebar'` → bundler resolves `Sidebar
 
 ## Enforcement
 
-- Platform conventions are enforced via ESLint and code review. See `documentation/client/standards/LINTING.md` for full details.
+- Platform conventions are enforced via ESLint and code review. See `documentation/reference/linting.md` for full details.

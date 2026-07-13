@@ -26,6 +26,12 @@ const navigationStructure: NavigationStructure = {
     href: SIDEBAR_TABS.search.href,
     icon: SIDEBAR_TABS.search.icon,
   },
+  campaigns: {
+    key: "campaigns",
+    name: SIDEBAR_TABS.campaigns.name,
+    href: SIDEBAR_TABS.campaigns.href,
+    icon: SIDEBAR_TABS.campaigns.icon,
+  },
   decide: {
     key: "decide",
     name: SIDEBAR_TABS.decide.name,

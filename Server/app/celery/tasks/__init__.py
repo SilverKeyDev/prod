@@ -14,6 +14,7 @@ from .docusign import (
     send_envelope_task,
     sync_templates_task,
 )
+from .ml_scoring import score_brokerage_ml_insights_task
 from .property_research import compare_property_task, research_property_task
 from .skyslope import (
     sync_all_brokerages_incremental_task,
@@ -32,4 +33,5 @@ __all__ = [
     "sync_templates_task",
     "sync_brokerage_transactions_task",
     "sync_all_brokerages_incremental_task",
+    "score_brokerage_ml_insights_task",
 ]

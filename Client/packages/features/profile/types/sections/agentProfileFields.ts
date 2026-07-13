@@ -22,6 +22,7 @@ export const AGENT_PROFILE_SERVICE_FIELD_KEYS = [
   "agent_bio",
   "agent_primary_service_zips",
   "agent_specialties",
+  "agent_testimonials",
   "agent_social_links",
 ] as const satisfies ReadonlyArray<keyof OnboardingData>;
 

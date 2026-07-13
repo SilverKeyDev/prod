@@ -50,9 +50,9 @@ Keep always-on bodies short; deep detail belongs in `documentation/`.
 | [shared/aws-resource-naming.mdc](shared/aws-resource-naming.mdc) | AWS naming/tags |
 | [shared/cursor-optimization.mdc](shared/cursor-optimization.mdc) | Cursor: `.cursor/**`, tooling docs |
 | [shared/claude-optimization.mdc](shared/claude-optimization.mdc) | Claude Code: `.claude/**`, tooling docs, `CLAUDE.md` |
-| [shared/agent-memory.mdc](shared/agent-memory.mdc) | `.cursor/memory/` read/update; pairs with [cursor-agent-memory.md](../../documentation/client/tooling/cursor-agent-memory.md) |
+| [shared/agent-memory.mdc](shared/agent-memory.mdc) | `.cursor/memory/` read/update; pairs with [cursor-agent-memory.md](../../documentation/guides/tooling/cursor-agent-memory.md) |
 | [shared/local-dev-database.mdc](shared/local-dev-database.mdc) | Local DB reset/init, secrets, setup scripts, Postgres ops docs |
-| [shared/qa-test-accounts.mdc](shared/qa-test-accounts.mdc) | SIL-145 per-role dev sign-in + flow probing (`documentation/client/qa/`) |
+| [shared/qa-test-accounts.mdc](shared/qa-test-accounts.mdc) | SIL-145 per-role dev sign-in + flow probing (`documentation/runbooks/qa/`) |
 
 ---
 
@@ -69,7 +69,7 @@ Keep always-on bodies short; deep detail belongs in `documentation/`.
 | [frontend/async-cancellation.mdc](frontend/async-cancellation.mdc) | Abort/cleanup |
 | [frontend/assets-and-icons.mdc](frontend/assets-and-icons.mdc) | Assets |
 | [frontend/component-audit-rubric.mdc](frontend/component-audit-rubric.mdc) | Five-axis component audits |
-| [frontend/accessibility.mdc](frontend/accessibility.mdc) | WCAG 2.1 AA; see `documentation/client/standards/accessibility-standards.md` |
+| [frontend/accessibility.mdc](frontend/accessibility.mdc) | WCAG 2.1 AA; see `documentation/guides/accessibility-standards.md` |
 
 ---
 

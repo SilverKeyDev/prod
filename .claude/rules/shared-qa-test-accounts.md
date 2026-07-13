@@ -1,5 +1,5 @@
 ---
 alwaysApply: false
-paths: documentation/client/qa/**
+paths: documentation/runbooks/qa/**
 ---
 @../../.cursor/rules/shared/qa-test-accounts.mdc

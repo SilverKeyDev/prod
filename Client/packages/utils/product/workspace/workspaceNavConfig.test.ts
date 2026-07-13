@@ -3,35 +3,43 @@ import { describe, expect, it } from "vitest";
 import { getWorkspaceNavTabs } from "./workspaceNavConfig";
 
 describe("getWorkspaceNavTabs", () => {
-  it("buyer shows search on desktop", () => {
+  it("buyer shows search on desktop and excludes inventory/campaigns", () => {
     const keys = getWorkspaceNavTabs("buyer", false).map((t) => t.key);
     expect(keys).toContain("search");
     expect(keys).toContain("dashboard");
     expect(keys).toContain("decide");
     expect(keys).toContain("agent");
     expect(keys).toContain("profile");
+    expect(keys).not.toContain("inventory");
+    expect(keys).not.toContain("campaigns");
   });
 
-  it("agent shows full desktop nav", () => {
+  it("agent shows full desktop nav without inventory/campaigns", () => {
     const keys = getWorkspaceNavTabs("agent", false).map((t) => t.key);
     expect(keys).toContain("search");
     expect(keys).toContain("decide");
     expect(keys).toContain("agent");
+    expect(keys).not.toContain("inventory");
+    expect(keys).not.toContain("campaigns");
   });
 
-  it("brokerage shows same desktop nav tabs as buyer (no separate analytics tab)", () => {
+  it("brokerage shows Campaigns and hides Search and Inventory", () => {
     const keys = getWorkspaceNavTabs("brokerage", false).map((t) => t.key);
-    expect(keys).toEqual(["dashboard", "search", "decide", "agent", "profile"]);
+    expect(keys).toEqual(["dashboard", "campaigns", "decide", "agent", "profile"]);
+    expect(keys).not.toContain("search");
+    expect(keys).not.toContain("inventory");
     expect(keys).not.toContain("analytics");
   });
 
-  it("seller, renter, brokerage, and integration_partner show full desktop nav (no longer placeholders)", () => {
-    for (const ws of ["seller", "renter", "brokerage", "integration_partner"] as const) {
+  it("seller, renter, and integration_partner keep Search and exclude inventory/campaigns", () => {
+    for (const ws of ["seller", "renter", "integration_partner"] as const) {
       const keys = getWorkspaceNavTabs(ws, false).map((t) => t.key);
       expect(keys).toContain("dashboard");
       expect(keys).toContain("search");
       expect(keys).toContain("agent");
       expect(keys).toContain("profile");
+      expect(keys).not.toContain("inventory");
+      expect(keys).not.toContain("campaigns");
     }
   });
 

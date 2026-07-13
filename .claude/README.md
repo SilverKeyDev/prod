@@ -6,7 +6,7 @@ Claude Code project configuration. **Canonical** rules, skills, and agent person
 
 **Quickstart:** [CLAUDE.md](../CLAUDE.md) and [AGENTS.md](../AGENTS.md).
 
-**Tooling guide:** [documentation/client/tooling/claude-code-configuration.md](../documentation/client/tooling/claude-code-configuration.md).
+**Tooling guide:** [documentation/guides/tooling/claude-code-configuration.md](../documentation/guides/tooling/claude-code-configuration.md).
 
 ---
 

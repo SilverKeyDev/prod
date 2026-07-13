@@ -84,7 +84,7 @@ Located in `.cursor/skills/`:
 
 ### Documentation Complete
 - ✅ **Three-category system**: Primitives, variants, and layouts documented
-- ✅ **Comprehensive results**: `documentation/client/platform/platform-consolidation-results.md`
+- ✅ **Comprehensive results**: `documentation/architecture/platform/platform-consolidation-results.md`
 - ✅ **Linter guide**: `eslint/platform-linters-guide.md`
 
 ## Usage

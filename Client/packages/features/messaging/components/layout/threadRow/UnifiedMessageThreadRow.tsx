@@ -52,7 +52,7 @@ export function UnifiedMessageThreadRow({
   const messageConfig =
     msg.role === "agent" ? config.messageStyles.agent : config.messageStyles.user;
   const isMostRecentMessage = index === localMessages.length - 1;
-  const currentUserRole = mode === "client" ? "user" : "agent";
+  const currentUserRole = mode === "agent" ? "agent" : "user";
   const isCurrentUserMessage = msg.role === currentUserRole;
   const shouldShowDelivered =
     isCurrentUserMessage && msg.status === "delivered" && isMostRecentMessage;

@@ -5,9 +5,27 @@ import { buildTelHref } from "./publicProfileContactLinks";
 
 export type PublicAgentProfile = components["schemas"]["PublicAgentProfile"];
 
+export type PublicAgentSocialLink = {
+  key: string;
+  label: string;
+  href: string;
+};
+
+export type PublicAgentTestimonial = {
+  authorName: string;
+  quote: string;
+  date: string | null;
+  /** Integer 1-5 when present. */
+  rating: number | null;
+};
+
 export type AgentPublicProfileViewModel = {
   displayName: string;
+  /** First word of the display name, for conversational headings ("Meet Jane"). */
+  firstName: string;
   avatarUrl: string | null;
+  /** Prefers the professional headshot for large hero imagery. */
+  heroImageUrl: string | null;
   hasBrokerageBlock: boolean;
   emailTrimmed: string;
   phoneRaw: string;
@@ -15,15 +33,41 @@ export type AgentPublicProfileViewModel = {
   hasContact: boolean;
   hasLicenseChips: boolean;
   mlsCards: ReturnType<typeof formatMlsAffiliationRecord>[];
+  socialLinks: PublicAgentSocialLink[];
+  testimonials: PublicAgentTestimonial[];
+  hasTestimonials: boolean;
 };
+
+/** Display casing for well-known social platform keys; others are capitalized. */
+const SOCIAL_LABELS: Record<string, string> = {
+  linkedin: "LinkedIn",
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  x: "X",
+  facebook: "Facebook",
+  instagram: "Instagram",
+  twitter: "Twitter",
+  zillow: "Zillow",
+  website: "Website",
+};
+
+function socialLabelForKey(key: string): string {
+  const normalized = key.trim().toLowerCase();
+  if (SOCIAL_LABELS[normalized]) return SOCIAL_LABELS[normalized];
+  const trimmed = key.trim();
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
 
 export function buildAgentPublicProfileViewModel(
   agent: PublicAgentProfile,
   fallbackName: string
 ): AgentPublicProfileViewModel {
   const displayName = agent.name?.trim() || fallbackName;
+  const firstName = displayName.split(/\s+/)[0] ?? displayName;
   const avatarUrl =
     agent.profile_picture_url?.trim() || agent.professional_headshot_url?.trim() || null;
+  const heroImageUrl =
+    agent.professional_headshot_url?.trim() || agent.profile_picture_url?.trim() || null;
 
   const hasBrokerageBlock = Boolean(
     agent.brokerage_name?.trim() ||
@@ -53,9 +97,39 @@ export function buildAgentPublicProfileViewModel(
       ?.map((row) => formatMlsAffiliationRecord(row as Record<string, unknown>))
       .filter((rows) => rows.length > 0) ?? [];
 
+  const socialLinks: PublicAgentSocialLink[] = Object.entries(agent.social_links ?? {})
+    .filter((entry): entry is [string, string] => {
+      const href = entry[1];
+      return typeof href === "string" && href.trim().length > 0;
+    })
+    .map(([key, href]) => ({
+      key,
+      label: socialLabelForKey(key),
+      href: href.trim(),
+    }));
+
+  const testimonials: PublicAgentTestimonial[] = (agent.testimonials ?? [])
+    .map((item) => {
+      const authorName = item.author_name?.trim() ?? "";
+      const quote = item.quote?.trim() ?? "";
+      const rating =
+        typeof item.rating === "number" && item.rating >= 1 && item.rating <= 5
+          ? Math.round(item.rating)
+          : null;
+      return {
+        authorName,
+        quote,
+        date: item.date?.trim() || null,
+        rating,
+      };
+    })
+    .filter((item) => item.authorName && item.quote);
+
   return {
     displayName,
+    firstName,
     avatarUrl,
+    heroImageUrl,
     hasBrokerageBlock,
     emailTrimmed,
     phoneRaw,
@@ -63,5 +137,8 @@ export function buildAgentPublicProfileViewModel(
     hasContact,
     hasLicenseChips,
     mlsCards,
+    socialLinks,
+    testimonials,
+    hasTestimonials: testimonials.length > 0,
   };
 }

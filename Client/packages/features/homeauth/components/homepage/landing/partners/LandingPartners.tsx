@@ -1,13 +1,13 @@
+import { LandingEyebrow } from "packages/features/homeauth/components/homepage/landing/shared/LandingEyebrow";
+import { LandingSectionShell } from "packages/features/homeauth/components/homepage/landing/shared/LandingSectionShell";
 import type { LandingPartnerItem } from "packages/features/homeauth/types/landingContent";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
 import { LANDING_SECTION_IDS } from "packages/features/homeauth/utils/landingSectionIds";
 import { LANDING_SECTION_LAYOUT } from "packages/features/homeauth/utils/landingSectionLayout";
 import { Box } from "packages/ui/components/structure/primitives";
 
-import { BodyText } from "@/components/ui";
+import { BodyText, Region } from "@/components/ui";
 
-import { LandingEyebrow } from "../shared/LandingEyebrow";
-import { LandingSectionShell } from "../shared/LandingSectionShell";
 import { PartnerLogoMark } from "./PartnerLogoMarks";
 
 const partnersLayout = LANDING_SECTION_LAYOUT[LANDING_SECTION_IDS.partners];
@@ -53,17 +53,16 @@ export function LandingPartners() {
         </BodyText>
       </Box>
 
-      <Box
+      <Region
         className="border-border/50 bg-background-surface/40 relative overflow-hidden border-y"
-        role="region"
-        aria-label={partners.eyebrow}
+        label={partners.eyebrow}
       >
         <Box
-          className="from-background-base/95 pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r to-transparent sm:w-24"
+          className="from-background-base/95 z-header pointer-events-none absolute left-0 top-0 h-full w-16 bg-gradient-to-r to-transparent sm:w-24"
           aria-hidden
         />
         <Box
-          className="from-background-base/95 pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l to-transparent sm:w-24"
+          className="from-background-base/95 z-header pointer-events-none absolute right-0 top-0 h-full w-16 bg-gradient-to-l to-transparent sm:w-24"
           aria-hidden
         />
 
@@ -71,7 +70,7 @@ export function LandingPartners() {
           <PartnerLogoBand items={partners.items} />
           <PartnerLogoBand items={partners.items} ariaHidden />
         </Box>
-      </Box>
+      </Region>
     </LandingSectionShell>
   );
 }

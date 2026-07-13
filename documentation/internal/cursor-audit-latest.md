@@ -80,7 +80,7 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `shared/pitch-and-fundraising.mdc`        | — → **no**                 | pitch, deck, investor, fundraising globs | Deck-aligned numbers and tone      |
 | `shared/local-dev-database.mdc`           | — → **no**                 | Makefile, compose, setup/secrets scripts, Postgres ops docs | Local DB reset/init stays in Make/setup; deploy secrets stay in `.github/scripts/*` |
 | `shared/post-major-change-sync.mdc`         | no → **no**                | Client/apps/**, Client/packages/**, openapi/**, Server/app/** | Same-PR / fast-follow docs + rules sync after major architecture |
-| `shared/qa-test-accounts.mdc`               | no → **no**                | `documentation/client/qa/**`            | SIL-145 per-role dev sign-in + flow probing (agent-requested) |
+| `shared/qa-test-accounts.mdc`               | no → **no**                | `documentation/runbooks/qa/**`            | SIL-145 per-role dev sign-in + flow probing (agent-requested) |
 | `shared/monorepo.mdc`                       | yes → **no**               | \*_/_                                   | Context budget                                  |
 | `shared/ci-gates.mdc`                       | yes → **no**               | .github/workflows/**, Client/**         |                                                 |
 | `shared/openapi-workflow.mdc`               | yes → **no**               | openapi/\*\*, workflow, generated types |                                                 |
@@ -91,8 +91,8 @@ Client dev: `pnpm dev:web`, `pnpm dev:mobile`, `pnpm build:web` (from `Client/pa
 | `frontend/platform-file-extensions.mdc`     | yes → **no**               | Client/apps/\*\*                        |                                                 |
 | `frontend/state-boundaries.mdc`             | yes → **no**               | Client/\*_/_.{ts,tsx}                   |                                                 |
 | `backend/database.mdc`                      | yes → **no**               | Server/\*\*                             |                                                 |
-| `frontend/component-audit-rubric.mdc`       | yes → **no**               | Client/\*_/_.{ts,tsx}                   | Five-axis component audits; see `documentation/client/patterns/react-component-audit-rubric.md` |
-| `frontend/accessibility.mdc`                | no → **no**                | Client/\*_/_.{ts,tsx}                   | WCAG 2.1 AA; see `documentation/client/standards/accessibility-standards.md` |
+| `frontend/component-audit-rubric.mdc`       | yes → **no**               | Client/\*_/_.{ts,tsx}                   | Five-axis component audits; see `documentation/architecture/patterns/react-component-audit-rubric.md` |
+| `frontend/accessibility.mdc`                | no → **no**                | Client/\*_/_.{ts,tsx}                   | WCAG 2.1 AA; see `documentation/guides/accessibility-standards.md` |
 
 Other `.mdc` files were already `alwaysApply: false` or unchanged in scope. **No duplicate filenames:** do not add `* 2.mdc` copies alongside a canonical rule—Cursor may load both and waste context.
 
@@ -146,7 +146,7 @@ Deleted from `.cursor/agents/` (+ matching `.claude/agents/`) and skills:
 
 ## Loose markdown under `.cursor/` (historical)
 
-OpenAPI adoption and forms implementation journals were **moved** to [documentation/dev/cursor-legacy/](../dev/cursor-legacy/README.md) (read-only). Do not re-add `.cursor/openapi-*.md` or `.cursor/FORMS_*.md`; extend canonical docs under `documentation/server/` or `.cursor/rules/` instead.
+OpenAPI adoption and forms implementation journals lived under `documentation/dev/cursor-legacy/` and were **removed** in the wiki renovation. Do not re-add `.cursor/openapi-*.md` or `.cursor/FORMS_*.md`; extend canonical docs under `documentation/` or `.cursor/rules/` instead.
 
 ## Local-only noise (do not commit)
 

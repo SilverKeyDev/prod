@@ -8,14 +8,13 @@ alwaysApply: true
 
 # Documentation
 
-- **Single canonical tree:** All SilverKey long-form prose lives under **`documentation/`** at the repo root. See `documentation/README.md` and `documentation/HOW_WE_DOCUMENT.md`.
-- **Repo-root `docs/` must not exist.** Do not create it. Many models default to a top-level `docs/` folder — that is **forbidden** here. If you see broken links to `docs/`, retarget to `documentation/` (especially `documentation/server/ops/` for Postgres/Redis/Celery ops). **Creating `docs/` at repo root fails CI** (`scripts/ci/check-doc-placement.sh`).
-- **Colocated exception only:** `*/docs/` inside vendor-owned subtrees (e.g. `Server/app/services/docusign/docs/`) — edit only when working that integration.
-- **FORBIDDEN paths for new long-form guides:** repo-root `docs/`, `Client/documentation/`, ad-hoc long `.md` in feature folders (use `documentation/client/features/` instead).
-- **Client docs:** `documentation/client/` — `architecture/`, `platform/`, `standards/`, `tooling/`, `patterns/`, `features/`, `qa/`. Index: `documentation/client/README.md`.
-- **Server docs:** `documentation/server/` — backend guides and `documentation/server/ops/` for ops runbooks. Index: `documentation/server/README.md`.
-- **Lightweight READMEs:** Major folders (`Client/`, `Server/`, packages) keep short READMEs that link into `documentation/`. No copy-pasted long guides.
-- **In-repo refs:** `documentation/client/standards/LINTING.md` and `Client/packages/*/README.md` stay next to code. Architecture constraints live in `.cursor/rules/frontend/`. Long-form lives under `documentation/`.
-- **Adding docs:** New long-form doc → `documentation/client/` or `documentation/server/`; add a row to that folder's README. Run `scripts/ci/check-doc-placement.sh` and `scripts/ci/check-doc-links.sh` before claiming done. Skill: `.cursor/skills/documentation-placement/SKILL.md`.
-- **Major feature or architecture change:** Update `documentation/` and Cursor artifacts per [documentation/internal/post-major-change-checklist.md](../../../documentation/internal/post-major-change-checklist.md) and skill **post-major-change-sync**.
+- **Single canonical tree:** All SilverKey long-form prose lives under **`documentation/`** at the repo root. See `documentation/README.md` and `documentation/how-we-document.md`.
+- **Repo-root `docs/` must not exist.** Do not create it. If you see broken links to `docs/`, retarget to `documentation/runbooks/` for Postgres/Redis/Celery ops. **Creating `docs/` at repo root fails CI** (`scripts/ci/check-doc-placement.sh`).
+- **Hubs (Diataxis):** `getting-started/`, `architecture/`, `features/`, `guides/`, `reference/`, `runbooks/`, `policies/`, `internal/`.
+- **As-built only:** No roadmap or Planned design trees in-repo. Track planned work in Linear.
+- **Colocated exception only:** `*/docs/` inside vendor-owned subtrees (e.g. `Server/app/services/docusign/docs/`).
+- **FORBIDDEN paths for new long-form guides:** repo-root `docs/`, `Client/documentation/`, ad-hoc long `.md` in feature folders (use `documentation/features/` instead).
+- **Lightweight READMEs:** Major folders keep short READMEs that link into `documentation/`.
+- **Adding docs:** Place under the correct hub; add a row to that hub’s README. Run `scripts/ci/check-doc-placement.sh` and `scripts/ci/check-doc-links.sh` (`make check-docs`). Skill: `.cursor/skills/documentation-placement/SKILL.md`.
+- **Major feature or architecture change:** [documentation/internal/post-major-change-checklist.md](../../../documentation/internal/post-major-change-checklist.md) and skill **post-major-change-sync**.
 - **Team-maintained exceptions (no surprise markdown):** `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `setup.md`, `.cursor/README.md`, `documentation/internal/**`, `.github/pull_request_template.md`.

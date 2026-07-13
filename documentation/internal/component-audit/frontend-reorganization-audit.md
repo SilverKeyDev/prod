@@ -3,8 +3,8 @@
 **Date:** 2026-06-04  
 **Last docs sync:** 2026-06-04 (Phase 5 — documentation reflects current tree; wave rows below track **code reorg work**, not doc accuracy).  
 **Scope:** `Client/apps/*`, `Client/packages/features/*`, shared packages (`hooks`, `ui`, `store`, `utils`, `schemas`, `contexts`).  
-**Orchestration:** default agent or `silverkey-engineer` + this checklist; optional subagents from the [component audit rubric](../../client/patterns/react-component-audit-rubric.md) (*Remediation subagents*). Per-wave fleet agents were removed from `.cursor/agents/` (low use).  
-**Related:** [feature-module-folder-and-layering-audit.md](./feature-module-folder-and-layering-audit.md), [cross-feature-composition.md](../../client/architecture/cross-feature-composition.md).
+**Orchestration:** default agent or `silverkey-engineer` + this checklist; optional subagents from the [component audit rubric](../../architecture/patterns/react-component-audit-rubric.md) (*Remediation subagents*). Per-wave fleet agents were removed from `.cursor/agents/` (low use).  
+**Related:** [feature-module-folder-and-layering-audit.md](./feature-module-folder-and-layering-audit.md), [cross-feature-composition.md](../../architecture/cross-feature-composition.md).
 
 ---
 
@@ -116,7 +116,7 @@ Top LOC (sample): `useMessaging.sendHelpers.ts` (410), `useCalendarQuickCreateSe
 | ---- | --- |
 | `agent/native.ts`, `dashboard/native.ts`, `homeauth/native.ts`, `profile/native.ts`, `propertyDetails/native.ts`, `saved/native.ts`, `search/native.ts` | Fold into `index.ts` + platform subpaths |
 | `search/index.native.ts` | Merge into barrel pattern |
-| `documents/README.md` | Move to `documentation/client/features/` or delete if duplicate |
+| `documents/README.md` | Move to `documentation/features/` or delete if duplicate |
 
 ### Hooks in `components/` → `hooks/`
 
@@ -267,6 +267,6 @@ Use existing `silverkey-audit-axis1-size-responsibility-fixer` per feature when 
 
 ## Related links
 
-- Rubric remediation table: [react-component-audit-rubric.md](../../client/patterns/react-component-audit-rubric.md)
-- Thin app: [documentation/client/architecture/thin-app-architecture.md](../../client/architecture/thin-app-architecture.md)
-- Layer imports: [documentation/client/architecture/layered-architecture-imports.md](../../client/architecture/layered-architecture-imports.md)
+- Rubric remediation table: [react-component-audit-rubric.md](../../architecture/patterns/react-component-audit-rubric.md)
+- Thin app: [documentation/architecture/thin-app-architecture.md](../../architecture/thin-app-architecture.md)
+- Layer imports: [documentation/architecture/layered-architecture-imports.md](../../architecture/layered-architecture-imports.md)

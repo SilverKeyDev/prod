@@ -1,0 +1,66 @@
+type: object
+description: >
+  One MLS listing card on the public agent site, sourced from the shared
+  `property_cache` snapshot (values are display strings as cached). Carries MLS
+  attribution fields (`brokerage`, `mls_home_id`, `mls_region`) so cards can
+  render compliant attribution; no partner placement data on this surface.
+required:
+  - id
+  - status_category
+properties:
+  id:
+    type: string
+    description: property_cache row id (stable even when zpid is missing).
+  zpid:
+    type: string
+    nullable: true
+    description: Listing zpid when known; used for `/property/{zpid}/{slug}` links.
+  address:
+    type: string
+    nullable: true
+  city:
+    type: string
+    nullable: true
+  state:
+    type: string
+    nullable: true
+  zipcode:
+    type: string
+    nullable: true
+  price:
+    type: string
+    nullable: true
+    description: Cached display price (e.g. "$519,900"); not refreshed on read.
+  beds:
+    type: string
+    nullable: true
+  baths:
+    type: string
+    nullable: true
+  sqft:
+    type: string
+    nullable: true
+  primary_image_url:
+    type: string
+    nullable: true
+  listing_status:
+    type: string
+    nullable: true
+    description: Raw MLS status as cached (e.g. "Active", "Under Contract", "Sold").
+  status_category:
+    type: string
+    enum:
+      - active
+      - sold
+    description: Normalized bucket — `active` (current) vs `sold` (former/closed).
+  brokerage:
+    type: string
+    nullable: true
+    description: Listing brokerage/office for MLS attribution on the card.
+  mls_home_id:
+    type: string
+    nullable: true
+    description: MLS listing number for attribution.
+  mls_region:
+    type: string
+    nullable: true

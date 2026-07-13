@@ -1,5 +1,6 @@
-import ReactECharts from 'echarts-for-react';
-import { color } from 'packages/design-tokens';
+import ReactECharts from "echarts-for-react";
+
+import { color } from "packages/design-tokens";
 
 export interface BarDataPoint {
   label: string;
@@ -11,7 +12,7 @@ interface Props {
   data: BarDataPoint[];
   height?: number;
   unit?: string;
-  orientation?: 'horizontal' | 'vertical';
+  orientation?: "horizontal" | "vertical";
   showAvgLine?: boolean;
   colorAbove?: string;
   colorNear?: string;
@@ -24,7 +25,7 @@ function barColor(
   colorAbove: string,
   colorNear: string,
   colorBelow: string,
-  override?: string,
+  override?: string
 ): string {
   if (override) return override;
   if (zScore == null) return colorNear;
@@ -36,8 +37,8 @@ function barColor(
 export function AnalyticsBarChart({
   data,
   height = 300,
-  unit = '',
-  orientation = 'horizontal',
+  unit = "",
+  orientation = "horizontal",
   showAvgLine = false,
   colorAbove,
   colorNear,
@@ -50,7 +51,7 @@ export function AnalyticsBarChart({
 
   const values = data.map((d) => d.value);
   const avg = values.reduce((s, v) => s + v, 0) / values.length;
-  const isVertical = orientation === 'vertical';
+  const isVertical = orientation === "vertical";
 
   const seriesData = data.map((d) => ({
     value: d.value,
@@ -60,24 +61,23 @@ export function AnalyticsBarChart({
     },
   }));
 
-  const markLine =
-    showAvgLine
-      ? {
-          silent: true,
-          symbol: 'none',
-          lineStyle: { type: 'dashed', width: 1 },
-          data: [isVertical ? { yAxis: Math.round(avg) } : { xAxis: Math.round(avg) }],
-          label: {
-            show: true,
-            formatter: `avg ${Math.round(avg)}${unit}`,
-            fontSize: 10,
-            position: 'end',
-          },
-        }
-      : undefined;
+  const markLine = showAvgLine
+    ? {
+        silent: true,
+        symbol: "none",
+        lineStyle: { type: "dashed", width: 1 },
+        data: [isVertical ? { yAxis: Math.round(avg) } : { xAxis: Math.round(avg) }],
+        label: {
+          show: true,
+          formatter: `avg ${Math.round(avg)}${unit}`,
+          fontSize: 10,
+          position: "end",
+        },
+      }
+    : undefined;
 
   const categoryAxis = {
-    type: 'category' as const,
+    type: "category" as const,
     data: data.map((d) => d.label),
     axisLabel: { fontSize: 11 },
     axisLine: { show: false },
@@ -86,24 +86,22 @@ export function AnalyticsBarChart({
   };
 
   const valueAxis = {
-    type: 'value' as const,
+    type: "value" as const,
     axisLabel: { fontSize: 10, formatter: `{value}${unit}` },
     axisLine: { show: false },
     axisTick: { show: false },
-    splitLine: { lineStyle: { color: 'rgba(11,11,11,0.05)' } },
+    splitLine: { lineStyle: { color: color("border-card-muted") } },
   };
 
   const option = {
     tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'none' },
+      trigger: "axis",
+      axisPointer: { type: "none" },
       formatter: (params: { dataIndex: number; value: number }[]) => {
         const p = params[0];
         const d = data[p.dataIndex];
         const zLine =
-          d.zScore != null
-            ? `<br/>z-score: <b>${d.zScore > 0 ? '+' : ''}${d.zScore}</b>`
-            : '';
+          d.zScore != null ? `<br/>z-score: <b>${d.zScore > 0 ? "+" : ""}${d.zScore}</b>` : "";
         return `${d.label}<br/><b>${p.value}${unit}</b>${zLine}`;
       },
     },
@@ -112,7 +110,7 @@ export function AnalyticsBarChart({
       : { left: 64, right: 24, top: 8, bottom: 28 },
     xAxis: isVertical ? categoryAxis : valueAxis,
     yAxis: isVertical ? valueAxis : categoryAxis,
-    series: [{ type: 'bar', data: seriesData, barMaxWidth: isVertical ? 32 : 16, markLine }],
+    series: [{ type: "bar", data: seriesData, barMaxWidth: isVertical ? 32 : 16, markLine }],
   };
 
   return <ReactECharts option={option} style={{ height }} />;

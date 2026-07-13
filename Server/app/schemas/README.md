@@ -30,7 +30,7 @@ return TodoItem(**todo.to_dict()).model_dump()
 
 ## Further reading
 
-- [documentation/server/openapi-workflow.md](../../../../documentation/server/openapi-workflow.md)
+- [documentation/guides/openapi-workflow.md](../../../../documentation/guides/openapi-workflow.md)
 - [openapi-workflow.mdc](../../../../.cursor/rules/shared/openapi-workflow.mdc)
 - [Server/app/models/](../models/) — SQLAlchemy ORM
 - [openapi.yaml](../../../../openapi.yaml) — schema source of truth

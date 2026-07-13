@@ -1,6 +1,7 @@
 export * from "./agenda/agentAgendaEvent";
 export * from "./core/calendarDateKeys";
 export * from "./core/date";
+export * from "./createEvent/calendarEventKinds";
 export * from "./createEvent/eventFormGooglePayload";
 export * from "./createEvent/googleMeetAfterCreate";
 export * from "./grid/calendarQuickCreateSnap";

@@ -31,7 +31,12 @@ export function LandingFinalCTA() {
       >
         <Title as="h2" size="xl" className="mb-3.5 !font-serif leading-tight">
           {finalCta.headlineBefore}
-          <span className={LANDING_HEADLINE_ACCENT_CLASS}>{finalCta.headlineAccent}</span>
+          <BodyText
+            as="span"
+            className={`${LANDING_HEADLINE_ACCENT_CLASS} font-[inherit] text-[length:inherit] leading-[inherit]`}
+          >
+            {finalCta.headlineAccent}
+          </BodyText>
           {finalCta.headlineAfter}
         </Title>
         <BodyText as="p" size="md" muted className="mb-7">

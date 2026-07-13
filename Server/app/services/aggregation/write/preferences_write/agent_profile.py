@@ -82,3 +82,33 @@ def write_agent_profile_from_payload(agent: UserAgentProfile, data: dict[str, An
     if "agent_social_links" in data:
         val = data["agent_social_links"]
         agent.social_links = json.dumps(dict(val)) if isinstance(val, dict) else None
+    if "agent_testimonials" in data:
+        val = data["agent_testimonials"]
+        normalized = _normalize_testimonials(val) if isinstance(val, list) else None
+        agent.testimonials = json.dumps(normalized) if normalized else None
+
+
+def _normalize_testimonials(items: list[Any]) -> list[dict[str, Any]]:
+    """Keep only well-formed testimonials: require author_name+quote, clamp rating
+    to 1-5 (drop otherwise), default source to "custom" (SIL-293 imports set their own)."""
+    normalized: list[dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        author_name = str(item.get("author_name") or "").strip()
+        quote = str(item.get("quote") or "").strip()
+        if not author_name or not quote:
+            continue
+        out: dict[str, Any] = {"author_name": author_name, "quote": quote}
+        date = item.get("date")
+        if date is not None and str(date).strip():
+            out["date"] = str(date).strip()
+        rating = item.get("rating")
+        if isinstance(rating, (int, float)) and not isinstance(rating, bool):
+            rating_int = int(rating)
+            if 1 <= rating_int <= 5:
+                out["rating"] = rating_int
+        source = str(item.get("source") or "").strip()
+        out["source"] = source if source else "custom"
+        normalized.append(out)
+    return normalized

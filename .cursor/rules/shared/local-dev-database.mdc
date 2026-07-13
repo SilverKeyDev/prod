@@ -6,7 +6,7 @@ globs:
   - "Server/scripts/secrets.sh"
   - "scripts/setup/*.sh"
   - "scripts/lib/setup-verify.sh"
-  - "documentation/server/ops/postgres.md"
+  - "documentation/runbooks/postgres.md"
 alwaysApply: false
 ---
 
@@ -25,4 +25,4 @@ Do not put database reset, migrations, or Docker volume changes in default `secr
 
 `Server/scripts/secrets.sh` writes a local `DATABASE_URL` only when `USE_LOCAL_DATABASE=1`; it must not mutate database state. Deploy and CI database credentials remain owned by `.github/scripts/*`.
 
-Long-form workflow: `documentation/server/ops/postgres.md`.
+Long-form workflow: `documentation/runbooks/postgres.md`.
