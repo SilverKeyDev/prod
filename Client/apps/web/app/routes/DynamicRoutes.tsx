@@ -2,6 +2,8 @@ import { type ReactElement, useMemo } from "react";
 
 import { Navigate, Route, useLocation } from "react-router-dom";
 
+import { AgentAnalyticsPage } from "packages/features/brokerage/components/analytics/AgentAnalyticsPage";
+
 import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
 import type { UserProfile } from "@/features/homeauth/types";
 import AgentProfilePage from "@/pages/misc/AgentProfilePage";
@@ -73,6 +75,12 @@ function useStableNonDashboardRoutes(): ReactElement[] {
         key="/agent-profile"
         path="/agent-profile/:name/:briefSlug"
         element={<AgentProfilePage />}
+        errorElement={<RouteErrorBoundary />}
+      />,
+      <Route
+        key="/dashboard/agent"
+        path="/dashboard/agent/:agentId"
+        element={<AgentAnalyticsPage />}
         errorElement={<RouteErrorBoundary />}
       />
     );

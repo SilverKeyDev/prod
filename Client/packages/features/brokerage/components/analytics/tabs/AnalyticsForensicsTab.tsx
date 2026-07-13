@@ -1,6 +1,13 @@
 import { useMemo } from "react";
 
 import { color } from "packages/design-tokens";
+import { AgentRowActions } from "packages/features/brokerage/components/analytics/AgentRowActions";
+import { AnalyticsDataTable } from "packages/features/brokerage/components/analytics/AnalyticsDataTable";
+import {
+  KpiCard,
+  SectionCard,
+} from "packages/features/brokerage/components/analytics/AnalyticsShellShared";
+import { TransactionActivityDistribution } from "packages/features/brokerage/components/analytics/TransactionActivityDistribution";
 import {
   AnalyticsBarChart,
   AnalyticsLineChart,
@@ -15,10 +22,6 @@ import { rateColorHighBad } from "packages/features/brokerage/utils/analytics/ra
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
-
-import { AnalyticsDataTable } from "../AnalyticsDataTable";
-import { KpiCard, SectionCard } from "../AnalyticsShellShared";
-import { TransactionActivityDistribution } from "../TransactionActivityDistribution";
 
 type Props = {
   timePeriod: TimePeriod;
@@ -187,7 +190,16 @@ export function AnalyticsForensicsTab({ timePeriod }: Props) {
           <AnalyticsDataTable
             rows={agentRows}
             rowKey={(r) => r.id}
-            columns={fallThroughColumns("Agent", 30, 15)}
+            columns={[
+              ...fallThroughColumns("Agent", 30, 15),
+              {
+                key: "actions",
+                header: "Actions",
+                render: (row: FallThroughRow) => (
+                  <AgentRowActions agentId={row.id} agentName={row.name} />
+                ),
+              },
+            ]}
           />
         </Box>
 

@@ -20,6 +20,7 @@ import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
 
+import { AgentRowActions } from "./AgentRowActions";
 import { AnalyticsDataTable } from "./AnalyticsDataTable";
 
 const SERVICE_COLORS: Record<string, string> = {
@@ -211,6 +212,13 @@ export function AncillaryInsightPanel({ data }: { data: AncillaryAnalytics }) {
                 <BodyText as="span" style={{ color: dangerColor }}>
                   {formatAncillaryDollars(agent.total_leakage_dollars)}
                 </BodyText>
+              ),
+            },
+            {
+              key: "actions",
+              header: "Actions",
+              render: (agent) => (
+                <AgentRowActions agentId={agent.agent_id} agentName={agent.name} />
               ),
             },
           ]}

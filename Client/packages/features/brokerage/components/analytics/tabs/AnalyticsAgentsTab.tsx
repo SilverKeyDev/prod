@@ -1,5 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
+import { AgentRetentionRiskPanel } from "packages/features/brokerage/components/analytics/AgentRetentionRiskPanel";
+import { AgentRowActions } from "packages/features/brokerage/components/analytics/AgentRowActions";
+import { AnalyticsDataTable } from "packages/features/brokerage/components/analytics/AnalyticsDataTable";
+import { SectionCard } from "packages/features/brokerage/components/analytics/AnalyticsShellShared";
+import { TargetedAgentEngagementPanel } from "packages/features/brokerage/components/analytics/TargetedAgentEngagementPanel";
+import { ViewAllAgentsModal } from "packages/features/brokerage/components/analytics/ViewAllAgentsModal";
 import { AnalyticsBarChart } from "packages/features/brokerage/components/charts";
 import { useBrokerageAnalytics } from "packages/features/brokerage/hooks/useBrokerageAnalytics";
 import { selectAgentPerformanceBarsWithZ } from "packages/features/brokerage/utils/analytics/chartSelectors";
@@ -9,19 +15,16 @@ import {
 } from "packages/features/brokerage/utils/analytics/rateColor";
 import { formatCompactCurrency } from "packages/features/brokerage/utils/analyticsFormat";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
+import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
-
-import { AgentRetentionRiskPanel } from "../AgentRetentionRiskPanel";
-import { AnalyticsDataTable } from "../AnalyticsDataTable";
-import { SectionCard } from "../AnalyticsShellShared";
-import { TargetedAgentEngagementPanel } from "../TargetedAgentEngagementPanel";
 
 type Props = {
   timePeriod: TimePeriod;
 };
 
 export function AnalyticsAgentsTab({ timePeriod }: Props) {
+  const [showAllAgents, setShowAllAgents] = useState(false);
   const { agents, isLoading } = useBrokerageAnalytics(timePeriod);
   const agentPerformanceBarsWithZ = useMemo(
     () => selectAgentPerformanceBarsWithZ(agents),
@@ -41,6 +44,14 @@ export function AnalyticsAgentsTab({ timePeriod }: Props) {
       <SectionCard title="Agent Performance" iconName="bar-chart-2">
         <Box className="mb-4">
           <AnalyticsBarChart data={agentPerformanceBarsWithZ} unit=" closings" height={260} />
+        </Box>
+        <Box className="mb-2 flex items-center justify-between">
+          <BodyText size="xs" muted>
+            Showing top agents by closings
+          </BodyText>
+          <Button type="button" variant="ghost" size="sm" onPress={() => setShowAllAgents(true)}>
+            View all agents
+          </Button>
         </Box>
         <AnalyticsDataTable
           rows={agents}
@@ -107,11 +118,17 @@ export function AnalyticsAgentsTab({ timePeriod }: Props) {
                 </BodyText>
               ),
             },
+            {
+              key: "actions",
+              header: "Actions",
+              render: (agent) => <AgentRowActions agentId={agent.id} agentName={agent.name} />,
+            },
           ]}
         />
       </SectionCard>
       <TargetedAgentEngagementPanel period={timePeriod} />
       <AgentRetentionRiskPanel period={timePeriod} />
+      <ViewAllAgentsModal open={showAllAgents} onClose={() => setShowAllAgents(false)} />
     </Box>
   );
 }

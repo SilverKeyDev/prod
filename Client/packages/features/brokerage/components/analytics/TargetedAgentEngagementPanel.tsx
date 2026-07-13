@@ -18,6 +18,7 @@ import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
 import type { IconName } from "packages/ui/types/icons";
 
+import { AgentRowActions } from "./AgentRowActions";
 import { AnalyticsDataTable } from "./AnalyticsDataTable";
 import { SectionCard } from "./AnalyticsShellShared";
 
@@ -247,6 +248,11 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: Time
                 {agent.priority}
               </BodyText>
             ),
+          },
+          {
+            key: "actions",
+            header: "Actions",
+            render: (agent) => <AgentRowActions agentId={agent.agent_id} agentName={agent.name} />,
           },
         ]}
       />
