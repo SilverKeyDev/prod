@@ -17,6 +17,7 @@ import {
 } from "../charts";
 import { AgentRetentionRiskPanel } from "./AgentRetentionRiskPanel";
 import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
+import { BrokerageInventoryPanel } from "./BrokerageInventoryPanel.web";
 import { TargetedAgentEngagementPanel } from "./TargetedAgentEngagementPanel";
 
 type TimePeriod = "week" | "month" | "year" | "5years" | "all";
@@ -515,6 +516,7 @@ export function BrokerageAnalyticsShell() {
       {/* ── Market tab ── */}
       {activeTab === "market" && (
         <Box className="flex flex-col gap-6">
+          <BrokerageInventoryPanel />
           <SectionCard title="Transaction Activity Density">
             <BodyText size="xs" muted className="mb-3">
               Activity by day and hour — real dataset patterns

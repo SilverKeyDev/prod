@@ -61,6 +61,20 @@ export function formatPropertySearchListingPrice(
 }
 
 /**
+ * Parse a whole-string numeric price (e.g. `"425000"` or `"$425,000"`).
+ * Returns `undefined` for anything that is not a plain amount (ranges, free
+ * text like `"Contact for price"`) so those pass through unchanged.
+ */
+function parseWholeNumericPriceString(value: string): number | undefined {
+  const cleaned = value.replace(/^\$/, "").replace(/,/g, "").trim();
+  if (!/^\d+(\.\d+)?$/.test(cleaned)) {
+    return undefined;
+  }
+  const numeric = Number(cleaned);
+  return Number.isFinite(numeric) ? numeric : undefined;
+}
+
+/**
  * User-visible price for cards (includes `$` when showing an amount; no `$` on unavailable copy).
  */
 export type DisplayListingPriceForCardOptions = {
@@ -85,6 +99,13 @@ export function displayListingPriceForCard(
     }
     if (t === "Price not available" || t === unavailableLabel) {
       return t;
+    }
+    // Re-format plain numeric strings (raw digits or already-`$`-prefixed amounts)
+    // with locale thousands separators so fixture/raw prices like "425000" render
+    // as "$425,000" instead of "$425000", matching numeric-price formatting.
+    const numeric = parseWholeNumericPriceString(t);
+    if (numeric !== undefined) {
+      return `$${numeric.toLocaleString()}`;
     }
     return t.startsWith("$") ? t : `$${t}`;
   }
