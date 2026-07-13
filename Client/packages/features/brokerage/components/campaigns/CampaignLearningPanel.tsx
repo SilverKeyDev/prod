@@ -140,8 +140,10 @@ export function CampaignLearningPanel() {
   const runLoop = useRunCampaignLearningLoop(campaignId, brokerageOrgId);
 
   const results = resultsQuery.data;
+  // Mutation data is not keyed by campaignId — ignore stale A after switching to B.
+  const mutationLearning = runLoop.data?.campaign_id === campaignId ? runLoop.data : undefined;
   const learning =
-    (runLoop.data as CampaignLearningResult | undefined) ??
+    mutationLearning ??
     (learningQuery.data && "winner_analysis" in learningQuery.data
       ? learningQuery.data
       : results?.learning && "winner_analysis" in results.learning

@@ -1,7 +1,8 @@
 """Load a campaign into the SIL-309 learning feature shape.
 
 Prefer DB (SIL-306 ORM + events). Fall back to JSON demo seed for
-``camp-*`` ids / unit tests without Postgres.
+``camp-*`` ids / unit tests without Postgres — only when the caller's
+``brokerage_org_id`` matches the JSON store's org.
 """
 
 from __future__ import annotations
@@ -113,11 +114,12 @@ def load_campaign_for_learning(
     """
     Return ``{success, campaign}`` in learning feature shape.
 
-    Order: DB UUID → JSON ``camp-*`` fallback (unit tests / offline).
+    Order: brokerage-scoped JSON ``camp-*`` → DB UUID.
+    JSON fallback never crosses brokerage org boundaries.
     """
-    # JSON stable ids (no DB required)
+    # JSON stable ids (offline / unit tests) — scoped to store brokerage
     if campaign_id.startswith("camp-"):
-        js = get_json_campaign(campaign_id)
+        js = get_json_campaign(campaign_id, brokerage_org_id=brokerage_org_id)
         if js:
             return {"success": True, "campaign": js, "source": "json"}
         return {"success": False, "error": "campaign_not_found"}
@@ -125,8 +127,9 @@ def load_campaign_for_learning(
     # DB path
     try:
         detail = get_db_campaign(brokerage_org_id, campaign_id)
-    except Exception:  # noqa: BLE001 — fall through to JSON if no app context
-        detail = {"success": False, "error": "db_unavailable"}
+    except Exception:  # noqa: BLE001 — missing app context / operational failure
+        # Do not disguise DB outages as 404 for UUID campaign ids.
+        return {"success": False, "error": "db_unavailable"}
 
     if detail.get("success"):
         campaign = db.session.scalar(
@@ -146,10 +149,5 @@ def load_campaign_for_learning(
                 "campaign": campaign_dict_from_orm(campaign),
                 "source": "db",
             }
-
-    # Name alias: map Title Q1 JSON → first DB campaign with matching name
-    js = get_json_campaign(campaign_id)
-    if js:
-        return {"success": True, "campaign": js, "source": "json"}
 
     return {"success": False, "error": "campaign_not_found"}

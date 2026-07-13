@@ -34,8 +34,15 @@ def load_json_campaign_store(*, force_reload: bool = False) -> dict[str, Any]:
         return deepcopy(_json_cache)
 
 
-def get_json_campaign(campaign_id: str) -> dict[str, Any] | None:
+def get_json_campaign(
+    campaign_id: str,
+    *,
+    brokerage_org_id: str | None = None,
+) -> dict[str, Any] | None:
+    """Return a JSON campaign only when id matches and (if given) org matches."""
     store = load_json_campaign_store()
+    if brokerage_org_id is not None and store.get("brokerage_org_id") != brokerage_org_id:
+        return None
     for camp in store.get("campaigns", []):
         if camp.get("id") == campaign_id:
             return camp

@@ -64,9 +64,12 @@ export function useRunCampaignLearningLoop(campaignId: string, brokerageOrgId?: 
         skipPerplexity: opts?.skipPerplexity,
       }),
     onSuccess: (data) => {
-      void qc.setQueryData(campaignLearningQueryKey(resolved, campaignId), data);
+      // Key cache by response campaign_id so a late response cannot land under
+      // a different selector if the user switched campaigns mid-flight.
+      const resultCampaignId = data.campaign_id || campaignId;
+      void qc.setQueryData(campaignLearningQueryKey(resolved, resultCampaignId), data);
       void qc.invalidateQueries({
-        queryKey: campaignResultsQueryKey(resolved, campaignId),
+        queryKey: campaignResultsQueryKey(resolved, resultCampaignId),
       });
       void qc.invalidateQueries({ queryKey: campaignListQueryKey(resolved) });
     },

@@ -11,6 +11,10 @@ vi.mock("../TransactionActivityDistribution", () => ({
   TransactionActivityDistribution: () => <div data-testid="activity-distribution" />,
 }));
 
+vi.mock("packages/features/brokerage/components/analytics/AgentRowActions", () => ({
+  AgentRowActions: () => <div data-testid="agent-row-actions" />,
+}));
+
 import { AnalyticsForensicsTab } from "./AnalyticsForensicsTab";
 
 describe("AnalyticsForensicsTab", () => {

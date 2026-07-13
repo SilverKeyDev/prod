@@ -16,6 +16,14 @@ vi.mock("packages/features/brokerage/components/charts", () => ({
 
 vi.mock("packages/navigation", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  useNavigation: () => ({
+    navigateToPath: vi.fn(),
+    pathname: "/dashboard",
+  }),
+}));
+
+vi.mock("packages/features/brokerage/components/analytics/AgentRowActions", () => ({
+  AgentRowActions: () => <div data-testid="agent-row-actions" />,
 }));
 
 vi.mock("packages/features/brokerage/components/analytics/AncillaryInsightPanel", () => ({
