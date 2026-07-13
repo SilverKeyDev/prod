@@ -10,6 +10,7 @@
  */
 import React, { useState } from "react";
 import { useAgentRetentionRisk } from "../../hooks/useAgentRetentionRisk";
+import { AgentRowActions } from "./AgentRowActions";
 
 type RiskTier = "flight_risk" | "watch" | "stable" | "over_comp";
 
@@ -37,31 +38,14 @@ const TIER_FILTERS: { label: string; value: string }[] = [
 
 function exportToCsv(rows: typeof data.agents) {
   const headers = [
-    "Name",
-    "Office",
-    "Transactions",
-    "Est. GCI ($)",
-    "Current Split %",
-    "Market Benchmark %",
-    "Split Gap",
-    "Risk Score",
-    "Risk Tier",
-    "Percentile",
-    "Recommended Action",
+    "Name", "Office", "Transactions", "Est. GCI ($)", "Current Split %",
+    "Market Benchmark %", "Split Gap", "Risk Score", "Risk Tier", "Percentile", "Recommended Action",
   ];
   const lines = rows.map((a) =>
     [
-      a.name,
-      a.office,
-      a.total_transactions,
-      a.estimated_gci,
-      a.current_split_percent,
-      a.market_benchmark_split_percent,
-      a.split_gap,
-      a.risk_score,
-      a.risk_tier,
-      a.peer_production_percentile,
-      `"${a.recommended_action}"`,
+      a.name, a.office, a.total_transactions, a.estimated_gci,
+      a.current_split_percent, a.market_benchmark_split_percent, a.split_gap,
+      a.risk_score, a.risk_tier, a.peer_production_percentile, `"${a.recommended_action}"`,
     ].join(",")
   );
   const csv = [headers.join(","), ...lines].join("\n");
@@ -175,7 +159,8 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: import(".
               <th className="pb-3 pr-4 text-right font-medium">Market</th>
               <th className="pb-3 pr-4 text-right font-medium">Gap</th>
               <th className="pb-3 pr-4 text-right font-medium">Score</th>
-              <th className="pb-3 font-medium">Tier</th>
+              <th className="pb-3 pr-4 font-medium">Tier</th>
+              <th className="pb-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -196,40 +181,36 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: import(".
                   {agent.market_benchmark_split_percent}%
                 </td>
                 <td className="py-3 pr-4 text-right">
-                  <span
-                    className={
-                      agent.split_gap < 0
-                        ? "font-semibold text-red-600"
-                        : agent.split_gap > 5
-                          ? "font-semibold text-purple-600"
-                          : "text-gray-500"
-                    }
-                  >
-                    {agent.split_gap > 0 ? "+" : ""}
-                    {agent.split_gap}pts
+                  <span className={
+                    agent.split_gap < 0
+                      ? "font-semibold text-red-600"
+                      : agent.split_gap > 5
+                        ? "font-semibold text-purple-600"
+                        : "text-gray-500"
+                  }>
+                    {agent.split_gap > 0 ? "+" : ""}{agent.split_gap}pts
                   </span>
                 </td>
                 <td className="py-3 pr-4 text-right">
-                  <span
-                    className={
-                      agent.risk_score >= 70
-                        ? "font-bold text-red-600"
-                        : agent.risk_score >= 40
-                          ? "font-semibold text-yellow-600"
-                          : "text-gray-500"
-                    }
-                  >
+                  <span className={
+                    agent.risk_score >= 70
+                      ? "font-bold text-red-600"
+                      : agent.risk_score >= 40
+                        ? "font-semibold text-yellow-600"
+                        : "text-gray-500"
+                  }>
                     {agent.risk_score}
                   </span>
                 </td>
-                <td className="py-3">
-                  <span
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      TIER_STYLES[agent.risk_tier as RiskTier]
-                    }`}
-                  >
+                <td className="py-3 pr-4">
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                    TIER_STYLES[agent.risk_tier as RiskTier]
+                  }`}>
                     {TIER_LABELS[agent.risk_tier as RiskTier]}
                   </span>
+                </td>
+                <td className="py-3">
+                  <AgentRowActions agentId={agent.agent_id} agentName={agent.name} />
                 </td>
               </tr>
             ))}

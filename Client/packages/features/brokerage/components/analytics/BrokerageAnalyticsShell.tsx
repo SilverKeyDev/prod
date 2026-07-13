@@ -10,6 +10,8 @@ import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTa
 import { AncillaryInsightPanel } from "./AncillaryInsightPanel";
 import { TargetedAgentEngagementPanel } from "./TargetedAgentEngagementPanel";
 import { AgentRetentionRiskPanel } from "./AgentRetentionRiskPanel";
+import { AgentRowActions } from "./AgentRowActions";
+import { ViewAllAgentsModal } from "./ViewAllAgentsModal";
 import {
   AnalyticsLineChart,
   AnalyticsBarChart,
@@ -18,7 +20,7 @@ import {
 } from "../charts";
 
 type TimePeriod = "week" | "month" | "year" | "5years" | "all";
-type Tab = "overview" | "agents" | "leakage" | "forensics" | "market";
+type Tab = "leakage" | "overview" | "agents" | "forensics" | "market";
 
 const TIME_PERIOD_OPTIONS: { value: TimePeriod; label: string }[] = [
   { value: "week", label: "7D" },
@@ -29,9 +31,9 @@ const TIME_PERIOD_OPTIONS: { value: TimePeriod; label: string }[] = [
 ];
 
 const DASHBOARD_TABS = [
+  { id: "leakage", label: "Leakage" },
   { id: "overview", label: "Overview" },
   { id: "agents", label: "Agents" },
-  { id: "leakage", label: "Leakage" },
   { id: "forensics", label: "Deal forensics" },
   { id: "market", label: "Market" },
 ];
@@ -60,26 +62,12 @@ const DELTA_LABEL: Record<TimePeriod, string> = {
   all: "vs prior period",
 };
 
-function KpiCard({
-  label,
-  value,
-  delta,
-}: {
-  label: string;
-  value: string | number;
-  delta?: string;
-}) {
+function KpiCard({ label, value, delta }: { label: string; value: string | number; delta?: string }) {
   return (
     <Box className="border-border bg-background-surface rounded-xl border p-4">
-      <BodyText size="xs" muted>
-        {label}
-      </BodyText>
+      <BodyText size="xs" muted>{label}</BodyText>
       <Title size="lg">{value}</Title>
-      {delta ? (
-        <BodyText size="xs" muted className="mt-1">
-          {delta}
-        </BodyText>
-      ) : null}
+      {delta ? <BodyText size="xs" muted className="mt-1">{delta}</BodyText> : null}
     </Box>
   );
 }
@@ -87,9 +75,7 @@ function KpiCard({
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box className="border-border bg-background-surface rounded-xl border p-5">
-      <Title size="sm" as="h3" className="mb-4">
-        {title}
-      </Title>
+      <Title size="sm" as="h3" className="mb-4">{title}</Title>
       {children}
     </Box>
   );
@@ -97,7 +83,8 @@ function SectionCard({ title, children }: { title: string; children: React.React
 
 export function BrokerageAnalyticsShell() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all");
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [activeTab, setActiveTab] = useState<Tab>("leakage");
+  const [showAllAgents, setShowAllAgents] = useState(false);
   const { data, agents, isLoading } = useBrokerageAnalytics(timePeriod);
   const { data: failureData } = useDealFailureForensics(timePeriod);
 
@@ -154,9 +141,6 @@ export function BrokerageAnalyticsShell() {
     <Box className="flex flex-col gap-6 p-6">
       <Box>
         <Title size="md" as="h2">Brokerage Analytics</Title>
-        <BodyText size="sm" muted className="mt-1">
-          Real data — 50,122 transactions across 500 agents
-        </BodyText>
       </Box>
 
       <UnderlineTabs
@@ -182,6 +166,33 @@ export function BrokerageAnalyticsShell() {
           </button>
         ))}
       </Box>
+
+      {/* ── Leakage tab ── */}
+      {activeTab === "leakage" && (
+        <Box className="flex flex-col gap-6">
+          <Box className="border-border bg-background-surface rounded-xl border p-5">
+            <Title size="sm" as="h3" className="mb-1">Ancillary Capture Leakage</Title>
+            <BodyText size="xs" muted className="mb-4">
+              Revenue leaking to outside title, lending, escrow, and home warranty vendors
+            </BodyText>
+            <AncillaryInsightPanel period={timePeriod} />
+          </Box>
+          <SectionCard title="Service Revenue Mix">
+            <AnalyticsDonutChart
+              data={[
+                { label: "Title", value: 38, detail: "$912K" },
+                { label: "Mortgage", value: 27, detail: "$648K" },
+                { label: "Escrow", value: 21, detail: "$504K" },
+                { label: "Warranty", value: 14, detail: "$336K" },
+              ]}
+              centerLabel="$2.4M"
+              centerSub="total revenue"
+              showEntropy
+              height={300}
+            />
+          </SectionCard>
+        </Box>
+      )}
 
       {/* ── Overview tab ── */}
       {activeTab === "overview" && (
@@ -244,6 +255,15 @@ export function BrokerageAnalyticsShell() {
             <Box className="mb-4">
               <AnalyticsBarChart data={agentPerformanceBarsWithZ} unit=" closings" height={260} />
             </Box>
+            <Box className="flex items-center justify-between mb-2">
+              <BodyText size="xs" muted>Showing top 8 agents by closings</BodyText>
+              <button
+                onClick={() => setShowAllAgents(true)}
+                className="text-xs font-medium text-gray-500 hover:text-gray-900 underline transition-colors"
+              >
+                View all agents
+              </button>
+            </Box>
             <Box className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -252,7 +272,8 @@ export function BrokerageAnalyticsShell() {
                     <th className="py-2 pr-4">Active Clients</th>
                     <th className="py-2 pr-4">Closings</th>
                     <th className="py-2 pr-4">Stall Stage</th>
-                    <th className="py-2">Status</th>
+                    <th className="py-2 pr-4">Status</th>
+                    <th className="py-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -262,13 +283,20 @@ export function BrokerageAnalyticsShell() {
                       <td className="py-2 pr-4">{agent.activeClients}</td>
                       <td className="py-2 pr-4">{agent.closings}</td>
                       <td className="py-2 pr-4 font-mono text-xs">{agent.stall ?? "—"}</td>
-                      <td className="py-2">
+                      <td className="py-2 pr-4">
                         <span style={{
                           color: agent.status === "top" ? successColor : agent.status === "at_risk" ? dangerColor : chartColor1,
                           fontWeight: 500,
                         }}>
                           {agent.status === "top" ? "Top Performer" : agent.status === "at_risk" ? "At Risk" : "Healthy"}
                         </span>
+                      </td>
+                      <td className="py-2">
+                        <AgentRowActions
+                          agentId={agent.id}
+                          agentName={agent.name}
+                          slug={"slug" in agent ? (agent as typeof agent & { slug: string }).slug : undefined}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -278,33 +306,7 @@ export function BrokerageAnalyticsShell() {
           </SectionCard>
           <TargetedAgentEngagementPanel period={timePeriod} />
           <AgentRetentionRiskPanel period={timePeriod} />
-        </Box>
-      )}
-
-      {/* ── Leakage tab ── */}
-      {activeTab === "leakage" && (
-        <Box className="flex flex-col gap-6">
-          <Box className="border-border bg-background-surface rounded-xl border p-5">
-            <Title size="sm" as="h3" className="mb-1">Ancillary Capture Leakage</Title>
-            <BodyText size="xs" muted className="mb-4">
-              Revenue leaking to outside title, lending, escrow, and home warranty vendors
-            </BodyText>
-            <AncillaryInsightPanel period={timePeriod} />
-          </Box>
-          <SectionCard title="Service Revenue Mix">
-            <AnalyticsDonutChart
-              data={[
-                { label: "Title", value: 38, detail: "$912K" },
-                { label: "Mortgage", value: 27, detail: "$648K" },
-                { label: "Escrow", value: 21, detail: "$504K" },
-                { label: "Warranty", value: 14, detail: "$336K" },
-              ]}
-              centerLabel="$2.4M"
-              centerSub="total revenue"
-              showEntropy
-              height={300}
-            />
-          </SectionCard>
+          <ViewAllAgentsModal open={showAllAgents} onClose={() => setShowAllAgents(false)} />
         </Box>
       )}
 
@@ -342,7 +344,8 @@ export function BrokerageAnalyticsShell() {
                     <th className="py-2 pr-4">Agent</th>
                     <th className="py-2 pr-4">Total Deals</th>
                     <th className="py-2 pr-4">Cancelled</th>
-                    <th className="py-2">Fall-Through Rate</th>
+                    <th className="py-2 pr-4">Fall-Through Rate</th>
+                    <th className="py-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -353,10 +356,13 @@ export function BrokerageAnalyticsShell() {
                         <td className="py-2 pr-4 font-medium">{agent.name}</td>
                         <td className="py-2 pr-4">{agent.total_deals.toLocaleString()}</td>
                         <td className="py-2 pr-4">{agent.cancelled}</td>
-                        <td className="py-2">
+                        <td className="py-2 pr-4">
                           <span style={{ color: agent.fall_through_rate_percent >= 30 ? dangerColor : agent.fall_through_rate_percent >= 15 ? warningColor : successColor, fontWeight: 500 }}>
                             {agent.fall_through_rate_percent}%
                           </span>
+                        </td>
+                        <td className="py-2">
+                          <AgentRowActions agentId={agent.agent_id} agentName={agent.name} />
                         </td>
                       </tr>
                     ))}

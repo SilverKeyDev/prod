@@ -24,6 +24,7 @@ import { useAncillaryAnalytics } from "packages/features/brokerage/hooks/useAnci
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
+import { AgentRowActions } from "./AgentRowActions";
 
 const SERVICE_LABELS: Record<string, string> = {
   title: "Title Insurance",
@@ -45,16 +46,6 @@ function formatDollars(amount: number): string {
   if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
   if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`;
   return `$${amount}`;
-}
-
-function DemoDisclaimer() {
-  return (
-    <Box className="border-border-warning bg-background-warning rounded-lg border px-3 py-2">
-      <BodyText size="xs" muted>
-        ⚠️ Demo data — synthetic figures only. Real numbers populate once SkySlope sync completes.
-      </BodyText>
-    </Box>
-  );
 }
 
 interface ServiceData {
@@ -95,21 +86,15 @@ function AttachRatesChart({ services }: { services: ServiceData[] }) {
     },
     grid: { left: 130, right: 16, top: 8, bottom: 8 },
     xAxis: {
-      type: "value",
-      min: 0,
-      max: 100,
+      type: "value", min: 0, max: 100,
       axisLabel: { fontSize: 10, formatter: "{value}%" },
-      axisLine: { show: false },
-      axisTick: { show: false },
+      axisLine: { show: false }, axisTick: { show: false },
       splitLine: { lineStyle: { color: "rgba(11,11,11,0.05)" } },
     },
     yAxis: {
-      type: "category",
-      data: labels,
+      type: "category", data: labels,
       axisLabel: { fontSize: 11 },
-      axisLine: { show: false },
-      axisTick: { show: false },
-      splitLine: { show: false },
+      axisLine: { show: false }, axisTick: { show: false }, splitLine: { show: false },
     },
     series: [
       { name: "In-house", type: "bar", stack: "attach", data: inHouseData, barMaxWidth: 20 },
@@ -124,17 +109,12 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
   const { data, isLoading } = useAncillaryAnalytics(period);
 
   const sortedAgents = useMemo(
-    () =>
-      [...(data?.by_agent ?? [])].sort((a, b) => b.total_leakage_dollars - a.total_leakage_dollars),
+    () => [...(data?.by_agent ?? [])].sort((a, b) => b.total_leakage_dollars - a.total_leakage_dollars),
     [data]
   );
 
   if (isLoading) {
-    return (
-      <Box className="p-6">
-        <BodyText muted>Loading ancillary data…</BodyText>
-      </Box>
-    );
+    return <Box className="p-6"><BodyText muted>Loading ancillary data…</BodyText></Box>;
   }
 
   if (!data) return null;
@@ -145,12 +125,8 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
 
   return (
     <Box className="flex flex-col gap-6">
-      <DemoDisclaimer />
-
       <Box className="border-border-danger bg-background-surface rounded-xl border p-6">
-        <BodyText size="sm" muted className="mb-1">
-          Estimated Annual Revenue Leakage
-        </BodyText>
+        <BodyText size="sm" muted className="mb-1">Estimated Annual Revenue Leakage</BodyText>
         <Title size="xl" style={{ color: dangerColor }}>
           {formatDollars(data.summary.total_leakage_dollars)}
         </Title>
@@ -164,9 +140,7 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
       </Box>
 
       <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Title size="sm" as="h3" className="mb-1">
-          Attach Rates by Service
-        </Title>
+        <Title size="sm" as="h3" className="mb-1">Attach Rates by Service</Title>
         <BodyText size="xs" muted className="mb-4">
           Hover any bar to see in-house vs outside breakdown and leakage amount
         </BodyText>
@@ -174,9 +148,7 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
       </Box>
 
       <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Title size="sm" as="h3" className="mb-1">
-          Agent Leakage Leaderboard
-        </Title>
+        <Title size="sm" as="h3" className="mb-1">Agent Leakage Leaderboard</Title>
         <BodyText size="xs" muted className="mb-4">
           Agents sorted by total estimated leakage — highest opportunity for coaching
         </BodyText>
@@ -188,7 +160,8 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
                 <th className="py-2 pr-4 font-medium">Transactions</th>
                 <th className="py-2 pr-4 font-medium">Title Attach</th>
                 <th className="py-2 pr-4 font-medium">Lending Attach</th>
-                <th className="py-2 font-medium" style={{ color: dangerColor }}>Total Leakage</th>
+                <th className="py-2 pr-4 font-medium" style={{ color: dangerColor }}>Total Leakage</th>
+                <th className="py-2 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -211,20 +184,17 @@ export function AncillaryInsightPanel({ period = "all" }: { period?: import("pac
                       {agent.lending_attach.toFixed(1)}%
                     </span>
                   </td>
-                  <td className="py-2 font-bold" style={{ color: dangerColor }}>
+                  <td className="py-2 pr-4 font-bold" style={{ color: dangerColor }}>
                     {formatDollars(agent.total_leakage_dollars)}
+                  </td>
+                  <td className="py-2">
+                    <AgentRowActions agentId={agent.agent_id} agentName={agent.name} />
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </Box>
-      </Box>
-
-      <Box className="border-border rounded-xl border border-dashed p-4 text-center">
-        <BodyText size="sm" muted>
-          📋 Export functionality coming in SIL-277 v2 — screenshot this view for pitch decks
-        </BodyText>
       </Box>
     </Box>
   );

@@ -12,6 +12,7 @@ import AdminPartnersOutlet from "@/pages/workspace/admin/AdminPartnersOutlet";
 import AdminSuperadminOutlet from "@/pages/workspace/admin/AdminSuperadminOutlet";
 import AdminSupportMessagingOutlet from "@/pages/workspace/admin/AdminSupportMessagingOutlet";
 import AdminPage from "@/pages/workspace/AdminPage";
+import { AgentAnalyticsPage } from "packages/features/brokerage/components/analytics/AgentAnalyticsPage";
 
 import { createProtectedRoute } from "./RouteConfig";
 import { ROUTE_CONFIGS } from "./routeConfigExports";
@@ -69,6 +70,12 @@ function useStableNonDashboardRoutes(): ReactElement[] {
         key="/agent-profile"
         path="/agent-profile/:name/:briefSlug"
         element={<AgentProfilePage />}
+        errorElement={<RouteErrorBoundary />}
+      />,
+      <Route
+        key="/dashboard/agent"
+        path="/dashboard/agent/:agentId"
+        element={<AgentAnalyticsPage />}
         errorElement={<RouteErrorBoundary />}
       />
     );

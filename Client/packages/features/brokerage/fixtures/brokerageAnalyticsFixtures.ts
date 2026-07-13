@@ -4,17 +4,20 @@
  * All figures are real aggregations from the dataset.
  */
 
+// Patch — add slug field to BROKERAGE_AGENTS_FIXTURE
+// Replace the existing BROKERAGE_AGENTS_FIXTURE with this version
+
 export const BROKERAGE_AGENTS_FIXTURE = [
-  { id: "agent-27", name: "Dean Houston", activeClients: 10, closings: 119, stall: null, status: "top" },
-  { id: "agent-337", name: "Nicole Michael", activeClients: 7, closings: 116, stall: null, status: "top" },
-  { id: "agent-6", name: "Mark Parker PhD", activeClients: 5, closings: 117, stall: "offer", status: "healthy" },
-  { id: "agent-226", name: "Amber Edwards", activeClients: 5, closings: 113, stall: null, status: "healthy" },
-  { id: "agent-348", name: "Joe Taylor", activeClients: 3, closings: 111, stall: "search", status: "at_risk" },
-  { id: "agent-288", name: "Andrew Harris", activeClients: 2, closings: 115, stall: "contract", status: "at_risk" },
-  { id: "agent-277", name: "Richard Garner", activeClients: 7, closings: 115, stall: null, status: "healthy" },
-  { id: "agent-122", name: "Barbara Gonzalez", activeClients: 2, closings: 116, stall: null, status: "healthy" },
-  { id: "agent-223", name: "Amber Salinas", activeClients: 10, closings: 105, stall: "search", status: "at_risk" },
-  { id: "agent-265", name: "Jacob Hardy", activeClients: 6, closings: 110, stall: "offer", status: "healthy" },
+  { id: "agent-27",  name: "Dean Houston",     slug: "dean-houston",     activeClients: 10, closings: 119, stall: null,       status: "top"     },
+  { id: "agent-337", name: "Nicole Michael",   slug: "nicole-michael",   activeClients: 7,  closings: 116, stall: null,       status: "top"     },
+  { id: "agent-6",   name: "Mark Parker PhD",  slug: "mark-parker",      activeClients: 5,  closings: 117, stall: "offer",    status: "healthy" },
+  { id: "agent-226", name: "Amber Edwards",    slug: "amber-edwards",    activeClients: 5,  closings: 113, stall: null,       status: "healthy" },
+  { id: "agent-348", name: "Joe Taylor",       slug: "joe-taylor",       activeClients: 3,  closings: 111, stall: "search",   status: "at_risk" },
+  { id: "agent-288", name: "Andrew Harris",    slug: "andrew-harris",    activeClients: 2,  closings: 115, stall: "contract", status: "at_risk" },
+  { id: "agent-277", name: "Richard Garner",   slug: "richard-garner",   activeClients: 7,  closings: 115, stall: null,       status: "healthy" },
+  { id: "agent-122", name: "Barbara Gonzalez", slug: "barbara-gonzalez", activeClients: 2,  closings: 116, stall: null,       status: "healthy" },
+  { id: "agent-223", name: "Amber Salinas",    slug: "amber-salinas",    activeClients: 10, closings: 105, stall: "search",   status: "at_risk" },
+  { id: "agent-265", name: "Jacob Hardy",      slug: "jacob-hardy",      activeClients: 6,  closings: 110, stall: "offer",    status: "healthy" },
 ] as const;
 
 export const BROKERAGE_ANALYTICS_FIXTURE = {

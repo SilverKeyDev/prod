@@ -10,6 +10,7 @@
  */
 import React, { useState } from "react";
 import { useTargetedAgentEngagement } from "../../hooks/useTargetedAgentEngagement";
+import { AgentRowActions } from "./AgentRowActions";
 
 const SERVICE_LABELS: Record<string, string> = {
   title: "Title",
@@ -25,31 +26,17 @@ const PRIORITY_STYLES: Record<string, string> = {
 
 function exportToCsv(rows: typeof data.flagged_agents) {
   const headers = [
-    "Name",
-    "Office",
-    "Transactions",
-    "Title Attach %",
-    "Lending Attach %",
-    "Escrow Attach %",
-    "Warranty Attach %",
-    "Service Gaps",
-    "Est. Leakage $",
-    "Priority",
-    "Suggested Action",
+    "Name", "Office", "Transactions", "Title Attach %", "Lending Attach %",
+    "Escrow Attach %", "Warranty Attach %", "Service Gaps", "Est. Leakage $",
+    "Priority", "Suggested Action",
   ];
   const lines = rows.map((a) =>
     [
-      a.name,
-      a.office,
-      a.total_transactions,
-      a.attach_rates.title,
-      a.attach_rates.lending,
-      a.attach_rates.escrow,
-      a.attach_rates.home_warranty,
-      a.service_gaps.join(" | "),
-      a.estimated_leakage_dollars,
-      a.priority,
-      `"${a.suggested_action}"`,
+      a.name, a.office, a.total_transactions,
+      a.attach_rates.title, a.attach_rates.lending,
+      a.attach_rates.escrow, a.attach_rates.home_warranty,
+      a.service_gaps.join(" | "), a.estimated_leakage_dollars,
+      a.priority, `"${a.suggested_action}"`,
     ].join(",")
   );
   const csv = [headers.join(","), ...lines].join("\n");
@@ -62,7 +49,7 @@ function exportToCsv(rows: typeof data.flagged_agents) {
   URL.revokeObjectURL(url);
 }
 
-export function TargetedAgentEngagementPanel({ period = "all" }: { period?: import("../../hooks/useBrokerageAnalytics").TimePeriod })  {
+export function TargetedAgentEngagementPanel({ period = "all" }: { period?: import("../../hooks/useBrokerageAnalytics").TimePeriod }) {
   const { data, isLoading, error } = useTargetedAgentEngagement(period);
   const [officeFilter, setOfficeFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -98,8 +85,7 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: impo
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Targeted Agent Engagement</h2>
           <p className="mt-1 text-sm text-gray-500">
-            Agents with low in-house ancillary attach rates — prioritized by estimated recoverable
-            revenue.
+            Agents with low in-house ancillary attach rates — prioritized by estimated recoverable revenue.
           </p>
         </div>
         <button
@@ -114,9 +100,7 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: impo
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-lg bg-gray-50 p-4">
           <p className="text-xs uppercase tracking-wide text-gray-500">Agents Analyzed</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">
-            {data.summary.total_agents_analyzed}
-          </p>
+          <p className="mt-1 text-2xl font-bold text-gray-900">{data.summary.total_agents_analyzed}</p>
         </div>
         <div className="rounded-lg bg-red-50 p-4">
           <p className="text-xs uppercase tracking-wide text-red-500">Flagged Agents</p>
@@ -139,9 +123,7 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: impo
         >
           <option value="all">All Offices</option>
           {offices.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
+            <option key={o} value={o}>{o}</option>
           ))}
         </select>
         <select
@@ -168,7 +150,8 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: impo
               <th className="pb-3 pr-4 text-right font-medium">Escrow</th>
               <th className="pb-3 pr-4 text-right font-medium">Warranty</th>
               <th className="pb-3 pr-4 text-right font-medium">Leakage</th>
-              <th className="pb-3 font-medium">Priority</th>
+              <th className="pb-3 pr-4 font-medium">Priority</th>
+              <th className="pb-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -182,15 +165,13 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: impo
                 <td className="py-3 pr-4 text-right text-gray-700">{agent.total_transactions}</td>
                 {(["title", "lending", "escrow", "home_warranty"] as const).map((svc) => (
                   <td key={svc} className="py-3 pr-4 text-right">
-                    <span
-                      className={
-                        agent.attach_rates[svc] === 0
-                          ? "font-semibold text-red-600"
-                          : agent.service_gaps.includes(svc)
-                            ? "text-yellow-600"
-                            : "text-gray-700"
-                      }
-                    >
+                    <span className={
+                      agent.attach_rates[svc] === 0
+                        ? "font-semibold text-red-600"
+                        : agent.service_gaps.includes(svc)
+                          ? "text-yellow-600"
+                          : "text-gray-700"
+                    }>
                       {agent.attach_rates[svc]}%
                     </span>
                   </td>
@@ -198,21 +179,20 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: impo
                 <td className="py-3 pr-4 text-right font-medium text-gray-900">
                   ${agent.estimated_leakage_dollars.toLocaleString()}
                 </td>
-                <td className="py-3">
-                  <span
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${PRIORITY_STYLES[agent.priority]}`}
-                  >
+                <td className="py-3 pr-4">
+                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${PRIORITY_STYLES[agent.priority]}`}>
                     {agent.priority}
                   </span>
+                </td>
+                <td className="py-3">
+                  <AgentRowActions agentId={agent.agent_id} agentName={agent.name} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
         {filtered.length === 0 && (
-          <p className="py-6 text-center text-sm text-gray-400">
-            No agents match the current filters.
-          </p>
+          <p className="py-6 text-center text-sm text-gray-400">No agents match the current filters.</p>
         )}
       </div>
 
@@ -224,12 +204,8 @@ export function TargetedAgentEngagementPanel({ period = "all" }: { period?: impo
         <div className="flex flex-wrap gap-3">
           {data.by_service_gap.map((g) => (
             <div key={g.service} className="rounded-lg border border-gray-200 px-3 py-2 text-sm">
-              <span className="font-medium text-gray-800">
-                {SERVICE_LABELS[g.service] ?? g.service}
-              </span>
-              <span className="ml-2 text-gray-400">
-                {g.agents_with_gap} agent{g.agents_with_gap !== 1 ? "s" : ""}
-              </span>
+              <span className="font-medium text-gray-800">{SERVICE_LABELS[g.service] ?? g.service}</span>
+              <span className="ml-2 text-gray-400">{g.agents_with_gap} agent{g.agents_with_gap !== 1 ? "s" : ""}</span>
             </div>
           ))}
         </div>
