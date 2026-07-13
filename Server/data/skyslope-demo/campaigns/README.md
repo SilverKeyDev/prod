@@ -1,18 +1,15 @@
-# Campaign demo seed (SIL-308 / SIL-309)
+# Campaign demo data (SIL-308 / SIL-309)
 
-File-backed A/B campaign store used by the brokerage analytics learning loop.
-
-| File / dir | Purpose |
-| ---------- | ------- |
-| `campaigns.json` | Two completed campaigns (Title Q1, Warranty Q2) with variants + recipients |
-| `learning_cache/` | Cached Perplexity draft/review fallbacks (demo-safe if API down) |
+| Path | Purpose |
+| ---- | ------- |
+| DB via `scripts.skyslope.seed_demo_campaigns` | Primary SIL-308 seed into `email_campaigns*` |
+| `campaigns.json` | Optional SIL-309 JSON feature matrix (`camp-*`) for offline ML/tests |
+| `learning_cache/` | Cached Perplexity draft/review fallbacks |
 | `learning_results/` | Persisted one-click learning-loop outputs |
 
-Regenerate seed (from `Server/` with venv):
-
 ```bash
-python scripts/skyslope/seed_campaign_demo.py --arms 80
-python scripts/evaluate_sil309.py --run-loop
+cd Server
+.venv/bin/python -m scripts.skyslope.seed_demo_campaigns
+.venv/bin/python scripts/evaluate_sil309.py --run-loop
+.venv/bin/python scripts/evaluate_sil309.py --from-db --run-loop
 ```
-
-No Alembic migration — JSON store for Tuesday demo; DB tables can land with SIL-306 proper.

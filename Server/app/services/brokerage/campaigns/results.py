@@ -129,6 +129,11 @@ def get_campaign_results(brokerage_org_id: str, campaign_id: str) -> dict[str, A
 
     weekly = _weekly_series(baseline, post)
 
+    # SIL-309: attach persisted learning loop output when present
+    from app.services.brokerage.campaigns.learning_artifacts import load_learning_result
+
+    learning = load_learning_result(campaign.id)
+
     return {
         "success": True,
         "campaign_id": campaign.id,
@@ -144,6 +149,7 @@ def get_campaign_results(brokerage_org_id: str, campaign_id: str) -> dict[str, A
         "funnel_by_variant": funnel_by_variant,
         "attach_rate_weekly": weekly,
         "fee_catalog": {k: ANCILLARY_FEES[k] for k in ANCILLARY_SERVICE_ORDER},
+        "learning": learning,
     }
 
 

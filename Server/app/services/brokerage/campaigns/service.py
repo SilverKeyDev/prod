@@ -71,15 +71,22 @@ def _campaign_to_dict(
 
 
 def list_campaigns(brokerage_org_id: str) -> dict[str, Any]:
+    from app.services.brokerage.campaigns.learning_artifacts import load_learning_result
+
     rows = db.session.scalars(
         select(EmailCampaign)
         .where(EmailCampaign.brokerage_id == brokerage_org_id)
         .order_by(EmailCampaign.created_at.desc())
     ).all()
+    campaigns = []
+    for c in rows:
+        data = _campaign_to_dict(c)
+        data["has_learning_result"] = load_learning_result(c.id) is not None
+        campaigns.append(data)
     return {
         "success": True,
         "brokerage_org_id": brokerage_org_id,
-        "campaigns": [_campaign_to_dict(c) for c in rows],
+        "campaigns": campaigns,
     }
 
 
