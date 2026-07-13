@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "@ui/icons";
 
 import { CampaignCategorySection } from "packages/features/brokerage/components/campaigns/CampaignCategorySection";
+import { CampaignLearningPanel } from "packages/features/brokerage/components/campaigns/CampaignLearningPanel";
 import { CampaignRevenueProjectionSummary } from "packages/features/brokerage/components/campaigns/CampaignRevenueProjectionSummary";
 import { CreateCampaignVariantModal } from "packages/features/brokerage/components/campaigns/CreateCampaignVariantModal";
 import { useAncillaryAnalytics } from "packages/features/brokerage/hooks/useAncillaryAnalytics";
@@ -15,7 +16,7 @@ import type { CategoryCampaign } from "packages/features/brokerage/utils/campaig
 import { buildCampaignRevenueProjections } from "packages/features/brokerage/utils/campaigns/campaignRevenueProjections";
 import { scrollToCampaignSection } from "packages/features/brokerage/utils/campaigns/campaignScrollActiveSection";
 import type { NavItem } from "packages/navigation";
-import { BodyText } from "packages/ui";
+import { BodyText, Title } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import SidebarNavigation from "packages/ui/components/structure/sidebar/SidebarNavigation";
 import { TwoColumnInsetPageLayout } from "packages/ui/components/structure/sidebar/TwoColumnInsetPageLayout";
@@ -110,6 +111,21 @@ export function BrokerageCampaignsShell() {
           </BodyText>
         ) : null}
         <CampaignRevenueProjectionSummary projection={projection} />
+
+        <Box
+          id="learning-loop"
+          className="border-border bg-background-surface scroll-mt-24 rounded-xl border p-5"
+        >
+          <Title size="sm" as="h2" className="mb-1">
+            Campaign learning loop
+          </Title>
+          <BodyText size="xs" muted className="mb-4">
+            SIL-309 — model picks winners from seeded A/B results, reviews what worked, drafts the
+            next variant pair for approval
+          </BodyText>
+          <CampaignLearningPanel />
+        </Box>
+
         {categories.map((category) => {
           const yearProjection = projectionByCategoryId.get(category.id);
           if (!yearProjection) return null;
