@@ -27,15 +27,17 @@ export function AgentRowActions({ agentId, agentName, slug }: Props) {
 
   return (
     <Box className="flex items-center gap-1">
+      {slug && (
+        <button
+          onClick={() => window.open(`/a/${slug}`, "_blank", "noopener,noreferrer")}
+          className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+          title={`Open ${agentName}'s public site`}
+        >
+          Website ↗
+        </button>
+      )}
       <button
-        onClick={handleWebsite}
-        className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
-        title={`Open ${agentName}'s public site`}
-      >
-        Website ↗
-      </button>
-      <button
-        onClick={handleAnalytics}
+        onClick={() => { window.location.href = `/dashboard/agent/${agentId}`; }}
         className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
         title={`View ${agentName}'s analytics`}
       >

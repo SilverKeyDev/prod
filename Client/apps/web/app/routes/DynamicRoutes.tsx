@@ -13,6 +13,7 @@ import AdminSuperadminOutlet from "@/pages/workspace/admin/AdminSuperadminOutlet
 import AdminSupportMessagingOutlet from "@/pages/workspace/admin/AdminSupportMessagingOutlet";
 import AdminPage from "@/pages/workspace/AdminPage";
 import { AgentAnalyticsPage } from "packages/features/brokerage/components/analytics/AgentAnalyticsPage";
+import { ProtectedRoute } from "@/app/guards/auth/ProtectedRoute";
 
 import { createProtectedRoute } from "./RouteConfig";
 import { ROUTE_CONFIGS } from "./routeConfigExports";
@@ -28,13 +29,10 @@ type DynamicRoutesProps = {
   handleLogout: () => void;
 };
 
-/** Single shared element so the dashboard shell stays mounted across route changes. */
 function useProtectedDashboardElement(user: UserProfile | null, handleLogout: () => void) {
   return useMemo(() => createProtectedRoute(user ?? undefined, handleLogout), [handleLogout, user]);
 }
 
-/** Routes that do not use `protectedElement` must not live in the same useMemo as `[protectedElement]`,
- *  or they get new `<Route>` instances whenever `user` updates and remount (e.g. admin step-up loop). */
 function useStableNonDashboardRoutes(): ReactElement[] {
   return useMemo(() => {
     const trailing: ReactElement[] = [];
@@ -75,7 +73,11 @@ function useStableNonDashboardRoutes(): ReactElement[] {
       <Route
         key="/dashboard/agent"
         path="/dashboard/agent/:agentId"
-        element={<AgentAnalyticsPage />}
+        element={
+          <ProtectedRoute>
+            <AgentAnalyticsPage />
+          </ProtectedRoute>
+        }
         errorElement={<RouteErrorBoundary />}
       />
     );
