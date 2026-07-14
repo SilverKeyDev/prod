@@ -4,6 +4,10 @@ import Button from "@ui/button/Button";
 import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
+import {
+  DROPDOWN_OPTION_ROW_BASE_CLASSES,
+  DROPDOWN_TRIGGER_INNER_FOCUS_RESET,
+} from "packages/ui/components/inputs/form/dropdown/dropdownStyles";
 import KeyTurnLoader from "packages/ui/components/media/asset/loading/KeyTurnLoader.web";
 import { Box } from "packages/ui/components/structure/primitives";
 import { getDocument } from "packages/utils/core/platform";
@@ -63,7 +67,7 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
         type="button"
         variant="ghost"
         onClick={toggleDropdown}
-        className={`border-border focus:border-input-variant-focus-border bg-background-surface flex h-full w-full items-center gap-2 rounded-lg border px-2 py-2 transition-colors duration-200 hover:border-neutral-400 focus:ring-2 focus:ring-neutral-400 lg:px-3 lg:py-3 ${className}`}
+        className={`border-border focus:border-input-variant-focus-border bg-background-surface flex h-12 w-full items-center gap-2 rounded-lg border px-3 transition-colors duration-200 hover:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-0 ${className}`}
         disabled={disabled ?? loadingHomes}
         icon={<Icon name="home" className="text-primary h-4 w-4 shrink-0" />}
       >
@@ -120,16 +124,14 @@ const FavoriteHomesDropdown: React.FC<FavoriteHomesDropdownProps> = ({
               {t("favorite_homes.no_favorite_homes_found")}
             </Box>
           ) : (
-            favoriteHomes.map((home, index) => {
+            favoriteHomes.map((home) => {
               return (
                 <Button
                   key={home.address}
                   type="button"
                   variant="ghost"
                   onClick={() => handleHomeSelection(home)}
-                  className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${
-                    index === 0 ? "first:rounded-t-lg" : ""
-                  } ${index === favoriteHomes.length - 1 ? "last:rounded-b-lg" : ""} ${
+                  className={`${DROPDOWN_OPTION_ROW_BASE_CLASSES} ${DROPDOWN_TRIGGER_INNER_FOCUS_RESET} text-sm ${
                     selectedHome?.address === home.address
                       ? "bg-primary-muted text-primary"
                       : "text-text-primary hover:bg-neutral-100"

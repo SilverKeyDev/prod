@@ -13,7 +13,7 @@ import { useSyncAgentPreferencesFromClient } from "./useSyncAgentPreferencesFrom
  *
  * Search correctness still requires `preferences_user_id` on polygon/isochrone requests so the
  * server loads the client's preference row (`resolve_preferences_user_id_for_research`). See
- * documentation/client/search-area-resolution.md (Preference scoping section).
+ * documentation/features/search-area-resolution.md (Preference scoping section).
  */
 export function useAgentSyncPreferencesWhenClientSelected(selectedClientId: string | null): void {
   const isAgentWorkspace = useActiveWorkspace() === "agent";

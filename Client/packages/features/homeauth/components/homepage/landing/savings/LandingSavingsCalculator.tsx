@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { LandingEyebrow } from "packages/features/homeauth/components/homepage/landing/shared/LandingEyebrow";
+import { LandingSectionShell } from "packages/features/homeauth/components/homepage/landing/shared/LandingSectionShell";
 import { useLandingReveal } from "packages/features/homeauth/hooks/useLandingReveal";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
 import {
@@ -18,8 +20,6 @@ import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
 
-import { LandingEyebrow } from "../shared/LandingEyebrow";
-import { LandingSectionShell } from "../shared/LandingSectionShell";
 import { LandingRangeInput } from "./LandingRangeInput";
 
 const GCI_TICK_VALUES = [
@@ -64,7 +64,7 @@ export function LandingSavingsCalculator() {
       fullBleed
     >
       <Box
-        className={`mx-auto max-w-[680px] text-center motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+        className={`mx-auto max-w-2xl text-center motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
           inView ? "translate-y-0 opacity-100" : "motion-safe:translate-y-8 motion-safe:opacity-0"
         }`}
       >
@@ -76,7 +76,7 @@ export function LandingSavingsCalculator() {
 
       <Box
         ref={sectionRef}
-        className={`border-brand-primary/20 mx-auto mt-10 grid max-w-[880px] grid-cols-1 overflow-hidden rounded-2xl border-2 shadow-lg motion-safe:transition-all motion-safe:delay-150 motion-safe:duration-[550ms] motion-reduce:scale-100 motion-reduce:opacity-100 md:grid-cols-2 ${
+        className={`border-brand-primary/20 mx-auto mt-10 grid max-w-4xl grid-cols-1 overflow-hidden rounded-2xl border-2 shadow-lg motion-safe:transition-all motion-safe:delay-150 motion-safe:duration-[550ms] motion-reduce:scale-100 motion-reduce:opacity-100 md:grid-cols-2 ${
           inView ? "scale-100 opacity-100" : "motion-safe:scale-[0.94] motion-safe:opacity-0"
         }`}
       >

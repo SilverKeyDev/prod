@@ -17,8 +17,8 @@ function PulseBar({ className }: { className?: string }) {
 export function DashboardRouteFallback({ variant }: DashboardRouteFallbackProps) {
   if (variant === "messaging") {
     return (
-      <Box className="flex min-h-[240px] w-full flex-1 gap-3 p-4 md:min-h-[320px] md:p-6">
-        <Box className="hidden w-[38%] max-w-[320px] shrink-0 flex-col gap-3 md:flex">
+      <Box className="flex min-h-60 w-full flex-1 gap-3 p-4 md:min-h-80 md:p-6">
+        <Box className="hidden w-[38%] max-w-80 shrink-0 flex-col gap-3 md:flex">
           <PulseBar className="h-9 w-full" />
           <PulseBar className="h-12 w-full" />
           <PulseBar className="h-12 w-full" />
@@ -26,7 +26,7 @@ export function DashboardRouteFallback({ variant }: DashboardRouteFallbackProps)
         </Box>
         <Box className="border-border-base bg-background-elevated/40 flex min-h-0 min-w-0 flex-1 flex-col gap-4 rounded-lg border p-4">
           <PulseBar className="h-10 w-48" />
-          <PulseBar className="min-h-[120px] w-full flex-1" />
+          <PulseBar className="min-h-32 w-full flex-1" />
           <PulseBar className="h-14 w-full max-w-3xl self-center" />
         </Box>
       </Box>
@@ -35,9 +35,9 @@ export function DashboardRouteFallback({ variant }: DashboardRouteFallbackProps)
 
   if (variant === "search") {
     return (
-      <Box className="flex min-h-[200px] w-full flex-1 flex-col gap-3 p-4 md:p-6">
+      <Box className="flex min-h-52 w-full flex-1 flex-col gap-3 p-4 md:p-6">
         <PulseBar className="h-12 w-full max-w-xl" />
-        <PulseBar className="min-h-[280px] w-full flex-1 rounded-lg" />
+        <PulseBar className="min-h-72 w-full flex-1 rounded-lg" />
       </Box>
     );
   }
@@ -53,7 +53,7 @@ export function DashboardRouteFallback({ variant }: DashboardRouteFallbackProps)
   }
 
   return (
-    <Box className="flex min-h-[200px] w-full flex-col gap-4 px-4 py-8 md:px-0">
+    <Box className="flex min-h-52 w-full flex-col gap-4 px-4 py-8 md:px-0">
       <PulseBar className="h-10 w-56" />
       <PulseBar className="h-32 w-full rounded-xl" />
       <PulseBar className="h-48 w-full rounded-xl md:w-5/6" />

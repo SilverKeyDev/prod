@@ -24,6 +24,7 @@ import { SearchStrictPreferencesControlWeb } from "./SearchStrictPreferencesCont
 export type SearchPreferencesContentProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: keyof OnboardingData, value: unknown) => void;
+  updateFormFields: (patch: Partial<OnboardingData>) => void;
   patchBuyerPreferenceExtensions: PatchBuyerPreferenceExtensions;
   scriptsReady: boolean;
   /** When an agent is viewing a client in Search, show copy that edits apply to the agent only. */
@@ -45,6 +46,7 @@ export type SearchPreferencesContentProps = {
 export default function SearchPreferencesContent({
   formData,
   updateFormData,
+  updateFormFields,
   patchBuyerPreferenceExtensions,
   scriptsReady,
   viewingClientId = null,
@@ -67,7 +69,7 @@ export default function SearchPreferencesContent({
         saveStatus={saveStatus}
         savingLabel={t("common.saving")}
         savedLabel={t("common.saved")}
-        className="min-h-[1.25rem]"
+        className="bg-background-surface z-header sticky top-0 min-h-5 pb-1"
       />
 
       <ClearPreferencesButton
@@ -90,8 +92,10 @@ export default function SearchPreferencesContent({
         minValue={formData.home_budget_min ?? 0}
         maxValue={formData.home_budget_max ?? 2_000_000}
         onChange={(minVal, maxVal) => {
-          updateFormData("home_budget_min", minVal);
-          updateFormData("home_budget_max", maxVal);
+          updateFormFields({
+            home_budget_min: minVal,
+            home_budget_max: maxVal,
+          });
         }}
       />
 

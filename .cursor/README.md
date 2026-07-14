@@ -94,7 +94,7 @@ Short body. Link to `documentation/**` for long prose.
 2. **Distinct role** from the default agent (otherwise don’t add).
 3. Keep **&lt; ~500 lines**; link to rules/skills this agent must follow.
 4. Team policy: **commit** shared agents; don’t commit personal experiments (or use a separate branch).
-5. **Post–component-audit fixes:** use the `silverkey-audit-axis*` and `silverkey-audit-architecture-remediation` personas ([`documentation/client/patterns/react-component-audit-rubric.md`](../documentation/client/patterns/react-component-audit-rubric.md) — *Remediation subagents* table).
+5. **Post–component-audit fixes:** use the `silverkey-audit-axis*` and `silverkey-audit-architecture-remediation` personas ([`documentation/architecture/patterns/react-component-audit-rubric.md`](../documentation/architecture/patterns/react-component-audit-rubric.md) — *Remediation subagents* table).
 6. **Docs / reorg hygiene:** use skills [`documentation-placement`](skills/documentation-placement/SKILL.md) and [`post-major-change-sync`](skills/post-major-change-sync/SKILL.md) with [`documentation/internal/post-major-change-checklist.md`](../documentation/internal/post-major-change-checklist.md). Optional checklist: [`frontend-reorganization-audit.md`](../documentation/internal/component-audit/frontend-reorganization-audit.md). Do **not** add per-domain `silverkey-docs-*` or `silverkey-*-reorg-*` fleet agents — they were removed as low-signal context bloat.
 
 ---
@@ -187,7 +187,7 @@ Rule of thumb: if the model never needs a path unless you explicitly attach it, 
 
 ## Agent memory (four layers)
 
-Full setup: [documentation/client/tooling/cursor-agent-memory.md](../documentation/client/tooling/cursor-agent-memory.md).
+Full setup: [documentation/guides/tooling/cursor-agent-memory.md](../documentation/guides/tooling/cursor-agent-memory.md).
 
 | Layer | Where |
 | ----- | ----- |

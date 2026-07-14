@@ -6,7 +6,7 @@
 
 1. Identify oversized files/functions in scope.
 2. Output: problem → proposed split → files to create → risks.
-3. Link to `documentation/client/architecture/thin-app-architecture.md`.
+3. Link to `documentation/architecture/thin-app-architecture.md`.
 
 ## Do not
 

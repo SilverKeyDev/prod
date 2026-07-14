@@ -8,11 +8,11 @@
 scripts/deploy/rollback-prod-web.sh <prior-12-char-sha-tag>
 ```
 
-See [documentation/server/ops/prod-web-rollback.md](../../documentation/server/ops/prod-web-rollback.md).
+See [documentation/runbooks/prod-web-rollback.md](../../documentation/runbooks/prod-web-rollback.md).
 
 ## Scaling env vars (EC2 deploy)
 
-Passed by `ec2-deploy.sh` to app/worker/beat containers — see [documentation/server/ops/scaling-playbook.md](../../documentation/server/ops/scaling-playbook.md).
+Passed by `ec2-deploy.sh` to app/worker/beat containers — see [documentation/runbooks/scaling-playbook.md](../../documentation/runbooks/scaling-playbook.md).
 
 ## Local prod-parity
 

@@ -62,9 +62,6 @@ def get_transaction_task_checklist_progress_summary(user, transaction_id: str):
     if tx is None:
         return forbidden()
 
-    if str(tx.buyer_id) != str(user.id):
-        return forbidden()
-
     data = build_task_checklist_progress_summary(tx.id)
     return jsonify({"success": True, "data": data})
 

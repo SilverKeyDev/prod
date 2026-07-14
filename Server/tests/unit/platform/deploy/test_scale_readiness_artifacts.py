@@ -68,7 +68,7 @@ def test_load_harness_scripts_exist():
 
 
 def test_scaling_docs_exist():
-    docs = REPO_ROOT / "documentation/server/ops"
+    docs = REPO_ROOT / "documentation/ops"
     assert (docs / "scaling-playbook.md").is_file()
     assert (docs / "posthog-capacity-queries.md").is_file()
 

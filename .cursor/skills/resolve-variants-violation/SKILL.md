@@ -86,7 +86,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
    }
    ```
 
-2. **Document in `documentation/client/platform/platformVariants/`** (if not already documented)
+2. **Document in `documentation/reference/platform-variants/`** (if not already documented)
 
 ## Decision Framework
 
@@ -99,7 +99,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
 ### Document as Variant if:
 - [ ] Fundamentally different platform capabilities
 - [ ] Libraries serve the same purpose but have different APIs
-- [ ] Already documented in `documentation/client/platform/platformVariants/`
+- [ ] Already documented in `documentation/reference/platform-variants/`
 - [ ] Part of established technology swap pattern
 
 ## Common Technology Variants
@@ -155,7 +155,7 @@ export function Motion({ children, animate, transition }: MotionProps) {
 After resolving the violation:
 
 1. **Run linter:** `pnpm lint` (from `Client/`) should no longer show the violation
-2. **Check documentation:** Ensure entry exists in `documentation/client/platform/platformVariants/` if documented as variant
+2. **Check documentation:** Ensure entry exists in `documentation/reference/platform-variants/` if documented as variant
 3. **Test functionality:** Verify feature works on both platforms
 4. **Review API consistency:** If using adapter, ensure API is consistent
 
@@ -174,8 +174,8 @@ After resolving the violation:
 ## Related Documentation
 
 All documented variants should have corresponding documentation in:
-- `documentation/client/platform/platformVariants/[library-name].md`
-- `documentation/client/platform/platformVariants/technology-swap-rationale.md`
+- `documentation/reference/platform-variants/[library-name].md`
+- `documentation/reference/platform-variants/technology-swap-rationale.md`
 
 ## Related Skills
 

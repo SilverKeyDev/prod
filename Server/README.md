@@ -45,8 +45,8 @@ Tests live under `tests/` (`unit/`, `integration/`, `conftest.py`). CI: `.github
 
 | Topic | Doc |
 | ----- | --- |
-| Server docs | [documentation/server/README.md](../documentation/server/README.md) |
-| Ops | [documentation/server/ops/](../documentation/server/ops/postgres.md) |
-| OpenAPI | [documentation/server/openapi-workflow.md](../documentation/server/openapi-workflow.md) |
+| Server docs | [documentation/README.md](../documentation/README.md) |
+| Ops | [documentation/runbooks/](../documentation/runbooks/postgres.md) |
+| OpenAPI | [documentation/guides/openapi-workflow.md](../documentation/guides/openapi-workflow.md) |
 | Backend rules | `.cursor/rules/backend/` |
 | Module READMEs | `app/services/search/home_matching/`, `app/services/docusign/docs/`, … |

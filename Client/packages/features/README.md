@@ -1,6 +1,6 @@
 # Features Package
 
-Feature-level React modules live here. **`apps/web`** and **`apps/mobile`** stay thin: they compose exports from `packages/features/<name>/` inside pages and screens. See [thin-app-architecture.md](../../../documentation/client/architecture/thin-app-architecture.md).
+Feature-level React modules live here. **`apps/web`** and **`apps/mobile`** stay thin: they compose exports from `packages/features/<name>/` inside pages and screens. See [thin-app-architecture.md](../../../documentation/architecture/thin-app-architecture.md).
 
 ## Feature modules (current)
 
@@ -28,7 +28,7 @@ packages/features/
 └── workspace/          # Workspace switcher and placeholder shells
 ```
 
-Orchestrator hubs (compose other features): `dashboard`, `saved`, `agent`, `checklists`, `search`, `messaging`. See [cross-feature-composition.md](../../../documentation/client/architecture/cross-feature-composition.md).
+Orchestrator hubs (compose other features): `dashboard`, `saved`, `agent`, `checklists`, `search`, `messaging`. See [cross-feature-composition.md](../../../documentation/architecture/cross-feature-composition.md).
 
 ## Structure inside each feature
 
@@ -63,11 +63,11 @@ Feature code in `packages/features/<name>/`:
 
 - ✅ **Same feature:** `api/`, `components/`, `hooks/`, `store/`, `types/`, `utils/`
 - ✅ **Shared packages:** `packages/ui`, `packages/hooks`, `packages/store`, `packages/utils`, `packages/schemas`, `packages/navigation`, `packages/logger`, and other ESLint-allowed paths
-- ✅ **Other features (Tier 1–2):** provider **barrel** (`packages/features/<provider>`) or a **documented subpath**—see [cross-feature-composition.md](../../../documentation/client/architecture/cross-feature-composition.md)
+- ✅ **Other features (Tier 1–2):** provider **barrel** (`packages/features/<provider>`) or a **documented subpath**—see [cross-feature-composition.md](../../../documentation/architecture/cross-feature-composition.md)
 - ❌ **Apps:** `apps/web/*` or `apps/mobile/*` (features stay framework-agnostic)
 - ⚠️ **Other feature `utils/`:** value imports warn under `silverkey/no-cross-feature-utils-imports`—lift to `packages/utils` or use the provider barrel
 
-**Canonical policy:** [cross-feature-composition.md](../../../documentation/client/architecture/cross-feature-composition.md) (tiers, orchestrator hubs, audit edge matrix, decision tree).
+**Canonical policy:** [cross-feature-composition.md](../../../documentation/architecture/cross-feature-composition.md) (tiers, orchestrator hubs, audit edge matrix, decision tree).
 
 **Audit (visibility, not CI):** `pnpm audit:cross-feature-imports:json` from `Client/`.
 
@@ -99,9 +99,9 @@ import { SomeComponent } from "../../../apps/web/pages/...";
 
 ## Related Documentation
 
-- [Cross-feature composition](../../../documentation/client/architecture/cross-feature-composition.md) - Import tiers, orchestrators, audit edges
-- [Thin App Architecture](../../../documentation/client/architecture/thin-app-architecture.md) - Overview of the thin app pattern
-- [Layered architecture imports](../../../documentation/client/architecture/layered-architecture-imports.md) - config vs hooks vs services vs features
+- [Cross-feature composition](../../../documentation/architecture/cross-feature-composition.md) - Import tiers, orchestrators, audit edges
+- [Thin App Architecture](../../../documentation/architecture/thin-app-architecture.md) - Overview of the thin app pattern
+- [Layered architecture imports](../../../documentation/architecture/layered-architecture-imports.md) - config vs hooks vs services vs features
 - [Frontend Architecture](../../../.cursor/rules/frontend/frontend-architecture.mdc) - Layer rules and import boundaries
 
 ## Status

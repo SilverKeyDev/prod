@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useEventRequestScheduleAvailability } from "packages/features/calendar/hooks/data/availability/useEventRequestScheduleAvailability";
+import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import { useIsAgent } from "packages/hooks/store";
+import { log } from "packages/logger";
+import { type UIState, useUIStore } from "packages/store";
 import {
   CALENDAR_EVENT_KIND_ORDER,
   CALENDAR_EVENT_KINDS,
   type CalendarEventKindId,
-} from "packages/features/calendar/utils/createEventModal/calendarEventKinds";
-import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
-import type { EventRequestPayload } from "packages/features/messaging/utils/eventRequestPayload";
-import { buildEventRequestMessage } from "packages/features/messaging/utils/eventRequestPayload";
-import { useIsAgent } from "packages/hooks/store";
-import { log } from "packages/logger";
-import { type UIState, useUIStore } from "packages/store";
+} from "packages/utils/comms/calendar/createEvent/calendarEventKinds";
+import {
+  buildEventRequestMessage,
+  type EventRequestPayload,
+} from "packages/utils/comms/messaging/eventRequestPayload";
 import { dateNow, dateParseISO } from "packages/utils/core/date";
 
 import { useAgentClients } from "@/features/agent/hooks/data/clients/useAgentClients";

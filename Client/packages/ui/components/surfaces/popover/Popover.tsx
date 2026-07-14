@@ -92,6 +92,15 @@ export default function Popover({
           return;
         }
       }
+      // Portaled Dropdown menus register as safe targets, but registration can lag one
+      // layout frame behind open. Capture-phase mousedown would otherwise close this
+      // panel before the option's click fires — looking like preferences "never save".
+      const targetEl = node instanceof Element ? node : node.parentElement;
+      if (
+        targetEl?.closest?.('[role="listbox"], [role="option"], [role="menu"], [role="menuitem"]')
+      ) {
+        return;
+      }
       const triggerEl = triggerRef.current;
       const first =
         triggerEl?.querySelector<HTMLElement>(

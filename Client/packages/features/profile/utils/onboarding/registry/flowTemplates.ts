@@ -1,5 +1,6 @@
 import type { ProfileStepId } from "packages/features/profile/types/onboarding/profileStepIds";
 import { BUYER_PERSONALIZATION_SECTION_IDS } from "packages/features/profile/types/onboarding/profileStepIds";
+
 import type { FlowTemplateId } from "./types";
 const BUYER_ONBOARDING_AFTER_ROLE: ProfileStepId[] = [
   "demographics",

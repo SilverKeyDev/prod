@@ -13,7 +13,7 @@ from app.config.constants._constants_public_urls import (
     PUBLIC_PRODUCTION_ORIGIN,
 )
 
-# Verified sending domain for production mail (see documentation/server/ops/ses-cognito-onboarding.md)
+# Verified sending domain for production mail (see documentation/guides/ses-cognito-onboarding.md)
 SES_SENDING_DOMAIN = "usesilverkey.com"
 SES_DEFAULT_SENDER_EMAIL = f"noreply@{SES_SENDING_DOMAIN}"
 

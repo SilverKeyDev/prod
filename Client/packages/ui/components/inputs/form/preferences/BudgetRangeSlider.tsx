@@ -25,7 +25,7 @@ export type BudgetRangeSliderProps = {
   allowSingleValue?: boolean;
   showTextHeader?: boolean;
   valueDecimals?: number;
-  variant?: "default" | "budget";
+  variant?: "default" | "budget" | "gold";
 };
 
 export default function BudgetRangeSlider({
@@ -89,6 +89,7 @@ export default function BudgetRangeSlider({
   };
 
   const isBudgetVariant = variant === "budget";
+  const isGoldVariant = variant === "gold";
   const trackHeight = isBudgetVariant ? spacing(2.5) : spacing(2);
   const formatTickLabel = (value: number) =>
     value >= tickValues[tickValues.length - 1]
@@ -123,7 +124,9 @@ export default function BudgetRangeSlider({
           className={
             isBudgetVariant
               ? "sk-range-track-dual sk-range-track-dual--budget"
-              : "sk-range-track-dual sk-range-track-dual--default"
+              : isGoldVariant
+                ? "sk-range-track-dual sk-range-track-dual--gold"
+                : "sk-range-track-dual sk-range-track-dual--default"
           }
           style={{
             height: trackHeight,

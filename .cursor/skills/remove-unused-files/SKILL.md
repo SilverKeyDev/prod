@@ -15,7 +15,7 @@ Use this skill when the user wants a **structured cleanup pass**: orphaned modul
 
 - **Legal / policy:** `LICENSE*`, `NOTICE*`, security/compliance artifacts.
 - **Repo entrypoints:** `README.md` files that anchor major trees (`Client/`, `Server/`, `documentation/`, package READMEs indexed from `documentation/*/README.md`).
-- **Canonical docs:** Everything under `documentation/` unless the user explicitly targets a specific obsolete file and `documentation/HOW_WE_DOCUMENT.md` / folder README index rows are updated in the same change.
+- **Canonical docs:** Everything under `documentation/` unless the user explicitly targets a specific obsolete file and `documentation/how-we-document.md` / folder README index rows are updated in the same change.
 - **Generated or toolchain-owned:** Lockfiles, CI configs, OpenAPI outputs (`Client/packages/types/api.generated.ts`), build outputs — delete only when the user requests regeneration/removal per project norms.
 - **Anything referenced at runtime** without tracing: dynamic `require`, glob loaders, asset manifests, native linking configs.
 

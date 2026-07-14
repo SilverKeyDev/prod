@@ -20,7 +20,7 @@
 - Fabricate partners, deal terms, or financials — see `CLAUDE.md`.
 - Weaken auth, tokens, or security controls.
 - Add `console.*` / `print` on production paths — use `packages/logger` / `Server/logger`.
-- Create repo-root `docs/` — forbidden; use `documentation/` (ops → `documentation/server/ops/`). If you see broken `docs/` links, retarget — never create `docs/`.
+- Create repo-root `docs/` — forbidden; use `documentation/` (ops → `documentation/runbooks/`). If you see broken `docs/` links, retarget — never create `docs/`.
 
 ## After each run — append Run log
 

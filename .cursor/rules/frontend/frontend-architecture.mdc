@@ -9,9 +9,9 @@ alwaysApply: false
 
 ## Overview
 
-Strict separation: **components** consume **hooks**; **hooks/data** call **`config/api`**; **services** stay framework-agnostic. **Apps** (`apps/web`, `apps/mobile`) are thin composition layers; **feature UI** lives in **`packages/features/<feature>/`**. Full import matrix and layer write-ups: [documentation/client/architecture/layered-architecture-imports.md](../../../documentation/client/architecture/layered-architecture-imports.md).
+Strict separation: **components** consume **hooks**; **hooks/data** call **`config/api`**; **services** stay framework-agnostic. **Apps** (`apps/web`, `apps/mobile`) are thin composition layers; **feature UI** lives in **`packages/features/<feature>/`**. Full import matrix and layer write-ups: [documentation/architecture/layered-architecture-imports.md](../../../documentation/architecture/layered-architecture-imports.md).
 
-**Also see:** `ui-components.mdc`, `platform-file-extensions.mdc`, `openapi-types.mdc`, `Client/ARCHITECTURE.md`, [workspace-first-architecture.md](../../../documentation/client/architecture/workspace-first-architecture.md).
+**Also see:** `ui-components.mdc`, `platform-file-extensions.mdc`, `openapi-types.mdc`, `Client/ARCHITECTURE.md`, [workspace-first-architecture.md](../../../documentation/architecture/workspace-first-architecture.md).
 
 ## React and JSX placement
 
@@ -62,4 +62,4 @@ import { userApi } from "packages/config/api/user"; // FORBIDDEN in components
 2. `hooks/data/*`: only `config/api/*`, not `services/agent`-style classes.
 3. New shared logic: `packages/utils` or `packages/hooks`, not `apps/web/features` as raw `.ts` dumping ground.
 
-**Deep dive:** [layered-architecture-imports.md](../../../documentation/client/architecture/layered-architecture-imports.md)
+**Deep dive:** [layered-architecture-imports.md](../../../documentation/architecture/layered-architecture-imports.md)

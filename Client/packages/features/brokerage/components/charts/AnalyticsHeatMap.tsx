@@ -69,7 +69,11 @@ export function AnalyticsHeatMap({
         type: "heatmap",
         data: data.map((d) => [d.x, d.y, d.value]),
         label: { show: false },
-        itemStyle: { borderColor: "#ffffff", borderWidth: 2, borderRadius: 2 },
+        itemStyle: {
+          borderColor: color("background-surface"),
+          borderWidth: 2,
+          borderRadius: 2,
+        },
         emphasis: { itemStyle: { borderColor: high, borderWidth: 2 } },
       },
     ],

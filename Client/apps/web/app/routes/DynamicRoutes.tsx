@@ -2,6 +2,8 @@ import { type ReactElement, useMemo } from "react";
 
 import { Navigate, Route, useLocation } from "react-router-dom";
 
+import { AgentAnalyticsPage } from "packages/features/brokerage/components/analytics/AgentAnalyticsPage";
+
 import RouteErrorBoundary from "@/app/error/RouteErrorBoundary";
 import type { UserProfile } from "@/features/homeauth/types";
 import AgentProfilePage from "@/pages/misc/AgentProfilePage";
@@ -12,6 +14,7 @@ import AdminLoggingOutlet from "@/pages/workspace/admin/AdminLoggingOutlet";
 import AdminPartnersOutlet from "@/pages/workspace/admin/AdminPartnersOutlet";
 import AdminSuperadminOutlet from "@/pages/workspace/admin/AdminSuperadminOutlet";
 import AdminSupportMessagingOutlet from "@/pages/workspace/admin/AdminSupportMessagingOutlet";
+import AdminWikiOutlet from "@/pages/workspace/admin/AdminWikiOutlet";
 import AdminPage from "@/pages/workspace/AdminPage";
 
 import { createProtectedRoute } from "./RouteConfig";
@@ -46,6 +49,7 @@ function useStableNonDashboardRoutes(): ReactElement[] {
         <Route path="platform-health" element={<Navigate to="/admin/logging" replace />} />
         <Route path="notifications" element={<Navigate to="/admin/logging" replace />} />
         <Route path="logging" element={<AdminLoggingOutlet />} />
+        <Route path="wiki/*" element={<AdminWikiOutlet />} />
         <Route path="integrations" element={<AdminIntegrationsOutlet />} />
         <Route path="partners" element={<AdminPartnersOutlet />} />
         <Route path="support-messaging" element={<AdminSupportMessagingOutlet />} />
@@ -71,6 +75,12 @@ function useStableNonDashboardRoutes(): ReactElement[] {
         key="/agent-profile"
         path="/agent-profile/:name/:briefSlug"
         element={<AgentProfilePage />}
+        errorElement={<RouteErrorBoundary />}
+      />,
+      <Route
+        key="/dashboard/agent"
+        path="/dashboard/agent/:agentSlug"
+        element={<AgentAnalyticsPage />}
         errorElement={<RouteErrorBoundary />}
       />
     );

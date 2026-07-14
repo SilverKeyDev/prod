@@ -8,6 +8,7 @@ export const ADMIN_ROUTE_SEGMENTS = {
   superadmin: "superadmin",
   devPersona: "dev-persona",
   supportMessaging: "support-messaging",
+  wiki: "wiki",
 } as const;
 
 export type AdminRouteSegment = (typeof ADMIN_ROUTE_SEGMENTS)[keyof typeof ADMIN_ROUTE_SEGMENTS];
@@ -27,6 +28,11 @@ export const ADMIN_NAV_SPEC: readonly AdminNavSpecItem[] = [
     key: ADMIN_ROUTE_SEGMENTS.logging,
     label: "Logging",
     iconName: "file-text",
+  },
+  {
+    key: ADMIN_ROUTE_SEGMENTS.wiki,
+    label: "Wiki",
+    iconName: "library",
   },
   {
     key: ADMIN_ROUTE_SEGMENTS.integrations,

@@ -27,9 +27,14 @@ export type LandingNavProps = {
    * hamburger holds Sign up + Book a demo.
    */
   variant?: "landing" | "publicAgent";
+  /**
+   * Custom center links for variants that hide the landing section links
+   * (e.g. public agent pages: About / Search homes). Desktop only.
+   */
+  centerLinks?: ReactNode;
 };
 
-export function LandingNav({ endActions, variant = "landing" }: LandingNavProps = {}) {
+export function LandingNav({ endActions, variant = "landing", centerLinks }: LandingNavProps = {}) {
   const { nav } = LANDING_CONTENT;
   const activeSectionId = useLandingActiveSection();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -90,6 +95,10 @@ export function LandingNav({ endActions, variant = "landing" }: LandingNavProps 
                   </HomeHashLink>
                 );
               })}
+            </Box>
+          ) : centerLinks ? (
+            <Box className="hidden flex-1 items-center justify-center gap-6 md:flex">
+              {centerLinks}
             </Box>
           ) : null}
 

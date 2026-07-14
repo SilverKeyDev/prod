@@ -1,12 +1,11 @@
-import React from "react";
-
 import { Img } from "@react-email/components";
 
 type LogoProps = {
   logoUrl?: string;
 };
 
-export function Logo({ logoUrl = "https://silverkey.com/logo.png" }: LogoProps) {
+/** Default relative path; previews should pass an absolute origin + LOGO_URI. */
+export function Logo({ logoUrl = "/logo.png" }: LogoProps) {
   if (!logoUrl) return null;
 
   return (

@@ -4,7 +4,7 @@ Run **`make setup`** once on a new machine (prerequisites → Client + Server en
 
 **First:** use a supported terminal — macOS Terminal, Linux shell, or **Windows via WSL2 (Ubuntu)**. Native Windows shells (PowerShell/CMD/Git Bash) are not supported; `make setup` stops and points you to [Windows (WSL2)](#windows-wsl2--required).
 
-Deep MCP and Cursor tuning: [`.cursor/README.md`](.cursor/README.md), [cursor-configuration-optimization.md](documentation/client/tooling/cursor-configuration-optimization.md), [cursor-agent-memory.md](documentation/client/tooling/cursor-agent-memory.md).
+Deep MCP and Cursor tuning: [`.cursor/README.md`](.cursor/README.md), [cursor-configuration-optimization.md](documentation/guides/tooling/cursor-configuration-optimization.md), [cursor-agent-memory.md](documentation/guides/tooling/cursor-agent-memory.md).
 
 ---
 
@@ -215,7 +215,7 @@ Finish in **Cursor → Settings → Tools & MCP** (GitHub PAT, Linear/Slack OAut
 | MCP red in Cursor | `make setup-mcp`; fix summary; reload window |
 | Empty `DATABASE_URL` | `make secrets` (requires `db_url` in Secrets Manager); local Docker: `USE_LOCAL_DATABASE=1 make secrets` |
 
-More: [scripts-guide.md](documentation/server/ops/scripts-guide.md), [README.md](README.md), [AGENTS.md](AGENTS.md).
+More: [scripts-guide.md](documentation/runbooks/scripts-guide.md), [README.md](README.md), [AGENTS.md](AGENTS.md).
 
 ---
 
