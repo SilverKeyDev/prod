@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 
@@ -7,11 +5,8 @@ import { useLocalization } from "packages/contexts";
 import { useIsAgent } from "packages/hooks/store";
 import { useAuthStore } from "packages/store";
 import Button from "packages/ui/components/actions/button/core/Button";
-import {
-  DROPDOWN_OPTION_ROW_BASE_CLASSES,
-  DROPDOWN_TRIGGER_INNER_FOCUS_RESET,
-} from "packages/ui/components/inputs/form/dropdown/dropdownStyles";
 import { Box } from "packages/ui/components/structure/primitives";
+import Popover from "packages/ui/components/surfaces/popover/Popover";
 import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 
 import { useAgentClients } from "@/features/agent/hooks/data/clients/useAgentClients";
@@ -33,7 +28,6 @@ export default function ClientSelector({
 }: ClientSelectorProps) {
   const { clients, isLoading } = useAgentClients();
   const authReady = useAuthStore((s) => s.authReady);
-  const [isOpen, setIsOpen] = useState(false);
   const isAgent = useIsAgent();
   const { t } = useLocalization();
   const isClientListLoading = !authReady || isLoading;
@@ -41,139 +35,144 @@ export default function ClientSelector({
   if (!isAgent) {
     return null;
   }
-  const handleSelect = (clientId: string | null) => {
-    onClientChange(clientId);
-    setIsOpen(false);
-  };
   const triggerLabel =
     selectedClientId === null
       ? hideMeOption
         ? t("client_selector.select_client")
         : t("client_selector.me")
-      : clients.find((c) => c.id === selectedClientId)?.name || t("client_selector.select_client");
+      : clients.find((c) => c.id === selectedClientId)?.name ||
+        t("client_selector.select_client");
+  // Render the menu in a portal so it is not clipped by scrolling/overflow ancestors
+  // (e.g. the horizontally scrollable library toolbar on mobile).
   return (
-    <Box className={`relative ${className}`}>
-      <Button
-        type="button"
-        variant="outline"
-        contentAlign="start"
-        label={triggerLabel}
-        onClick={() => setIsOpen(!isOpen)}
-        className={`focus:border-input-variant-focus-border border-border bg-background-surface text-text-primary flex items-center gap-2 rounded-md border px-3 text-sm font-medium hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-0 focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-0 ${HEADER_ROW_CONTROL_HEIGHT}`}
-        icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
-      >
-        <>
-          <BodyText as="span">{triggerLabel}</BodyText>
-          <Icon
-            name="chevron-down"
-            className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-          />
-        </>
-      </Button>
-
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <Box
-            role="button"
-            tabIndex={0}
-            className="z-dropdown fixed inset-0"
-            onClick={() => setIsOpen(false)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setIsOpen(false);
-              }
-            }}
-          />
-
-          {/* Dropdown */}
-          <Box
-            className={`border-border bg-background-surface z-dropdown absolute left-0 w-60 min-w-56 overflow-hidden rounded-md border shadow-lg ${
-              menuPlacement === "above" ? "bottom-full mb-1" : "top-full mt-1"
-            }`}
-          >
-            <Box className="flex flex-col">
-              {!hideMeOption ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    contentAlign="start"
-                    rounded="none"
-                    onClick={() => handleSelect(null)}
-                    className={`${DROPDOWN_OPTION_ROW_BASE_CLASSES} ${DROPDOWN_TRIGGER_INNER_FOCUS_RESET} text-sm ${
-                      selectedClientId === null
-                        ? "bg-primary-muted text-primary font-medium"
-                        : "text-text-primary hover:bg-neutral-100"
-                    }`}
-                    icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
-                  >
-                    <BodyText as="span" className="text-left">
-                      {t("client_selector.me")}
-                    </BodyText>
-                  </Button>
-                  {clients.length > 0 ? <Box className="border-border border-t" /> : null}
-                </>
-              ) : null}
-
-              {/* Client options */}
-              {isClientListLoading ? (
-                <Box className="text-text-secondary px-3 py-2 text-left text-sm">
-                  {t("client_selector.loading_clients", {
-                    defaultValue: "Loading clients...",
-                  })}
-                </Box>
-              ) : clients.length === 0 ? (
-                <Box className="flex items-start gap-3 px-3 py-2">
-                  <Icon name="users" className="text-text-secondary mt-0.5 h-5 w-5 shrink-0" />
-                  <Box className="flex min-w-0 flex-col gap-1">
-                    <BodyText as="span" size="sm" muted className="text-left">
-                      {t("client_selector.no_clients_found", {
-                        defaultValue: "No clients found",
-                      })}
-                    </BodyText>
-                    <BodyText as="span" size="xs" muted className="text-left">
-                      {t("client_selector.no_clients_hint", {
-                        defaultValue:
-                          "Clients you work with will appear here once they are added to your workspace.",
-                      })}
-                    </BodyText>
-                  </Box>
-                </Box>
-              ) : (
-                clients.map((client) => (
-                  <Button
-                    key={client.id}
-                    type="button"
-                    variant="ghost"
-                    contentAlign="start"
-                    rounded="none"
-                    onClick={() => handleSelect(client.id)}
-                    className={`${DROPDOWN_OPTION_ROW_BASE_CLASSES} ${DROPDOWN_TRIGGER_INNER_FOCUS_RESET} text-sm ${
-                      selectedClientId === client.id
-                        ? "bg-primary-muted text-primary font-medium"
-                        : "text-text-primary hover:bg-neutral-100"
-                    }`}
-                    icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
-                  >
-                    <Box className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left">
-                      <BodyText as="span" className="w-full truncate text-left">
-                        {client.name}
-                      </BodyText>
-                      {client.email && (
-                        <BodyText as="span" size="xs" muted className="w-full truncate text-left">
-                          {client.email}
-                        </BodyText>
-                      )}
-                    </Box>
-                  </Button>
-                ))
-              )}
-            </Box>
-          </Box>
-        </>
+    <Popover
+      usePortal
+      side={menuPlacement === "above" ? "top" : "bottom"}
+      className={className}
+      triggerWrapperClassName="w-full"
+      panelClassName="w-60 min-w-56 py-1"
+      panelMaxHeight="min(60vh, 420px)"
+      label={t("client_selector.select_client", {
+        defaultValue: "Select client",
+      })}
+      trigger={({ open, onToggle }) => (
+        <Button
+          type="button"
+          variant="outline"
+          contentAlign="start"
+          label={triggerLabel}
+          onClick={onToggle}
+          aria-haspopup="true"
+          aria-expanded={open}
+          className={`focus:border-input-variant-focus-border border-border bg-background-surface text-text-primary flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-400 ${HEADER_ROW_CONTROL_HEIGHT}`}
+          icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
+        >
+          <>
+            <BodyText as="span">{triggerLabel}</BodyText>
+            <Icon
+              name="chevron-down"
+              className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
+            />
+          </>
+        </Button>
       )}
-    </Box>
+    >
+      {({ onClose }) => {
+        const handleSelect = (clientId: string | null) => {
+          onClientChange(clientId);
+          onClose();
+        };
+        return (
+          <Box className="flex flex-col gap-1 px-1">
+            {!hideMeOption ? (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  contentAlign="start"
+                  rounded="md"
+                  onClick={() => handleSelect(null)}
+                  className={`w-full px-3 py-3 text-left text-sm hover:bg-neutral-100 ${
+                    selectedClientId === null
+                      ? "bg-primary-muted text-primary font-medium"
+                      : "text-text-primary"
+                  }`}
+                  icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
+                >
+                  <BodyText as="span" className="text-left">
+                    {t("client_selector.me")}
+                  </BodyText>
+                </Button>
+                {clients.length > 0 ? (
+                  <Box className="border-border mx-1 my-1 border-t" />
+                ) : null}
+              </>
+            ) : null}
+
+            {/* Client options */}
+            {isClientListLoading ? (
+              <Box className="text-text-secondary px-3 py-3 text-left text-sm">
+                {t("client_selector.loading_clients", {
+                  defaultValue: "Loading clients...",
+                })}
+              </Box>
+            ) : clients.length === 0 ? (
+              <Box className="flex items-start gap-3 px-3 py-3">
+                <Icon
+                  name="users"
+                  className="text-text-secondary mt-0.5 h-5 w-5 shrink-0"
+                />
+                <Box className="flex min-w-0 flex-col gap-1">
+                  <BodyText as="span" size="sm" muted className="text-left">
+                    {t("client_selector.no_clients_found", {
+                      defaultValue: "No clients found",
+                    })}
+                  </BodyText>
+                  <BodyText as="span" size="xs" muted className="text-left">
+                    {t("client_selector.no_clients_hint", {
+                      defaultValue:
+                        "Clients you work with will appear here once they are added to your workspace.",
+                    })}
+                  </BodyText>
+                </Box>
+              </Box>
+            ) : (
+              clients.map((client) => (
+                <Button
+                  key={client.id}
+                  type="button"
+                  variant="ghost"
+                  contentAlign="start"
+                  rounded="md"
+                  onClick={() => handleSelect(client.id)}
+                  className={`w-full px-3 py-3 text-left text-sm hover:bg-neutral-100 ${
+                    selectedClientId === client.id
+                      ? "bg-primary-muted text-primary font-medium"
+                      : "text-text-primary"
+                  }`}
+                  icon={<Icon name="user" className="h-4 w-4 shrink-0" />}
+                >
+                  <Box className="flex min-w-0 flex-1 flex-col items-start gap-1 text-left">
+                    <BodyText as="span" className="w-full truncate text-left">
+                      {client.name}
+                    </BodyText>
+                    {client.email && (
+                      <BodyText
+                        as="span"
+                        size="xs"
+                        muted
+                        className="w-full truncate text-left"
+                      >
+                        {client.email}
+                      </BodyText>
+                    )}
+                  </Box>
+                </Button>
+              ))
+            )}
+          </Box>
+        );
+      }}
+    </Popover>
   );
 }
