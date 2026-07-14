@@ -29,7 +29,7 @@ export function TwoColumnInsetPageLayout({
             never gets a tall containing block.
           */}
           <Box className="shrink-0 self-stretch">{sidebar}</Box>
-          <Box role="region" className={regionClassName}>
+          <Box role="region" className={`min-w-0 ${regionClassName}`}>
             {children}
           </Box>
         </Box>

@@ -1,13 +1,14 @@
 /**
  * AncillaryInsightPanel — SIL-277
  *
- * Presentational panel for attach rates and dollar leakage.
- * Parent supplies data (Leakage tab owns the single useAncillaryAnalytics call).
+ * Presentational pieces for attach rates and agent opportunity leaderboard.
+ * Leakage tab owns section hierarchy, KPI snapshot, and QuantMathStrip.
  */
 import { useMemo } from "react";
 
 import { Icon } from "@ui/icons";
 import ReactECharts from "echarts-for-react";
+import type { ReactNode } from "react";
 
 import { color } from "packages/design-tokens";
 import type { AncillaryAnalytics } from "packages/features/brokerage/types/analytics";
@@ -16,12 +17,13 @@ import {
   ANCILLARY_SERVICE_LABELS,
   formatAncillaryDollars,
 } from "packages/features/brokerage/utils/ancillaryServiceLabels";
+import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
-import Title from "packages/ui/components/structure/text/Title";
 
 import { AgentRowActions } from "./AgentRowActions";
 import { AnalyticsDataTable } from "./AnalyticsDataTable";
+import { SectionCard } from "./AnalyticsShellShared";
 
 const SERVICE_COLORS: Record<string, string> = {
   title: color("state.success.DEFAULT"),
@@ -57,9 +59,9 @@ function AttachRatesChart({ services }: { services: ServiceData[] }) {
         const label = ANCILLARY_SERVICE_LABELS[svc.service] ?? svc.service;
         return [
           `<b>${label}</b>`,
-          `In-house: <b>${svc.attach_rate_percent.toFixed(1)}%</b> (${svc.in_house_count} transactions)`,
-          `Outside: <b>${(100 - svc.attach_rate_percent).toFixed(1)}%</b> (${svc.outside_count} transactions)`,
-          `Leakage: <b style="color:${dangerColor}">${formatAncillaryDollars(svc.leakage_dollars)}</b>`,
+          `Current: <b>${svc.attach_rate_percent.toFixed(1)}%</b> (${svc.in_house_count} in-house)`,
+          `Industry avg: <b>${svc.industry_avg_percent.toFixed(1)}%</b> · high: <b>${svc.industry_high_percent.toFixed(1)}%</b>`,
+          `Opportunity to high: <b style="color:${dangerColor}">${formatAncillaryDollars(svc.opportunity_vs_high_dollars)}</b>`,
         ].join("<br/>");
       },
     },
@@ -90,140 +92,145 @@ function AttachRatesChart({ services }: { services: ServiceData[] }) {
   return <ReactECharts option={option} style={{ height: services.length * 56 + 24 }} />;
 }
 
-export function AncillaryInsightPanel({ data }: { data: AncillaryAnalytics }) {
+export function AncillaryAttachRatesCard({ services }: { services: ServiceData[] }) {
+  return (
+    <SectionCard title="Attach Rates by Service" iconName="bar-chart-2">
+      <BodyText size="xs" muted className="mb-4">
+        Hover any bar for current vs industry avg / high and opportunity to high
+      </BodyText>
+      <AttachRatesChart services={services} />
+    </SectionCard>
+  );
+}
+
+type LeaderboardProps = {
+  data: AncillaryAnalytics;
+  onViewAllAgents?: () => void;
+};
+
+export function AncillaryAgentLeaderboardCard({ data, onViewAllAgents }: LeaderboardProps) {
   const sortedAgents = useMemo(
-    () => [...data.by_agent].sort((a, b) => b.total_leakage_dollars - a.total_leakage_dollars),
+    () =>
+      [...data.by_agent]
+        .map((agent, seedIndex) => ({ agent, seedIndex }))
+        .sort((a, b) => {
+          const dollarDiff = b.agent.total_leakage_dollars - a.agent.total_leakage_dollars;
+          if (dollarDiff !== 0) return dollarDiff;
+          return a.seedIndex - b.seedIndex;
+        })
+        .map(({ agent }) => agent),
     [data]
   );
 
   const dangerColor = color("state.danger.DEFAULT");
 
   return (
-    <Box className="flex flex-col gap-6">
-      <Box className="border-border-danger bg-background-surface rounded-xl border p-6">
-        <Box className="mb-1 flex items-center gap-1.5">
-          <Icon
-            name="trending-down"
-            className="h-3.5 w-3.5 shrink-0"
-            style={{ color: dangerColor }}
-          />
-          <BodyText size="sm" muted>
-            Estimated Annual Revenue Leakage
-          </BodyText>
-        </Box>
-        <Title size="xl" style={{ color: dangerColor }}>
-          {formatAncillaryDollars(data.summary.total_leakage_dollars)}
-        </Title>
-        <BodyText size="sm" muted className="mt-2">
-          Across {data.total_transactions} transactions —{" "}
-          {data.summary.avg_attach_rate_percent.toFixed(1)}% average in-house attach rate
+    <SectionCard title="Agent Opportunity Leaderboard" iconName="users">
+      <Box className="mb-4 flex items-center justify-between gap-3">
+        <BodyText size="xs" muted className="min-w-0">
+          Agents sorted by opportunity to industry high (title + lending), highest coaching priority
         </BodyText>
-        <BodyText size="xs" muted className="mt-1">
-          Based on configurable fee assumptions per service category
-        </BodyText>
+        {onViewAllAgents ? (
+          <Button type="button" variant="ghost" size="sm" onPress={onViewAllAgents}>
+            View all agents
+          </Button>
+        ) : null}
       </Box>
+      <AnalyticsDataTable
+        rows={sortedAgents}
+        rowKey={(agent) => agent.agent_id}
+        columns={[
+          {
+            key: "agent",
+            header: "Agent",
+            render: (agent) => {
+              const index = sortedAgents.findIndex((row) => row.agent_id === agent.agent_id);
+              return (
+                <Box className="flex items-center gap-2">
+                  {index === 0 ? (
+                    <Icon
+                      name="trending-up"
+                      className="h-3.5 w-3.5 shrink-0"
+                      style={{ color: dangerColor }}
+                    />
+                  ) : null}
+                  <BodyText as="span" className="font-medium">
+                    {agent.name}
+                  </BodyText>
+                </Box>
+              );
+            },
+          },
+          {
+            key: "tx",
+            header: "Transactions",
+            render: (agent) => agent.transactions,
+          },
+          {
+            key: "title",
+            header: "Title Attach",
+            render: (agent) => (
+              <BodyText as="span" style={{ color: rateColorHighGood(agent.title_attach, 60, 40) }}>
+                {agent.title_attach.toFixed(1)}%
+              </BodyText>
+            ),
+          },
+          {
+            key: "lending",
+            header: "Lending Attach",
+            render: (agent) => (
+              <BodyText
+                as="span"
+                style={{ color: rateColorHighGood(agent.lending_attach, 60, 40) }}
+              >
+                {agent.lending_attach.toFixed(1)}%
+              </BodyText>
+            ),
+          },
+          {
+            key: "leakage",
+            header: (
+              <BodyText as="span" className="font-medium" style={{ color: dangerColor }}>
+                Total opportunity
+              </BodyText>
+            ),
+            cellClassName: "py-2 font-bold",
+            render: (agent) => (
+              <BodyText as="span" style={{ color: dangerColor }}>
+                {formatAncillaryDollars(agent.total_leakage_dollars)}
+              </BodyText>
+            ),
+          },
+          {
+            key: "actions",
+            header: "Actions",
+            render: (agent) => <AgentRowActions agentId={agent.agent_id} agentName={agent.name} />,
+          },
+        ]}
+      />
+    </SectionCard>
+  );
+}
 
-      <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Box className="mb-1 flex items-center gap-2">
-          <Icon name="bar-chart-2" className="text-text-secondary h-4 w-4 shrink-0" />
-          <Title size="sm" as="h3">
-            Attach Rates by Service
-          </Title>
-        </Box>
-        <BodyText size="xs" muted className="mb-4">
-          Hover any bar to see in-house vs outside breakdown and leakage amount
-        </BodyText>
-        <AttachRatesChart services={data.by_service} />
-      </Box>
+type Props = {
+  data: AncillaryAnalytics;
+  /** Shown beside Attach Rates by Service on large screens. */
+  revenueMix?: ReactNode;
+  /** Opens the shared agent leaderboard modal (full roster). */
+  onViewAllAgents?: () => void;
+};
 
-      <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Box className="mb-1 flex items-center gap-2">
-          <Icon name="users" className="text-text-secondary h-4 w-4 shrink-0" />
-          <Title size="sm" as="h3">
-            Agent Leakage Leaderboard
-          </Title>
+/** Composed charts + leaderboard (barrel / legacy). Leakage tab prefers the split cards. */
+export function AncillaryInsightPanel({ data, revenueMix, onViewAllAgents }: Props) {
+  return (
+    <Box className="flex flex-col gap-6" data-testid="ancillary-panel">
+      <Box className="grid gap-4 lg:grid-cols-2">
+        <Box className="min-w-0">
+          <AncillaryAttachRatesCard services={data.by_service} />
         </Box>
-        <BodyText size="xs" muted className="mb-4">
-          Agents sorted by total estimated leakage — highest opportunity for coaching
-        </BodyText>
-        <AnalyticsDataTable
-          rows={sortedAgents}
-          rowKey={(agent) => agent.agent_id}
-          columns={[
-            {
-              key: "agent",
-              header: "Agent",
-              render: (agent) => {
-                const index = sortedAgents.indexOf(agent);
-                return (
-                  <Box className="flex items-center gap-2">
-                    {index === 0 ? (
-                      <Icon
-                        name="trending-up"
-                        className="h-3.5 w-3.5 shrink-0"
-                        style={{ color: dangerColor }}
-                      />
-                    ) : null}
-                    <BodyText as="span" className="font-medium">
-                      {agent.name}
-                    </BodyText>
-                  </Box>
-                );
-              },
-            },
-            {
-              key: "tx",
-              header: "Transactions",
-              render: (agent) => agent.transactions,
-            },
-            {
-              key: "title",
-              header: "Title Attach",
-              render: (agent) => (
-                <BodyText
-                  as="span"
-                  style={{ color: rateColorHighGood(agent.title_attach, 60, 40) }}
-                >
-                  {agent.title_attach.toFixed(1)}%
-                </BodyText>
-              ),
-            },
-            {
-              key: "lending",
-              header: "Lending Attach",
-              render: (agent) => (
-                <BodyText
-                  as="span"
-                  style={{ color: rateColorHighGood(agent.lending_attach, 60, 40) }}
-                >
-                  {agent.lending_attach.toFixed(1)}%
-                </BodyText>
-              ),
-            },
-            {
-              key: "leakage",
-              header: (
-                <BodyText as="span" className="font-medium" style={{ color: dangerColor }}>
-                  Total Leakage
-                </BodyText>
-              ),
-              cellClassName: "py-2 font-bold",
-              render: (agent) => (
-                <BodyText as="span" style={{ color: dangerColor }}>
-                  {formatAncillaryDollars(agent.total_leakage_dollars)}
-                </BodyText>
-              ),
-            },
-            {
-              key: "actions",
-              header: "Actions",
-              render: (agent) => (
-                <AgentRowActions agentId={agent.agent_id} agentName={agent.name} />
-              ),
-            },
-          ]}
-        />
+        {revenueMix ? <Box className="min-w-0">{revenueMix}</Box> : null}
       </Box>
+      <AncillaryAgentLeaderboardCard data={data} onViewAllAgents={onViewAllAgents} />
     </Box>
   );
 }

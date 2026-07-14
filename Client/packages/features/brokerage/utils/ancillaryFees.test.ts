@@ -9,11 +9,13 @@ import {
 } from "./ancillaryFees";
 
 describe("ancillaryFees", () => {
-  it("matches SIL-277 leakage fee assumptions", () => {
-    expect(ANCILLARY_FEES.title).toBe(500);
-    expect(ANCILLARY_FEES.lending).toBe(1000);
-    expect(ANCILLARY_FEES.escrow).toBe(400);
-    expect(ANCILLARY_FEES.home_warranty).toBe(150);
+  it("uses placement-share fee assumptions", () => {
+    expect(ANCILLARY_FEES.title).toBe(150);
+    expect(ANCILLARY_FEES.lending).toBe(250);
+    expect(ANCILLARY_FEES.escrow).toBe(100);
+    expect(ANCILLARY_FEES.home_warranty).toBe(75);
+    expect(ANCILLARY_FEES.homeowners_insurance).toBe(50);
+    expect(ANCILLARY_FEES.move_concierge).toBe(40);
   });
 
   it("service order matches Leakage by_service order", () => {
@@ -22,6 +24,6 @@ describe("ancillaryFees", () => {
 
   it("computes lift and recovered dollars", () => {
     expect(attachRateLiftPp(22, 26)).toBe(4);
-    expect(recoveredDollars(56, feeForService("title"))).toBe(28000);
+    expect(recoveredDollars(56, feeForService("title"))).toBe(8400);
   });
 });

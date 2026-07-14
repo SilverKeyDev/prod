@@ -70,7 +70,7 @@ export function getActiveDashboardKey(pathname: string): PathPrefix | null {
 export const PATH_WIDTH_PERCENT: Record<PathPrefix, number> = {
   search: 100,
   inventory: 100,
-  campaigns: 90,
+  campaigns: 100,
   dashboard: 90,
   analytics: 90,
   find_agents: 90,

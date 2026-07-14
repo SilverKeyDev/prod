@@ -172,18 +172,18 @@ def _q1_spec(brokerage_id: str) -> dict:
         "name": "Title attach push — Q1",
         "goal_metric": "title_attach",
         "service": "title",
-        "baseline": 30.0,
-        "post": 34.0,  # 4pp lift in 1–5 band; B wins vs A in results
-        "target_recovered": 28000,  # 56 * 500
-        "open_rate": 0.45,
-        "click_rate": 0.12,
+        "baseline": 15.0,
+        "post": 19.0,  # 4pp lift in 1–5 band; B wins vs A in results
+        "target_recovered": 8400,  # 56 * 150 placement share
+        "open_rate": 0.40,
+        "click_rate": 0.06,
         "prefer_variant": "B",
         "agents": _Q1_AGENTS,
         "created_at": sent - timedelta(days=2),
         "sent_at": sent,
         "variants": [
             ("A", "Boost your closings with in-house title", "Variant A body — soft nudge"),
-            ("B", "Recover $500+ per deal with preferred title", "Variant B body — dollar framing"),
+            ("B", "Recover $150+ per deal with preferred title", "Variant B body — dollar framing"),
         ],
     }
 
@@ -194,11 +194,11 @@ def _q2_spec(brokerage_id: str) -> dict:
         "name": "Home warranty nudge — Q2",
         "goal_metric": "home_warranty_attach",
         "service": "home_warranty",
-        "baseline": 43.0,
-        "post": 44.5,  # ~1.5pp near-tie
-        "target_recovered": 2250,  # 15 * 150
-        "open_rate": 0.40,
-        "click_rate": 0.10,
+        "baseline": 20.0,
+        "post": 22.0,  # 2pp lift in 1–5 band
+        "target_recovered": 1125,  # 15 * 75 placement share
+        "open_rate": 0.38,
+        "click_rate": 0.055,
         "prefer_variant": None,
         "agents": _Q2_AGENTS,
         "created_at": sent - timedelta(days=1),
