@@ -1,118 +1,174 @@
 /**
- * Brokerage analytics fixtures — generated from Kaggle real estate dataset.
- * Source: 50,122 real transactions across 500 agents, 50 offices.
+ * Brokerage analytics fixtures — demo ancillary / leakage.
+ * Volume: Kaggle closings via brokerageDemoVolumeAssumptions (~1,854/month).
+ * Attach: shared ANCILLARY_ATTACH_BENCHMARKS (current = industry avg; high = campaign posts).
+ * Opportunity dollars = gap to industry high (not gap to 100% attach).
+ * by_agent.transactions aligned with BROKERAGE_AGENTS_FIXTURE.closings (monthly baselines).
  */
+
+import {
+  ANCILLARY_ATTACH_BENCHMARKS,
+  ANCILLARY_ATTACH_RATES,
+  type LeakageBenchmarkService,
+  opportunityDollars,
+  opportunityDollarsPrecise,
+} from "packages/features/brokerage/utils/ancillaryAttachBenchmarks";
+import { ANCILLARY_FEES } from "packages/features/brokerage/utils/ancillaryFees";
+import { MONTH_TRANSACTIONS } from "packages/features/brokerage/utils/brokerageDemoVolumeAssumptions";
+
+export { ANCILLARY_ATTACH_RATES };
+
+function serviceRow(service: LeakageBenchmarkService) {
+  const bench = ANCILLARY_ATTACH_BENCHMARKS[service];
+  const t = MONTH_TRANSACTIONS;
+  const rate = bench.current;
+  const in_house_count = Math.round((t * rate) / 100);
+  const outside_count = Math.round(t * (1 - rate / 100));
+  const opportunity_vs_avg_dollars = opportunityDollars(t, rate, bench.industryAvg, bench.fee);
+  const opportunity_vs_high_dollars = opportunityDollars(t, rate, bench.industryHigh, bench.fee);
+  return {
+    service,
+    in_house_count,
+    outside_count,
+    attach_rate_percent: rate,
+    industry_avg_percent: bench.industryAvg,
+    industry_high_percent: bench.industryHigh,
+    /** @deprecated Prefer opportunity_vs_high_dollars — kept as primary opportunity alias. */
+    leakage_dollars: opportunity_vs_high_dollars,
+    opportunity_vs_avg_dollars,
+    opportunity_vs_high_dollars,
+    fee_assumption: bench.fee,
+  };
+}
+
+/** Agent opportunity vs industry high for title + lending only. */
+function agentTitleLendingOpportunity(
+  transactions: number,
+  titleAttach: number,
+  lendingAttach: number
+): number {
+  return (
+    opportunityDollarsPrecise(
+      transactions,
+      titleAttach,
+      ANCILLARY_ATTACH_BENCHMARKS.title.industryHigh,
+      ANCILLARY_FEES.title
+    ) +
+    opportunityDollarsPrecise(
+      transactions,
+      lendingAttach,
+      ANCILLARY_ATTACH_BENCHMARKS.lending.industryHigh,
+      ANCILLARY_FEES.lending
+    )
+  );
+}
+
+const by_service = [
+  serviceRow("title"),
+  serviceRow("lending"),
+  serviceRow("escrow"),
+  serviceRow("home_warranty"),
+] as const;
+
+const total_opportunity_vs_high = by_service.reduce(
+  (sum, row) => sum + row.opportunity_vs_high_dollars,
+  0
+);
+const total_opportunity_vs_avg = by_service.reduce(
+  (sum, row) => sum + row.opportunity_vs_avg_dollars,
+  0
+);
+const avg_attach_rate_percent =
+  Math.round(
+    ((ANCILLARY_ATTACH_RATES.title +
+      ANCILLARY_ATTACH_RATES.lending +
+      ANCILLARY_ATTACH_RATES.escrow +
+      ANCILLARY_ATTACH_RATES.home_warranty) /
+      4) *
+      10
+  ) / 10;
+
+const by_agent_seed = [
+  {
+    agent_id: "AGT-0460",
+    name: "Robin Pittman",
+    transactions: 4,
+    title_attach: 11.0,
+    lending_attach: 9.0,
+  },
+  {
+    agent_id: "AGT-0343",
+    name: "Kristina Alexander",
+    transactions: 4,
+    title_attach: 10.0,
+    lending_attach: 8.0,
+  },
+  {
+    agent_id: "AGT-0372",
+    name: "Brittney Collins",
+    transactions: 4,
+    title_attach: 22.0,
+    lending_attach: 27.0,
+  },
+  {
+    agent_id: "AGT-0276",
+    name: "John Martin",
+    transactions: 4,
+    title_attach: 13.0,
+    lending_attach: 12.0,
+  },
+  {
+    agent_id: "AGT-0323",
+    name: "Sara Spencer",
+    transactions: 4,
+    title_attach: 9.0,
+    lending_attach: 7.0,
+  },
+  {
+    agent_id: "AGT-0341",
+    name: "Robert Tate",
+    transactions: 4,
+    title_attach: 18.0,
+    lending_attach: 20.0,
+  },
+  {
+    agent_id: "AGT-0014",
+    name: "Janet Patrick",
+    transactions: 4,
+    title_attach: 24.0,
+    lending_attach: 28.0,
+  },
+  {
+    agent_id: "AGT-0053",
+    name: "Hector Dyer",
+    transactions: 4,
+    title_attach: 12.0,
+    lending_attach: 10.0,
+  },
+] as const;
 
 export const BROKERAGE_ANCILLARY_FIXTURE = {
   success: true,
   brokerage_org_id: "demo-brokerage-org-id",
   date_from: "2025-07-01T00:00:00+00:00",
   date_to: "2025-12-31T00:00:00+00:00",
-  total_transactions: 2059,
+  total_transactions: MONTH_TRANSACTIONS,
   summary: {
-    total_leakage_dollars: 2074900,
-    avg_attach_rate_percent: 52.2,
+    /** Primary opportunity = sum of gap-to-industry-high dollars (not 100% attach). */
+    total_leakage_dollars: total_opportunity_vs_high,
+    opportunity_vs_avg_dollars: total_opportunity_vs_avg,
+    opportunity_vs_high_dollars: total_opportunity_vs_high,
+    avg_attach_rate_percent,
   },
-  by_service: [
-    {
-      service: "title",
-      in_house_count: 1276,
-      outside_count: 782,
-      attach_rate_percent: 62,
-      leakage_dollars: 391000,
-      fee_assumption: 500,
-    },
-    {
-      service: "lending",
-      in_house_count: 905,
-      outside_count: 1153,
-      attach_rate_percent: 44,
-      leakage_dollars: 1153000,
-      fee_assumption: 1000,
-    },
-    {
-      service: "escrow",
-      in_house_count: 1132,
-      outside_count: 926,
-      attach_rate_percent: 55,
-      leakage_dollars: 370400,
-      fee_assumption: 400,
-    },
-    {
-      service: "home_warranty",
-      in_house_count: 988,
-      outside_count: 1070,
-      attach_rate_percent: 48,
-      leakage_dollars: 160500,
-      fee_assumption: 150,
-    },
-  ],
-  by_agent: [
-    {
-      agent_id: "agent-27",
-      name: "Dean Houston",
-      transactions: 137,
-      title_attach: 49.0,
-      lending_attach: 62.0,
-      total_leakage_dollars: 86500,
-    },
-    {
-      agent_id: "agent-337",
-      name: "Nicole Michael",
-      transactions: 128,
-      title_attach: 59.0,
-      lending_attach: 32.0,
-      total_leakage_dollars: 113000,
-    },
-    {
-      agent_id: "agent-6",
-      name: "Mark Parker PhD",
-      transactions: 126,
-      title_attach: 72.0,
-      lending_attach: 60.0,
-      total_leakage_dollars: 67500,
-    },
-    {
-      agent_id: "agent-226",
-      name: "Amber Edwards",
-      transactions: 126,
-      title_attach: 72.0,
-      lending_attach: 45.0,
-      total_leakage_dollars: 86500,
-    },
-    {
-      agent_id: "agent-348",
-      name: "Joe Taylor",
-      transactions: 125,
-      title_attach: 46.0,
-      lending_attach: 29.0,
-      total_leakage_dollars: 121500,
-    },
-    {
-      agent_id: "agent-288",
-      name: "Andrew Harris",
-      transactions: 124,
-      title_attach: 66.0,
-      lending_attach: 54.0,
-      total_leakage_dollars: 78000,
-    },
-    {
-      agent_id: "agent-277",
-      name: "Richard Garner",
-      transactions: 124,
-      title_attach: 79.0,
-      lending_attach: 67.0,
-      total_leakage_dollars: 53000,
-    },
-    {
-      agent_id: "agent-122",
-      name: "Barbara Gonzalez",
-      transactions: 123,
-      title_attach: 64.0,
-      lending_attach: 32.0,
-      total_leakage_dollars: 105000,
-    },
-  ],
+  by_service: [...by_service],
+  by_agent: by_agent_seed.map((agent) => ({
+    ...agent,
+    total_leakage_dollars: agentTitleLendingOpportunity(
+      agent.transactions,
+      agent.title_attach,
+      agent.lending_attach
+    ),
+  })),
 };
 
 export type BrokerageAncillaryFixture = typeof BROKERAGE_ANCILLARY_FIXTURE;

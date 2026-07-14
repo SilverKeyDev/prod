@@ -14,8 +14,8 @@ export const TIME_PERIOD_OPTIONS: { value: TimePeriod; label: string }[] = [
 
 export const DASHBOARD_TABS: { id: AnalyticsTab; label: string; iconName: IconName }[] = [
   { id: "overview", label: "Overview", iconName: "bar-chart-2" },
-  { id: "agents", label: "Agents", iconName: "users" },
   { id: "leakage", label: "Leakage", iconName: "trending-down" },
+  { id: "agents", label: "Agents", iconName: "users" },
   { id: "forensics", label: "Deal forensics", iconName: "search" },
   { id: "market", label: "Market", iconName: "map" },
 ];

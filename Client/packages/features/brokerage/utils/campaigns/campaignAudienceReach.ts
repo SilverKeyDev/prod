@@ -1,4 +1,5 @@
 import { BROKERAGE_AGENTS_FIXTURE } from "packages/features/brokerage/utils/brokerageAnalyticsFixtures";
+import { DEMO_AGENT_COUNT } from "packages/features/brokerage/utils/brokerageDemoVolumeAssumptions";
 
 /** Sales-band audience for campaign targeting (demo). */
 export type CampaignAgentType = "all" | "low_sales" | "medium" | "strong";
@@ -39,16 +40,20 @@ export function toggleCampaignAgentType(
 
 /**
  * Count agents matching selected sales bands.
- * Empty selection or "all" → full agent roster.
+ * Empty selection or "all" → full Kaggle roster (DEMO_AGENT_COUNT).
+ * Band filters use the sample agents fixture proportions scaled to DEMO_AGENT_COUNT.
  */
 export function estimateCampaignReach(agentTypes: readonly CampaignAgentType[]): number {
   if (agentTypes.length === 0 || agentTypes.includes("all")) {
-    return BROKERAGE_AGENTS_FIXTURE.length;
+    return DEMO_AGENT_COUNT;
   }
   const statuses = new Set(
     agentTypes
       .filter((t): t is Exclude<CampaignAgentType, "all"> => t !== "all")
       .map((t) => STATUS_BY_TYPE[t])
   );
-  return BROKERAGE_AGENTS_FIXTURE.filter((a) => statuses.has(a.status)).length;
+  const sampleMatch = BROKERAGE_AGENTS_FIXTURE.filter((a) => statuses.has(a.status)).length;
+  const sampleSize = BROKERAGE_AGENTS_FIXTURE.length;
+  if (sampleSize === 0) return 0;
+  return Math.max(1, Math.round((sampleMatch / sampleSize) * DEMO_AGENT_COUNT));
 }

@@ -1,14 +1,22 @@
 /**
  * Shared ancillary fee catalog for leakage analytics and campaign attribution.
  * Keep in sync with Server/app/services/brokerage/ancillary_fees.py
+ *
+ * Dollars = assumed brokerage placement share per in-house attach (or outside leakage).
+ * Not consumer premiums and not RESPA referral fees.
  */
 
+export const ANCILLARY_FEE_DISCLAIMER =
+  "Assumed brokerage placement share per attach (not a referral fee).";
+
 export const ANCILLARY_FEES = {
-  title: 500,
-  lending: 1000,
-  escrow: 400,
-  home_warranty: 150,
-  mortgage_insurance: 200,
+  title: 150,
+  lending: 250,
+  escrow: 100,
+  home_warranty: 75,
+  mortgage_insurance: 50,
+  homeowners_insurance: 50,
+  move_concierge: 40,
 } as const;
 
 export type AncillaryServiceKey = keyof typeof ANCILLARY_FEES;

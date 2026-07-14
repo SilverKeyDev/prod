@@ -4,6 +4,12 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("packages/features/brokerage/components/charts", () => ({
   AnalyticsBarChart: () => <div data-testid="analytics-bar-chart" />,
+  AnalyticsDonutChart: () => <div data-testid="analytics-donut-chart" />,
+  AnalyticsLineChart: () => <div data-testid="analytics-line-chart" />,
+}));
+
+vi.mock("packages/features/brokerage/components/analytics/AgentRowActions", () => ({
+  AgentRowActions: () => <div data-testid="agent-row-actions" />,
 }));
 
 vi.mock("packages/features/brokerage/components/analytics/TargetedAgentEngagementPanel", () => ({
@@ -21,7 +27,7 @@ vi.mock("packages/features/brokerage/components/analytics/AgentRowActions", () =
 import { AnalyticsAgentsTab } from "./AnalyticsAgentsTab";
 
 describe("AnalyticsAgentsTab", () => {
-  it("renders office, volume, GCI, and 90d momentum columns", () => {
+  it("renders performance gallery, leaderboard columns, and top agent", () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -32,12 +38,15 @@ describe("AnalyticsAgentsTab", () => {
     );
 
     expect(screen.getByTestId("analytics-agents-tab")).toBeTruthy();
+    expect(screen.getByTestId("agent-status-donut")).toBeTruthy();
+    expect(screen.getByTestId("agent-gci-bars")).toBeTruthy();
+    expect(screen.getByTestId("agent-closings-trend")).toBeTruthy();
     expect(screen.getByText("Office")).toBeTruthy();
     expect(screen.getByText("Volume")).toBeTruthy();
     expect(screen.getByText("GCI")).toBeTruthy();
     expect(screen.getByText("90d momentum")).toBeTruthy();
-    expect(screen.getAllByText("Nelson-Hardin Realty").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("Dean Houston")).toBeTruthy();
-    expect(screen.getByText("+12.4%")).toBeTruthy();
+    expect(screen.getByText("Kristina Alexander")).toBeTruthy();
+    expect(screen.getAllByText("East Office").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/Charts and leaderboard use the full 500-agent roster/)).toBeTruthy();
   });
 });

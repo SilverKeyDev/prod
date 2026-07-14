@@ -1,22 +1,19 @@
 /**
- * Email Templates barrel file - centralized exports for email templates and components
+ * Email Templates barrel — templates, shell components, and render helpers.
  */
 
-// Email renderer
-export { renderEmail } from "./render-email";
-
-// Email components
-export { default as EmailTemplate } from "./components/EmailTemplate";
-export { default as ListingCard } from "./components/ListingCard";
-export { default as ListingCardBody } from "./components/ListingCardBody";
-export { default as ListingCardImageSection } from "./components/ListingCardImageSection";
-export { default as Logo } from "./components/Logo";
-
-// Email utilities and types
 export * from "./components/colors";
+export { type EmailFooterVariant, EmailTemplate } from "./components/EmailTemplate";
+export { ListingCard } from "./components/ListingCard";
+export { ListingCardBody } from "./components/ListingCardBody";
+export { ListingCardImageSection } from "./components/ListingCardImageSection";
 export * from "./components/listingCardTypes";
 export * from "./components/listingCardUtils";
-
-// Email templates
+export { Logo } from "./components/Logo";
+export { renderCampaignAgentEmailHtml } from "./renderCampaignAgentEmailHtml";
+export {
+  default as CampaignAgentEmail,
+  type CampaignAgentEmailProps,
+} from "./templates/CampaignAgentEmail";
 export { default as ListingsEmail } from "./templates/ListingsEmail";
 export { default as NewPropertiesEmail } from "./templates/NewPropertiesEmail";

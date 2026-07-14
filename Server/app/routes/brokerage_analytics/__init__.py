@@ -326,9 +326,9 @@ def get_analytics_targeted_agent_engagement(user):
 def get_analytics_agent_retention_risk(user):
     """
     GET /api/v1/brokerage/analytics/agent-retention-risk
-    Cross-references agent split structures against production volume to flag
-    flight-risk agents (top producers underpaid vs market) and over-compensated
-    agents (high split, low volume). Ranked by risk score. SIL-278.
+    Returns blended ML flight-risk scores (five equal-weight factors: compensation,
+    production momentum, peer standing, engagement, ancillary attach). Ranked by
+    blended risk score. SIL-278.
     """
     brokerage_org_id = req.args.get("brokerage_org_id")
     filters, err = _build_filters(brokerage_org_id)

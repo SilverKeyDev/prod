@@ -20,6 +20,8 @@ export type CampaignRevenueProjectionRow = {
   categoryId: CampaignCategoryId;
   label: string;
   service?: DashboardServiceKey;
+  baselinePercent: number;
+  postPercent: number;
   liftPp: number;
   incrementalAttaches: number;
   projectedDollars: number;
@@ -91,6 +93,8 @@ export function buildCampaignRevenueProjections(
       categoryId: category.id,
       label: category.label,
       ...(category.dashboard_service ? { service: category.dashboard_service } : {}),
+      baselinePercent: baseline,
+      postPercent: post,
       liftPp,
       incrementalAttaches,
       projectedDollars,
