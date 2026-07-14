@@ -245,7 +245,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Provision SIL-145 QA test accounts")
     parser.add_argument(
         "--accounts-file",
-        default=str(_REPO_ROOT / "documentation/client/qa/test-accounts.json"),
+        default=str(_REPO_ROOT / "documentation/runbooks/qa/test-accounts.json"),
     )
     args = parser.parse_args()
     accounts_path = Path(args.accounts_file)

@@ -104,23 +104,8 @@ install_torch_optional() {
   TORCH_OPTIONAL_SKIP=0
   [[ "$(uname -s)" == Linux ]] || return 0
 
-  local arch
-  arch="$(uname -m)"
-  if [[ "$arch" == "x86_64" ]]; then
-    echo "Installing CPU-only torch (linux x86_64) from download.pytorch.org/whl/cpu"
-    if pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu; then
-      return 0
-    fi
-  elif [[ "$arch" == "aarch64" || "$arch" == "arm64" ]]; then
-    echo "Installing torch (linux ${arch}) from PyPI"
-    if pip install torch==2.10.0; then
-      return 0
-    fi
-  else
-    echo "bootstrap-venv: WARN unsupported linux arch for torch pre-install (${arch}) — trying PyPI"
-    if pip install torch==2.10.0; then
-      return 0
-    fi
+  if bash "$SCRIPT_DIR/install-torch-cpu.sh"; then
+    return 0
   fi
 
   TORCH_OPTIONAL_SKIP=1

@@ -131,6 +131,21 @@ def update_property_basic_data(
     )
     record.mls_home_id = str(data.get("mls_home_id") or "") or record.mls_home_id
     record.listing_status = data.get("listingStatus") or record.listing_status
+    # Listing agent / office attribution — powers the public agent site listings match.
+    listing_agent = data.get("listingAgent")
+    if isinstance(listing_agent, dict):
+        record.mls_agent_id = str(listing_agent.get("id") or "") or record.mls_agent_id
+        record.listing_agent_email = (
+            str(listing_agent.get("email") or "") or record.listing_agent_email
+        )
+        record.listing_agent_phone = (
+            str(listing_agent.get("phone") or "") or record.listing_agent_phone
+        )
+    listing_office = data.get("listingOffice")
+    if isinstance(listing_office, dict):
+        record.brokerage = str(listing_office.get("name") or "") or record.brokerage
+    elif isinstance(listing_office, str) and listing_office.strip():
+        record.brokerage = listing_office.strip()
     record.property_type = data.get("propertyType", data.get("homeType")) or record.property_type
     record.home_type = data.get("homeType") or record.home_type
     record.year_built = str(data.get("yearBuilt") or "") or record.year_built

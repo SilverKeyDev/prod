@@ -39,7 +39,7 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
     if (this.state.hasError) {
       const label = this.props.pageLabel ?? "This page";
       return (
-        <Box className="flex min-h-[min(260px,45dvh)] w-full min-w-0 max-w-full flex-col items-center justify-center rounded-lg border border-border bg-background-surface py-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] pl-[calc(1rem+env(safe-area-inset-left,0px))] pr-[calc(1rem+env(safe-area-inset-right,0px))] pt-[calc(0.75rem+env(safe-area-inset-top,0px))] text-center sm:min-h-[280px] sm:p-6">
+        <Box className="flex min-h-[min(16rem,45dvh)] w-full min-w-0 max-w-full flex-col items-center justify-center rounded-lg border border-border bg-background-surface py-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] pl-[calc(1rem+env(safe-area-inset-left,0px))] pr-[calc(1rem+env(safe-area-inset-right,0px))] pt-[calc(0.75rem+env(safe-area-inset-top,0px))] text-center sm:min-h-72 sm:p-6">
           <Title size="md" as="h2" className="mb-2 px-1 text-text-primary">
             Something went wrong
           </Title>
@@ -52,7 +52,7 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
               onClick={this.handleRetry}
               icon={<Icon name="refresh-cw" className="h-4 w-4" />}
               size="md"
-              className="w-full touch-manipulation sm:w-auto sm:min-w-[10rem]"
+              className="w-full touch-manipulation sm:w-auto sm:min-w-40"
             >
               Try again
             </Button>
@@ -61,7 +61,7 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
                 variant="outline"
                 size="md"
                 iconName="home"
-                className="w-full touch-manipulation sm:w-auto sm:min-w-[10rem]"
+                className="w-full touch-manipulation sm:w-auto sm:min-w-40"
               >
                 Go to Dashboard
               </Button>

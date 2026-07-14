@@ -1,0 +1,26 @@
+office_id,name,region,open_date
+OFF-001,Downtown Office,Atlanta Metro,2014-07-19
+OFF-002,Midtown Office,Charlotte Metro,2019-02-09
+OFF-003,Buckhead Office,Nashville Metro,2016-07-28
+OFF-004,North Office,Atlanta Metro,2019-01-12
+OFF-005,South Office,Charlotte Metro,2020-03-21
+OFF-006,West Office,Nashville Metro,2010-05-13
+OFF-007,East Office,Atlanta Metro,2005-02-12
+OFF-008,Central Office,Charlotte Metro,2022-06-25
+OFF-009,Downtown Office,Nashville Metro,2012-04-26
+OFF-010,Midtown Office,Atlanta Metro,2006-05-01
+OFF-011,Buckhead Office,Charlotte Metro,2020-07-06
+OFF-012,North Office,Nashville Metro,2018-04-23
+OFF-013,South Office,Atlanta Metro,2008-08-13
+OFF-014,West Office,Charlotte Metro,2022-04-24
+OFF-015,East Office,Nashville Metro,2019-06-09
+OFF-016,Central Office,Atlanta Metro,2019-11-06
+OFF-017,Downtown Office,Charlotte Metro,2020-06-18
+OFF-018,Midtown Office,Nashville Metro,2021-04-10
+OFF-019,Buckhead Office,Atlanta Metro,2007-03-12
+OFF-020,North Office,Charlotte Metro,2011-09-07
+OFF-021,South Office,Nashville Metro,2011-04-02
+OFF-022,West Office,Atlanta Metro,2015-02-08
+OFF-023,East Office,Charlotte Metro,2019-10-02
+OFF-024,Central Office,Nashville Metro,2013-01-12
+OFF-025,Downtown Office,Atlanta Metro,2016-02-07

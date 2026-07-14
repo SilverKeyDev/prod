@@ -42,7 +42,7 @@ Client/
 │   └── schemas/                # Shared type definitions
 ```
 
-Long-form client docs live at repo root in **`documentation/client/`** (see [documentation/client/architecture/](../documentation/client/architecture/)).
+Long-form client docs live at repo root in **`documentation/`** (see [documentation/architecture/](../documentation/architecture/)).
 
 ### `packages/utils` top-level domains
 
@@ -85,7 +85,7 @@ Shared pure helpers live under `Client/packages/utils/` with many **top-level si
 ### Where UI components live
 
 - **Shared primitives and design system** — `Client/packages/ui/` (buttons, text, modals, cards, layout primitives, and `packages/ui/styles/` for CSS). This is what ESLint/UI rules refer to as the standardized component set.
-- **TypeScript aliases** — `Client/tsconfig.base.json` maps `@/components/ui` and `@ui` to `packages/ui/components` so existing imports stay short; **`packages/ui/...`** is the preferred spelling for new code (see `documentation/client/architecture/typescript-files.md`).
+- **TypeScript aliases** — `Client/tsconfig.base.json` maps `@/components/ui` and `@ui` to `packages/ui/components` so existing imports stay short; **`packages/ui/...`** is the preferred spelling for new code (see `documentation/architecture/typescript-files.md`).
 - **Web app** — `apps/web` has **no** parallel `components/ui` tree; pages and `app/` layouts compose `packages/features/*` and `packages/ui`.
 
 ## Thin App (Fat Packages) Pattern
@@ -133,7 +133,7 @@ Shared pure helpers live under `Client/packages/utils/` with many **top-level si
 └─────────────────────────────────────┘
 ```
 
-**Import matrix and layer rules:** [documentation/client/architecture/layered-architecture-imports.md](../documentation/client/architecture/layered-architecture-imports.md). Enforced in CI via `.cursor/rules/frontend/frontend-architecture.mdc` and ESLint `silverkey/no-restricted-imports-architecture`.
+**Import matrix and layer rules:** [documentation/architecture/layered-architecture-imports.md](../documentation/architecture/layered-architecture-imports.md). Enforced in CI via `.cursor/rules/frontend/frontend-architecture.mdc` and ESLint `silverkey/no-restricted-imports-architecture`.
 
 ## Platform File Extensions
 
@@ -199,7 +199,7 @@ See: `.cursor/rules/shared/cross-platform-component-reuse.mdc`
 
 ## React Hooks and UI Components
 
-- **Hooks:** Loop prevention, async effects, and Zustand selector patterns — `.cursor/rules/frontend/react-hooks.mdc`, `.cursor/rules/frontend/async-cancellation.mdc`; examples in [documentation/client/patterns/react-hooks-patterns.md](../documentation/client/patterns/react-hooks-patterns.md).
+- **Hooks:** Loop prevention, async effects, and Zustand selector patterns — `.cursor/rules/frontend/react-hooks.mdc`, `.cursor/rules/frontend/async-cancellation.mdc`; examples in [documentation/architecture/patterns/react-hooks-patterns.md](../documentation/architecture/patterns/react-hooks-patterns.md).
 - **UI:** All buttons and text use **`Client/packages/ui/`** primitives — `.cursor/rules/frontend/ui-components.mdc`.
 
 ## Build and Tooling
@@ -214,7 +214,7 @@ Run from **`Client/`** with **pnpm 9** (see root `AGENTS.md`).
 | Lint + cycles | `pnpm lint && pnpm lint:cycles` |
 | Full client gate | `pnpm check` |
 
-Web: `apps/web/vite.config.js` (+ `vite.config.resolve.js`). Mobile: `apps/mobile/metro.config.js`, `app.json`. Config reference: [documentation/client/tooling/config-files-reference.md](../documentation/client/tooling/config-files-reference.md).
+Web: `apps/web/vite.config.js` (+ `vite.config.resolve.js`). Mobile: `apps/mobile/metro.config.js`, `app.json`. Config reference: [documentation/reference/config-files.md](../documentation/reference/config-files.md).
 
 Custom ESLint rules in `packages/config/eslint/` enforce architecture patterns. See: `.cursor/rules/shared/ci-gates.mdc`, `.cursor/rules/shared/linting.mdc`
 
@@ -239,7 +239,7 @@ test("loads user data", async () => {
 
 ### Browser E2E
 
-There is **no** Playwright or Cypress suite in this repo. Use the QA runbooks under `documentation/client/qa/` for release verification. Optional **visual parity** scripts under `Client/scripts/visual-parity/` use the `playwright` package’s `chromium` launcher (`pnpm parity:web:*` from `Client/package.json`).
+There is **no** Playwright or Cypress suite in this repo. Use the QA runbooks under `documentation/runbooks/qa/` for release verification. Optional **visual parity** scripts under `Client/scripts/visual-parity/` use the `playwright` package’s `chromium` launcher (`pnpm parity:web:*` from `Client/package.json`).
 
 See: `.cursor/rules/shared/testing-tiers.mdc`
 
@@ -302,10 +302,10 @@ See: `.cursor/rules/frontend/assets-and-icons.mdc`
 ## Documentation
 
 - **This file:** Client architecture overview
-- **Thin App Pattern:** `documentation/client/architecture/thin-app-architecture.md`
-- **Shared Packages:** `documentation/client/architecture/shared-packages.md`
-- **Mobile Structure:** `documentation/client/platform/mobile-app-structure.md`
-- **Cross-Platform:** `documentation/client/platform/react-vs-react-native-packages.md`
+- **Thin App Pattern:** `documentation/architecture/thin-app-architecture.md`
+- **Shared Packages:** `documentation/architecture/shared-packages.md`
+- **Mobile Structure:** `documentation/architecture/platform/mobile-app-structure.md`
+- **Cross-Platform:** `documentation/architecture/platform/react-vs-react-native.md`
 - **Frontend Rules:** `.cursor/rules/frontend/`
 - **Shared Rules:** `.cursor/rules/shared/`
 
@@ -322,4 +322,4 @@ See: `.cursor/rules/frontend/assets-and-icons.mdc`
 - **Root Architecture:** `/ARCHITECTURE.md`
 - **Server Architecture:** `/Server/ARCHITECTURE.md`
 - **Documentation Index:** `documentation/README.md`
-- **How We Document:** `documentation/HOW_WE_DOCUMENT.md`
+- **How We Document:** `documentation/how-we-document.md`

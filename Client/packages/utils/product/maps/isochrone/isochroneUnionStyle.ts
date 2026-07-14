@@ -1,8 +1,8 @@
 import { color } from "packages/design-tokens";
 
-/** Softer union isochrone veil: light sage fill vs darker olive stroke. */
+/** Union isochrone veil: sage fill vs olive stroke (slightly stronger for map contrast). */
 const ISOCHRONE_UNION_FILL_HEX = color("olive.muted") || "#E4EBE4";
-const ISOCHRONE_UNION_FILL_OPACITY = 0.36;
+const ISOCHRONE_UNION_FILL_OPACITY = 0.48;
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const raw = hex.replace("#", "").trim();

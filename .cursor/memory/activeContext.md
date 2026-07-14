@@ -4,7 +4,7 @@ _Update this when starting or finishing a focused workstream (not every small ed
 
 ## Current focus
 
-- Workspace placeholder shells: seller, brokerage, integration_partner are barren (nav + route guards + shared placeholder page). Buyer/agent documented in `documentation/client/architecture/workspace-first-architecture.md`.
+- Workspace placeholder shells: seller, brokerage, integration_partner are barren (nav + route guards + shared placeholder page). Buyer/agent documented in `documentation/architecture/workspace-first-architecture.md`.
 
 ## Open questions
 
@@ -12,6 +12,6 @@ _Update this when starting or finishing a focused workstream (not every small ed
 
 ## Links
 
-- Docs: `documentation/client/architecture/workspace-first-architecture.md`, `documentation/client/architecture/workspaces-placeholder-shells.md`
+- Docs: `documentation/architecture/workspace-first-architecture.md`, `documentation/architecture/workspaces-placeholder-shells.md`
 - Linear: 
 - PR: 

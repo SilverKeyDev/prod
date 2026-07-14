@@ -1,12 +1,12 @@
-# Internal documentation
+# Internal
 
-Engineering process, audits, and ops runbooks not tied to client/server product areas.
+Engineering process, inventories, and audit evidence. Not product roadmap.
 
 | Doc | Description |
 |-----|-------------|
 | [cursor-audit-latest.md](./cursor-audit-latest.md) | Cursor rules/skills/agents inventory |
 | [post-major-change-checklist.md](./post-major-change-checklist.md) | Sync docs + Cursor after major changes |
-| [messaging-sse-operations.md](./messaging-sse-operations.md) | Messaging SSE ops runbook |
-| [component-audit/](./component-audit/) | Component audit evidence (folder matrix, rubric samples) |
+| [docs-migration-manifest.md](./docs-migration-manifest.md) | Wiki renovation path map |
+| [component-audit/](./component-audit/) | Component audit evidence |
 
-**Planned work:** [Linear](https://linear.app/silverkey/team/SIL/all) only — do not add repo markdown backlogs.
+**Planned work:** [Linear](https://linear.app/silverkey/team/SIL/all) only.

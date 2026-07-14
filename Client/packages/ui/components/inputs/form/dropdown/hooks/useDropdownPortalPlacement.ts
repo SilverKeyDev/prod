@@ -125,10 +125,25 @@ export function useDropdownPortalPlacement({
       return;
     }
     const el = menuPortalRef.current;
-    if (!el) {
+    if (el) {
+      return registerOutsideClickSafeTarget(el);
+    }
+    // Menu mounts only after portalPlacement is set; retry once on the next frame.
+    const win = getWindow();
+    if (!win) {
       return;
     }
-    return registerOutsideClickSafeTarget(el);
+    let unregister: (() => void) | undefined;
+    const rafId = win.requestAnimationFrame(() => {
+      const lateEl = menuPortalRef.current;
+      if (lateEl) {
+        unregister = registerOutsideClickSafeTarget(lateEl);
+      }
+    });
+    return () => {
+      win.cancelAnimationFrame(rafId);
+      unregister?.();
+    };
   }, [isOpen, canPortalMenu, registerOutsideClickSafeTarget, portalPlacement, menuPortalRef]);
 
   return portalPlacement;

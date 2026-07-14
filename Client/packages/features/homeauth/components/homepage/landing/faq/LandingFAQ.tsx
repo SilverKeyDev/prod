@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { LandingEyebrow } from "packages/features/homeauth/components/homepage/landing/shared/LandingEyebrow";
+import { LandingSectionShell } from "packages/features/homeauth/components/homepage/landing/shared/LandingSectionShell";
 import { useLandingReveal } from "packages/features/homeauth/hooks/useLandingReveal";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
 import { LANDING_SECTION_IDS } from "packages/features/homeauth/utils/landingSectionIds";
@@ -8,9 +10,6 @@ import { Icon } from "packages/ui/components/media/icons";
 import { Box } from "packages/ui/components/structure/primitives";
 
 import { BodyText, Button, Title } from "@/components/ui";
-
-import { LandingEyebrow } from "../shared/LandingEyebrow";
-import { LandingSectionShell } from "../shared/LandingSectionShell";
 
 const faqLayout = LANDING_SECTION_LAYOUT[LANDING_SECTION_IDS.faq];
 
@@ -27,7 +26,7 @@ export function LandingFAQ() {
       fullBleed
     >
       <Box
-        className={`mx-auto max-w-[680px] text-center motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+        className={`mx-auto max-w-2xl text-center motion-safe:transition-all motion-safe:duration-500 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
           inView ? "translate-y-0 opacity-100" : "motion-safe:translate-y-8 motion-safe:opacity-0"
         }`}
       >
@@ -37,7 +36,7 @@ export function LandingFAQ() {
         </Title>
       </Box>
 
-      <Box ref={ref} className="mx-auto mt-9 max-w-[680px]">
+      <Box ref={ref} className="mx-auto mt-9 max-w-2xl">
         {faq.items.map((item, index) => {
           const isOpen = openIndex === index;
           const delay = Math.min(index, 4) * 0.08;

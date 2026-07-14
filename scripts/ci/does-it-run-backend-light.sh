@@ -13,6 +13,11 @@ fail() {
   exit 1
 }
 
+# Always-on: catch Dockerfile.web COPY-order bugs even when full Docker smoke is skipped.
+echo "does-it-run-backend-light: checking Dockerfile.web backend COPY deps..."
+bash "$ROOT/scripts/ci/check-dockerfile-web-backend-deps.sh"
+bash "$ROOT/scripts/ci/test-check-dockerfile-web-backend-deps.sh"
+
 services_compose() {
   docker compose -f "$SERVICES_COMPOSE" -p "$COMPOSE_PROJECT_NAME" "$@"
 }
@@ -68,10 +73,9 @@ fi
 # shellcheck disable=SC1091
 source .venv/bin/activate
 python -m pip install --upgrade pip >/dev/null
-# Install the CPU-only torch wheel first so the runtime.txt `torch==2.10.0` pin is already
-# satisfied and pip does not pull the multi-GB CUDA build (matches bootstrap-venv.sh and
-# Dockerfile.web). The version tracks the pin in requirements/runtime.txt.
-pip install --no-cache-dir torch==2.10.0 --index-url https://download.pytorch.org/whl/cpu
+# CPU-only torch first (runtime.txt pin); shared script retries and falls back to a direct
+# CloudFront wheel URL when pip hits download-r2.pytorch.org TLS failures on CI runners.
+bash "$ROOT/Server/scripts/install-torch-cpu.sh"
 pip install --no-cache-dir -r requirements/runtime.txt
 
 echo "does-it-run-backend-light: building web bundle for SPA serving..."
@@ -91,11 +95,19 @@ source "${DOES_IT_RUN_SERVER_ENV}"
 set +a
 unset TESTING
 export FLASK_ENV=production
+# database.py reads DATABASE_URL at import time (before run.py load_dotenv). Force the smoke
+# URL here so Gunicorn always sees it — server.env append is not sufficient when Actions
+# injects an empty DATABASE_URL or when .env.example omits the key.
+export DATABASE_URL="postgresql://silverkey:silverkey@127.0.0.1:5432/silverkey_ci"
 export REDIS_URL="${REDIS_URL:-redis://127.0.0.1:6379/0}"
 export CELERY_URL="${CELERY_URL:-$REDIS_URL}"
 export WEB_CONCURRENCY=1
 export GUNICORN_THREADS=2
 export GUNICORN_BIND=127.0.0.1:5000
+
+if [[ -z "${DATABASE_URL}" ]]; then
+  fail "DATABASE_URL is empty before Gunicorn start"
+fi
 
 bash "$ROOT/Server/scripts/gunicorn-entrypoint.sh" &
 gunicorn_pid=$!

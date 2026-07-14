@@ -8,12 +8,17 @@ Tasks are organized into separate files by category:
 """
 
 # Import all tasks to ensure they are registered with Celery
+from .campaign_learning import (
+    run_campaign_learning_loop_task,
+    score_campaign_engagement_task,
+)
 from .docusign import (
     fetch_completed_documents_task,
     process_webhook_task,
     send_envelope_task,
     sync_templates_task,
 )
+from .ml_scoring import score_brokerage_ml_insights_task
 from .property_research import compare_property_task, research_property_task
 from .skyslope import (
     sync_all_brokerages_incremental_task,
@@ -32,4 +37,7 @@ __all__ = [
     "sync_templates_task",
     "sync_brokerage_transactions_task",
     "sync_all_brokerages_incremental_task",
+    "score_brokerage_ml_insights_task",
+    "score_campaign_engagement_task",
+    "run_campaign_learning_loop_task",
 ]

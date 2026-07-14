@@ -21,11 +21,16 @@ from app.services.auth.user_roles_sync import (
     primary_onboarding_role_is_integration_partner,
     sync_client_roles_from_preferences,
 )
+from app.services.brokerage.membership import ensure_org_membership
 from app.services.public.profile_slug import ensure_public_profile_slug
 from app.utils.db.orm_lookup import get_model
 from app.utils.validation.service_boundary import assert_preferences_payload_bounds
 
 from .preferences_write.agent_profile import write_agent_profile_from_payload
+from .preferences_write.brokerage import (
+    has_brokerage_fields,
+    write_brokerage_from_payload,
+)
 from .preferences_write.demographics import (
     write_communication_prefs_from_payload,
     write_demographics_from_payload,
@@ -63,6 +68,10 @@ def write_preferences_from_payload(
     if primary_onboarding_role_is_integration_partner(data) and not user_has_integration_partner(u):
         ensure_user_role(str(u.id), "integration_partner")
 
+    # Brokerage onboarding / dashboard edits need an org membership before org-scoped writes.
+    if primary_onboarding_role_is_brokerage(data) or has_brokerage_fields(data):
+        ensure_org_membership(str(u.id), role="admin")
+
     # User.name: when profile "About you" sends name, persist to User
     if "name" in data and data["name"] is not None:
         new_name = str(data["name"]).strip()
@@ -76,6 +85,7 @@ def write_preferences_from_payload(
     write_search_intent_from_payload(user_id, data)
     write_important_locations_from_payload(user_id, data)
     write_intent_attributes_from_payload(user_id, data)
+    write_brokerage_from_payload(user_id, data)
 
     # Agent profile (when user has agent role and agent fields present)
     if user_is_agent(u):
@@ -112,7 +122,11 @@ def write_preferences_from_payload(
         u.preferences_version = str(raw_version).strip()[:10]
     elif not u.preferences_version:
         u.preferences_version = "1.0"
+
     db.session.commit()
-    from app.services.aggregation.read.preferences_aggregation import get_preferences_dict_optional
+
+    from app.services.aggregation.read.preferences_aggregation import (
+        get_preferences_dict_optional,
+    )
 
     return get_preferences_dict_optional(user_id) or {}

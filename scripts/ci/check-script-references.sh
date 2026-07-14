@@ -37,7 +37,7 @@ report_stale() {
   local key="${file}:${ref}"
   already_reported "$key" && return
   echo "check-script-references: stale flat path: $ref (in $file)" >&2
-  echo "  Hint: use scripts/setup/, scripts/ci/, scripts/run/, or documentation/server/ops/scripts-guide.md" >&2
+  echo "  Hint: use scripts/setup/, scripts/ci/, scripts/run/, or documentation/runbooks/scripts-guide.md" >&2
   errors=$((errors + 1))
 }
 

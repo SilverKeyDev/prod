@@ -4,6 +4,7 @@ import Button from "@ui/button/Button";
 import { Icon } from "@ui/icons";
 
 import { SEARCH_TRANSLATIONS } from "packages/features/search/types/domain/translations";
+import { DROPDOWN_TRIGGER_INNER_FOCUS_RESET } from "packages/ui/components/inputs/form/dropdown/dropdownStyles";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 
@@ -36,12 +37,11 @@ export function SearchLocationSuggestionList({
   const hasSuggestions = slipstreamSuggestions.length > 0 || googleSuggestions.length > 0;
   if (!hasSuggestions && !showCurrentLocation) return null;
 
-  const rowButtonClass =
-    "w-full !justify-start rounded-none px-3 py-2.5 text-left font-normal hover:bg-neutral-50/90";
+  const rowButtonClass = `w-full !justify-start rounded-none px-3 py-2 text-left font-normal hover:bg-neutral-50/90 ${DROPDOWN_TRIGGER_INNER_FOCUS_RESET}`;
 
   return (
     <ul
-      className="bg-background-surface/95 z-dropdown absolute left-0 right-0 top-full mt-1 max-h-80 divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200 py-1 shadow-lg backdrop-blur-sm"
+      className="bg-background-surface/95 z-dropdown absolute left-0 right-0 top-full mt-1 max-h-80 divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200 shadow-lg backdrop-blur-sm"
       role="listbox"
     >
       {showCurrentLocation && onSelectCurrentLocation ? (

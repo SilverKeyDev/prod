@@ -8,20 +8,23 @@
  * Example: tsx render-email.ts ListingsEmail '{"recipientEmail":"user@example.com","listings":[...]}'
  */
 
-// @ts-expect-error - React Email packages will be installed at runtime
 import React from "react";
 
 import { render } from "@react-email/render";
 
 import { log } from "packages/logger";
 
-// Dynamically import email templates
-const templateMap: Record<
-  string,
-  () => Promise<{ default: React.ComponentType<Record<string, unknown>> }>
-> = {
-  ListingsEmail: () => import("./templates/ListingsEmail.tsx"),
-  NewPropertiesEmail: () => import("./templates/NewPropertiesEmail.tsx"),
+type EmailTemplateModule = {
+  default: React.ComponentType<Record<string, unknown>>;
+};
+
+// Dynamically import email templates (props validated at render time from CLI JSON)
+const templateMap: Record<string, () => Promise<EmailTemplateModule>> = {
+  ListingsEmail: () => import("./templates/ListingsEmail.tsx") as Promise<EmailTemplateModule>,
+  NewPropertiesEmail: () =>
+    import("./templates/NewPropertiesEmail.tsx") as Promise<EmailTemplateModule>,
+  CampaignAgentEmail: () =>
+    import("./templates/CampaignAgentEmail.tsx") as Promise<EmailTemplateModule>,
 };
 
 async function main() {

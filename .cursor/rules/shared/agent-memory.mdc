@@ -2,7 +2,7 @@
 description: Read and update .cursor/memory for session continuity; use with Cursor Memories, Automations memory tool, and MCP memory when configured
 globs:
   - ".cursor/memory/**"
-  - "documentation/client/tooling/cursor-agent-memory.md"
+  - "documentation/guides/tooling/cursor-agent-memory.md"
 alwaysApply: false
 ---
 

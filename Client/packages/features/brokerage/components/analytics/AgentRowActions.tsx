@@ -1,10 +1,14 @@
 /**
  * AgentRowActions — SIL-300
  * Two clear actions for any agent row in brokerage analytics:
- * 1. Website — opens /a/:slug public profile
+ * 1. Website — opens /a/:slug public profile (only when a real slug exists)
  * 2. Analytics — navigates to per-agent analytics page
  */
+import { useNavigation } from "packages/navigation";
+import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
+import { buildBrokerageAgentAnalyticsPath } from "packages/utils/growth/agent";
 
 interface Props {
   agentId: string;
@@ -12,37 +16,35 @@ interface Props {
   slug?: string;
 }
 
-export function AgentRowActions({ agentId, agentName, slug }: Props) {
-  function handleWebsite() {
-    if (slug) {
-      window.open(`/a/${slug}`, "_blank", "noopener,noreferrer");
-    } else {
-      window.open(`/a/unclaimed?name=${encodeURIComponent(agentName)}`, "_blank", "noopener,noreferrer");
-    }
-  }
+function openAgentWebsite(slug: string) {
+  getWindow()?.open(`/a/${slug}`, "_blank", "noopener,noreferrer");
+}
 
-  function handleAnalytics() {
-    window.location.href = `/dashboard/agent/${agentId}`;
-  }
+export function AgentRowActions({ agentId, agentName, slug }: Props) {
+  const { navigateToPath } = useNavigation();
 
   return (
     <Box className="flex items-center gap-1">
-      {slug && (
-        <button
-          onClick={() => window.open(`/a/${slug}`, "_blank", "noopener,noreferrer")}
-          className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
-          title={`Open ${agentName}'s public site`}
+      {slug ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onPress={() => openAgentWebsite(slug)}
+          label={`Open ${agentName}'s public site`}
         >
           Website ↗
-        </button>
-      )}
-      <button
-        onClick={() => { window.location.href = `/dashboard/agent/${agentId}`; }}
-        className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
-        title={`View ${agentName}'s analytics`}
+        </Button>
+      ) : null}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onPress={() => navigateToPath(buildBrokerageAgentAnalyticsPath(agentId, agentName))}
+        label={`View ${agentName}'s analytics`}
       >
         Analytics
-      </button>
+      </Button>
     </Box>
   );
 }

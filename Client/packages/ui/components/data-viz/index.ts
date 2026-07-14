@@ -1,3 +1,5 @@
+export type { ChartLegendItem, ChartLegendProps } from "./ChartLegend";
+export { ChartLegend } from "./ChartLegend";
 export type { DonutChartProps } from "./DonutChart";
 export { DonutChart } from "./DonutChart";
 export type { LabeledBarRowProps } from "./LabeledBarRow";

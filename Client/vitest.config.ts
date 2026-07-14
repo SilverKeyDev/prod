@@ -3,11 +3,13 @@ import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
 import { buildWebViteResolve } from "./apps/web/vite.config.resolve.js";
+import { silverkeyWikiPlugin } from "./apps/web/vite.plugin.wiki.js";
 
 const root = path.resolve(__dirname);
 const packages = path.join(root, "packages");
 const uiComponents = path.join(packages, "ui/components");
 const webAppDir = path.join(root, "apps/web");
+const documentationRoot = path.resolve(root, "../documentation");
 
 const webResolve = buildWebViteResolve(packages, uiComponents, webAppDir);
 
@@ -66,7 +68,7 @@ function vitestReactNativeStubPlugin(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [vitestReactNativeStubPlugin()],
+  plugins: [vitestReactNativeStubPlugin(), silverkeyWikiPlugin({ docsRoot: documentationRoot })],
   test: {
     globals: true,
     environment: "jsdom",

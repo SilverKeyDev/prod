@@ -1,0 +1,26 @@
+type: object
+description: >
+  Agent-managed client testimonial shown on the public agent profile.
+  `source` is `custom` for agent-entered items; reserved for external review
+  imports (e.g. Zillow) later.
+required:
+  - author_name
+  - quote
+properties:
+  author_name:
+    type: string
+  quote:
+    type: string
+  date:
+    type: string
+    nullable: true
+    description: Display date, preferably YYYY-MM-DD.
+  rating:
+    type: integer
+    minimum: 1
+    maximum: 5
+    nullable: true
+  source:
+    type: string
+    nullable: true
+    description: Origin of the testimonial; `custom` when agent-entered.

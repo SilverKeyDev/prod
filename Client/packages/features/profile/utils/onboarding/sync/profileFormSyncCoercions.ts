@@ -1,3 +1,4 @@
+import type { AgentTestimonial } from "packages/features/profile/types/onboarding/onboarding";
 import { parseUserPreferencesArray } from "packages/features/profile/utils/onboarding/validation/preferencesUtils";
 
 export function toNumber(value: unknown): number | undefined {
@@ -56,6 +57,25 @@ export function toDictArray(value: unknown): Record<string, unknown>[] {
   return arr.filter(
     (v): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
   );
+}
+
+/** Coerce API testimonials into well-formed items (author_name + quote required). */
+export function toTestimonialArray(value: unknown): AgentTestimonial[] {
+  return toDictArray(value)
+    .filter((v) => typeof v.author_name === "string" && typeof v.quote === "string")
+    .map((v) => {
+      const item: AgentTestimonial = {
+        author_name: String(v.author_name),
+        quote: String(v.quote),
+      };
+      if (typeof v.date === "string" && v.date.trim()) item.date = v.date;
+      if (typeof v.rating === "number" && v.rating >= 1 && v.rating <= 5) {
+        item.rating = Math.round(v.rating);
+      }
+      if (typeof v.source === "string" && v.source.trim()) item.source = v.source;
+      return item;
+    })
+    .filter((item) => item.author_name.trim() !== "" && item.quote.trim() !== "");
 }
 
 export function toRecordString(value: unknown): Record<string, string> | undefined {

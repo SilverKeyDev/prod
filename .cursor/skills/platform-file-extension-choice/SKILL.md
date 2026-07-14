@@ -26,7 +26,7 @@ Use `.web` only when **either** condition holds:
 1. **Web-only package or API** – The file imports or uses something not available on React Native (e.g. `react-dom`, `react-router-dom`, `window`/`document`, `HTMLInputElement`, `htmlFor`, `@headlessui/react`, `react-virtuoso`).
 2. **Desktop / large-screen only** – The file is layout or UI for desktop/large viewport and mobile has or will have a different implementation (e.g. sidebar, desktop search header, desktop reels).
 
-Canonical guidance: `.cursor/rules/frontend/platform-file-extensions.mdc` and `documentation/client/` (e.g. react-vs-react-native-packages.md).
+Canonical guidance: `.cursor/rules/frontend/platform-file-extensions.mdc` and `documentation/` (e.g. react-vs-react-native.md).
 
 ## When to use `.tsx` / `.ts` (no suffix)
 
@@ -44,4 +44,4 @@ Use plain `.tsx` / `.ts` for:
 ## References
 
 - **Cursor rule:** `.cursor/rules/frontend/platform-file-extensions.mdc`
-- **Docs:** `documentation/client/platform/react-vs-react-native-packages.md`, `documentation/client/standards/LINTING.md`
+- **Docs:** `documentation/architecture/platform/react-vs-react-native.md`, `documentation/reference/linting.md`

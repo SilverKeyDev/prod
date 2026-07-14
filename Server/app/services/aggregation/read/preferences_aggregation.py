@@ -22,12 +22,16 @@ from app.models import (
     UserIntentAttribute,
     UserSearchIntent,
 )
+from app.models.brokerage import BrokerageOrg
 from app.services.aggregation.read.extended_buyer_preferences import (
     apply_extended_buyer_preference_canonical_keys,
     coerce_extension_value,
     normalize_stored_document,
 )
 from app.services.auth.user_role_helpers import user_is_agent
+from app.services.brokerage.membership import (
+    primary_brokerage_org_id_for_user,
+)
 from app.utils.db.orm_lookup import get_model
 
 
@@ -205,6 +209,20 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
     apply_canonical_housing_preference_keys(out)
     apply_extended_buyer_preference_canonical_keys(out)
 
+    # Brokerage organization profile
+    brokerage_org_id = primary_brokerage_org_id_for_user(user_id)
+    if brokerage_org_id:
+        brokerage_org = db.session.scalar(
+            select(BrokerageOrg).where(BrokerageOrg.id == brokerage_org_id)
+        )
+        if brokerage_org:
+            out["brokerage_legal_business_name"] = brokerage_org.legal_business_name
+            out["brokerage_primary_admin_name"] = brokerage_org.primary_admin_name
+            out["brokerage_primary_admin_email"] = brokerage_org.primary_admin_email
+            out["brokerage_primary_admin_phone"] = brokerage_org.primary_admin_phone
+            out["brokerage_primary_admin_title"] = brokerage_org.primary_admin_title
+            out["brokerage_license_number"] = brokerage_org.license_number
+
     # Agent profile (only when user has agent role)
     if user_is_agent(user):
         out["public_profile_slug"] = getattr(user, "public_profile_slug", None)
@@ -220,6 +238,7 @@ def _build_preferences_dict(user_id: str) -> dict[str, Any] | None:
                 agent.license_expiration_dates
             )
             out["agent_mls_affiliations"] = _parse_json_list_of_dicts(agent.mls_affiliations)
+            out["agent_testimonials"] = _parse_json_list_of_dicts(agent.testimonials)
             out["agent_brokerage_name"] = agent.brokerage_name
             out["agent_brokerage_bic_name"] = agent.brokerage_bic_name
             out["agent_brokerage_address"] = agent.brokerage_address

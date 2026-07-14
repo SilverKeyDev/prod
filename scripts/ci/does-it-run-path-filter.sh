@@ -14,7 +14,7 @@ fi
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
-PATTERN='^(Dockerfile\.web|scripts/deploy/|\.github/scripts/ec2-deploy\.sh|Server/scripts/gunicorn-entrypoint\.sh|Server/requirements/runtime\.txt)'
+PATTERN='^(Dockerfile\.web|scripts/deploy/|\.github/scripts/ec2-deploy\.sh|Server/scripts/gunicorn-entrypoint\.sh|Server/scripts/install-torch-cpu\.sh|Server/requirements/runtime\.txt)'
 
 run_docker=false
 while IFS= read -r path; do

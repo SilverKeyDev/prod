@@ -1,7 +1,7 @@
 ---
 description: QA flow probing — read committed per-role test accounts (SIL-145), sign in programmatically, exercise surfaces; never guess credentials.
 globs:
-  - "documentation/client/qa/**"
+  - "documentation/runbooks/qa/**"
 alwaysApply: false
 ---
 
@@ -11,15 +11,15 @@ alwaysApply: false
 
 **SIL-145 / SIL-126 step 1** must be complete: committed credentials at:
 
-`documentation/client/qa/test-accounts.json`
+`documentation/runbooks/qa/test-accounts.json`
 
 - **Do not guess** emails, passwords, or OTP inboxes.
-- If the file is missing, `sharedPassword` is empty/placeholder, or accounts are not provisioned (login fails / `needs_verification`), **stop** and point to [PROVISION_TEST_ACCOUNTS.md](../../../documentation/client/qa/PROVISION_TEST_ACCOUNTS.md).
-- Schema template: [test-accounts.example.json](../../../documentation/client/qa/test-accounts.example.json)
+- If the file is missing, `sharedPassword` is empty/placeholder, or accounts are not provisioned (login fails / `needs_verification`), **stop** and point to [provision-test-accounts.md](../../../documentation/runbooks/qa/provision-test-accounts.md).
+- Schema template: [test-accounts.example.json](../../../documentation/runbooks/qa/test-accounts.example.json)
 
 ## Credential discovery
 
-1. Read `documentation/client/qa/test-accounts.json` at task start.
+1. Read `documentation/runbooks/qa/test-accounts.json` at task start.
 2. Use `env` + `baseUrls.web` / `baseUrls.api` for the active environment (default in file: production).
 3. Password: `sharedPassword` (or `test-accounts.local.json` if team moved password out of git).
 4. Map flow → role(s) using `accounts[]` entries: `buyer` | `seller` | `agent` | `brokerage` | `integration_partner`.
@@ -32,7 +32,7 @@ alwaysApply: false
 | `brokerage` | `brokerage` | Brokerage dashboard (`activeWorkspace === "brokerage"`), roster with linked agents |
 | `integration_partner` | `integration_partner` | Partner/integration surfaces once role is granted |
 
-Workspace behavior: [documentation/client/workspace-first-architecture.md](../../../documentation/client/workspace-first-architecture.md). After login, `useActiveWorkspace()` should match the account’s `workspace`; do **not** use SIL-123 dev persona switcher for cross-role QA — use **separate logins** per role.
+Workspace behavior: [documentation/workspace-first-architecture.md](../../../documentation/workspace-first-architecture.md). After login, `useActiveWorkspace()` should match the account’s `workspace`; do **not** use SIL-123 dev persona switcher for cross-role QA — use **separate logins** per role.
 
 ### API base URL fallback
 
@@ -109,6 +109,6 @@ POST /api/v1/auth/login → open /dashboard/client/<id> as agent
 
 ## Related
 
-- [PROVISION_TEST_ACCOUNTS.md](../../../documentation/client/qa/PROVISION_TEST_ACCOUNTS.md)
-- [END_TO_END_QA_RUNBOOK.md](../../../documentation/client/qa/END_TO_END_QA_RUNBOOK.md)
-- [FLOW_SIGNUP_AND_VERIFICATION.md](../../../documentation/client/qa/FLOW_SIGNUP_AND_VERIFICATION.md)
+- [provision-test-accounts.md](../../../documentation/runbooks/qa/provision-test-accounts.md)
+- [end-to-end-qa-runbook.md](../../../documentation/runbooks/qa/end-to-end-qa-runbook.md)
+- [flow-signup-and-verification.md](../../../documentation/runbooks/qa/flow-signup-and-verification.md)

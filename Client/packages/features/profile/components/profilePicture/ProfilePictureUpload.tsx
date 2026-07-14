@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { DEFAULT_AVATAR_IMAGE } from "packages/features/feed/utils/placeholderAssets";
 import { useProfilePictureUpload } from "packages/hooks/data/auth/useProfilePictureUpload";
 import { useUserData } from "packages/hooks/data/auth/useUserData";
 import { showErrorToast } from "packages/hooks/ui/toast/useToast";
@@ -9,6 +8,7 @@ import Button from "packages/ui/components/actions/button/Button";
 import { Image } from "packages/ui/components/structure/primitives";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
+import { DEFAULT_AVATAR_WEB_PATH as DEFAULT_AVATAR_IMAGE } from "packages/utils/product/media/defaultAvatar";
 
 import { FEED_AVATAR_IMAGE_CLASS } from "@/features/feed/components/Overlay/FeedActionButton";
 const ACCEPTED_TYPES = "image/jpeg,image/png,image/gif";

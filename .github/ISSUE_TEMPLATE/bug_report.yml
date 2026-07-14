@@ -30,7 +30,7 @@ body:
     id: workspace
     attributes:
       label: Workspace
-      description: Product shell (see documentation/client/architecture/workspace-first-architecture.md)
+      description: Product shell (see documentation/architecture/workspace-first-architecture.md)
       options:
         - buyer
         - seller

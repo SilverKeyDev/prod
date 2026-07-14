@@ -1,172 +1,102 @@
 /**
  * AgentAnalyticsPage — SIL-300
- * Per-agent analytics page scoped to a single agent's metrics.
+ * Per-agent analytics scorecard with comprehensive brokerage-grade metrics.
  * Fixture-backed for demo — real data when SIL-207 API lands.
  */
-import { useMemo } from "react";
-import { useNavigation, useRouteParams } from "packages/navigation";
-import { color } from "packages/design-tokens";
-import {
-  BROKERAGE_AGENTS_FIXTURE,
-  BROKERAGE_ANCILLARY_FIXTURE,
-  BROKERAGE_DEAL_FAILURE_FIXTURE,
-  BROKERAGE_AGENT_RETENTION_FIXTURE,
-} from "packages/features/brokerage/fixtures/brokerageAnalyticsFixtures";
-import { AnalyticsBarChart, AnalyticsLineChart } from "packages/features/brokerage/components/charts";
-import { Box } from "packages/ui/components/structure/primitives";
-import BodyText from "packages/ui/components/structure/text/BodyText";
-import Title from "packages/ui/components/structure/text/Title";
+import { useEffect, useMemo } from "react";
 
-function KpiCard({ label, value, delta }: { label: string; value: string | number; delta?: string }) {
-  return (
-    <Box className="border-border bg-background-surface rounded-xl border p-4">
-      <BodyText size="xs" muted>{label}</BodyText>
-      <Title size="lg">{value}</Title>
-      {delta && <BodyText size="xs" muted className="mt-1">{delta}</BodyText>}
-    </Box>
-  );
-}
+import { buildAgentDetailView } from "packages/features/brokerage/utils/analytics/agentDetailTransforms";
+import { BROKERAGE_AGENTS_FIXTURE } from "packages/features/brokerage/utils/brokerageAnalyticsFixtures";
+import { useNavigation, useRouteParams } from "packages/navigation";
+import { Button } from "packages/ui";
+import { Box } from "packages/ui/components/structure/primitives";
+import Title from "packages/ui/components/structure/text/Title";
+import {
+  buildBrokerageAgentAnalyticsPath,
+  getCanonicalAgentSlug,
+  isLegacyAgentId,
+  resolveBrokerageAgentIdFromSlug,
+} from "packages/utils/growth/agent";
+
+import { AgentDetailAncillaryChart } from "./agentDetail/AgentDetailAncillaryChart";
+import { AgentDetailForensics } from "./agentDetail/AgentDetailForensics";
+import { AgentDetailHeader } from "./agentDetail/AgentDetailHeader";
+import { AgentDetailKpis } from "./agentDetail/AgentDetailKpis";
+import { AgentDetailPeerBenchmarks } from "./agentDetail/AgentDetailPeerBenchmarks";
+import { AgentDetailProductionChart } from "./agentDetail/AgentDetailProductionChart";
+import { AgentDetailRetention } from "./agentDetail/AgentDetailRetention";
 
 export function AgentAnalyticsPage() {
-  const { agentId } = useRouteParams<{ agentId: string }>();
+  const { agentSlug } = useRouteParams<{ agentSlug: string }>();
   const { navigateToPath } = useNavigation();
 
-  const agent = useMemo(
-    () => BROKERAGE_AGENTS_FIXTURE.find((a) => a.id === agentId) ?? null,
-    [agentId]
-  );
+  const resolvedAgentId = useMemo(() => {
+    if (!agentSlug) return null;
+    return resolveBrokerageAgentIdFromSlug(BROKERAGE_AGENTS_FIXTURE, agentSlug);
+  }, [agentSlug]);
 
-  const leakageAgent = useMemo(
-    () => BROKERAGE_ANCILLARY_FIXTURE.by_agent.find((a) => a.agent_id === agentId) ?? null,
-    [agentId]
-  );
+  const agentDetailView = useMemo(() => {
+    if (!resolvedAgentId) return null;
+    return buildAgentDetailView(resolvedAgentId);
+  }, [resolvedAgentId]);
 
-  const forensicsAgent = useMemo(
-    () => BROKERAGE_DEAL_FAILURE_FIXTURE.by_agent.find((a) => a.agent_id === agentId) ?? null,
-    [agentId]
-  );
+  // Handle canonical redirects for legacy IDs or stale slugs
+  useEffect(() => {
+    if (!agentSlug || !agentDetailView) return;
 
-  const retentionAgent = useMemo(
-    () => BROKERAGE_AGENT_RETENTION_FIXTURE.agents.find((a) => a.agent_id === agentId) ?? null,
-    [agentId]
-  );
+    const canonicalSlug = getCanonicalAgentSlug(agentDetailView.agent.name);
+    const needsRedirect = isLegacyAgentId(agentSlug) || agentSlug.toLowerCase() !== canonicalSlug;
 
-  const closingsTrend = useMemo(() => {
-    if (!agent) return [];
-    const monthly = Math.round(agent.closings / 12);
-    return [
-      "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
-    ].map((label, i) => ({
-      label,
-      value: monthly + Math.round(Math.sin(i * 0.7) * 3),
-    }));
-  }, [agent]);
+    if (needsRedirect) {
+      const canonicalPath = buildBrokerageAgentAnalyticsPath(
+        agentDetailView.agent.id,
+        agentDetailView.agent.name
+      );
+      navigateToPath(canonicalPath, { replace: true });
+    }
+  }, [agentSlug, agentDetailView, navigateToPath]);
 
-  const dangerColor = color("state.danger.DEFAULT");
-  const successColor = color("state.success.DEFAULT");
-  const chartColor1 = color("chart.1");
-
-  if (!agent) {
+  if (!agentDetailView) {
     return (
-      <Box className="flex flex-col items-center justify-center min-h-[50vh] gap-4 p-6">
+      <Box className="flex min-h-[50vh] flex-col items-center justify-center gap-4 p-6">
         <Title size="lg">Agent not found</Title>
-        <button
-          onClick={() => navigateToPath("/dashboard")}
-          className="rounded-lg px-4 py-2 text-sm font-medium bg-gray-900 text-white"
+        <Button
+          type="button"
+          variant="primary"
+          size="sm"
+          onPress={() => navigateToPath("/dashboard")}
         >
           Back to Dashboard
-        </button>
+        </Button>
       </Box>
     );
   }
 
+  const {
+    agent,
+    kpis,
+    productionSeries,
+    peerBenchmarks,
+    ancillaryAttach,
+    forensicsData,
+    retentionAgent,
+    engagementAgent,
+  } = agentDetailView;
+
   return (
     <Box className="flex flex-col gap-6 p-6">
-      <Box>
-        <button
-          onClick={() => navigateToPath("/dashboard")}
-          className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          ← Brokerage Analytics
-        </button>
+      <AgentDetailHeader agent={agent} />
+
+      <AgentDetailKpis kpis={kpis} />
+
+      <Box className="grid gap-6 md:grid-cols-2">
+        <AgentDetailProductionChart productionSeries={productionSeries} />
+        <AgentDetailPeerBenchmarks peerBenchmarks={peerBenchmarks} />
+        <AgentDetailAncillaryChart ancillaryData={ancillaryAttach} />
+        <AgentDetailForensics forensicsData={forensicsData} />
       </Box>
 
-      <Box>
-        <Title size="md" as="h2">{agent.name}</Title>
-        <BodyText size="sm" muted className="mt-1">
-          Per-agent analytics —{" "}
-          <span style={{
-            color: agent.status === "top" ? successColor : agent.status === "at_risk" ? dangerColor : chartColor1,
-            fontWeight: 500,
-          }}>
-            {agent.status === "top" ? "Top Performer" : agent.status === "at_risk" ? "At Risk" : "Healthy"}
-          </span>
-        </BodyText>
-      </Box>
-
-      <Box className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Total Closings" value={agent.closings} />
-        <KpiCard label="Active Clients" value={agent.activeClients} />
-        <KpiCard
-          label="Fall-Through Rate"
-          value={forensicsAgent ? `${forensicsAgent.fall_through_rate_percent}%` : "—"}
-          delta={forensicsAgent ? `${forensicsAgent.cancelled} cancelled of ${forensicsAgent.total_deals} deals` : undefined}
-        />
-        <KpiCard
-          label="Est. Revenue Leakage"
-          value={leakageAgent ? `$${(leakageAgent.total_leakage_dollars / 1000).toFixed(0)}K` : "—"}
-        />
-      </Box>
-
-      <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Title size="sm" as="h3" className="mb-4">Closings Trend (12 Months)</Title>
-        <AnalyticsLineChart data={closingsTrend} height={220} />
-      </Box>
-
-      {leakageAgent && (
-        <Box className="border-border bg-background-surface rounded-xl border p-5">
-          <Title size="sm" as="h3" className="mb-4">Ancillary Attach Rates</Title>
-          <AnalyticsBarChart
-            data={[
-              { label: "Title", value: leakageAgent.title_attach },
-              { label: "Lending", value: leakageAgent.lending_attach },
-            ]}
-            orientation="vertical"
-            color={chartColor1}
-            height={180}
-            unit="%"
-          />
-          <BodyText size="xs" muted className="mt-3">
-            Total estimated leakage:{" "}
-            <span style={{ color: dangerColor, fontWeight: 600 }}>
-              ${(leakageAgent.total_leakage_dollars / 1000).toFixed(0)}K
-            </span>
-          </BodyText>
-        </Box>
-      )}
-
-      {retentionAgent && (
-        <Box className="border-border bg-background-surface rounded-xl border p-5">
-          <Title size="sm" as="h3" className="mb-4">Retention Risk</Title>
-          <Box className="grid gap-4 sm:grid-cols-3">
-            <Box className="rounded-lg bg-gray-50 p-4">
-              <BodyText size="xs" muted>Risk Score</BodyText>
-              <Title size="md" style={{ color: retentionAgent.risk_score >= 70 ? dangerColor : retentionAgent.risk_score >= 40 ? color("state.warning.DEFAULT") : successColor }}>
-                {retentionAgent.risk_score}
-              </Title>
-            </Box>
-            <Box className="rounded-lg bg-gray-50 p-4">
-              <BodyText size="xs" muted>Current Split</BodyText>
-              <Title size="md">{retentionAgent.current_split_percent}%</Title>
-            </Box>
-            <Box className="rounded-lg bg-gray-50 p-4">
-              <BodyText size="xs" muted>Market Benchmark</BodyText>
-              <Title size="md">{retentionAgent.market_benchmark_split_percent}%</Title>
-            </Box>
-          </Box>
-          <BodyText size="xs" muted className="mt-3 italic">{retentionAgent.recommended_action}</BodyText>
-        </Box>
-      )}
+      <AgentDetailRetention retentionAgent={retentionAgent} engagementAgent={engagementAgent} />
     </Box>
   );
 }

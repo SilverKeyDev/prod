@@ -1,5 +1,5 @@
 ---
 alwaysApply: false
-paths: .claude/**, documentation/client/tooling/**, CLAUDE.md
+paths: .claude/**, documentation/reference/**, CLAUDE.md
 ---
 @../../.cursor/rules/shared/claude-optimization.mdc

@@ -106,7 +106,7 @@ export function AllAgendaEventsModal({
           menuInPortal
           menuPortalStack="modal"
           maxVisibleOptions={5}
-          className="w-full min-w-0 shrink-0 sm:max-w-[280px]"
+          className="w-full min-w-0 shrink-0 sm:max-w-72"
         />
       </Box>
     ),

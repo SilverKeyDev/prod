@@ -48,5 +48,5 @@ export function WebDashboard() {
 
 ## Reference
 
-- Full rationale/examples: `documentation/client/architecture/thin-app-architecture.md`.
+- Full rationale/examples: `documentation/architecture/thin-app-architecture.md`.
 - Layering/import constraints: `frontend-architecture.mdc`.

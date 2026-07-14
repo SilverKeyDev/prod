@@ -1,39 +1,29 @@
 /**
  * Hook returning targeted agent engagement data filtered by time period.
  * Powers SIL-279 — targeted agent engagement panel.
- * TODO SIL-272: Swap for real API call once SkySlope sync lands.
  */
-import { useMemo } from "react";
-import { BROKERAGE_TARGETED_ENGAGEMENT_FIXTURE } from "../fixtures/brokerageAnalyticsFixtures";
-import type { TimePeriod } from "./useBrokerageAnalytics";
+import { useQuery } from "@tanstack/react-query";
 
-function buildEngagementData(period: TimePeriod) {
-  const base = BROKERAGE_TARGETED_ENGAGEMENT_FIXTURE;
-  const scale = period === "week" ? 0.05 : period === "month" ? 1 : period === "year" ? 12 : 24;
+import { buildEngagementData } from "packages/features/brokerage/utils/analytics/engagementTransforms";
+import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 
-  const flagged_agents = base.flagged_agents.map(a => ({
-    ...a,
-    total_transactions: Math.round(a.total_transactions * scale),
-    estimated_leakage_dollars: Math.round(a.estimated_leakage_dollars * scale),
-  }));
+import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
-  const total_recoverable = flagged_agents.reduce((s, a) => s + a.estimated_leakage_dollars, 0);
-
-  return {
-    ...base,
-    summary: {
-      ...base.summary,
-      estimated_recoverable_dollars: total_recoverable,
-    },
-    flagged_agents,
-    by_office: base.by_office.map(o => ({
-      ...o,
-      estimated_leakage_dollars: Math.round(o.estimated_leakage_dollars * scale),
-    })),
-  };
-}
+export { buildEngagementData } from "packages/features/brokerage/utils/analytics/engagementTransforms";
 
 export function useTargetedAgentEngagement(period: TimePeriod = "all") {
-  const data = useMemo(() => buildEngagementData(period), [period]);
-  return { data, isLoading: false, error: null };
+  const brokerageOrgId = useBrokerageOrgId();
+
+  const query = useQuery({
+    queryKey: ["brokerage-analytics", "targeted-agent-engagement", brokerageOrgId, period],
+    queryFn: async () => buildEngagementData(period),
+    initialData: () => buildEngagementData(period),
+    staleTime: 60_000,
+  });
+
+  return {
+    data: query.data,
+    isLoading: query.isLoading && !query.data,
+    error: query.error ?? null,
+  };
 }

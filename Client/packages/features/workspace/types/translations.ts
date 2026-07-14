@@ -10,6 +10,8 @@ export const WORKSPACE_TRANSLATIONS: Record<string, string> = {
   "workspace.nav.analytics.brokerage": "Analytics",
 
   "workspace.nav.search": "Search",
+  "workspace.nav.inventory": "Inventory",
+  "workspace.nav.campaigns": "Campaigns",
   "workspace.nav.library.buyer": "Library",
   "workspace.nav.library.agent": "Library",
   "workspace.nav.library.brokerage": "Library",

@@ -29,6 +29,7 @@ const panelClass = `${SEARCH_HEADER_PANEL_CLASS_DEFAULT} overflow-x-hidden w-[mi
 export type SearchFilterBarProps = {
   formData: Partial<OnboardingData>;
   updateFormData: (field: keyof OnboardingData, value: unknown) => void;
+  updateFormFields: (patch: Partial<OnboardingData>) => void;
   onPopoverClose?: () => void;
   variant?: "desktop" | "mobile";
   selectedClientId?: string | null;
@@ -45,6 +46,7 @@ export type SearchFilterBarProps = {
 export default function SearchFilterBar({
   formData,
   updateFormData,
+  updateFormFields,
   onPopoverClose,
   variant = "desktop",
   selectedClientId,
@@ -72,10 +74,19 @@ export default function SearchFilterBar({
   const updateSearchFormData = useCallback(
     (field: keyof OnboardingData, value: unknown) => {
       updateFormData(field, value);
-      const nextForm = { ...formData, [field]: value };
-      syncOverridesFromForm(nextForm);
+      syncOverridesFromForm({ ...formData, [field]: value });
     },
     [formData, syncOverridesFromForm, updateFormData]
+  );
+
+  const updateSearchFormFields = useCallback(
+    (patch: Partial<OnboardingData>) => {
+      if (Object.keys(patch).length === 0) return;
+      const nextForm = { ...formData, ...patch };
+      syncOverridesFromForm(nextForm);
+      updateFormFields(patch);
+    },
+    [formData, syncOverridesFromForm, updateFormFields]
   );
 
   const patchSearchBuyerPreferenceExtensions = useCallback<PatchBuyerPreferenceExtensions>(
@@ -134,6 +145,7 @@ export default function SearchFilterBar({
           onClose={() => setSheetOpen(false)}
           formData={formData}
           updateFormData={updateSearchFormData}
+          updateFormFields={updateSearchFormFields}
           scriptsReady={scriptsReady}
           selectedClientId={selectedClientId}
           onClientChange={onClientChange}
@@ -190,6 +202,7 @@ export default function SearchFilterBar({
           <SearchPreferencesContent
             formData={formData}
             updateFormData={updateSearchFormData}
+            updateFormFields={updateSearchFormFields}
             patchBuyerPreferenceExtensions={patchSearchBuyerPreferenceExtensions}
             scriptsReady={scriptsReady}
             viewingClientId={selectedClientId ?? null}

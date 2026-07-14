@@ -17,10 +17,12 @@ export type {
   WorkspaceConversationKind,
   WorkspaceMessagingPersonaConfig,
   WorkspaceMessagingPersonaId,
+  WorkspaceMessagingSidebarLayout,
 } from "./types/workspace/personas";
 
 // Components
 export * from "./components/AgentMessaging";
+export * from "./components/BrokerageMessaging";
 export { default as AgreementEventCard } from "./components/cards/AgreementEventCard";
 export * from "./components/ClientMessaging";
 export { default as WorkspaceMessagingShell } from "./components/workspace/WorkspaceMessagingShell";

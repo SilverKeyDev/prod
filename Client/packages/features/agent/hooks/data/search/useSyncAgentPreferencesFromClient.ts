@@ -6,9 +6,9 @@ import { queryKeys } from "packages/config/query/keys";
 import { useLocalization } from "packages/contexts";
 import {
   formDataToPreferencesPayload,
-  type OnboardingData,
   userPreferencesToOnboardingData,
-} from "packages/features/profile";
+} from "packages/features/profile/api/preferencesPayload";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { useUserData } from "packages/hooks/data/user/useUserData";
 import { showErrorToast, showSuccessToast } from "packages/hooks/ui";
 import { log } from "packages/logger";

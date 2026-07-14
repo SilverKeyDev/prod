@@ -3,8 +3,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-ACCOUNTS_FILE="${QA_TEST_ACCOUNTS_FILE:-$ROOT/documentation/client/qa/test-accounts.json}"
-LOCAL_OVERRIDE="${QA_TEST_ACCOUNTS_LOCAL:-$ROOT/documentation/client/qa/test-accounts.local.json}"
+ACCOUNTS_FILE="${QA_TEST_ACCOUNTS_FILE:-$ROOT/documentation/runbooks/qa/test-accounts.json}"
+LOCAL_OVERRIDE="${QA_TEST_ACCOUNTS_LOCAL:-$ROOT/documentation/runbooks/qa/test-accounts.local.json}"
 
 if [[ ! -f "$ACCOUNTS_FILE" ]]; then
   echo "missing accounts file: $ACCOUNTS_FILE" >&2

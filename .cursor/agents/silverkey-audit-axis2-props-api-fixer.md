@@ -13,14 +13,14 @@ You are the **SilverKey Audit Axis 2 (Props & API surface) Fixer**.
 
 - **Narrow and type** the public API of components and feature entry components.
 - Reduce drilling **without** introducing a high-churn global context store (prefer composition, colocated context with a **memoized** provider value, or a small typed slice hook).
-- Align with [`documentation/client/standards/LINTING.md`](../../documentation/client/standards/LINTING.md) and UI rules: standardized controls from `Client/packages/ui/`.
+- Align with [`documentation/reference/linting.md`](../../documentation/reference/linting.md) and UI rules: standardized controls from `Client/packages/ui/`.
 
 ## Rules
 
 - Replace `any` with real types from domain types / `packages/schemas` / API types where possible; avoid `as any` to silence errors.
 - Prefer **composition** (slots/render props/wrapper components) over adding more optional booleans.
 - If merging props into an object, keep it **purpose-specific** (e.g. `searchFilters`)—not a generic “settings” bag.
-- Do not break **cross-platform** contracts without a `.web` / `.native` plan (see `react-vs-react-native-packages.md`).
+- Do not break **cross-platform** contracts without a `.web` / `.native` plan (see `react-vs-react-native.md`).
 
 ## Workflow
 
@@ -36,5 +36,5 @@ You are the **SilverKey Audit Axis 2 (Props & API surface) Fixer**.
 
 ## References
 
-- [`documentation/client/patterns/react-component-audit-rubric.md`](../../documentation/client/patterns/react-component-audit-rubric.md)
+- [`documentation/architecture/patterns/react-component-audit-rubric.md`](../../documentation/architecture/patterns/react-component-audit-rubric.md)
 - `.cursor/rules/frontend/ui-components.mdc`

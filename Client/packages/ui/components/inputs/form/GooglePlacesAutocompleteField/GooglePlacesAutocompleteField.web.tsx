@@ -8,6 +8,10 @@ import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import Button from "packages/ui/components/actions/button/Button";
 import { AddressInput } from "packages/ui/components/inputs/form/AddressInput/AddressInput";
 import {
+  DROPDOWN_SUGGESTION_LIST_CLASSES,
+  DROPDOWN_SUGGESTION_OPTION_CLASSES,
+} from "packages/ui/components/inputs/form/dropdown/dropdownStyles";
+import {
   placeFromAutocompleteSuggestion,
   resolveGooglePlaceToAddressData,
 } from "packages/ui/components/inputs/form/GooglePlacesAutocompleteField/resolveGooglePlaceToAddressData";
@@ -165,24 +169,20 @@ function GooglePlacesAutocompleteFieldWeb({
       ) : null}
 
       {suggestions.length > 0 ? (
-        <ul
-          id={listId}
-          role="listbox"
-          className="bg-background-surface z-dropdown relative mt-2 flex max-h-60 flex-col gap-1 overflow-hidden overflow-y-auto rounded-md shadow-sm"
-        >
+        <ul id={listId} role="listbox" className={DROPDOWN_SUGGESTION_LIST_CLASSES}>
           {suggestions.map((s, idx) => (
             <li
               key={idx}
               id={`${listId}-option-${idx}`}
               role="option"
               aria-selected={highlightedIndex === idx}
-              className="rounded border border-dotted border-neutral-300 first:border-t-0"
+              className={idx > 0 ? "border-t border-neutral-200" : undefined}
             >
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => void handleSelect(s)}
-                className={`w-full cursor-pointer !justify-start px-3 py-2 text-sm [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start ${
+                className={`${DROPDOWN_SUGGESTION_OPTION_CLASSES} ${
                   highlightedIndex === idx ? "bg-neutral-200" : "hover:bg-neutral-100"
                 }`}
               >

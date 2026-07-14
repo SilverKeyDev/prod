@@ -119,7 +119,7 @@ export function PropertyCommuteNativeMap({
                   key={`pd-isochrone-ind-${idx}`}
                   coordinates={coords}
                   strokeColor={color("brown.DEFAULT")}
-                  strokeWidth={1}
+                  strokeWidth={1.5}
                   fillColor="transparent"
                   zIndex={COMMUTE_NATIVE_POLYGON_INDIVIDUAL_Z}
                 />
@@ -129,7 +129,7 @@ export function PropertyCommuteNativeMap({
                   key="pd-isochrone-main"
                   coordinates={isochronePolygons.main}
                   strokeColor={color("olive.DEFAULT")}
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   fillColor={getIsochroneUnionFillNativeRgba()}
                   zIndex={COMMUTE_NATIVE_POLYGON_UNION_Z}
                 />

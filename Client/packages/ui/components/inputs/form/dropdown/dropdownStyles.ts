@@ -1,10 +1,18 @@
 import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 import type { getSharedInputTextStyles } from "packages/utils/core/ui/inputStyles";
 
-export const DROPDOWN_OPTION_ROW_HEIGHT_PX = 52;
+/** ~40px: py-2 (16) + text line — industry-standard menu row (Radix/shadcn/Tailwind UI). */
+export const DROPDOWN_OPTION_ROW_HEIGHT_PX = 40;
 export const DROPDOWN_SEARCH_HEADER_ESTIMATE_PX = 58;
 export const DROPDOWN_MENU_CHROME_PX = 12;
 export const MAX_VISIBLE_OPTIONS_CAP = 25;
+
+/**
+ * Full-bleed option row: no Button focus ring/offset — selection/hover fill the entire row edge-to-edge.
+ * Padding matches common select menus (12×8).
+ */
+export const DROPDOWN_OPTION_ROW_BASE_CLASSES =
+  "touch-friendly flex w-full items-center justify-between gap-2 rounded-none px-3 py-2 text-left outline-none transition-colors duration-150 hover:font-normal focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 active:bg-neutral-100";
 
 export function getDropdownVariantStyles(
   variant: "default" | "mobile" | "compact",
@@ -15,7 +23,7 @@ export function getDropdownVariantStyles(
     default:
       "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
     mobile:
-      "mobile-input border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly",
+      "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border touch-friendly",
     compact:
       "border border-border bg-background-surface hover:border-border focus-within:ring-neutral-400 focus-within:border-input-variant-focus-border",
   };
@@ -24,7 +32,7 @@ export function getDropdownVariantStyles(
     default:
       "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent",
     mobile:
-      "mobile-input border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent touch-friendly",
+      "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent touch-friendly",
     compact:
       "border-0 bg-background-surface hover:bg-neutral-100/80 focus-within:ring-accent-muted focus-within:border-transparent",
   };
@@ -39,7 +47,7 @@ export function getDropdownShellClasses(variant: "default" | "mobile" | "compact
   if (variant === "compact") {
     return "flex items-center cursor-pointer";
   }
-  return "flex items-center cursor-pointer touch-friendly mobile-input";
+  return "flex items-center cursor-pointer touch-friendly";
 }
 
 export function getDropdownTextStyles(
@@ -65,10 +73,11 @@ export function getDropdownSizeStyles(
     return compactSizeStyles[size];
   }
 
+  // Match Select / FieldShell: fixed height + horizontal padding only (no escalating py).
   const sizeStyles = {
-    sm: "h-auto min-h-9 px-3",
-    md: "h-auto min-h-12 px-4",
-    lg: "h-auto min-h-14 px-5",
+    sm: "h-9 min-h-9 px-3",
+    md: "h-12 min-h-12 px-4",
+    lg: "h-14 min-h-14 px-5",
   };
   return sizeStyles[size];
 }
@@ -100,7 +109,8 @@ export function buildDropdownButtonClasses(
   const disabledStyles = getDropdownDisabledStyles(disabled);
 
   return [
-    "w-full rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2",
+    // Focus ring lives on this shell (full trigger circumference), not on the inner Button.
+    "group w-full rounded-lg transition-all duration-200 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-0",
     shellClasses,
     "disabled:bg-disabled disabled:text-text-disabled disabled:cursor-not-allowed",
     textStyles,
@@ -113,6 +123,17 @@ export function buildDropdownButtonClasses(
     .filter(Boolean)
     .join(" ");
 }
+
+/** Suppress Button/IconButton focus chrome when nested inside the dropdown trigger shell. */
+export const DROPDOWN_TRIGGER_INNER_FOCUS_RESET =
+  "outline-none ring-0 ring-offset-0 focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0";
+
+/** Autocomplete / places suggestion list — no inter-item gap so highlight is edge-to-edge. */
+export const DROPDOWN_SUGGESTION_LIST_CLASSES =
+  "bg-background-surface z-dropdown relative mt-1 flex max-h-60 flex-col overflow-hidden overflow-y-auto rounded-md border border-neutral-200 shadow-sm";
+
+/** Suggestion option Button: full-bleed fill, no ring offset. */
+export const DROPDOWN_SUGGESTION_OPTION_CLASSES = `${DROPDOWN_OPTION_ROW_BASE_CLASSES} w-full cursor-pointer !justify-start text-sm [&>div>div]:!justify-start [&>div>div]:!text-left [&>div]:w-full [&>div]:!justify-start`;
 
 export function buildDropdownMenuClasses(
   dropdownClassName: string,

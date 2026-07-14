@@ -66,6 +66,14 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   fi
 done <"$SERVER_EXAMPLE"
 
+# DATABASE_URL / Redis are required at import time (app/config/database.py) but are not
+# always present in .env.example after secrets.sh regeneration (username/password/host fields).
+{
+  printf 'DATABASE_URL=%s\n' "$DATABASE_URL"
+  printf 'REDIS_URL=%s\n' "$REDIS_URL"
+  printf 'CELERY_URL=%s\n' "$REDIS_URL"
+} >>"$SERVER_ENV"
+
 cat >"$CLIENT_ENV" <<'EOF'
 EXPO_PUBLIC_GOOGLE_MAPS_ID=ci-smoke-map-01
 EXPO_PUBLIC_POSTHOG_KEY=phc_ci_smoke01

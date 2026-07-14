@@ -1,6 +1,6 @@
 ---
 name: responsive-ui-silverkey
-description: Apply SilverKey responsive UI standards (web Tailwind + React Native/NativeWind) across seven area passes; use when auditing mobile/tablet/desktop layout, overflow, safe area, keyboard, or touch targets. Follow documentation/client/standards/responsive-ui-standards.md and .cursor/rules/frontend/responsive-ui.mdc.
+description: Apply SilverKey responsive UI standards (web Tailwind + React Native/NativeWind) across seven area passes; use when auditing mobile/tablet/desktop layout, overflow, safe area, keyboard, or touch targets. Follow documentation/guides/responsive-ui-standards.md and .cursor/rules/frontend/responsive-ui.mdc.
 ---
 
 # Responsive UI — SilverKey (seven passes)
@@ -13,7 +13,7 @@ description: Apply SilverKey responsive UI standards (web Tailwind + React Nativ
 
 ## Required reading
 
-1. **[documentation/client/standards/responsive-ui-standards.md](../../../documentation/client/standards/responsive-ui-standards.md)** — breakpoints, WEB/RN/BOTH rules, SilverKey routing notes.
+1. **[documentation/guides/responsive-ui-standards.md](../../../documentation/guides/responsive-ui-standards.md)** — breakpoints, WEB/RN/BOTH rules, SilverKey routing notes.
 2. **`.cursor/rules/frontend/responsive-ui.mdc`** — short enforcement summary.
 
 ## Scope rules
@@ -76,7 +76,7 @@ description: Apply SilverKey responsive UI standards (web Tailwind + React Nativ
 
 1. List files to touch; read them before editing.
 2. Apply standards; keep diffs minimal.
-3. Run `pnpm lint` and `pnpm typecheck` in `Client/` after substantive edits (`documentation/client/standards/LINTING.md`).
+3. Run `pnpm lint` and `pnpm typecheck` in `Client/` after substantive edits (`documentation/reference/linting.md`).
 4. Output a **change summary**: file → what changed; flag **manual review** items (maps, real devices, sticky + overflow edge cases).
 
 ## Output format (optional table)

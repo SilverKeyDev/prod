@@ -15,7 +15,7 @@ description: After a major feature or architecture change, update canonical docu
 ## Steps
 
 1. Read **[documentation/internal/post-major-change-checklist.md](../../../documentation/internal/post-major-change-checklist.md)** and work through every section that applies.
-2. Put **long-form** explanation in **`documentation/client/`** or **`documentation/server/`**; add a row to that folder’s **`README.md`** if the doc is new.
+2. Put **long-form** explanation in **`documentation/`** or **`documentation/`**; add a row to that folder’s **`README.md`** if the doc is new.
 3. Update **`.cursor/rules/`** only where the constraint or pattern actually changed; prefer **scoped** rules (`alwaysApply: false` + `globs`). Do not increase always-on rule count without replacing an existing always-on rule — see **[`.cursor/README.md`](../../README.md)**.
 4. Add or update **`.cursor/skills/*/SKILL.md`** when there is a new **repeatable procedure** for this repo.
 5. Sync **`.claude/rules/`** stubs when `.mdc` rules are added or renamed; update **`.claude/settings.json`** when Claude file-exclusion or session defaults change; update **`.claude/README.md`** if the adapter process changes.

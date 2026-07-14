@@ -38,6 +38,8 @@ Onboarding and machine setup scripts belong in `scripts/setup/`.
 | `does-it-run-docker.sh` | Full prod-parity Docker smoke with CI Postgres overlay |
 | `generate-does-it-run-env.sh` | Stub server/client env for CI smoke (no AWS) |
 | `does-it-run-path-filter.sh` | Detect deploy/Docker path changes for optional docker smoke |
+| `check-dockerfile-web-backend-deps.sh` | Dockerfile.web backend COPY-order gate for `install-torch-cpu.sh` (always-on via backend-light) |
+| `test-check-dockerfile-web-backend-deps.sh` | Fixture tests for the Dockerfile.web backend COPY-order gate |
 | `does-it-run-health.sh` | Shared HTTP health assertions for backend-light |
 | `does-it-run-services-compose.yml` | Ephemeral Postgres + Redis for backend-light |
 | `run-pre-commit.sh` | Manual pre-commit runner (`make precommit`; advisory exit 0) |

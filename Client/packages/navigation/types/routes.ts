@@ -33,6 +33,10 @@ export const ROUTES = {
   FIND_AGENTS: "/find-agents",
   ANALYTICS: "/analytics",
   SEARCH: "/search",
+  /** Brokerage-only portfolio map (replaces Search for brokerage workspace). */
+  INVENTORY: "/inventory",
+  /** Brokerage-only A/B email campaigns. */
+  CAMPAIGNS: "/campaigns",
   PROPERTY_DETAILS: "/property-details",
   PROPERTY: "/property/:zpid/:slug?",
   AGENT_PROFILE: "/agent-profile/:name/:briefSlug",

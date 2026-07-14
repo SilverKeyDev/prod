@@ -50,13 +50,14 @@ def create_or_update_preferences(user: UserModel, data: CreatePreferencesRequest
 
         # Phase 2 SIL-183: check if material preference change invalidates BBA approval.
         # Only runs for buyers — agents updating their own prefs are unaffected.
-        from app.services.auth.user_role_helpers import user_is_agent
         from app.services.auth.user_role_helpers import user_is_buyer
+
         if user_is_buyer(user) and preferences:
             try:
                 from app.services.transactions.bba_preferences_fingerprint import (
                     invalidate_bba_approval_if_changed,
                 )
+
                 invalidate_bba_approval_if_changed(str(user.id), preferences)
             except Exception as e:
                 log.error("TRANSACTIONS.BBA_REVIEW", "bba_fingerprint_check_error", e)

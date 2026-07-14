@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 
 import type { ReactNode } from "react";
 
@@ -8,31 +8,21 @@ import { useAgentClients } from "packages/features/agent/hooks/data/clients/useA
 import { useAgentAutoSelectClient } from "packages/features/agent/hooks/ui/useAgentAutoSelectClient";
 import UnifiedMessagingHeader from "packages/features/messaging/components/ClientMessaging/UnifiedMessagingHeader";
 import MessagingModals from "packages/features/messaging/components/layout/chrome/MessagingModals";
-import UnifiedMessageInput from "packages/features/messaging/components/layout/input/UnifiedMessageInput";
-import { loadUnifiedMessagesListModule } from "packages/features/messaging/components/layout/messagesList/unifiedMessagesListDynamicImport";
-import { UnifiedMessagesListLoadingHistory } from "packages/features/messaging/components/layout/messagesList/UnifiedMessagesListEmptyStates";
-import { useAgentChatsSse } from "packages/features/messaging/hooks/data/useAgentChatsSse";
+import UnifiedMessagingShell from "packages/features/messaging/components/layout/UnifiedMessagingShell";
 import { useMessaging } from "packages/features/messaging/hooks/data/messaging/useMessaging";
 import { useAgentChats } from "packages/features/messaging/hooks/data/useAgentChats";
+import { useAgentChatsSse } from "packages/features/messaging/hooks/data/useAgentChatsSse";
 import { useMessagingComposerStoreIntegration } from "packages/features/messaging/hooks/store/useMessagingComposerStoreIntegration";
 import { useMessagingComposerStore } from "packages/features/messaging/store";
 import { useFirstRenderCommitTimer } from "packages/hooks/ui";
 import { useMediaQuery } from "packages/hooks/ui";
 import { useMessageScroll } from "packages/hooks/ui";
 import { useMessagingHandlers, useMessagingModals } from "packages/hooks/ui";
-import { Box } from "packages/ui/components/structure/primitives";
 import { screenUp } from "packages/ui/types/screens";
 import { logMessagingCheckpointSinceLatestShellMark } from "packages/utils/core/perf/messagingRoutePerf";
-import { traceLazyImport } from "packages/utils/core/perf/shellRouteLoadTiming";
 import { getDocument } from "packages/utils/core/platform";
 
-import { Region } from "@/components/ui";
 import AgentMessagingClientList from "@/features/agent/components/messaging/chrome/AgentMessagingClientList";
-import MessagingSidebarShell from "@/features/messaging/components/layout/chrome/MessagingSidebarShell";
-
-const UnifiedMessagesList = lazy(
-  traceLazyImport("MESSAGES", "lazy:UnifiedMessagesList(agent)", loadUnifiedMessagesListModule)
-);
 
 type AgentMessagingProps = {
   setMobileHeaderActions?: React.Dispatch<React.SetStateAction<ReactNode | null>>;
@@ -122,8 +112,6 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
     },
     [activeConversationId, setDraft]
   );
-
-  const isTyping = false;
 
   const {
     showSearchModal,
@@ -241,104 +229,81 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
   }, []);
 
   return (
-    <Box className="flex h-full w-full overflow-hidden">
-      <Box className="relative flex h-full w-full overflow-hidden">
-        <MessagingSidebarShell
+    <UnifiedMessagingShell
+      mode="agent"
+      isSidebarExpanded={isSidebarExpanded}
+      onOverlayDismiss={() => setIsSidebarExpanded(false)}
+      sidebarHeader={
+        <UnifiedMessagingHeader
+          mode="clients"
           isSidebarExpanded={isSidebarExpanded}
-          onOverlayDismiss={() => setIsSidebarExpanded(false)}
-          header={
-            <UnifiedMessagingHeader
-              mode="clients"
-              isSidebarExpanded={isSidebarExpanded}
-              setIsSidebarExpanded={setIsSidebarExpanded}
-              onSearchClick={() => setShowSearchModal(true)}
-              className="xl:rounded-tl-xl xl:rounded-tr-none"
-            />
-          }
-        >
-          <AgentMessagingClientList
-            clients={mergedClients}
-            conversations={messagingConversations}
-            isLoadingClients={isLoadingClients}
-            selectedClientId={selectedClientId}
-            onClientSelect={handleClientSelect}
-            setIsSidebarExpanded={setIsSidebarExpanded}
-            emptyMessage={config.sidebar.emptyMessage}
-          />
-        </MessagingSidebarShell>
-        <section className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out">
-          <Box className="flex min-h-0 flex-1 flex-col">
-            <Box className="hidden flex-shrink-0 md:block">
-              <UnifiedMessagingHeader
-                mode={getHeaderMode()}
-                isSidebarExpanded={isSidebarExpanded}
-                setIsSidebarExpanded={setIsSidebarExpanded}
-                chatTitle={
-                  selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle
-                }
-                selectedClientName={selectedClient?.name}
-                onSearchClick={() => setShowSearchModal(true)}
-                suppressListColumnActionDuplicates={suppressDetailHeaderDuplicateActions}
-              />
-            </Box>
-            <Box className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-              <Region
-                label="Message list"
-                className="scrollbar-hide min-h-0 min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-3"
-                onScroll={handleMessageListScroll}
-              >
-                <Suspense fallback={<UnifiedMessagesListLoadingHistory />}>
-                  <UnifiedMessagesList
-                    mode="agent"
-                    canSendMessage={canSendMessage}
-                    isLoadingHistory={isLoadingHistory}
-                    localMessages={localMessages}
-                    isTyping={isTyping}
-                    formatTime={formatTime}
-                    messagesEndRef={messagesEndRef}
-                    selectedClientName={selectedClient?.name}
-                    onRetryMessage={retryMessage}
-                    activeConversation={activeConversation ?? null}
-                    onAcceptEventRequest={handlers.handleAcceptEventRequest}
-                    onCancelEventRequest={handlers.handleCancelEventRequest}
-                    acceptedEventRequestIds={new Set()}
-                    acceptingEventRequestId={acceptingEventRequestId}
-                    isLoadingOlder={isLoadingOlder}
-                    hasMoreOlder={hasMoreOlder}
-                  />
-                </Suspense>
-              </Region>
-            </Box>
-            <UnifiedMessageInput
-              mode="agent"
-              message={message}
-              setMessage={setMessage}
-              isTyping={isTyping}
-              onSendMessage={handleSendMessage}
-              disabled={!selectedClientId}
-              selectedClientName={selectedClient?.name}
-              onAttachmentHome={() => setShowSelectHomeModal(true)}
-              onAttachmentDocument={() => setShowSelectDocumentModal(true)}
-              onAttachmentCalendar={() => setShowCalendarEventModal(true)}
-            />
-          </Box>
-        </section>
-      </Box>
-      <MessagingModals
-        mode="agent"
-        showSearchModal={showSearchModal}
-        setShowSearchModal={setShowSearchModal}
-        showSelectHomeModal={showSelectHomeModal}
-        setShowSelectHomeModal={setShowSelectHomeModal}
-        showSelectDocumentModal={showSelectDocumentModal}
-        setShowSelectDocumentModal={setShowSelectDocumentModal}
-        showCalendarEventModal={showCalendarEventModal}
-        setShowCalendarEventModal={setShowCalendarEventModal}
-        onSelectHomes={handlers.handleSelectHomes}
-        onSelectDocument={handlers.handleSelectDocument}
-        onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
-        sendCalendarEventMessage={sendMessageApi}
-      />
-    </Box>
+          setIsSidebarExpanded={setIsSidebarExpanded}
+          onSearchClick={() => setShowSearchModal(true)}
+          className="xl:rounded-tl-xl xl:rounded-tr-none"
+        />
+      }
+      sidebarContent={
+        <AgentMessagingClientList
+          clients={mergedClients}
+          conversations={messagingConversations}
+          isLoadingClients={isLoadingClients}
+          selectedClientId={selectedClientId}
+          onClientSelect={handleClientSelect}
+          setIsSidebarExpanded={setIsSidebarExpanded}
+          emptyMessage={config.sidebar.emptyMessage}
+        />
+      }
+      detailHeader={
+        <UnifiedMessagingHeader
+          mode={getHeaderMode()}
+          isSidebarExpanded={isSidebarExpanded}
+          setIsSidebarExpanded={setIsSidebarExpanded}
+          chatTitle={selectedClient ? `Chat with ${selectedClient.name}` : config.header.chatTitle}
+          selectedClientName={selectedClient?.name}
+          onSearchClick={() => setShowSearchModal(true)}
+          suppressListColumnActionDuplicates={suppressDetailHeaderDuplicateActions}
+        />
+      }
+      canSendMessage={canSendMessage}
+      isLoadingHistory={isLoadingHistory}
+      localMessages={localMessages}
+      formatTime={formatTime}
+      messagesEndRef={messagesEndRef}
+      onMessageListScroll={handleMessageListScroll}
+      selectedClientName={selectedClient?.name}
+      onRetryMessage={retryMessage}
+      activeConversation={activeConversation ?? null}
+      onAcceptEventRequest={handlers.handleAcceptEventRequest}
+      onCancelEventRequest={handlers.handleCancelEventRequest}
+      acceptingEventRequestId={acceptingEventRequestId}
+      hasMoreOlder={hasMoreOlder}
+      isLoadingOlder={isLoadingOlder}
+      message={message}
+      setMessage={setMessage}
+      onSendMessage={() => {
+        void handleSendMessage();
+      }}
+      inputDisabled={!selectedClientId}
+      onAttachmentHome={() => setShowSelectHomeModal(true)}
+      onAttachmentDocument={() => setShowSelectDocumentModal(true)}
+      onAttachmentCalendar={() => setShowCalendarEventModal(true)}
+      modals={
+        <MessagingModals
+          mode="agent"
+          showSearchModal={showSearchModal}
+          setShowSearchModal={setShowSearchModal}
+          showSelectHomeModal={showSelectHomeModal}
+          setShowSelectHomeModal={setShowSelectHomeModal}
+          showSelectDocumentModal={showSelectDocumentModal}
+          setShowSelectDocumentModal={setShowSelectDocumentModal}
+          showCalendarEventModal={showCalendarEventModal}
+          setShowCalendarEventModal={setShowCalendarEventModal}
+          onSelectHomes={handlers.handleSelectHomes}
+          onSelectDocument={handlers.handleSelectDocument}
+          onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
+          sendCalendarEventMessage={sendMessageApi}
+        />
+      }
+    />
   );
 }

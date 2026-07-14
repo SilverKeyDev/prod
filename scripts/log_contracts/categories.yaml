@@ -32,4 +32,8 @@ categories:
   - name: ROUTING
   - name: DOCUSIGN
   - name: DOCUMENTS
+  - name: TRANSACTIONS
+    subcategories:
+      - name: BBA_REVIEW
+  - name: EMAIL
   - name: PROFILE_PREFERENCES

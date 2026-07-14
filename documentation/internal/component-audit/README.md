@@ -1,6 +1,6 @@
 # Component audit artifacts (tracked)
 
-Evidence from [React + TS component audits](../../client/patterns/react-component-audit-rubric.md):
+Evidence from [React + TS component audits](../../architecture/patterns/react-component-audit-rubric.md):
 
 | Artifact | Purpose |
 | -------- | ------- |

@@ -6,12 +6,14 @@ Base path: /api/v1/brokerage/analytics/
 
 Shared query parameters (all routes):
     brokerage_org_id (required): UUID — validated by require_brokerage_scope decorator
-    date_from (optional): ISO 8601 date string, defaults to 30 days ago
-    date_to (optional): ISO 8601 date string, defaults to now
+    timeline (optional): week | month | year | 5years | all — preferred over raw dates (SIL-274)
+    date_from (optional): ISO 8601 date string, defaults to 30 days ago when timeline unset
+    date_to (optional): ISO 8601 date string, defaults to now when timeline unset
 
 Real data path: SkySlope sync (SIL-272) → aggregation service (SIL-202) → these routes.
-Until SkySlope sync lands, service functions return fixture-shaped stub data.
+Until SkySlope sync lands, service functions return fixture-shaped stub data scaled by timeline.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -27,6 +29,7 @@ from app.utils.common_patterns import (
 from ...services.brokerage.analytics import (
     BrokerageAnalyticsFilters,
     get_agent_analytics,
+    get_agent_retention_risk,
     get_ancillary_analytics,
     get_brokerage_analytics_overview,
     get_deal_failure_forensics,
@@ -37,7 +40,10 @@ from ...services.brokerage.analytics import (
     get_timing_analytics,
     get_type_analytics,
     get_volume_analytics,
-    get_agent_retention_risk,
+)
+from ...services.brokerage.analytics_timeline import (
+    VALID_TIMELINES,
+    timeline_to_date_range,
 )
 
 brokerage_analytics_bp = Blueprint(
@@ -51,6 +57,7 @@ brokerage_analytics_bp = Blueprint(
 # Shared helpers
 # ---------------------------------------------------------------------------
 
+
 def _parse_iso_date(value: str, field_name: str):
     """Parse ISO 8601 date string to UTC datetime.
     Returns (datetime, None) on success or (None, error_response) on failure.
@@ -59,10 +66,12 @@ def _parse_iso_date(value: str, field_name: str):
         return datetime.fromisoformat(value).replace(tzinfo=timezone.utc), None
     except ValueError:
         return None, (
-            jsonify({
-                "error": f"Invalid {field_name} format. Use ISO 8601 e.g. 2026-01-01",
-                "success": False,
-            }),
+            jsonify(
+                {
+                    "error": f"Invalid {field_name} format. Use ISO 8601 e.g. 2026-01-01",
+                    "success": False,
+                }
+            ),
             400,
         )
 
@@ -70,7 +79,29 @@ def _parse_iso_date(value: str, field_name: str):
 def _build_filters(brokerage_org_id: str):
     """Parse shared query params and build BrokerageAnalyticsFilters.
     Returns (filters, None) on success or (None, error_response) on failure.
+
+    Prefer `timeline` when provided (SIL-274). Otherwise accept raw date_from/date_to.
     """
+    timeline = req.args.get("timeline")
+    if timeline is not None:
+        if timeline not in VALID_TIMELINES:
+            return None, (
+                jsonify(
+                    {
+                        "error": ("Invalid timeline. Use one of: week, month, year, 5years, all"),
+                        "success": False,
+                    }
+                ),
+                400,
+            )
+        date_from, date_to = timeline_to_date_range(timeline)
+        return BrokerageAnalyticsFilters(
+            brokerage_org_id=brokerage_org_id,
+            date_from=date_from,
+            date_to=date_to,
+            timeline=timeline,
+        ), None
+
     date_from = None
     date_to = None
 
@@ -91,6 +122,7 @@ def _build_filters(brokerage_org_id: str):
         brokerage_org_id=brokerage_org_id,
         date_from=date_from,
         date_to=date_to,
+        timeline=None,
     ), None
 
 
@@ -107,6 +139,7 @@ def _handle_result(result: dict):
 # ---------------------------------------------------------------------------
 # Routes — one per graph type
 # ---------------------------------------------------------------------------
+
 
 @brokerage_analytics_bp.route("/overview", methods=["GET"])
 @handle_exceptions_with_logging
@@ -269,6 +302,7 @@ def get_analytics_deal_failure(user):
         return err
     return _handle_result(get_deal_failure_forensics(filters))
 
+
 @brokerage_analytics_bp.route("/targeted-agent-engagement", methods=["GET"])
 @handle_exceptions_with_logging
 @require_brokerage_scope
@@ -285,18 +319,161 @@ def get_analytics_targeted_agent_engagement(user):
         return err
     return _handle_result(get_targeted_agent_engagement(filters))
 
+
 @brokerage_analytics_bp.route("/agent-retention-risk", methods=["GET"])
 @handle_exceptions_with_logging
 @require_brokerage_scope
 def get_analytics_agent_retention_risk(user):
     """
     GET /api/v1/brokerage/analytics/agent-retention-risk
-    Cross-references agent split structures against production volume to flag
-    flight-risk agents (top producers underpaid vs market) and over-compensated
-    agents (high split, low volume). Ranked by risk score. SIL-278.
+    Returns blended ML flight-risk scores (five equal-weight factors: compensation,
+    production momentum, peer standing, engagement, ancillary attach). Ranked by
+    blended risk score. SIL-278.
     """
     brokerage_org_id = req.args.get("brokerage_org_id")
     filters, err = _build_filters(brokerage_org_id)
     if err:
         return err
     return _handle_result(get_agent_retention_risk(filters))
+
+
+@brokerage_analytics_bp.route("/campaigns", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def list_analytics_campaigns(user):
+    """GET /api/v1/brokerage/analytics/campaigns — list A/B email campaigns (SIL-306)."""
+    from app.services.brokerage.campaigns.service import list_campaigns
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    return _handle_result(list_campaigns(brokerage_org_id))
+
+
+@brokerage_analytics_bp.route("/campaigns", methods=["POST"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def create_analytics_campaign(user):
+    """POST /api/v1/brokerage/analytics/campaigns — create A/B campaign (SIL-306)."""
+    from app.services.brokerage.campaigns.service import create_campaign
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    body = req.get_json(silent=True) or {}
+    result = create_campaign(
+        brokerage_org_id,
+        name=str(body.get("name") or "").strip(),
+        goal_metric=str(body.get("goal_metric") or "title_attach"),
+        variants=list(body.get("variants") or []),
+        segment=str(body.get("segment") or "targeted_engagement"),
+        send=bool(body.get("send", True)),
+    )
+    if not result.get("success"):
+        error = result.get("error", "unknown_error")
+        if error == "validation_error":
+            return jsonify(
+                {
+                    "success": False,
+                    "error": error,
+                    "message": result.get("message", "Invalid request"),
+                }
+            ), 400
+        return jsonify({"success": False, "error": error}), 500
+    return jsonify(result), 201
+
+
+@brokerage_analytics_bp.route("/campaigns/<campaign_id>", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_analytics_campaign(user, campaign_id: str):
+    """GET /api/v1/brokerage/analytics/campaigns/{id} — campaign detail (SIL-306)."""
+    from app.services.brokerage.campaigns.service import get_campaign
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    result = get_campaign(brokerage_org_id, campaign_id)
+    if not result.get("success"):
+        if result.get("error") == "campaign_not_found":
+            return jsonify({"success": False, "error": "Campaign not found"}), 404
+        return jsonify({"success": False, "error": "Failed to load campaign"}), 500
+    return jsonify(result), 200
+
+
+@brokerage_analytics_bp.route("/campaigns/<campaign_id>/results", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_analytics_campaign_results(user, campaign_id: str):
+    """GET /api/v1/brokerage/analytics/campaigns/{id}/results — lift + $ (SIL-307)."""
+    from app.services.brokerage.campaigns.results import get_campaign_results
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    result = get_campaign_results(brokerage_org_id, campaign_id)
+    if not result.get("success"):
+        if result.get("error") == "campaign_not_found":
+            return jsonify({"success": False, "error": "Campaign not found"}), 404
+        return jsonify({"success": False, "error": "Failed to compute results"}), 500
+    return jsonify(result), 200
+
+
+@brokerage_analytics_bp.route("/campaigns/<campaign_id>/learning", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_analytics_campaign_learning(user, campaign_id: str):
+    """GET …/campaigns/{id}/learning — last SIL-309 learning-loop result."""
+    from app.services.brokerage.campaigns.learning_artifacts import load_learning_result
+    from app.services.brokerage.campaigns.service import get_campaign
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    detail = get_campaign(brokerage_org_id, campaign_id)
+    if not detail.get("success"):
+        if detail.get("error") == "campaign_not_found":
+            return jsonify({"success": False, "error": "Campaign not found"}), 404
+        return jsonify({"success": False, "error": "Failed to load campaign"}), 500
+    learning = load_learning_result(campaign_id)
+    if not learning:
+        return jsonify(
+            {
+                "success": True,
+                "brokerage_org_id": brokerage_org_id,
+                "campaign_id": campaign_id,
+                "learning": None,
+            }
+        ), 200
+    return jsonify(learning), 200
+
+
+@brokerage_analytics_bp.route("/campaigns/<campaign_id>/learning-loop", methods=["POST"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def post_analytics_campaign_learning_loop(user, campaign_id: str):
+    """
+    POST …/campaigns/{id}/learning-loop — SIL-309 one-click loop.
+
+    Scores winners, reviews what worked (Perplexity or cache), drafts next A/B
+    pair. Drafts require human approval (never auto-send).
+    Body optional: ``{"skip_perplexity": true}`` for offline demo.
+    """
+    from app.services.brokerage.campaigns.learning.learning_loop import (
+        run_campaign_learning_loop,
+    )
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    body = req.get_json(silent=True) or {}
+    result = run_campaign_learning_loop(
+        brokerage_org_id,
+        campaign_id,
+        skip_perplexity=bool(body.get("skip_perplexity")),
+    )
+    if not result.get("success"):
+        if result.get("error") == "campaign_not_found":
+            return jsonify({"success": False, "error": "Campaign not found"}), 404
+        return jsonify({"success": False, "error": result.get("error", "learning_failed")}), 500
+    return jsonify(result), 200
+
+
+@brokerage_analytics_bp.route("/inventory", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_brokerage_inventory(user):
+    """GET /api/v1/brokerage/analytics/inventory — portfolio map pins (SIL-310)."""
+    from app.services.brokerage.inventory import get_brokerage_inventory_listings
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    status = req.args.get("status")
+    return _handle_result(get_brokerage_inventory_listings(brokerage_org_id, status_filter=status))

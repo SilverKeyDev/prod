@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 
 import pytest
@@ -10,8 +11,15 @@ from sqlalchemy import select
 
 from app import db
 from app.models import User, UserAgentProfile, UserFinancials, UserSearchIntent
+from app.models.brokerage import BrokerageOrg, UserOrgMembership
 from app.services.aggregation.preferences_aggregation_write import write_preferences_from_payload
+from app.services.aggregation.read.preferences_aggregation import get_preferences_dict_optional
 from app.services.auth.user_role_helpers import remove_user_role
+from app.services.brokerage.constants import (
+    DEFAULT_BROKERAGE_ORG_ID,
+    DEFAULT_BROKERAGE_ORG_NAME,
+    DEFAULT_BROKERAGE_ORG_SLUG,
+)
 from tests.support.user_roles import seed_user_roles
 
 
@@ -26,6 +34,19 @@ def _create_user(*, roles: tuple[str, ...] = ()) -> User:
     db.session.flush()
     seed_user_roles(str(user.id), *roles)
     return user
+
+
+def _ensure_default_brokerage_org() -> BrokerageOrg:
+    org = db.session.scalar(select(BrokerageOrg).where(BrokerageOrg.id == DEFAULT_BROKERAGE_ORG_ID))
+    if org is None:
+        org = BrokerageOrg(
+            id=DEFAULT_BROKERAGE_ORG_ID,
+            name=DEFAULT_BROKERAGE_ORG_NAME,
+            slug=DEFAULT_BROKERAGE_ORG_SLUG,
+        )
+        db.session.add(org)
+        db.session.flush()
+    return org
 
 
 def test_write_preferences_sets_has_preferences_and_financials(app: Flask, db_session) -> None:
@@ -92,6 +113,73 @@ def test_write_preferences_creates_agent_profile_when_agent(app: Flask, db_sessi
         )
         assert profile is not None
         assert profile.agent_bio == "Experienced buyer agent"
+
+
+def test_write_preferences_normalizes_agent_testimonials(app: Flask, db_session) -> None:
+    with app.app_context():
+        user = _create_user(roles=("agent",))
+        user_id = str(user.id)
+        db.session.commit()
+
+        write_preferences_from_payload(
+            user_id,
+            {
+                "primary_onboarding_role": "agent",
+                "agent_testimonials": [
+                    {
+                        "author_name": "Jane B.",
+                        "quote": "Great agent!",
+                        "date": "2026-01-15",
+                        "rating": 5,
+                    },
+                    {"author_name": "  ", "quote": "missing author"},
+                    {"author_name": "Sam", "quote": "Solid.", "rating": 9},
+                    "not-a-dict",
+                ],
+            },
+            user=user,
+        )
+
+        profile = db.session.scalar(
+            select(UserAgentProfile).where(UserAgentProfile.user_id == user_id)
+        )
+        assert profile is not None
+        items = json.loads(profile.testimonials)
+        assert items == [
+            {
+                "author_name": "Jane B.",
+                "quote": "Great agent!",
+                "date": "2026-01-15",
+                "rating": 5,
+                "source": "custom",
+            },
+            # Out-of-range rating dropped; source defaults to custom.
+            {"author_name": "Sam", "quote": "Solid.", "source": "custom"},
+        ]
+
+
+def test_write_preferences_clears_agent_testimonials_when_no_valid_items(
+    app: Flask, db_session
+) -> None:
+    with app.app_context():
+        user = _create_user(roles=("agent",))
+        user_id = str(user.id)
+        db.session.commit()
+
+        write_preferences_from_payload(
+            user_id,
+            {
+                "primary_onboarding_role": "agent",
+                "agent_testimonials": [{"author_name": "", "quote": ""}],
+            },
+            user=user,
+        )
+
+        profile = db.session.scalar(
+            select(UserAgentProfile).where(UserAgentProfile.user_id == user_id)
+        )
+        assert profile is not None
+        assert profile.testimonials is None
 
 
 def test_write_preferences_removes_agent_profile_when_no_longer_agent(
@@ -226,3 +314,97 @@ def test_write_preferences_rejects_invalid_preferred_contact_method(app: Flask, 
         )
         assert comm is not None
         assert comm.preferred_contact_method is None
+
+
+def test_write_preferences_persists_and_reads_brokerage_fields(app: Flask, db_session) -> None:
+    with app.app_context():
+        _ensure_default_brokerage_org()
+        user = _create_user()
+        user_id = str(user.id)
+        db.session.commit()
+
+        result = write_preferences_from_payload(
+            user_id,
+            {
+                "primary_onboarding_role": "brokerage",
+                "brokerage_legal_business_name": "SilverKey Realty LLC",
+                "brokerage_primary_admin_name": "Jordan Smith",
+                "brokerage_primary_admin_email": "jordan@example.com",
+                "brokerage_primary_admin_phone": "+1 555 0100",
+                "brokerage_primary_admin_title": "Managing Broker",
+                "brokerage_license_number": "LIC-194",
+            },
+            user=user,
+        )
+
+        membership = db.session.scalar(
+            select(UserOrgMembership).where(
+                UserOrgMembership.user_id == user_id,
+                UserOrgMembership.brokerage_org_id == DEFAULT_BROKERAGE_ORG_ID,
+            )
+        )
+        assert membership is not None
+        assert membership.role == "admin"
+
+        org = db.session.scalar(
+            select(BrokerageOrg).where(BrokerageOrg.id == DEFAULT_BROKERAGE_ORG_ID)
+        )
+        assert org is not None
+        assert org.legal_business_name == "SilverKey Realty LLC"
+        assert org.primary_admin_name == "Jordan Smith"
+        assert org.primary_admin_email == "jordan@example.com"
+        assert org.primary_admin_phone == "+1 555 0100"
+        assert org.primary_admin_title == "Managing Broker"
+        assert org.license_number == "LIC-194"
+
+        assert result["brokerage_legal_business_name"] == "SilverKey Realty LLC"
+        assert result["brokerage_primary_admin_name"] == "Jordan Smith"
+        assert result["brokerage_primary_admin_email"] == "jordan@example.com"
+        assert result["brokerage_primary_admin_phone"] == "+1 555 0100"
+        assert result["brokerage_primary_admin_title"] == "Managing Broker"
+        assert result["brokerage_license_number"] == "LIC-194"
+
+        prefs = get_preferences_dict_optional(user_id)
+        assert prefs is not None
+        assert prefs["brokerage_legal_business_name"] == "SilverKey Realty LLC"
+        assert prefs["brokerage_primary_admin_name"] == "Jordan Smith"
+        assert prefs["brokerage_primary_admin_email"] == "jordan@example.com"
+        assert prefs["brokerage_primary_admin_phone"] == "+1 555 0100"
+        assert prefs["brokerage_primary_admin_title"] == "Managing Broker"
+        assert prefs["brokerage_license_number"] == "LIC-194"
+
+
+def test_write_preferences_preserves_existing_brokerage_membership_role(
+    app: Flask, db_session
+) -> None:
+    with app.app_context():
+        _ensure_default_brokerage_org()
+        user = _create_user()
+        user_id = str(user.id)
+
+        membership = UserOrgMembership(
+            user_id=user_id,
+            brokerage_org_id=DEFAULT_BROKERAGE_ORG_ID,
+            role="agent",
+        )
+        db.session.add(membership)
+        db.session.commit()
+
+        write_preferences_from_payload(
+            user_id,
+            {
+                "brokerage_legal_business_name": "  Updated Realty  ",
+                "brokerage_primary_admin_phone": "   ",
+            },
+            user=user,
+        )
+
+        db.session.refresh(membership)
+        assert membership.role == "agent"
+
+        org = db.session.scalar(
+            select(BrokerageOrg).where(BrokerageOrg.id == DEFAULT_BROKERAGE_ORG_ID)
+        )
+        assert org is not None
+        assert org.legal_business_name == "Updated Realty"
+        assert org.primary_admin_phone is None

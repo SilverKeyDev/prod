@@ -3,7 +3,7 @@ description: Cursor usage guidance for context hygiene, MCP scope, and low-noise
 globs:
   - ".cursor/**"
   - "setup.md"
-  - "documentation/client/tooling/**"
+  - "documentation/reference/**"
 alwaysApply: false
 ---
 
@@ -32,6 +32,6 @@ Keep this as a short operations guide. Put long tutorials in `documentation/`.
 ## References
 
 - MCP setup/profiles: `setup.md`
-- Optimization guide: `documentation/client/tooling/cursor-configuration-optimization.md`
+- Optimization guide: `documentation/guides/tooling/cursor-configuration-optimization.md`
 - Rule and skill map: `.cursor/README.md`
-- Long-form memory guidance: `documentation/client/tooling/cursor-agent-memory.md`
+- Long-form memory guidance: `documentation/guides/tooling/cursor-agent-memory.md`
