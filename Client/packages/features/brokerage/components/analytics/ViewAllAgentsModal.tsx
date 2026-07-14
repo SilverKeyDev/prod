@@ -1,14 +1,26 @@
 /**
- * ViewAllAgentsModal — SIL-301
- * Modal listing all fixture agents with SIL-300 row actions.
+ * ViewAllAgentsModal — searchable agent leaderboard (production + leakage metrics).
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { agentStatusColor } from "packages/features/brokerage/utils/analytics/rateColor";
-import { BROKERAGE_AGENTS_FIXTURE } from "packages/features/brokerage/utils/brokerageAnalyticsFixtures";
+import type { BrokerageAnalyticsAgent } from "packages/features/brokerage/types/analytics";
+import {
+  type AgentLeaderboardSort,
+  type AncillaryAgentMetrics,
+  buildAgentLeaderboardRows,
+} from "packages/features/brokerage/utils/analytics/agentLeaderboardRows";
+import {
+  agentStatusColor,
+  momentumColor,
+  rateColorHighGood,
+} from "packages/features/brokerage/utils/analytics/rateColor";
+import { formatCompactCurrency } from "packages/features/brokerage/utils/analyticsFormat";
+import { formatAncillaryDollars } from "packages/features/brokerage/utils/ancillaryServiceLabels";
+import { useNavigation } from "packages/navigation";
 import { BaseModal, Button, Input } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
+import { buildBrokerageAgentAnalyticsPath } from "packages/utils/growth/agent";
 
 import { AgentRowActions } from "./AgentRowActions";
 import { AnalyticsDataTable } from "./AnalyticsDataTable";
@@ -16,24 +28,50 @@ import { AnalyticsDataTable } from "./AnalyticsDataTable";
 interface Props {
   open: boolean;
   onClose: () => void;
+  agents: readonly BrokerageAnalyticsAgent[];
+  ancillaryByAgent?: readonly AncillaryAgentMetrics[];
+  initialSort?: AgentLeaderboardSort;
 }
 
-export function ViewAllAgentsModal({ open, onClose }: Props) {
-  const [search, setSearch] = useState("");
+function formatAttach(value: number | null): string {
+  return value == null ? "—" : `${value.toFixed(1)}%`;
+}
 
-  const filtered = [...BROKERAGE_AGENTS_FIXTURE].filter((a) =>
-    a.name.toLowerCase().includes(search.toLowerCase())
+function formatOpportunity(value: number | null): string {
+  return value == null ? "—" : formatAncillaryDollars(value);
+}
+
+export function ViewAllAgentsModal({
+  open,
+  onClose,
+  agents,
+  ancillaryByAgent = [],
+  initialSort = "closings",
+}: Props) {
+  const [search, setSearch] = useState("");
+  const { navigateToPath } = useNavigation();
+
+  const rows = useMemo(
+    () => buildAgentLeaderboardRows(agents, ancillaryByAgent, initialSort),
+    [agents, ancillaryByAgent, initialSort]
   );
+
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    if (!q) return rows;
+    return rows.filter((a) => a.name.toLowerCase().includes(q));
+  }, [rows, search]);
 
   return (
     <BaseModal
       isOpen={open}
       onClose={onClose}
-      title="All Agents"
+      title="Agent Leaderboard"
       size="lg"
       footerContent={
         <BodyText size="xs" muted>
-          {filtered.length} agent{filtered.length !== 1 ? "s" : ""} shown
+          {filtered.length} of {agents.length} agent
+          {agents.length !== 1 ? "s" : ""} shown
         </BodyText>
       }
     >
@@ -50,12 +88,20 @@ export function ViewAllAgentsModal({ open, onClose }: Props) {
         rows={filtered}
         rowKey={(agent) => agent.id}
         emptyMessage="No agents match your search."
+        onRowPress={(agent) =>
+          navigateToPath(buildBrokerageAgentAnalyticsPath(agent.id, agent.name))
+        }
         columns={[
           {
             key: "name",
             header: "Agent",
             cellClassName: "py-2 pr-4 font-medium",
             render: (agent) => agent.name,
+          },
+          {
+            key: "office",
+            header: "Office",
+            render: (agent) => agent.office,
           },
           {
             key: "closings",
@@ -65,13 +111,45 @@ export function ViewAllAgentsModal({ open, onClose }: Props) {
             render: (agent) => agent.closings,
           },
           {
+            key: "volume",
+            header: "Volume",
+            headerClassName: "py-2 pr-4 text-right font-medium",
+            cellClassName: "py-2 pr-4 text-right",
+            render: (agent) => formatCompactCurrency(agent.volumeDollars),
+          },
+          {
+            key: "gci",
+            header: "GCI",
+            headerClassName: "py-2 pr-4 text-right font-medium",
+            cellClassName: "py-2 pr-4 text-right",
+            render: (agent) => formatCompactCurrency(agent.gci),
+          },
+          {
+            key: "momentum",
+            header: "90d momentum",
+            render: (agent) => (
+              <BodyText
+                as="span"
+                style={{
+                  color: momentumColor(agent.momentum90dPercent),
+                  fontWeight: 500,
+                }}
+              >
+                {`${agent.momentum90dPercent >= 0 ? "+" : ""}${agent.momentum90dPercent}%`}
+              </BodyText>
+            ),
+          },
+          {
             key: "status",
             header: "Status",
             render: (agent) => (
               <BodyText
                 as="span"
                 size="xs"
-                style={{ color: agentStatusColor(agent.status), fontWeight: 500 }}
+                style={{
+                  color: agentStatusColor(agent.status),
+                  fontWeight: 500,
+                }}
               >
                 {agent.status === "top"
                   ? "Top Performer"
@@ -82,8 +160,47 @@ export function ViewAllAgentsModal({ open, onClose }: Props) {
             ),
           },
           {
+            key: "title",
+            header: "Title Attach",
+            render: (agent) => (
+              <BodyText
+                as="span"
+                style={
+                  agent.titleAttach == null
+                    ? undefined
+                    : { color: rateColorHighGood(agent.titleAttach, 60, 40) }
+                }
+              >
+                {formatAttach(agent.titleAttach)}
+              </BodyText>
+            ),
+          },
+          {
+            key: "lending",
+            header: "Lending Attach",
+            render: (agent) => (
+              <BodyText
+                as="span"
+                style={
+                  agent.lendingAttach == null
+                    ? undefined
+                    : { color: rateColorHighGood(agent.lendingAttach, 60, 40) }
+                }
+              >
+                {formatAttach(agent.lendingAttach)}
+              </BodyText>
+            ),
+          },
+          {
+            key: "opportunity",
+            header: "Total opportunity",
+            cellClassName: "py-2 pr-4 font-medium",
+            render: (agent) => formatOpportunity(agent.totalOpportunityDollars),
+          },
+          {
             key: "actions",
             header: "Actions",
+            stopRowPress: true,
             render: (agent) => <AgentRowActions agentId={agent.id} agentName={agent.name} />,
           },
         ]}

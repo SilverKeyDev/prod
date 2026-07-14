@@ -1,7 +1,10 @@
 /**
  * Fixture transaction-activity distributions for Deal Forensics.
  * Week = day×hour heatmap; month = day-of-month bars; year = month-of-year bars.
+ * Year bars use the shared Kaggle closings trend.
  */
+import { FULL_YEAR_CLOSING_TREND } from "packages/features/brokerage/utils/analytics/closingsTrend";
+
 export type ActivityHeatMapCell = {
   x: number;
   y: number;
@@ -119,18 +122,8 @@ export const MONTH_DISTRIBUTION: ActivityBarPoint[] = Array.from({ length: 31 },
   return { label: String(day), value };
 });
 
-/** Month-of-year transaction counts. */
-export const YEAR_DISTRIBUTION: ActivityBarPoint[] = [
-  { label: "Jan", value: 1884 },
-  { label: "Feb", value: 1755 },
-  { label: "Mar", value: 1921 },
-  { label: "Apr", value: 1880 },
-  { label: "May", value: 1928 },
-  { label: "Jun", value: 1898 },
-  { label: "Jul", value: 1935 },
-  { label: "Aug", value: 1873 },
-  { label: "Sep", value: 1890 },
-  { label: "Oct", value: 1913 },
-  { label: "Nov", value: 1845 },
-  { label: "Dec", value: 1854 },
-];
+/** Month-of-year transaction counts (shared Kaggle closings trend). */
+export const YEAR_DISTRIBUTION: ActivityBarPoint[] = FULL_YEAR_CLOSING_TREND.map((point) => ({
+  label: point.label,
+  value: point.value,
+}));

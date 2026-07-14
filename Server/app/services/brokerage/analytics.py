@@ -755,7 +755,7 @@ def get_targeted_agent_engagement(filters: BrokerageAnalyticsFilters) -> dict:
 
 def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
     """
-    Cross-reference agent split structures against production volume.
+    Blended ML flight-risk scores (five equal-weight factors).
     Powers GET /api/v1/brokerage/analytics/agent-retention-risk (SIL-278)
     """
     scale = _scale(filters)
@@ -769,10 +769,20 @@ def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
             "current_split_percent": 70,
             "market_benchmark_split_percent": 80,
             "split_gap": -10,
+            "factor_scores": {
+                "compensation": 92,
+                "production_momentum": 84,
+                "peer_standing": 88,
+                "engagement": 80,
+                "ancillary_attach": 76,
+            },
             "risk_score": 84,
             "risk_tier": "flight_risk",
             "peer_production_percentile": 92,
-            "recommended_action": "Top producer underpaid by 10pts vs market — offer retention split review immediately",
+            "recommended_action": (
+                "High blended risk: compensation and peer standing leading; "
+                "offer retention split review immediately"
+            ),
         },
         {
             "agent_id": "stub-agent-3",
@@ -783,10 +793,20 @@ def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
             "current_split_percent": 70,
             "market_benchmark_split_percent": 75,
             "split_gap": -5,
+            "factor_scores": {
+                "compensation": 78,
+                "production_momentum": 70,
+                "peer_standing": 74,
+                "engagement": 68,
+                "ancillary_attach": 65,
+            },
             "risk_score": 71,
             "risk_tier": "flight_risk",
             "peer_production_percentile": 85,
-            "recommended_action": "High producer below market benchmark — proactive check-in recommended",
+            "recommended_action": (
+                "High blended risk across compensation and peer standing; "
+                "proactive check-in recommended"
+            ),
         },
         {
             "agent_id": "stub-agent-5",
@@ -797,10 +817,20 @@ def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
             "current_split_percent": 73,
             "market_benchmark_split_percent": 75,
             "split_gap": -2,
+            "factor_scores": {
+                "compensation": 56,
+                "production_momentum": 50,
+                "peer_standing": 54,
+                "engagement": 48,
+                "ancillary_attach": 52,
+            },
             "risk_score": 52,
             "risk_tier": "watch",
             "peer_production_percentile": 78,
-            "recommended_action": "Slightly below market — monitor and revisit at next review cycle",
+            "recommended_action": (
+                "Moderate blended risk: monitor engagement and momentum; "
+                "revisit at next review cycle"
+            ),
         },
         {
             "agent_id": "stub-agent-6",
@@ -811,10 +841,19 @@ def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
             "current_split_percent": 72,
             "market_benchmark_split_percent": 70,
             "split_gap": 2,
+            "factor_scores": {
+                "compensation": 38,
+                "production_momentum": 44,
+                "peer_standing": 40,
+                "engagement": 42,
+                "ancillary_attach": 41,
+            },
             "risk_score": 41,
             "risk_tier": "watch",
             "peer_production_percentile": 55,
-            "recommended_action": "Slightly above market but volume growing — maintain current terms",
+            "recommended_action": (
+                "Moderate blended risk with improving momentum; maintain current terms"
+            ),
         },
         {
             "agent_id": "stub-agent-7",
@@ -825,10 +864,17 @@ def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
             "current_split_percent": 75,
             "market_benchmark_split_percent": 75,
             "split_gap": 0,
+            "factor_scores": {
+                "compensation": 20,
+                "production_momentum": 24,
+                "peer_standing": 22,
+                "engagement": 20,
+                "ancillary_attach": 24,
+            },
             "risk_score": 22,
             "risk_tier": "stable",
             "peer_production_percentile": 70,
-            "recommended_action": "At market rate for production tier — no action needed",
+            "recommended_action": "Low blended risk across all factors; no action needed",
         },
         {
             "agent_id": "stub-agent-8",
@@ -839,10 +885,17 @@ def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
             "current_split_percent": 74,
             "market_benchmark_split_percent": 70,
             "split_gap": 4,
+            "factor_scores": {
+                "compensation": 16,
+                "production_momentum": 20,
+                "peer_standing": 18,
+                "engagement": 16,
+                "ancillary_attach": 20,
+            },
             "risk_score": 18,
             "risk_tier": "stable",
             "peer_production_percentile": 62,
-            "recommended_action": "Slightly above market but stable producer — no immediate action",
+            "recommended_action": "Low blended risk; stable producer, no immediate action",
         },
         {
             "agent_id": "stub-agent-2",
@@ -853,10 +906,20 @@ def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
             "current_split_percent": 80,
             "market_benchmark_split_percent": 70,
             "split_gap": 10,
+            "factor_scores": {
+                "compensation": 88,
+                "production_momentum": 62,
+                "peer_standing": 58,
+                "engagement": 70,
+                "ancillary_attach": 92,
+            },
             "risk_score": 74,
             "risk_tier": "over_comp",
             "peer_production_percentile": 48,
-            "recommended_action": "10pts above market for volume — review split at next contract renewal",
+            "recommended_action": (
+                "Over-comp pattern: high compensation factor with weaker production; "
+                "review split at next contract renewal"
+            ),
         },
         {
             "agent_id": "stub-agent-4",
@@ -867,10 +930,20 @@ def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
             "current_split_percent": 78,
             "market_benchmark_split_percent": 70,
             "split_gap": 8,
+            "factor_scores": {
+                "compensation": 90,
+                "production_momentum": 70,
+                "peer_standing": 68,
+                "engagement": 82,
+                "ancillary_attach": 95,
+            },
             "risk_score": 81,
             "risk_tier": "over_comp",
             "peer_production_percentile": 22,
-            "recommended_action": "Low volume, high split — cost efficiency concern, consider restructure",
+            "recommended_action": (
+                "Over-comp pattern: compensation and attach elevated vs low peer standing; "
+                "consider restructure"
+            ),
         },
     ]
     at_risk_gci = sum(
@@ -879,9 +952,11 @@ def get_agent_retention_risk(filters: BrokerageAnalyticsFilters) -> dict:
     return {
         **_stub_meta(filters),
         "methodology": (
-            "Flight risk scored by comparing agent split % to market benchmark for "
-            "their production tier. High producers below market rate score highest. "
-            "Over-comp flagged where split exceeds market rate and volume is low."
+            "Flight risk is a blended ML score (0-100) from five equal-weight factors: "
+            "comp competitiveness, production momentum, peer standing, engagement, and "
+            "ancillary attach. Split vs market informs the compensation factor only. "
+            "Over-comp is flagged when compensation risk is high while production and "
+            "peer standing are low."
         ),
         "summary": {
             "total_agents_scored": 8,

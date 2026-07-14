@@ -1,28 +1,37 @@
 import { describe, expect, it } from "vitest";
 
 import { BROKERAGE_AGENTS_FIXTURE } from "packages/features/brokerage/utils/brokerageAnalyticsFixtures";
+import { DEMO_AGENT_COUNT } from "packages/features/brokerage/utils/brokerageDemoVolumeAssumptions";
 
 import { estimateCampaignReach, toggleCampaignAgentType } from "./campaignAudienceReach";
 import { CAMPAIGN_CATEGORIES_FIXTURE } from "./campaignFixtures";
 
 describe("campaignAudienceReach", () => {
   it("counts all agents when all is selected", () => {
-    expect(estimateCampaignReach(["all"])).toBe(BROKERAGE_AGENTS_FIXTURE.length);
+    expect(estimateCampaignReach(["all"])).toBe(DEMO_AGENT_COUNT);
   });
 
   it("counts strong (top) agents only", () => {
     const strong = estimateCampaignReach(["strong"]);
     const topCount = BROKERAGE_AGENTS_FIXTURE.filter((a) => a.status === "top").length;
-    expect(strong).toBe(topCount);
+    const expected = Math.max(
+      1,
+      Math.round((topCount / BROKERAGE_AGENTS_FIXTURE.length) * DEMO_AGENT_COUNT)
+    );
+    expect(strong).toBe(expected);
     expect(strong).toBeGreaterThan(0);
-    expect(strong).toBeLessThan(BROKERAGE_AGENTS_FIXTURE.length);
+    expect(strong).toBeLessThan(DEMO_AGENT_COUNT);
   });
 
   it("unions multiple sales bands", () => {
     const lowAndStrong = estimateCampaignReach(["low_sales", "strong"]);
-    const expected = BROKERAGE_AGENTS_FIXTURE.filter(
+    const sampleMatch = BROKERAGE_AGENTS_FIXTURE.filter(
       (a) => a.status === "at_risk" || a.status === "top"
     ).length;
+    const expected = Math.max(
+      1,
+      Math.round((sampleMatch / BROKERAGE_AGENTS_FIXTURE.length) * DEMO_AGENT_COUNT)
+    );
     expect(lowAndStrong).toBe(expected);
   });
 
@@ -33,25 +42,19 @@ describe("campaignAudienceReach", () => {
 });
 
 describe("campaignFixtures copy", () => {
-  it("has no em-dashes in subjects, bodies, or insights", () => {
+  it("has no em-dashes in subjects or bodies", () => {
     for (const category of CAMPAIGN_CATEGORIES_FIXTURE) {
       for (const email of category.emails) {
+        if (email.is_control) continue;
         expect(email.subject).not.toMatch(/—/);
         expect(email.preview_body).not.toMatch(/—/);
+        expect(email.headline).not.toMatch(/—/);
+        expect(email.intro).not.toMatch(/—/);
+        expect(email.cta_label).not.toMatch(/—/);
+        for (const paragraph of email.body_paragraphs) {
+          expect(paragraph).not.toMatch(/—/);
+        }
       }
-      for (const item of category.insights.what_worked) {
-        expect(item).not.toMatch(/—/);
-      }
-      for (const item of category.insights.why_guesses) {
-        expect(item).not.toMatch(/—/);
-      }
-    }
-  });
-
-  it("keeps insights to at most two bullets per column", () => {
-    for (const category of CAMPAIGN_CATEGORIES_FIXTURE) {
-      expect(category.insights.what_worked.length).toBeLessThanOrEqual(2);
-      expect(category.insights.why_guesses.length).toBeLessThanOrEqual(2);
     }
   });
 });

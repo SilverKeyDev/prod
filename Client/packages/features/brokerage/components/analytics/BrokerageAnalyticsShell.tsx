@@ -1,10 +1,17 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@ui/icons";
 
-import { Button } from "packages/ui";
+import { useBrokerageAnalytics } from "packages/features/brokerage/hooks/useBrokerageAnalytics";
+import {
+  DEMO_BROKERAGE_PERSONA_NOTE,
+  VOLUME_ASSUMPTION_FOOTNOTE,
+} from "packages/features/brokerage/utils/brokerageDemoVolumeAssumptions";
+import { useNavigation } from "packages/navigation";
+import { Button, Dropdown } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import { UnderlineTabs } from "packages/ui/components/structure/tabs/UnderlineTabs";
+import BodyText from "packages/ui/components/structure/text/BodyText";
 
 import {
   type AnalyticsTab,
@@ -18,9 +25,62 @@ import { AnalyticsLeakageTab } from "./tabs/AnalyticsLeakageTab";
 import { AnalyticsMarketTab } from "./tabs/AnalyticsMarketTab";
 import { AnalyticsOverviewTab } from "./tabs/AnalyticsOverviewTab";
 
+const TAB_IDS = new Set<string>(DASHBOARD_TABS.map((tab) => tab.id));
+const ALL_OFFICES = "";
+
+function parseAnalyticsTab(value: string | null): AnalyticsTab | null {
+  if (value && TAB_IDS.has(value)) return value as AnalyticsTab;
+  return null;
+}
+
 export function BrokerageAnalyticsShell() {
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>("all");
-  const [activeTab, setActiveTab] = useState<AnalyticsTab>("overview");
+  const { getSearchParams, setSearchParams } = useNavigation();
+  const tabParam = getSearchParams().get("tab");
+
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("year");
+  const [officeId, setOfficeId] = useState<string>(ALL_OFFICES);
+  const [activeTab, setActiveTab] = useState<AnalyticsTab>(
+    () => parseAnalyticsTab(tabParam) ?? "overview"
+  );
+
+  const { data } = useBrokerageAnalytics(timePeriod);
+  const officeOptions = useMemo(
+    () => [
+      { value: ALL_OFFICES, label: "All offices" },
+      ...data.production.officeRollups.map((o) => ({
+        value: o.office,
+        label: o.office,
+      })),
+    ],
+    [data.production.officeRollups]
+  );
+
+  useEffect(() => {
+    const fromUrl = parseAnalyticsTab(tabParam);
+    if (fromUrl) {
+      setActiveTab(fromUrl);
+    }
+  }, [tabParam]);
+
+  const handleTabChange = useCallback(
+    (id: string) => {
+      const next = parseAnalyticsTab(id) ?? "overview";
+      setActiveTab(next);
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          if (next === "overview") {
+            params.delete("tab");
+          } else {
+            params.set("tab", next);
+          }
+          return params;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
 
   const tabItems = useMemo(
     () =>
@@ -32,6 +92,8 @@ export function BrokerageAnalyticsShell() {
     []
   );
 
+  const scopedOfficeId = officeId || null;
+
   return (
     <Box className="flex flex-col gap-6 p-6">
       <Box className="border-border flex flex-wrap items-center justify-between gap-3 border-b">
@@ -39,13 +101,27 @@ export function BrokerageAnalyticsShell() {
           <UnderlineTabs
             items={tabItems}
             activeId={activeTab}
-            onChange={(id) => setActiveTab(id as AnalyticsTab)}
+            onChange={handleTabChange}
             size="sm"
             scrollable
           />
         </Box>
 
-        <Box className="flex shrink-0 items-center gap-2 pb-2">
+        <Box className="flex shrink-0 flex-wrap items-center gap-2 pb-2">
+          <Box className="w-[14rem] shrink-0" data-testid="analytics-office-dropdown">
+            <Dropdown<string>
+              label="Office"
+              hideLabel
+              options={officeOptions}
+              value={officeId}
+              onChange={setOfficeId}
+              placeholder="All offices"
+              size="sm"
+              variant="compact"
+              searchable
+              className="w-full"
+            />
+          </Box>
           {TIME_PERIOD_OPTIONS.map((opt) => (
             <Button
               key={opt.value}
@@ -65,9 +141,17 @@ export function BrokerageAnalyticsShell() {
         </Box>
       </Box>
 
-      {activeTab === "overview" && <AnalyticsOverviewTab timePeriod={timePeriod} />}
+      <BodyText size="xs" muted className="tabular-nums" data-testid="volume-assumption-footnote">
+        {VOLUME_ASSUMPTION_FOOTNOTE} · {DEMO_BROKERAGE_PERSONA_NOTE}
+      </BodyText>
+
+      {activeTab === "overview" && (
+        <AnalyticsOverviewTab timePeriod={timePeriod} officeId={scopedOfficeId} />
+      )}
+      {activeTab === "leakage" && (
+        <AnalyticsLeakageTab timePeriod={timePeriod} officeId={scopedOfficeId} />
+      )}
       {activeTab === "agents" && <AnalyticsAgentsTab timePeriod={timePeriod} />}
-      {activeTab === "leakage" && <AnalyticsLeakageTab timePeriod={timePeriod} />}
       {activeTab === "forensics" && <AnalyticsForensicsTab timePeriod={timePeriod} />}
       {activeTab === "market" && <AnalyticsMarketTab timePeriod={timePeriod} />}
     </Box>

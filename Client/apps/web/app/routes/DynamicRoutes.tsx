@@ -79,7 +79,7 @@ function useStableNonDashboardRoutes(): ReactElement[] {
       />,
       <Route
         key="/dashboard/agent"
-        path="/dashboard/agent/:agentId"
+        path="/dashboard/agent/:agentSlug"
         element={<AgentAnalyticsPage />}
         errorElement={<RouteErrorBoundary />}
       />

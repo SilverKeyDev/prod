@@ -9,12 +9,12 @@ from app.services.brokerage.campaigns.lift import (
     recovered_dollars,
 )
 
-# Mirror Client fixtures / useAncillaryAnalytics expected fees
+# Mirror Client placement-share fees
 CLIENT_FIXTURE_FEES = {
-    "title": 500,
-    "lending": 1000,
-    "escrow": 400,
-    "home_warranty": 150,
+    "title": 150,
+    "lending": 250,
+    "escrow": 100,
+    "home_warranty": 75,
 }
 
 
@@ -30,13 +30,13 @@ def test_attach_rate_lift_pp():
 
 
 def test_recovered_dollars_matches_leakage_math():
-    assert recovered_dollars(56, 500) == 28000
-    assert recovered_dollars(0, 1000) == 0
+    assert recovered_dollars(56, 150) == 8400
+    assert recovered_dollars(0, 250) == 0
 
 
 def test_recovered_by_service_row_uses_catalog():
     row = recovered_by_service_row("title", attributed_attaches=56, lift_pp=4.0)
     assert row["service"] == "title"
-    assert row["fee_assumption"] == 500
-    assert row["recovered_dollars"] == 28000
+    assert row["fee_assumption"] == 150
+    assert row["recovered_dollars"] == 8400
     assert row["lift_pp"] == 4.0

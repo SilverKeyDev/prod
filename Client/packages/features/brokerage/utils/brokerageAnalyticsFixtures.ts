@@ -9,6 +9,7 @@ export {
   type BrokerageAgentFixture,
 } from "./brokerageAnalyticsFixtures.agents";
 export {
+  ANCILLARY_ATTACH_RATES,
   BROKERAGE_ANCILLARY_FIXTURE,
   type BrokerageAncillaryFixture,
 } from "./brokerageAnalyticsFixtures.ancillary";

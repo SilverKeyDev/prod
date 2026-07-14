@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { buildAncillaryData } from "packages/features/brokerage/utils/analytics/ancillaryTransforms";
+import { ANCILLARY_FEES } from "packages/features/brokerage/utils/ancillaryFees";
+import {
+  MONTH_TRANSACTIONS,
+  YEAR_TRANSACTIONS,
+} from "packages/features/brokerage/utils/brokerageDemoVolumeAssumptions";
 import { CAMPAIGN_CATEGORIES_FIXTURE } from "packages/features/brokerage/utils/campaigns/campaignFixtures";
 import {
   buildCampaignRevenueProjections,
@@ -9,7 +14,7 @@ import {
 } from "packages/features/brokerage/utils/campaigns/campaignRevenueProjections";
 
 describe("buildCampaignRevenueProjections", () => {
-  it("projects all five campaigns from lift × volume × fee", () => {
+  it("projects all six campaigns from lift × volume × fee", () => {
     const totalTransactions = 1000;
     const result = buildCampaignRevenueProjections(CAMPAIGN_CATEGORIES_FIXTURE, totalTransactions);
 
@@ -19,29 +24,39 @@ describe("buildCampaignRevenueProjections", () => {
       "homeowners_insurance",
       "home_warranty",
       "move_concierge",
+      "transaction_fall_off",
     ]);
 
     const title = result.rows.find((r) => r.categoryId === "title_insurance")!;
     expect(title.liftPp).toBeGreaterThan(0);
     expect(title.incrementalAttaches).toBe(Math.round((totalTransactions * title.liftPp) / 100));
-    expect(title.projectedDollars).toBe(title.incrementalAttaches * 500);
+    expect(title.projectedDollars).toBe(title.incrementalAttaches * ANCILLARY_FEES.title);
     expect(title.service).toBe("title");
-    expect(title.feeAssumption).toBe(500);
+    expect(title.feeAssumption).toBe(ANCILLARY_FEES.title);
     expect(title.monthlyCumulative).toHaveLength(12);
 
     const lending = result.rows.find((r) => r.categoryId === "mortgage")!;
-    expect(lending.projectedDollars).toBe(lending.incrementalAttaches * 1000);
+    expect(lending.projectedDollars).toBe(lending.incrementalAttaches * ANCILLARY_FEES.lending);
 
     const homeowners = result.rows.find((r) => r.categoryId === "homeowners_insurance")!;
-    expect(homeowners.projectedDollars).toBe(homeowners.incrementalAttaches * 200);
-    expect(homeowners.feeAssumption).toBe(200);
+    expect(homeowners.projectedDollars).toBe(
+      homeowners.incrementalAttaches * ANCILLARY_FEES.homeowners_insurance
+    );
+    expect(homeowners.feeAssumption).toBe(ANCILLARY_FEES.homeowners_insurance);
 
     const warranty = result.rows.find((r) => r.categoryId === "home_warranty")!;
-    expect(warranty.projectedDollars).toBe(warranty.incrementalAttaches * 150);
+    expect(warranty.projectedDollars).toBe(
+      warranty.incrementalAttaches * ANCILLARY_FEES.home_warranty
+    );
 
     const move = result.rows.find((r) => r.categoryId === "move_concierge")!;
-    expect(move.projectedDollars).toBe(move.incrementalAttaches * 75);
-    expect(move.feeAssumption).toBe(75);
+    expect(move.projectedDollars).toBe(move.incrementalAttaches * ANCILLARY_FEES.move_concierge);
+    expect(move.feeAssumption).toBe(ANCILLARY_FEES.move_concierge);
+
+    const fallOff = result.rows.find((r) => r.categoryId === "transaction_fall_off")!;
+    expect(fallOff.liftPp).toBe(4);
+    expect(fallOff.projectedDollars).toBe(fallOff.incrementalAttaches * 400);
+    expect(fallOff.feeAssumption).toBe(400);
 
     expect(result.totalProjectedDollars).toBe(
       result.rows.reduce((sum, row) => sum + row.projectedDollars, 0)
@@ -49,20 +64,32 @@ describe("buildCampaignRevenueProjections", () => {
     expect(result.monthlyCumulative).toHaveLength(12);
   });
 
-  it("aligns with year ancillary transaction volume (month × 12)", () => {
+  it("keeps Kaggle year volume and opportunity-to-high below old 100% framing", () => {
     const month = buildAncillaryData("month");
     const year = buildAncillaryData("year");
-    expect(year.total_transactions).toBe(Math.round(month.total_transactions * 12));
+    expect(month.total_transactions).toBe(MONTH_TRANSACTIONS);
+    expect(year.total_transactions).toBe(YEAR_TRANSACTIONS);
+    expect(month.summary.total_leakage_dollars).toBe(37_375);
+    expect(month.summary.opportunity_vs_avg_dollars).toBe(0);
+    expect(year.summary.total_leakage_dollars).toBeGreaterThan(month.summary.total_leakage_dollars);
+    // Far below former 100%-attach month total (~$894K)
+    expect(year.summary.total_leakage_dollars).toBeLessThan(1_000_000);
 
-    const result = buildCampaignRevenueProjections(
-      CAMPAIGN_CATEGORIES_FIXTURE,
-      year.total_transactions
-    );
+    const result = buildCampaignRevenueProjections(CAMPAIGN_CATEGORIES_FIXTURE, YEAR_TRANSACTIONS);
+    expect(result.rows).toHaveLength(6);
     expect(result.totalProjectedDollars).toBeGreaterThan(0);
-    expect(result.rows).toHaveLength(5);
-    expect(result.totalProjectedDollars).toBe(
-      result.rows.reduce((sum, row) => sum + row.projectedDollars, 0)
-    );
+
+    // Overlapping title/lending/warranty campaign lifts align with opportunity-to-high slices
+    const overlapIds = new Set(["title_insurance", "mortgage", "home_warranty"]);
+    const overlapRecovery = result.rows
+      .filter((r) => overlapIds.has(r.categoryId))
+      .reduce((sum, r) => sum + r.projectedDollars, 0);
+    const overlapOpportunity = year.by_service
+      .filter(
+        (s) => s.service === "title" || s.service === "lending" || s.service === "home_warranty"
+      )
+      .reduce((sum, s) => sum + s.opportunity_vs_high_dollars, 0);
+    expect(overlapRecovery).toBe(overlapOpportunity);
   });
 });
 
@@ -91,13 +118,13 @@ describe("buildCategoryAttachProjection", () => {
     const move = CAMPAIGN_CATEGORIES_FIXTURE.find((c) => c.id === "move_concierge")!;
 
     const hoi = buildCategoryAttachProjection(homeowners);
-    expect(hoi.baselinePercent).toBe(41);
-    expect(hoi.postPercent).toBe(47);
-    expect(hoi.liftPp).toBe(6);
+    expect(hoi.baselinePercent).toBe(8);
+    expect(hoi.postPercent).toBe(11);
+    expect(hoi.liftPp).toBe(3);
 
     const mc = buildCategoryAttachProjection(move);
-    expect(mc.baselinePercent).toBe(35);
-    expect(mc.postPercent).toBe(44);
-    expect(mc.liftPp).toBe(9);
+    expect(mc.baselinePercent).toBe(6);
+    expect(mc.postPercent).toBe(9);
+    expect(mc.liftPp).toBe(3);
   });
 });

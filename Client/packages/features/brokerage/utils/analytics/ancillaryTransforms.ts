@@ -1,47 +1,81 @@
 /**
  * Pure ancillary analytics transforms (fixture-backed).
+ * Opportunity = gap to industry avg / high (campaign benchmarks), not gap to 100%.
  */
 import type { AncillaryAnalytics } from "packages/features/brokerage/types/analytics";
 import { periodScale, type TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 import {
-  ANCILLARY_FEES,
-  ANCILLARY_SERVICE_ORDER,
-} from "packages/features/brokerage/utils/ancillaryFees";
+  ANCILLARY_ATTACH_BENCHMARKS,
+  type LeakageBenchmarkService,
+  opportunityDollars,
+} from "packages/features/brokerage/utils/ancillaryAttachBenchmarks";
+import { ANCILLARY_SERVICE_ORDER } from "packages/features/brokerage/utils/ancillaryFees";
 import { BROKERAGE_ANCILLARY_FIXTURE } from "packages/features/brokerage/utils/brokerageAnalyticsFixtures";
+import { transactionsForPeriod } from "packages/features/brokerage/utils/brokerageDemoVolumeAssumptions";
 
-const RATES = { title: 62, lending: 44, escrow: 55, home_warranty: 48 } as const;
-const MONTH_BASE_TRANSACTIONS = 2059;
+function agentOpportunityDollars(
+  transactions: number,
+  titleAttach: number,
+  lendingAttach: number
+): number {
+  const title = ANCILLARY_ATTACH_BENCHMARKS.title;
+  const lending = ANCILLARY_ATTACH_BENCHMARKS.lending;
+  return (
+    opportunityDollars(transactions, titleAttach, title.industryHigh, title.fee) +
+    opportunityDollars(transactions, lendingAttach, lending.industryHigh, lending.fee)
+  );
+}
 
 export function buildAncillaryData(period: TimePeriod): AncillaryAnalytics {
   const base = BROKERAGE_ANCILLARY_FIXTURE;
   const scale = periodScale(period);
-  const t = Math.round(MONTH_BASE_TRANSACTIONS * scale);
+  const t = transactionsForPeriod(period);
 
   const by_service = ANCILLARY_SERVICE_ORDER.map((svc) => {
-    const rate = RATES[svc];
-    const outside = Math.round(t * (1 - rate / 100));
+    const service = svc as LeakageBenchmarkService;
+    const bench = ANCILLARY_ATTACH_BENCHMARKS[service];
+    const rate = bench.current;
+    const opportunity_vs_avg_dollars = opportunityDollars(t, rate, bench.industryAvg, bench.fee);
+    const opportunity_vs_high_dollars = opportunityDollars(t, rate, bench.industryHigh, bench.fee);
     return {
-      service: svc,
+      service,
       in_house_count: Math.round((t * rate) / 100),
-      outside_count: outside,
+      outside_count: Math.round(t * (1 - rate / 100)),
       attach_rate_percent: rate,
-      leakage_dollars: outside * ANCILLARY_FEES[svc],
-      fee_assumption: ANCILLARY_FEES[svc],
+      industry_avg_percent: bench.industryAvg,
+      industry_high_percent: bench.industryHigh,
+      leakage_dollars: opportunity_vs_high_dollars,
+      opportunity_vs_avg_dollars,
+      opportunity_vs_high_dollars,
+      fee_assumption: bench.fee,
     };
   });
 
-  const total_leakage = by_service.reduce((s, sv) => s + sv.leakage_dollars, 0);
+  const opportunity_vs_high = by_service.reduce((s, sv) => s + sv.opportunity_vs_high_dollars, 0);
+  const opportunity_vs_avg = by_service.reduce((s, sv) => s + sv.opportunity_vs_avg_dollars, 0);
 
-  const by_agent = base.by_agent.map((agent) => ({
-    ...agent,
-    transactions: Math.round(agent.transactions * scale),
-    total_leakage_dollars: Math.round(agent.total_leakage_dollars * scale),
-  }));
+  const by_agent = base.by_agent.map((agent) => {
+    const transactions = Math.max(1, Math.round(agent.transactions * scale));
+    return {
+      ...agent,
+      transactions,
+      total_leakage_dollars: agentOpportunityDollars(
+        transactions,
+        agent.title_attach,
+        agent.lending_attach
+      ),
+    };
+  });
 
   return {
     ...base,
     total_transactions: t,
-    summary: { total_leakage_dollars: total_leakage, avg_attach_rate_percent: 52.3 },
+    summary: {
+      total_leakage_dollars: opportunity_vs_high,
+      opportunity_vs_avg_dollars: opportunity_vs_avg,
+      opportunity_vs_high_dollars: opportunity_vs_high,
+      avg_attach_rate_percent: base.summary.avg_attach_rate_percent,
+    },
     by_service,
     by_agent,
   };

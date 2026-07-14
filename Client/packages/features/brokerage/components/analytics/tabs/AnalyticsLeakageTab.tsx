@@ -1,27 +1,101 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
-import { Icon } from "@ui/icons";
-
+import { color } from "packages/design-tokens";
 import { AnalyticsDonutChart } from "packages/features/brokerage/components/charts";
 import { useAncillaryAnalytics } from "packages/features/brokerage/hooks/useAncillaryAnalytics";
+import { useBrokerageAnalytics } from "packages/features/brokerage/hooks/useBrokerageAnalytics";
+import type { DeltaTone } from "packages/features/brokerage/utils/analytics/analyticsTokens";
+import { buildLeakageMathExplanation } from "packages/features/brokerage/utils/analytics/leakageMathExplanation";
+import {
+  applyOfficeShareToAncillary,
+  officeClosingsShare,
+} from "packages/features/brokerage/utils/analytics/overviewTransforms";
 import { formatCompactCurrency } from "packages/features/brokerage/utils/analyticsFormat";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 import { ANCILLARY_SERVICE_LABELS } from "packages/features/brokerage/utils/ancillaryServiceLabels";
-import { Link } from "packages/navigation";
-import { ROUTES } from "packages/navigation/types/routes";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
-import Title from "packages/ui/components/structure/text/Title";
+import type { IconName } from "packages/ui/types/icons";
 
-import { SectionCard } from "../AnalyticsShellShared";
-import { AncillaryInsightPanel } from "../AncillaryInsightPanel";
+import { AnalyticsMotionSection } from "../AnalyticsMotionSection";
+import { KpiCard, SectionCard, SectionHeading } from "../AnalyticsShellShared";
+import { AncillaryAgentLeaderboardCard, AncillaryAttachRatesCard } from "../AncillaryInsightPanel";
+import { QuantMathStrip } from "../QuantMathStrip";
+import { ViewAllAgentsModal } from "../ViewAllAgentsModal";
 
 type Props = {
   timePeriod: TimePeriod;
+  /** Demo office filter; null/empty = brokerage-wide. */
+  officeId?: string | null;
 };
 
-export function AnalyticsLeakageTab({ timePeriod }: Props) {
-  const { data: ancillary, isLoading } = useAncillaryAnalytics(timePeriod);
+type SnapshotKpi = {
+  label: string;
+  value: string;
+  iconName: IconName;
+  valueColor?: string;
+  delta?: string;
+  deltaTone?: DeltaTone;
+};
+
+export function AnalyticsLeakageTab({ timePeriod, officeId = null }: Props) {
+  const [showAllAgents, setShowAllAgents] = useState(false);
+  const { data: ancillaryRaw, isLoading } = useAncillaryAnalytics(timePeriod);
+  const { data: overview, agents } = useBrokerageAnalytics(timePeriod);
+
+  const share = useMemo(
+    () => officeClosingsShare(overview.production.officeRollups, officeId),
+    [overview.production.officeRollups, officeId]
+  );
+
+  const ancillary = useMemo(
+    () => applyOfficeShareToAncillary(ancillaryRaw, share),
+    [ancillaryRaw, share]
+  );
+
+  const officeLabel = useMemo(() => {
+    if (!officeId) return null;
+    const match = overview.production.officeRollups.find((o) => o.office === officeId);
+    return match?.office ?? officeId;
+  }, [overview.production.officeRollups, officeId]);
+
+  const explanation = useMemo(() => {
+    const base = buildLeakageMathExplanation(ancillary, timePeriod);
+    return {
+      ...base,
+      hero: { ...base.hero, valueColor: color("state.danger.DEFAULT") },
+    };
+  }, [ancillary, timePeriod]);
+
+  const snapshotKpis = useMemo((): SnapshotKpi[] => {
+    const snap = explanation.snapshot;
+    if (!snap) return [];
+    return [
+      {
+        label: "Opportunity to high",
+        value: snap.opportunityToHigh,
+        iconName: "dollar-sign",
+        valueColor: color("state.danger.DEFAULT"),
+      },
+      {
+        label: "vs industry avg",
+        value: snap.vsIndustryAvg,
+        iconName: "target",
+        delta: snap.behindIndustryAvg ? "Behind average" : "At or above average",
+        deltaTone: snap.behindIndustryAvg ? "down" : "flat",
+      },
+      {
+        label: "Biggest leak",
+        value: snap.biggestLeak,
+        iconName: "trending-down",
+      },
+      {
+        label: "Closings in period",
+        value: snap.closingsInPeriod,
+        iconName: "home",
+      },
+    ];
+  }, [explanation.snapshot]);
 
   const revenueMix = useMemo(() => {
     const services = ancillary.by_service;
@@ -47,33 +121,74 @@ export function AnalyticsLeakageTab({ timePeriod }: Props) {
   }
 
   return (
-    <Box className="flex flex-col gap-6">
-      <Box className="border-border bg-background-surface rounded-xl border p-5">
-        <Box className="mb-1 flex items-center gap-2">
-          <Icon name="trending-down" className="text-text-secondary h-4 w-4 shrink-0" />
-          <Title size="sm" as="h3">
-            Ancillary Capture Leakage
-          </Title>
+    <Box className="flex flex-col gap-8">
+      {officeLabel ? (
+        <BodyText size="xs" muted className="tabular-nums" data-testid="leakage-office-scope">
+          Scoped to {officeLabel}
+        </BodyText>
+      ) : null}
+
+      <AnalyticsMotionSection index={0} testId="leakage-section-snapshot">
+        <SectionHeading title="Snapshot" iconName="activity" />
+        <Box className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {snapshotKpis.map((kpi) => (
+            <KpiCard
+              key={kpi.label}
+              label={kpi.label}
+              value={kpi.value}
+              iconName={kpi.iconName}
+              valueColor={kpi.valueColor}
+              delta={kpi.delta}
+              deltaTone={kpi.deltaTone}
+            />
+          ))}
         </Box>
-        <BodyText size="xs" muted className="mb-2">
-          Revenue leaking to outside title, lending, escrow, and home warranty vendors
-        </BodyText>
-        <BodyText size="xs" className="mb-4">
-          <Link to={ROUTES.CAMPAIGNS} className="underline underline-offset-2">
-            Run a campaign to recover attach rate →
-          </Link>
-        </BodyText>
-        <AncillaryInsightPanel data={ancillary} />
-      </Box>
-      <SectionCard title="Service Revenue Mix" iconName="dollar-sign">
-        <AnalyticsDonutChart
-          data={revenueMix}
-          centerLabel={centerLabel}
-          centerSub="total leakage"
-          showEntropy
-          height={300}
+      </AnalyticsMotionSection>
+
+      <AnalyticsMotionSection index={1} testId="leakage-section-opportunity">
+        <SectionHeading title="Opportunity" iconName="trending-down" />
+        <Box className="border-border-danger bg-background-surface rounded-xl border p-6">
+          <QuantMathStrip explanation={explanation} testId="leakage-math-strip" hideStats />
+        </Box>
+      </AnalyticsMotionSection>
+
+      <AnalyticsMotionSection index={2} testId="leakage-section-capture-mix">
+        <SectionHeading title="Capture mix" iconName="grid-3x3" />
+        <Box className="grid gap-4 lg:grid-cols-2">
+          <Box className="min-w-0">
+            <AncillaryAttachRatesCard services={ancillary.by_service} />
+          </Box>
+          <Box className="min-w-0">
+            <SectionCard title="Service Revenue Mix" iconName="dollar-sign">
+              <AnalyticsDonutChart
+                data={revenueMix}
+                centerLabel={centerLabel}
+                centerSub="Opportunity to industry high"
+                showEntropy
+                height={300}
+              />
+            </SectionCard>
+          </Box>
+        </Box>
+      </AnalyticsMotionSection>
+
+      <AnalyticsMotionSection index={3} testId="leakage-section-agents">
+        <SectionHeading title="Agents" iconName="users" />
+        <AncillaryAgentLeaderboardCard
+          data={ancillary}
+          onViewAllAgents={() => setShowAllAgents(true)}
         />
-      </SectionCard>
+      </AnalyticsMotionSection>
+
+      {showAllAgents ? (
+        <ViewAllAgentsModal
+          open
+          onClose={() => setShowAllAgents(false)}
+          agents={agents}
+          ancillaryByAgent={ancillary.by_agent}
+          initialSort="opportunity"
+        />
+      ) : null}
     </Box>
   );
 }

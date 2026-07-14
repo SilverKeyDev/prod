@@ -1,4 +1,10 @@
 export {
+  buildBrokerageAgentAnalyticsPath,
+  getCanonicalAgentSlug,
+  isLegacyAgentId,
+  resolveBrokerageAgentIdFromSlug,
+} from "./brokerageAgentAnalyticsSlug";
+export {
   buildClientHubPath,
   generateClientHubIdSlug,
   generateClientHubNameSlug,

@@ -1,16 +1,23 @@
 /**
  * AgentRetentionRiskPanel — SIL-278
  *
- * Shows brokerage admins which agents are flight risks and which are
- * over-compensated relative to production volume.
+ * Shows brokerage admins blended ML flight-risk scores and per-factor drivers.
  */
 import { useState } from "react";
 
 import { Icon } from "@ui/icons";
 
+import { color } from "packages/design-tokens";
 import { useAgentRetentionRisk } from "packages/features/brokerage/hooks/useAgentRetentionRisk";
 import type { AgentRetentionRisk } from "packages/features/brokerage/types/analytics";
 import { exportAnalyticsCsv } from "packages/features/brokerage/utils/analytics/exportCsv";
+import {
+  FLIGHT_RISK_FACTOR_KEYS,
+  FLIGHT_RISK_FACTOR_LABELS,
+  type RiskScoreBand,
+  riskScoreBand,
+  topFlightRiskDrivers,
+} from "packages/features/brokerage/utils/analytics/flightRiskFactors";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
@@ -21,6 +28,12 @@ import type { IconName } from "packages/ui/types/icons";
 import { AgentRowActions } from "./AgentRowActions";
 import { AnalyticsDataTable } from "./AnalyticsDataTable";
 import { SectionCard } from "./AnalyticsShellShared";
+
+function driverScoreColor(band: RiskScoreBand): string {
+  if (band === "high") return color("state.danger.DEFAULT");
+  if (band === "medium") return color("state.warning.DEFAULT");
+  return color("state.success.DEFAULT");
+}
 
 type RiskTier = "flight_risk" | "watch" | "stable" | "over_comp";
 type RetentionAgent = AgentRetentionRisk["agents"][number];
@@ -62,11 +75,12 @@ function exportRetentionCsv(rows: RetentionAgent[]) {
       "Office",
       "Transactions",
       "Est. GCI ($)",
+      "Blended Risk Score",
+      "Risk Tier",
+      ...FLIGHT_RISK_FACTOR_KEYS.map((key) => FLIGHT_RISK_FACTOR_LABELS[key]),
       "Current Split %",
       "Market Benchmark %",
       "Split Gap",
-      "Risk Score",
-      "Risk Tier",
       "Percentile",
       "Recommended Action",
     ],
@@ -75,11 +89,12 @@ function exportRetentionCsv(rows: RetentionAgent[]) {
       a.office,
       a.total_transactions,
       a.estimated_gci,
+      a.risk_score,
+      a.risk_tier,
+      ...FLIGHT_RISK_FACTOR_KEYS.map((key) => a.factor_scores[key]),
       a.current_split_percent,
       a.market_benchmark_split_percent,
       a.split_gap,
-      a.risk_score,
-      a.risk_tier,
       a.peer_production_percentile,
       `"${a.recommended_action}"`,
     ])
@@ -128,8 +143,8 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: TimePerio
     <SectionCard title="Agent Retention Risk" iconName="alert-triangle">
       <Box className="mb-4 flex items-start justify-between gap-4">
         <BodyText size="sm" muted>
-          Cross-references production volume against split structures to flag flight risks and
-          over-compensated agents.
+          Blended ML retention model scores agents across compensation, production momentum, peer
+          standing, engagement, and ancillary attach — then ranks flight risk by the combined score.
         </BodyText>
         <Button
           type="button"
@@ -221,41 +236,50 @@ export function AgentRetentionRiskPanel({ period = "all" }: { period?: TimePerio
             render: (agent) => `$${agent.estimated_gci.toLocaleString()}`,
           },
           {
-            key: "split",
-            header: "Their Split",
-            headerClassName: "py-2 pr-4 text-right font-medium",
-            cellClassName: "py-2 pr-4 text-right font-medium",
-            render: (agent) => `${agent.current_split_percent}%`,
-          },
-          {
-            key: "market",
-            header: "Market",
-            headerClassName: "py-2 pr-4 text-right font-medium",
-            cellClassName: "py-2 pr-4 text-right",
-            render: (agent) => `${agent.market_benchmark_split_percent}%`,
-          },
-          {
-            key: "gap",
-            header: "Gap",
-            headerClassName: "py-2 pr-4 text-right font-medium",
-            cellClassName: "py-2 pr-4 text-right",
-            render: (agent) => (
-              <BodyText as="span" className="font-semibold">
-                {agent.split_gap > 0 ? "+" : ""}
-                {agent.split_gap}pts
-              </BodyText>
-            ),
-          },
-          {
             key: "score",
             header: "Score",
             headerClassName: "py-2 pr-4 text-right font-medium",
             cellClassName: "py-2 pr-4 text-right",
             render: (agent) => (
-              <BodyText as="span" className="font-bold">
+              <BodyText
+                as="span"
+                className="font-bold tabular-nums"
+                style={{
+                  color: driverScoreColor(riskScoreBand(agent.risk_score)),
+                }}
+              >
                 {agent.risk_score}
               </BodyText>
             ),
+          },
+          {
+            key: "drivers",
+            header: "Top drivers",
+            headerClassName: "py-2 pr-4 font-medium",
+            cellClassName: "py-2 pr-4",
+            render: (agent) => {
+              const drivers = topFlightRiskDrivers(agent.factor_scores, 3);
+              return (
+                <Box className="flex min-w-[9.5rem] flex-col gap-1">
+                  {drivers.map((d) => (
+                    <Box key={d.key} className="flex items-baseline justify-between gap-3">
+                      <BodyText size="xs" muted className="truncate">
+                        {d.label}
+                      </BodyText>
+                      <BodyText
+                        size="xs"
+                        className="shrink-0 font-semibold tabular-nums"
+                        style={{
+                          color: driverScoreColor(riskScoreBand(d.score)),
+                        }}
+                      >
+                        {d.score}
+                      </BodyText>
+                    </Box>
+                  ))}
+                </Box>
+              );
+            },
           },
           {
             key: "tier",

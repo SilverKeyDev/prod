@@ -1,37 +1,35 @@
 /**
  * Pure deal-failure forensics transforms (fixture-backed).
+ * Month volume aligned with Kaggle closings via brokerageDemoVolumeAssumptions.
  */
 import type { DealFailureForensics } from "packages/features/brokerage/types/analytics";
+import { FULL_YEAR_CLOSING_TREND } from "packages/features/brokerage/utils/analytics/closingsTrend";
 import { periodScale, type TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 import { BROKERAGE_DEAL_FAILURE_FIXTURE } from "packages/features/brokerage/utils/brokerageAnalyticsFixtures";
+import { MONTH_TRANSACTIONS } from "packages/features/brokerage/utils/brokerageDemoVolumeAssumptions";
 
-const TREND_12M = [
-  { month: "Jan", total: 2087, cancelled: 85 },
-  { month: "Feb", total: 1945, cancelled: 72 },
-  { month: "Mar", total: 2131, cancelled: 98 },
-  { month: "Apr", total: 2091, cancelled: 90 },
-  { month: "May", total: 2131, cancelled: 88 },
-  { month: "Jun", total: 2096, cancelled: 102 },
-  { month: "Jul", total: 2147, cancelled: 113 },
-  { month: "Aug", total: 2085, cancelled: 110 },
-  { month: "Sep", total: 2105, cancelled: 111 },
-  { month: "Oct", total: 2102, cancelled: 79 },
-  { month: "Nov", total: 2038, cancelled: 96 },
-  { month: "Dec", total: 2059, cancelled: 111 },
-];
+/** Fall-through rate from deal-failure fixture summary (demo constant). */
+const FALL_THROUGH_RATE = 0.049;
+
+/** Seasonal closings from shared Kaggle trend; cancellations = rate × total. */
+const TREND_12M = FULL_YEAR_CLOSING_TREND.map((point) => ({
+  month: point.label,
+  total: point.value,
+  cancelled: Math.round(point.value * FALL_THROUGH_RATE),
+}));
 
 const STAGE_RATIOS = [0.38, 0.27, 0.18, 0.11, 0.06];
 const STAGE_NAMES = ["Inspection", "Financing", "Appraisal", "Title", "Unknown"];
 
 const LENDER_RATIOS = [0.28, 0.24, 0.21, 0.17, 0.1];
-const LENDER_NAMES = ["Commonwealth Bank", "Westpac", "ANZ", "NAB", "Cash / Other"];
+const LENDER_NAMES = ["Better", "Rocket Mortgage", "UWM", "CrossCountry Mortgage", "Cash / Other"];
 
 const BAND_RATIOS = [0.142, 0.287, 0.287, 0.284];
 const BAND_NAMES = ["Under $1M", "$1M–$2M", "$2M–$3M", "$3M+"];
 const BAND_CANCEL_RATIOS = [0.052, 0.049, 0.047, 0.049];
 
-const MONTH_TOTAL = 2059;
-const MONTH_CANCELLED = 111;
+const MONTH_TOTAL = MONTH_TRANSACTIONS;
+const MONTH_CANCELLED = Math.round(MONTH_TRANSACTIONS * FALL_THROUGH_RATE);
 
 export function buildFailureData(period: TimePeriod): DealFailureForensics {
   const base = BROKERAGE_DEAL_FAILURE_FIXTURE;
@@ -96,11 +94,17 @@ export function buildFailureData(period: TimePeriod): DealFailureForensics {
     };
   });
 
-  const by_agent = base.by_agent.map((a) => ({
-    ...a,
-    total_deals: Math.round(a.total_deals * scale),
-    cancelled: Math.round(a.cancelled * scale),
-  }));
+  const by_agent = base.by_agent.map((a) => {
+    const total_deals = Math.max(1, Math.round(a.total_deals * scale));
+    const cancelled = Math.round(a.cancelled * scale);
+    return {
+      ...a,
+      total_deals,
+      cancelled,
+      fall_through_rate_percent:
+        total_deals > 0 ? +((cancelled / total_deals) * 100).toFixed(1) : 0,
+    };
+  });
 
   return {
     ...base,

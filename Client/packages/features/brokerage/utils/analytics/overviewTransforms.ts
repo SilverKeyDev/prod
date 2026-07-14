@@ -6,63 +6,23 @@ import type {
   BrokerageAnalyticsAgent,
   BrokerageAnalyticsOverview,
 } from "packages/features/brokerage/types/analytics";
+import {
+  closingsTrendForPeriod,
+  MONTH_CLOSING_TOTAL,
+} from "packages/features/brokerage/utils/analytics/closingsTrend";
 import { periodScale, type TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 import {
   BROKERAGE_AGENTS_FIXTURE,
   BROKERAGE_ANALYTICS_FIXTURE,
 } from "packages/features/brokerage/utils/brokerageAnalyticsFixtures";
 
-const FULL_YEAR_TREND = [
-  { label: "Jan", value: 1884, displayValue: "1884" },
-  { label: "Feb", value: 1755, displayValue: "1755" },
-  { label: "Mar", value: 1921, displayValue: "1921" },
-  { label: "Apr", value: 1880, displayValue: "1880" },
-  { label: "May", value: 1928, displayValue: "1928" },
-  { label: "Jun", value: 1898, displayValue: "1898" },
-  { label: "Jul", value: 1935, displayValue: "1935" },
-  { label: "Aug", value: 1873, displayValue: "1873" },
-  { label: "Sep", value: 1890, displayValue: "1890" },
-  { label: "Oct", value: 1913, displayValue: "1913" },
-  { label: "Nov", value: 1845, displayValue: "1845" },
-  { label: "Dec", value: 1854, displayValue: "1854" },
-];
-
-const PREV_YEAR_TREND = [
-  { label: "Jan '24", value: 1720, displayValue: "1720" },
-  { label: "Feb '24", value: 1640, displayValue: "1640" },
-  { label: "Mar '24", value: 1810, displayValue: "1810" },
-  { label: "Apr '24", value: 1755, displayValue: "1755" },
-  { label: "May '24", value: 1830, displayValue: "1830" },
-  { label: "Jun '24", value: 1790, displayValue: "1790" },
-  { label: "Jul '24", value: 1870, displayValue: "1870" },
-  { label: "Aug '24", value: 1800, displayValue: "1800" },
-  { label: "Sep '24", value: 1820, displayValue: "1820" },
-  { label: "Oct '24", value: 1855, displayValue: "1855" },
-  { label: "Nov '24", value: 1780, displayValue: "1780" },
-  { label: "Dec '24", value: 1795, displayValue: "1795" },
-];
-
-const FIVE_YEAR_TREND = [...PREV_YEAR_TREND, ...FULL_YEAR_TREND];
-
-const SEVEN_DAY_TREND = [
-  { label: "Mon", value: 58, displayValue: "58" },
-  { label: "Tue", value: 71, displayValue: "71" },
-  { label: "Wed", value: 63, displayValue: "63" },
-  { label: "Thu", value: 82, displayValue: "82" },
-  { label: "Fri", value: 74, displayValue: "74" },
-  { label: "Sat", value: 29, displayValue: "29" },
-  { label: "Sun", value: 18, displayValue: "18" },
-];
-
-const ONE_MONTH_TREND = Array.from({ length: 31 }, (_, i) => {
-  const v = Math.round(55 + Math.sin(i * 0.4) * 12 + (i % 7 < 5 ? 10 : -15));
-  return { label: `Dec ${i + 1}`, value: v, displayValue: String(v) };
-});
+/** Prior-period ratio vs current (demo MoM / prior-window lift from closings). */
+const PRIOR_PERIOD_RATIO = 1845 / 1854;
 
 const AGENT_STATUS_BASE_TOTAL = 100;
 
 const OVERVIEW_MONTH = {
-  closingsThisMonth: 1854,
+  closingsThisMonth: MONTH_CLOSING_TOTAL,
   closingsLastMonth: 1845,
   openTransactions: 2455,
   atRiskCount: 44,
@@ -96,21 +56,6 @@ function overviewForPeriod(period: TimePeriod) {
     activeClientsThisMonth: Math.round(OVERVIEW_MONTH.activeClientsThisMonth * scale),
     activeClientsLastMonth: Math.round(OVERVIEW_MONTH.activeClientsLastMonth * scale),
   };
-}
-
-function trendForPeriod(period: TimePeriod) {
-  switch (period) {
-    case "week":
-      return SEVEN_DAY_TREND;
-    case "month":
-      return ONE_MONTH_TREND;
-    case "year":
-      return FULL_YEAR_TREND;
-    case "5years":
-    case "all":
-    default:
-      return FIVE_YEAR_TREND;
-  }
 }
 
 function funnelForPeriod(period: TimePeriod) {
@@ -171,7 +116,7 @@ export function buildBrokerageAnalyticsData(period: TimePeriod): BrokerageAnalyt
   return {
     ...BROKERAGE_ANALYTICS_FIXTURE,
     overview: overviewForPeriod(period),
-    closingsTrend: trendForPeriod(period),
+    closingsTrend: closingsTrendForPeriod(period),
     transactionFunnel: funnelForPeriod(period),
     production: productionForPeriod(period),
     agentStatusBreakdown: agentStatusForPeriod(period),
@@ -194,4 +139,240 @@ export function buildBrokerageAgents(period: TimePeriod): BrokerageAnalyticsAgen
     volumeDollars: Math.round(agent.volumeDollars * scale),
     gci: Math.round(agent.gci * scale),
   }));
+}
+
+export type OverviewKpiExtras = {
+  closedVolumePrior: number;
+  pendingVolumePrior: number;
+  activeVolumePrior: number;
+  gciClosedPrior: number;
+  closingsSparkline: number[];
+  volumeSparkline: number[];
+  clientsSparkline: number[];
+};
+
+/**
+ * Prior-period production levels + sparkline series for Overview KPI cards.
+ * Prior uses the same closings MoM ratio as the snapshot (1845/1854).
+ */
+export function buildOverviewKpiExtras(
+  data: BrokerageAnalyticsOverview,
+  period: TimePeriod
+): OverviewKpiExtras {
+  const closed =
+    data.production.volumeByStatus.find((v) => v.status === "closed")?.volumeDollars ?? 0;
+  const pending =
+    data.production.volumeByStatus.find((v) => v.status === "pending")?.volumeDollars ?? 0;
+  const active =
+    data.production.volumeByStatus.find((v) => v.status === "active")?.volumeDollars ?? 0;
+  const avgSale = data.production.pricing.avgSalePrice;
+  const trend = closingsTrendForPeriod(period);
+  const closingsSparkline = trend.map((p) => p.value);
+  const volumeSparkline = trend.map((p) => Math.round(p.value * avgSale));
+  const clientsBase = data.overview.activeClientsThisMonth;
+  const clientsSparkline = closingsSparkline.map((c, i) => {
+    const ratio = closingsSparkline[closingsSparkline.length - 1] || 1;
+    return Math.max(1, Math.round((clientsBase * c) / ratio + (i % 3) * 2));
+  });
+
+  return {
+    closedVolumePrior: Math.round(closed * PRIOR_PERIOD_RATIO),
+    pendingVolumePrior: Math.round(pending * PRIOR_PERIOD_RATIO),
+    activeVolumePrior: Math.round(active * PRIOR_PERIOD_RATIO),
+    gciClosedPrior: Math.round(data.production.gci.closed * PRIOR_PERIOD_RATIO),
+    closingsSparkline,
+    volumeSparkline,
+    clientsSparkline,
+  };
+}
+
+/** Filter office rollups for demo office filter (null / "" = all). */
+export function filterOfficeRollups<T extends { office: string }>(
+  offices: T[],
+  officeId: string | null
+): T[] {
+  if (!officeId) return offices;
+  return offices.filter((o) => o.office === officeId);
+}
+
+export type OfficeRollupRow = {
+  office: string;
+  team?: string | null;
+  volumeClosed: number;
+  volumePending: number;
+  volumeActive: number;
+  gciClosed: number;
+  gciPending: number;
+  closings: number;
+};
+
+/** Closings share of selected office vs all rollups (1 when unfiltered). */
+export function officeClosingsShare(
+  offices: readonly OfficeRollupRow[],
+  officeId: string | null
+): number {
+  if (!officeId) return 1;
+  const selected = offices.find((o) => o.office === officeId);
+  if (!selected) return 0;
+  const total = offices.reduce((sum, o) => sum + o.closings, 0);
+  if (total <= 0) return 0;
+  return selected.closings / total;
+}
+
+function scaleInt(value: number, share: number): number {
+  return Math.round(value * share);
+}
+
+/**
+ * Scope overview fixture data to one office for demo filtering.
+ * Uses office rollup dollars/closings for production KPIs; scales other series by closings share.
+ */
+export function applyOfficeFilterToOverview(
+  data: BrokerageAnalyticsOverview,
+  officeId: string | null
+): BrokerageAnalyticsOverview {
+  if (!officeId) return data;
+
+  const offices = data.production.officeRollups;
+  const selected = offices.find((o) => o.office === officeId);
+  if (!selected) {
+    return {
+      ...data,
+      production: { ...data.production, officeRollups: [] },
+    };
+  }
+
+  const share = officeClosingsShare(offices, officeId);
+  const pendingCount =
+    data.production.volumeByStatus.find((v) => v.status === "pending")?.count ?? 0;
+  const activeCount = data.production.volumeByStatus.find((v) => v.status === "active")?.count ?? 0;
+
+  return {
+    ...data,
+    overview: {
+      ...data.overview,
+      activeAgents: Math.max(1, scaleInt(data.overview.activeAgents, share)),
+      openTransactions: Math.max(1, scaleInt(data.overview.openTransactions, share)),
+      atRiskCount: Math.max(0, scaleInt(data.overview.atRiskCount, share)),
+      closingsThisMonth: selected.closings,
+      closingsLastMonth: Math.max(0, scaleInt(data.overview.closingsLastMonth, share)),
+      activeClientsThisMonth: Math.max(1, scaleInt(data.overview.activeClientsThisMonth, share)),
+      activeClientsLastMonth: Math.max(1, scaleInt(data.overview.activeClientsLastMonth, share)),
+    },
+    transactionFunnel: data.transactionFunnel.map((stage) => ({
+      ...stage,
+      count: Math.max(0, scaleInt(stage.count, share)),
+      weightedForecast: Math.max(0, scaleInt(stage.weightedForecast, share)),
+    })),
+    production: {
+      ...data.production,
+      volumeByStatus: [
+        {
+          status: "closed" as const,
+          volumeDollars: selected.volumeClosed,
+          count: selected.closings,
+        },
+        {
+          status: "pending" as const,
+          volumeDollars: selected.volumePending,
+          count: Math.max(0, scaleInt(pendingCount, share)),
+        },
+        {
+          status: "active" as const,
+          volumeDollars: selected.volumeActive,
+          count: Math.max(0, scaleInt(activeCount, share)),
+        },
+      ],
+      gci: {
+        ...data.production.gci,
+        closed: selected.gciClosed,
+        pending: selected.gciPending,
+        projected: Math.max(0, scaleInt(data.production.gci.projected, share)),
+      },
+      goals: {
+        ...data.production.goals,
+        volumeTarget: Math.max(0, scaleInt(data.production.goals.volumeTarget, share)),
+        volumeActual: selected.volumeClosed,
+        gciTarget: Math.max(0, scaleInt(data.production.goals.gciTarget, share)),
+        gciActual: selected.gciClosed,
+      },
+      officeRollups: [selected],
+    },
+    closingsTrend: data.closingsTrend.map((point) => {
+      const value = Math.max(0, scaleInt(point.value, share));
+      return { ...point, value, displayValue: String(value) };
+    }),
+    agentStatusBreakdown: data.agentStatusBreakdown.map((row) => ({
+      ...row,
+      value: Math.max(0, scaleInt(row.value, share)),
+    })),
+    propertyClassBreakdown: data.propertyClassBreakdown.map((row) => ({
+      ...row,
+      value: Math.max(0, scaleInt(row.value, share)),
+    })),
+    transactionSideBreakdown: data.transactionSideBreakdown.map((row) => ({
+      ...row,
+      value: Math.max(0, scaleInt(row.value, share)),
+    })),
+  };
+}
+
+/** Scale ancillary dollars/counts by the same office closings share used on Overview. */
+export function applyOfficeShareToAncillary<
+  T extends {
+    total_transactions: number;
+    summary: {
+      total_leakage_dollars: number;
+      opportunity_vs_avg_dollars: number;
+      opportunity_vs_high_dollars: number;
+      avg_attach_rate_percent: number;
+    };
+    by_service: Array<
+      {
+        in_house_count: number;
+        outside_count: number;
+        leakage_dollars: number;
+        opportunity_vs_avg_dollars: number;
+        opportunity_vs_high_dollars: number;
+      } & Record<string, unknown>
+    >;
+    by_agent: Array<
+      {
+        transactions: number;
+        total_leakage_dollars: number;
+      } & Record<string, unknown>
+    >;
+  },
+>(data: T, share: number): T {
+  if (share >= 0.999) return data;
+  const s = Math.max(0, Math.min(1, share));
+  return {
+    ...data,
+    total_transactions: Math.max(1, scaleInt(data.total_transactions, s)),
+    summary: {
+      ...data.summary,
+      total_leakage_dollars: scaleInt(data.summary.total_leakage_dollars, s),
+      opportunity_vs_avg_dollars: scaleInt(data.summary.opportunity_vs_avg_dollars, s),
+      opportunity_vs_high_dollars: scaleInt(data.summary.opportunity_vs_high_dollars, s),
+    },
+    by_service: data.by_service.map((row) => ({
+      ...row,
+      in_house_count: Math.max(0, scaleInt(row.in_house_count, s)),
+      outside_count: Math.max(0, scaleInt(row.outside_count, s)),
+      leakage_dollars: scaleInt(row.leakage_dollars, s),
+      opportunity_vs_avg_dollars: scaleInt(row.opportunity_vs_avg_dollars, s),
+      opportunity_vs_high_dollars: scaleInt(row.opportunity_vs_high_dollars, s),
+    })),
+    by_agent: data.by_agent.map((agent) => ({
+      ...agent,
+      transactions: Math.max(1, scaleInt(agent.transactions, s)),
+      total_leakage_dollars: scaleInt(agent.total_leakage_dollars, s),
+    })),
+  };
+}
+
+/** Side-rate check: GCI closed / closed volume (expected ~1.5–1.6%). */
+export function closedSideRatePercent(closedVolume: number, gciClosed: number): number {
+  if (closedVolume <= 0) return 0;
+  return (gciClosed / closedVolume) * 100;
 }
