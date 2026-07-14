@@ -5,6 +5,7 @@ import { Icon } from "@ui/icons";
 import { AnalyticsMotionSection } from "packages/features/brokerage/components/analytics/AnalyticsMotionSection";
 import { CampaignCategorySection } from "packages/features/brokerage/components/campaigns/CampaignCategorySection";
 import { CampaignEmailPreviewModal } from "packages/features/brokerage/components/campaigns/CampaignEmailPreviewModal";
+import { CampaignLearningPanel } from "packages/features/brokerage/components/campaigns/CampaignLearningPanel";
 import { CampaignRevenueProjectionSummary } from "packages/features/brokerage/components/campaigns/CampaignRevenueProjectionSummary";
 import { CampaignSettingsModal } from "packages/features/brokerage/components/campaigns/CampaignSettingsModal";
 import { CreateCampaignModal } from "packages/features/brokerage/components/campaigns/CreateCampaignModal";
@@ -25,7 +26,7 @@ import type {
 import { buildCampaignRevenueProjections } from "packages/features/brokerage/utils/campaigns/campaignRevenueProjections";
 import { scrollToCampaignSection } from "packages/features/brokerage/utils/campaigns/campaignScrollActiveSection";
 import type { NavItem } from "packages/navigation";
-import { BodyText, Button } from "packages/ui";
+import { BodyText, Button, Title } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import SidebarNavigation from "packages/ui/components/structure/sidebar/SidebarNavigation";
 import { TwoColumnInsetPageLayout } from "packages/ui/components/structure/sidebar/TwoColumnInsetPageLayout";
@@ -200,10 +201,25 @@ export function BrokerageCampaignsShell() {
         <AnalyticsMotionSection index={0} testId="campaigns-section-hero">
           <CampaignRevenueProjectionSummary projection={projection} />
         </AnalyticsMotionSection>
+        <AnalyticsMotionSection index={1} testId="campaigns-section-learning-loop">
+          <Box
+            id="learning-loop"
+            className="border-border bg-background-surface scroll-mt-24 rounded-xl border p-5"
+          >
+            <Title size="sm" as="h2" className="mb-1">
+              Campaign learning loop
+            </Title>
+            <BodyText size="xs" muted className="mb-4">
+              SIL-309 — model picks winners from seeded A/B results, reviews what worked, drafts the
+              next variant pair for approval
+            </BodyText>
+            <CampaignLearningPanel />
+          </Box>
+        </AnalyticsMotionSection>
         {categories.map((category, index) => (
           <AnalyticsMotionSection
             key={category.id}
-            index={index + 1}
+            index={index + 2}
             testId={`campaigns-section-${category.id}`}
           >
             <CampaignCategorySection

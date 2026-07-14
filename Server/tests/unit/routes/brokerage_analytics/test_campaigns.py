@@ -108,6 +108,60 @@ class TestCampaignRoutes:
                 )
                 assert res.status_code == 404
 
+    def test_learning_get_null_200(self, app: Flask, client, mock_user):
+        with app.app_context():
+            with (
+                patch("app.services.auth.get_current_user", return_value=mock_user),
+                patch(
+                    "app.services.brokerage.campaigns.service.get_campaign",
+                    return_value={"success": True, "campaign": {"id": "c1"}},
+                ),
+                patch(
+                    "app.services.brokerage.campaigns.learning_artifacts.load_learning_result",
+                    return_value=None,
+                ),
+            ):
+                res = client.get(
+                    f"/api/v1/brokerage/analytics/campaigns/c1/learning"
+                    f"?brokerage_org_id={BROKERAGE_ORG_ID}"
+                )
+                assert res.status_code == 200
+                body = res.get_json()
+                assert body["success"] is True
+                assert body["learning"] is None
+
+    def test_learning_loop_post_200(self, app: Flask, client, mock_user):
+        payload = {
+            "success": True,
+            "campaign_id": "c1",
+            "winner_analysis": {"winner_variant": "B", "drivers": ["x"]},
+            "review": {"what_worked": ["y"], "source": "forced_fallback"},
+            "next_iteration_draft": {
+                "approval_required": True,
+                "status": "pending_approval",
+                "variants": [{"variant": "A"}, {"variant": "B"}],
+            },
+            "guardrails": {"auto_send": False, "pii_in_prompts": False},
+        }
+        with app.app_context():
+            with (
+                patch("app.services.auth.get_current_user", return_value=mock_user),
+                patch(
+                    "app.services.brokerage.campaigns.learning.learning_loop.run_campaign_learning_loop",
+                    return_value=payload,
+                ),
+            ):
+                res = client.post(
+                    f"/api/v1/brokerage/analytics/campaigns/c1/learning-loop"
+                    f"?brokerage_org_id={BROKERAGE_ORG_ID}",
+                    json={"skip_perplexity": True},
+                )
+                assert res.status_code == 200
+                data = res.get_json()
+                assert data["success"] is True
+                assert data["winner_analysis"]["winner_variant"] == "B"
+                assert data["next_iteration_draft"]["approval_required"] is True
+
     def test_inventory_200(self, app: Flask, client, mock_user):
         with app.app_context():
             with (

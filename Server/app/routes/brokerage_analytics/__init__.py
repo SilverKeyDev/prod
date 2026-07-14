@@ -411,6 +411,62 @@ def get_analytics_campaign_results(user, campaign_id: str):
     return jsonify(result), 200
 
 
+@brokerage_analytics_bp.route("/campaigns/<campaign_id>/learning", methods=["GET"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def get_analytics_campaign_learning(user, campaign_id: str):
+    """GET …/campaigns/{id}/learning — last SIL-309 learning-loop result."""
+    from app.services.brokerage.campaigns.learning_artifacts import load_learning_result
+    from app.services.brokerage.campaigns.service import get_campaign
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    detail = get_campaign(brokerage_org_id, campaign_id)
+    if not detail.get("success"):
+        if detail.get("error") == "campaign_not_found":
+            return jsonify({"success": False, "error": "Campaign not found"}), 404
+        return jsonify({"success": False, "error": "Failed to load campaign"}), 500
+    learning = load_learning_result(campaign_id)
+    if not learning:
+        return jsonify(
+            {
+                "success": True,
+                "brokerage_org_id": brokerage_org_id,
+                "campaign_id": campaign_id,
+                "learning": None,
+            }
+        ), 200
+    return jsonify(learning), 200
+
+
+@brokerage_analytics_bp.route("/campaigns/<campaign_id>/learning-loop", methods=["POST"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def post_analytics_campaign_learning_loop(user, campaign_id: str):
+    """
+    POST …/campaigns/{id}/learning-loop — SIL-309 one-click loop.
+
+    Scores winners, reviews what worked (Perplexity or cache), drafts next A/B
+    pair. Drafts require human approval (never auto-send).
+    Body optional: ``{"skip_perplexity": true}`` for offline demo.
+    """
+    from app.services.brokerage.campaigns.learning.learning_loop import (
+        run_campaign_learning_loop,
+    )
+
+    brokerage_org_id = req.args.get("brokerage_org_id")
+    body = req.get_json(silent=True) or {}
+    result = run_campaign_learning_loop(
+        brokerage_org_id,
+        campaign_id,
+        skip_perplexity=bool(body.get("skip_perplexity")),
+    )
+    if not result.get("success"):
+        if result.get("error") == "campaign_not_found":
+            return jsonify({"success": False, "error": "Campaign not found"}), 404
+        return jsonify({"success": False, "error": result.get("error", "learning_failed")}), 500
+    return jsonify(result), 200
+
+
 @brokerage_analytics_bp.route("/inventory", methods=["GET"])
 @handle_exceptions_with_logging
 @require_brokerage_scope

@@ -1,0 +1,27 @@
+{
+  "source": "cached_fallback",
+  "approval_required": true,
+  "status": "pending_approval",
+  "conditioning_summary": "variant-level attach rate differential",
+  "variants": [
+    {
+      "key": "A",
+      "subject": "Attach in-house title \u2014 $500 per closing",
+      "body_template": "Hi {{first_name}}, last campaign showed dollar framing and shorter subjects won. Route title in-house to recover ~$500 per close. Reply yes for a one-pager \u2014 no auto enroll.",
+      "cta_type": "soft_nudge",
+      "incentive_framing": "dollar_amount",
+      "include_meet_link": false,
+      "subject_length": 46
+    },
+    {
+      "key": "B",
+      "subject": "Book 15 min \u2014 lock in your title attach",
+      "body_template": "Hi {{first_name}}, agents who booked time with the services coordinator attached at the highest rate. Grab a Meet slot to set your default title path (goal: improve ancillary_attach_rate).",
+      "cta_type": "book_time",
+      "incentive_framing": "dollar_amount",
+      "include_meet_link": true,
+      "subject_length": 44
+    }
+  ],
+  "notes": "Cached demo draft \u2014 human approval required before any SES send."
+}

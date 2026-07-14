@@ -8,6 +8,10 @@ Tasks are organized into separate files by category:
 """
 
 # Import all tasks to ensure they are registered with Celery
+from .campaign_learning import (
+    run_campaign_learning_loop_task,
+    score_campaign_engagement_task,
+)
 from .docusign import (
     fetch_completed_documents_task,
     process_webhook_task,
@@ -34,4 +38,6 @@ __all__ = [
     "sync_brokerage_transactions_task",
     "sync_all_brokerages_incremental_task",
     "score_brokerage_ml_insights_task",
+    "score_campaign_engagement_task",
+    "run_campaign_learning_loop_task",
 ]

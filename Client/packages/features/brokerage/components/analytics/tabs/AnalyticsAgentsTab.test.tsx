@@ -20,6 +20,10 @@ vi.mock("packages/features/brokerage/components/analytics/AgentRetentionRiskPane
   AgentRetentionRiskPanel: () => <div data-testid="retention-panel" />,
 }));
 
+vi.mock("packages/features/brokerage/components/analytics/AgentRowActions", () => ({
+  AgentRowActions: () => <div data-testid="agent-row-actions" />,
+}));
+
 import { AnalyticsAgentsTab } from "./AnalyticsAgentsTab";
 
 describe("AnalyticsAgentsTab", () => {
