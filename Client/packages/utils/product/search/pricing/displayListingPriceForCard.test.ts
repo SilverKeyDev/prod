@@ -160,13 +160,19 @@ describe("displayListingPriceForCard", () => {
   });
 
   describe("string values", () => {
-    it("should add dollar sign to string without one", () => {
+    it("should format a raw numeric string with locale separators", () => {
       const result = displayListingPriceForCard("350000");
 
-      expect(result).toBe("$350000");
+      expect(result).toBe("$350,000");
     });
 
-    it("should not duplicate dollar sign", () => {
+    it("should format raw numeric strings without thousands separators", () => {
+      const result = displayListingPriceForCard("425000");
+
+      expect(result).toBe("$425,000");
+    });
+
+    it("should not duplicate dollar sign and keep formatting", () => {
       const result = displayListingPriceForCard("$350,000");
 
       expect(result).toBe("$350,000");
