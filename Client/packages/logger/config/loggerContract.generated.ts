@@ -29,6 +29,7 @@ export const LOGGER_BOOLEAN_KEYS = [
   "docusign",
   "documents",
   "transactions",
+  "email",
   "profilePreferences",
 ] as const;
 
@@ -72,6 +73,7 @@ export function buildEnvironmentDefaults(isProd: boolean): LoggerConfig {
     docusign: isProd ? true : false,
     documents: isProd ? true : false,
     transactions: isProd ? true : false,
+    email: isProd ? true : false,
     profilePreferences: isProd ? true : false,
     logLevel: (isProd ? "INFO" : "ERROR") as LogLevel,
   };

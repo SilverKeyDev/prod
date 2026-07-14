@@ -53,6 +53,8 @@ export type SearchResultListingCardProps = {
   topLeftOverlay?: ReactNode;
   /** First card in the sidebar list: prioritize image for LCP. */
   isLcpImage?: boolean;
+  /** Override default image height (results=sm, saved=responsive). */
+  imageHeight?: "sm" | "md" | "lg" | "responsive" | "tall";
 };
 
 export function SearchResultListingCard({
@@ -70,6 +72,7 @@ export function SearchResultListingCard({
   bottomContent,
   topLeftOverlay,
   isLcpImage = false,
+  imageHeight,
 }: SearchResultListingCardProps): JSX.Element {
   const handleDismissMapPreviewPointerDown = useCallback((e: PointerEvent) => {
     e.stopPropagation();
@@ -114,7 +117,7 @@ export function SearchResultListingCard({
         <CardImageContainer
           imageUrl={property.imageUrl}
           alt={property.address ?? "Property image"}
-          height={activeTab === "results" ? "sm" : "responsive"}
+          height={imageHeight ?? (activeTab === "results" ? "sm" : "responsive")}
           imageVariant="professional"
           className={activeTab === "saved" ? "rounded-t-lg" : ""}
           isLcpImage={isLcpImage}

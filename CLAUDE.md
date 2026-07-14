@@ -25,12 +25,12 @@ When continuing an in-flight workstream, read `.cursor/memory/activeContext.md` 
 | [`mcp.example.json`](mcp.example.json) | Claude daily MCP — copy to gitignored `mcp.json` at repo root |
 | [`.cursor/mcp.example.json`](.cursor/mcp.example.json) | Cursor daily MCP — copy to gitignored `.cursor/mcp.json` |
 
-Full guide: [documentation/client/tooling/claude-code-configuration.md](documentation/client/tooling/claude-code-configuration.md).
+Full guide: [documentation/guides/tooling/claude-code-configuration.md](documentation/guides/tooling/claude-code-configuration.md).
 
 ## Default persona and MCP
 
 - **Default subagent:** [`.claude/agents/silverkey-engineer.md`](.claude/agents/silverkey-engineer.md) (Linear-first, RESPA-aware, MCP-backed).
-- **Daily MCP:** `github`, `linear`, `slack` from [`mcp.example.json`](mcp.example.json). Enable add-ons (PostHog, AWS, Mercury, etc.) only when the task needs them — same dedupe policy as [cursor-configuration-optimization.md](documentation/client/tooling/cursor-configuration-optimization.md).
+- **Daily MCP:** `github`, `linear`, `slack` from [`mcp.example.json`](mcp.example.json). Enable add-ons (PostHog, AWS, Mercury, etc.) only when the task needs them — same dedupe policy as [cursor-configuration-optimization.md](documentation/guides/tooling/cursor-configuration-optimization.md).
 - **Edit `.cursor/` first;** sync [`.claude/`](.claude/) stubs when rules, agents, or skills change (see [`.claude/README.md`](.claude/README.md)).
 
 ## On-demand context (not loaded every session)

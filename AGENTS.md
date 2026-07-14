@@ -52,15 +52,15 @@ Run `make help`. Common targets:
 
 - **Thin apps:** `Client/apps/web`, `Client/apps/mobile` — routing, providers, composition.
 - **Fat packages:** `Client/packages/` — features, hooks, ui, config, services, store.
-- **Workspaces:** Buyer/seller/brokerage state in **`packages/`** — [workspace-first-architecture.md](documentation/client/architecture/workspace-first-architecture.md).
+- **Workspaces:** Buyer/seller/brokerage state in **`packages/`** — [workspace-first-architecture.md](documentation/architecture/workspace-first-architecture.md).
 - **API contract:** Edit **`openapi/`** only; never hand-edit generated outputs.
-- **Depth:** [Client/ARCHITECTURE.md](Client/ARCHITECTURE.md), [ARCHITECTURE.md](ARCHITECTURE.md), [documentation/client/architecture/thin-app-architecture.md](documentation/client/architecture/thin-app-architecture.md).
+- **Depth:** [Client/ARCHITECTURE.md](Client/ARCHITECTURE.md), [ARCHITECTURE.md](ARCHITECTURE.md), [documentation/architecture/thin-app-architecture.md](documentation/architecture/thin-app-architecture.md).
 
 | Docs | Start |
 | ---- | ----- |
 | Canonical tree | [documentation/README.md](documentation/README.md) |
-| Server ops | [documentation/server/ops/postgres.md](documentation/server/ops/postgres.md) |
-| Placement rules | [documentation/HOW_WE_DOCUMENT.md](documentation/HOW_WE_DOCUMENT.md) |
+| Server ops | [documentation/runbooks/postgres.md](documentation/runbooks/postgres.md) |
+| Placement rules | [documentation/how-we-document.md](documentation/how-we-document.md) |
 
 ---
 
@@ -79,8 +79,8 @@ Run `make help`. Common targets:
 
 ## Conventions
 
-- **Layers:** [frontend-architecture.mdc](.cursor/rules/frontend/frontend-architecture.mdc), [layered-architecture-imports.md](documentation/client/architecture/layered-architecture-imports.md)
-- **UI:** [LINTING.md](documentation/client/standards/LINTING.md), [ui-components.mdc](.cursor/rules/frontend/ui-components.mdc)
+- **Layers:** [frontend-architecture.mdc](.cursor/rules/frontend/frontend-architecture.mdc), [layered-architecture-imports.md](documentation/architecture/layered-architecture-imports.md)
+- **UI:** [LINTING.md](documentation/reference/linting.md), [ui-components.mdc](.cursor/rules/frontend/ui-components.mdc)
 - **CI:** [ci-gates.mdc](.cursor/rules/shared/ci-gates.mdc) — `pnpm check` + `make lint` before merge
 - **Commits:** `[LINEAR-ID] short description` + Linear link in PR
 - **Planned work:** [Linear — SilverKey team](https://linear.app/silverkey/team/SIL/all) only — do not add repo markdown backlogs (`to-implement-soon/`, triage queues)
@@ -94,9 +94,9 @@ Run `make help`. Common targets:
 | **Always-on rules** | `.cursor/rules/shared/` (security, thin-app, linting, documentation, context, code-style, env-vars-minimal) |
 | **Company context** | [CLAUDE.md](CLAUDE.md), [silverkey-context.mdc](.cursor/rules/shared/silverkey-context.mdc), [pitch-and-fundraising.mdc](.cursor/rules/shared/pitch-and-fundraising.mdc) |
 | **Skills / subagents** | `.cursor/skills/` (workflows), `.cursor/agents/` (specialized personas — lint, security, component-audit axes, architecture boundary, dead code). Default: `silverkey-engineer`. Docs/reorg: skills `documentation-placement`, `post-major-change-sync`, `make check-docs` — not multi-agent fleets. |
-| **Claude** | [CLAUDE.md](CLAUDE.md), [`.claude/`](.claude/) → `.cursor/`; guide: [claude-code-configuration.md](documentation/client/tooling/claude-code-configuration.md) |
-| **Memory** | [.cursor/memory/](.cursor/memory/), [cursor-agent-memory.md](documentation/client/tooling/cursor-agent-memory.md) |
-| **MCP** | [mcp.example.json](.cursor/mcp.example.json), `make setup-mcp` — daily: GitHub, Linear, Slack; see [cursor-configuration-optimization.md](documentation/client/tooling/cursor-configuration-optimization.md) |
+| **Claude** | [CLAUDE.md](CLAUDE.md), [`.claude/`](.claude/) → `.cursor/`; guide: [claude-code-configuration.md](documentation/guides/tooling/claude-code-configuration.md) |
+| **Memory** | [.cursor/memory/](.cursor/memory/), [cursor-agent-memory.md](documentation/guides/tooling/cursor-agent-memory.md) |
+| **MCP** | [mcp.example.json](.cursor/mcp.example.json), `make setup-mcp` — daily: GitHub, Linear, Slack; see [cursor-configuration-optimization.md](documentation/guides/tooling/cursor-configuration-optimization.md) |
 | **Inventory** | [cursor-audit-latest.md](documentation/internal/cursor-audit-latest.md) |
 
 **After major changes:** [post-major-change-checklist.md](documentation/internal/post-major-change-checklist.md).
@@ -115,7 +115,7 @@ Run `make help`. Common targets:
 
 ## Server / API
 
-- [documentation/server/README.md](documentation/server/README.md)
+- [documentation/README.md](documentation/README.md)
 - HTTP shape changes → `make openapi-verify` + contract tests when applicable
 
 ---

@@ -24,21 +24,21 @@ pnpm test:run      # CI
 pnpm test:coverage
 ```
 
-Coverage thresholds in `vitest.config.ts`. Place `*.test.ts` next to source. Details: [documentation/client/qa/](../documentation/client/qa/README.md).
+Coverage thresholds in `vitest.config.ts`. Place `*.test.ts` next to source. Details: [documentation/runbooks/qa/](../documentation/runbooks/qa/README.md).
 
 ## OpenAPI types
 
 Edit repo **`openapi/`**, then `pnpm generate:api-types` or `make openapi`. Do not edit `packages/types/api.generated.ts`.
 
-- [openapi-workflow.md](../documentation/server/openapi-workflow.md)
+- [openapi-workflow.md](../documentation/guides/openapi-workflow.md)
 - [openapi-workflow.mdc](../.cursor/rules/shared/openapi-workflow.mdc)
 
 ## Where to read more
 
 | Topic | Doc |
 | ----- | --- |
-| Architecture | [thin-app-architecture.md](../documentation/client/architecture/thin-app-architecture.md), [Client/ARCHITECTURE.md](ARCHITECTURE.md) |
+| Architecture | [thin-app-architecture.md](../documentation/architecture/thin-app-architecture.md), [Client/ARCHITECTURE.md](ARCHITECTURE.md) |
 | Packages | [packages/README.md](packages/README.md) |
-| Lint & UI | [LINTING.md](../documentation/client/standards/LINTING.md) |
+| Lint & UI | [LINTING.md](../documentation/reference/linting.md) |
 | Platform files | [platform-file-extensions.mdc](../.cursor/rules/frontend/platform-file-extensions.mdc) |
-| Doc index | [documentation/client/README.md](../documentation/client/README.md) |
+| Doc index | [documentation/README.md](../documentation/README.md) |

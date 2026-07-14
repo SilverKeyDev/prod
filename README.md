@@ -64,7 +64,7 @@ pnpm test:run       # Vitest
 
 **Repo-wide:** `./scripts/ci/run-all-linters.sh client|server|all` or `make lint` (all scopes).
 
-**Server:** activate `Server/.venv`, then use `Server/README.md` and [`documentation/server/`](documentation/server/README.md) for `pytest` and Python linters.
+**Server:** activate `Server/.venv`, then use `Server/README.md` and [`documentation/`](documentation/README.md) for `pytest` and Python linters.
 
 ---
 
@@ -85,11 +85,11 @@ make help
 | [`Client/`](Client/) | pnpm workspace: **`apps/web`**, **`apps/mobile`** (thin shells), **`packages/`** (features, hooks, UI, config, store, …). |
 | [`Server/`](Server/) | Flask app, services, tests, `Server/scripts/` (venv bootstrap, secrets, lint). |
 | [`openapi/`](openapi/) | HTTP API contract; drives generated TS/Python types. |
-| [`documentation/`](documentation/) | Canonical long-form documentation (incl. server ops under `documentation/server/ops/`). |
+| [`documentation/`](documentation/) | Canonical long-form documentation (incl. server ops under `documentation/runbooks/`). |
 | [`scripts/`](scripts/) | `scripts/setup/`, `scripts/ci/`, `scripts/run/` dev stacks. |
 | [`.github/`](.github/) | Workflows and templates. |
 
-**Architecture rule:** business logic and shared UI live in **`Client/packages/`**; **`Client/apps/*`** stay thin (routing, providers, page composition). See [`documentation/client/architecture/thin-app-architecture.md`](documentation/client/architecture/thin-app-architecture.md) and [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md).
+**Architecture rule:** business logic and shared UI live in **`Client/packages/`**; **`Client/apps/*`** stay thin (routing, providers, page composition). See [`documentation/architecture/thin-app-architecture.md`](documentation/architecture/thin-app-architecture.md) and [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md).
 
 ---
 
@@ -100,9 +100,9 @@ make help
 | **Local machine setup** | **[setup.md](setup.md)** |
 | Agent / engineer quickstart | [`AGENTS.md`](AGENTS.md) |
 | Doc index | [`documentation/README.md`](documentation/README.md) |
-| Client (lint, packages, RN vs web) | [`documentation/client/README.md`](documentation/client/README.md) |
-| Server | [`documentation/server/README.md`](documentation/server/README.md) |
-| Server ops (Postgres, Redis) | [`documentation/server/ops/`](documentation/server/ops/postgres.md) |
+| Client (lint, packages, RN vs web) | [`documentation/README.md`](documentation/README.md) |
+| Server | [`documentation/README.md`](documentation/README.md) |
+| Server ops (Postgres, Redis) | [`documentation/runbooks/`](documentation/runbooks/postgres.md) |
 
 ---
 
@@ -119,7 +119,7 @@ Regenerate: `make openapi` (bundle + server + client) or `cd Client && pnpm gene
 
 ## Security
 
-- Engineering controls and patterns: [`documentation/security/SECURITY.md`](documentation/security/SECURITY.md) and [`.cursor/rules/shared/security.mdc`](.cursor/rules/shared/security.mdc).
+- Engineering controls and patterns: [`documentation/policies/security.md`](documentation/policies/security.md) and [`.cursor/rules/shared/security.mdc`](.cursor/rules/shared/security.mdc).
 - **Do not** commit secrets; use env vars and existing secrets scripts.
 
 ---

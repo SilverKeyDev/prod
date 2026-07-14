@@ -9,7 +9,7 @@ alwaysApply: false
 
 When the user asks for a **component audit**, **rubric review**, or **structured React/TS review** against the SilverKey audit process:
 
-1. Follow the full rubric and workflow in **[documentation/client/patterns/react-component-audit-rubric.md](../../../documentation/client/patterns/react-component-audit-rubric.md)**.
+1. Follow the full rubric and workflow in **[documentation/architecture/patterns/react-component-audit-rubric.md](../../../documentation/architecture/patterns/react-component-audit-rubric.md)**.
 2. **Evidence:** For any **score of 1** on any axis, cite **`path:startLine-endLine`** from an actual file read and include a brief quoted excerpt. If you cannot cite lines, do not assert a score of 1.
 3. **Recommendations:** Do not recommend a change without quoting the **existing** code first.
 4. **Method:** Prefer grep/read and dependency or bundle tool output over speculation.

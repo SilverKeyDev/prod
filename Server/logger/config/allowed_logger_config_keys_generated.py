@@ -27,6 +27,7 @@ ALLOWED_LOGGER_CONFIG_KEYS: frozenset[str] = frozenset(
         "docusign",
         "documents",
         "transactions",
+        "email",
         "profilePreferences",
         "logLevel",
     }

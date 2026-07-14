@@ -328,7 +328,7 @@ For SSE routes, validate the **incoming JSON request** when applicable; skip res
 
 ## Resources
 
-- **Migration / rollout:** [openapi-validation-rollout.md](../../../documentation/server/openapi-validation-rollout.md)
+- **Migration / rollout:** [openapi-validation-rollout.md](../../../documentation/openapi-validation-rollout.md)
 - **OpenAPI Spec**: [`openapi.yaml`](../../openapi.yaml)
 - **Generated Schemas**: [`Server/app/schemas/generated.py`](../schemas/generated.py)
 - **Contract Tests**: [`Server/tests/contract/`](../../tests/contract/)

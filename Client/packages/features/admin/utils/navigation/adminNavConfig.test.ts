@@ -16,6 +16,7 @@ describe("adminNavConfig", () => {
     expect(ADMIN_ROUTE_SEGMENTS.partners).toBe("partners");
     expect(ADMIN_ROUTE_SEGMENTS.devPersona).toBe("dev-persona");
     expect(ADMIN_ROUTE_SEGMENTS.superadmin).toBe("superadmin");
+    expect(ADMIN_ROUTE_SEGMENTS.wiki).toBe("wiki");
   });
 
   it("superadminOnlyRouteSegments includes partners, support messaging, and superadmin", () => {
@@ -36,6 +37,7 @@ describe("adminNavConfig", () => {
   it("segmentFromPath returns first segment under /admin/", () => {
     expect(segmentFromPath(`${ADMIN_BASE_PATH}/logging`)).toBe("logging");
     expect(segmentFromPath(`${ADMIN_BASE_PATH}/dev-persona/extra`)).toBe("dev-persona");
+    expect(segmentFromPath(`${ADMIN_BASE_PATH}/wiki/client/architecture/foo`)).toBe("wiki");
   });
 
   it("segmentFromPath returns null for unknown admin child", () => {
@@ -53,10 +55,11 @@ describe("adminNavConfig", () => {
     }
   });
 
-  it("ADMIN_NAV_SPEC includes logging, integrations, dev persona, and unique keys", () => {
+  it("ADMIN_NAV_SPEC includes logging, wiki, integrations, dev persona, and unique keys", () => {
     const keys = ADMIN_NAV_SPEC.map((r) => r.key);
     expect(new Set(keys).size).toBe(keys.length);
     expect(keys).toContain(ADMIN_ROUTE_SEGMENTS.logging);
+    expect(keys).toContain(ADMIN_ROUTE_SEGMENTS.wiki);
     expect(keys).toContain(ADMIN_ROUTE_SEGMENTS.integrations);
     expect(keys).not.toContain("operations");
     expect(keys).toContain(ADMIN_ROUTE_SEGMENTS.devPersona);

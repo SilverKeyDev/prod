@@ -25,43 +25,42 @@ Monorepo map and pointers to canonical docs. **Do not duplicate** long guides he
 
 | Principle | Entry |
 | --------- | ----- |
-| Thin apps, fat packages | [`documentation/client/architecture/thin-app-architecture.md`](documentation/client/architecture/thin-app-architecture.md), [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md) |
-| Client import layers | [`documentation/client/architecture/layered-architecture-imports.md`](documentation/client/architecture/layered-architecture-imports.md) |
-| Workspace-first routing | [`documentation/client/architecture/workspace-first-architecture.md`](documentation/client/architecture/workspace-first-architecture.md) |
+| Thin apps, fat packages | [`documentation/architecture/thin-app-architecture.md`](documentation/architecture/thin-app-architecture.md), [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md) |
+| Client import layers | [`documentation/architecture/layered-architecture-imports.md`](documentation/architecture/layered-architecture-imports.md) |
+| Workspace-first routing | [`documentation/architecture/workspace-first-architecture.md`](documentation/architecture/workspace-first-architecture.md) |
 | Cross-platform files | [`.cursor/rules/shared/cross-platform-component-reuse.mdc`](.cursor/rules/shared/cross-platform-component-reuse.mdc) |
 | Backend routes → services | [`Server/ARCHITECTURE.md`](Server/ARCHITECTURE.md), [`.cursor/rules/backend/`](.cursor/rules/backend/) |
-| Security & compliance | [`documentation/security/SECURITY.md`](documentation/security/SECURITY.md), [`documentation/compliance/`](documentation/compliance/) |
-| OpenAPI contract | [`.cursor/rules/shared/openapi-workflow.mdc`](.cursor/rules/shared/openapi-workflow.mdc), [`documentation/server/openapi-workflow.md`](documentation/server/openapi-workflow.md) |
+| Security & compliance | [`documentation/policies/security.md`](documentation/policies/security.md), [`documentation/policies/`](documentation/policies/) |
+| OpenAPI contract | [`.cursor/rules/shared/openapi-workflow.mdc`](.cursor/rules/shared/openapi-workflow.mdc), [`documentation/guides/openapi-workflow.md`](documentation/guides/openapi-workflow.md) |
 
 ## Client documentation
 
 | Topic | Doc |
 | ----- | --- |
 | Overview | [`Client/ARCHITECTURE.md`](Client/ARCHITECTURE.md) |
-| Packages & imports | [`documentation/client/architecture/shared-packages.md`](documentation/client/architecture/shared-packages.md), [`Client/packages/README.md`](Client/packages/README.md) |
-| Mobile | [`documentation/client/platform/mobile-app-structure.md`](documentation/client/platform/mobile-app-structure.md) |
-| Lint & UI standards | [`documentation/client/standards/LINTING.md`](documentation/client/standards/LINTING.md) |
-| QA runbooks | [`documentation/client/qa/`](documentation/client/qa/README.md) |
+| Packages & imports | [`documentation/architecture/shared-packages.md`](documentation/architecture/shared-packages.md), [`Client/packages/README.md`](Client/packages/README.md) |
+| Mobile | [`documentation/architecture/platform/mobile-app-structure.md`](documentation/architecture/platform/mobile-app-structure.md) |
+| Lint & UI standards | [`documentation/reference/linting.md`](documentation/reference/linting.md) |
+| QA runbooks | [`documentation/runbooks/qa/`](documentation/runbooks/qa/README.md) |
 
 ## Server documentation
 
 | Topic | Doc |
 | ----- | --- |
-| Overview | [`documentation/server/README.md`](documentation/server/README.md), [`Server/README.md`](Server/README.md) |
-| Ops (Postgres, Redis, scripts) | [`documentation/server/ops/`](documentation/server/ops/postgres.md) |
-| Deployment | [`documentation/server/deployment.md`](documentation/server/deployment.md) |
+| Overview | [`documentation/README.md`](documentation/README.md), [`Server/README.md`](Server/README.md) |
+| Ops (Postgres, Redis, scripts) | [`documentation/runbooks/`](documentation/runbooks/postgres.md) |
+| Deployment | [`documentation/guides/deployment.md`](documentation/guides/deployment.md) |
 | Search / home matching | READMEs under `Server/app/services/search/home_matching/` |
 
-## Product & transactions
+## Product features
 
-- [`documentation/transactions/`](documentation/transactions/README.md)
-- Feature guides: [`documentation/client/features/`](documentation/client/features/README.md)
+- Feature guides: [`documentation/features/`](documentation/features/README.md)
 
 ## Local development
 
 - **Setup:** [`setup.md`](setup.md) (`make setup`, `make refresh`)
 - **Commands & CI gates:** [`AGENTS.md`](AGENTS.md), [`README.md`](README.md)
-- **How we document:** [`documentation/HOW_WE_DOCUMENT.md`](documentation/HOW_WE_DOCUMENT.md)
+- **How we document:** [`documentation/how-we-document.md`](documentation/how-we-document.md)
 
 ## AI assistants
 

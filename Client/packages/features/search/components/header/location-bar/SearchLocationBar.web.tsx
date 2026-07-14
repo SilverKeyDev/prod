@@ -42,6 +42,8 @@ export function SearchLocationBarWeb({
   const clearLocationPlaceSearchArea = useSearchContextStore((s) => s.clearLocationPlaceSearchArea);
   const setLocationBarDraft = useSearchContextStore((s) => s.setLocationBarDraft);
   const setLocationBarExternalSubmit = useSearchContextStore((s) => s.setLocationBarExternalSubmit);
+  const locationBarSeed = useSearchContextStore((s) => s.locationBarSeed);
+  const setLocationBarSeed = useSearchContextStore((s) => s.setLocationBarSeed);
   const [localValue, setLocalValue] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [hasSelected, setHasSelected] = useState(false);
@@ -63,6 +65,16 @@ export function SearchLocationBarWeb({
   });
 
   const showCurrentLocation = isFocused && trimmedInput.length === 0 && !hasSelected;
+
+  // One-shot seed from the public agent page handoff (SIL-291). A committed
+  // place seeds as selected (dropdown closed); an uncommitted query seeds as
+  // unselected so suggestions reappear and the user can pick again.
+  useEffect(() => {
+    if (locationBarSeed == null) return;
+    setLocalValue(locationBarSeed.text);
+    setHasSelected(locationBarSeed.selected);
+    setLocationBarSeed(null);
+  }, [locationBarSeed, setLocationBarSeed]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

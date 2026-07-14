@@ -4,9 +4,12 @@ import { StyleSheet, TextInput } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { color } from "packages/design-tokens";
-import { CALENDAR_EVENT_KINDS, type CalendarEventKindId } from "packages/features/calendar";
 import { Button, Dropdown } from "packages/ui";
 import { Box, ScrollView, Text, TouchableBox } from "packages/ui/components/structure/primitives";
+import {
+  CALENDAR_EVENT_KINDS,
+  type CalendarEventKindId,
+} from "packages/utils/comms/calendar/createEvent/calendarEventKinds";
 
 import {
   useCalendarEventRequestForm,

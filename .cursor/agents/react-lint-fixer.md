@@ -13,7 +13,7 @@ Your responsibilities:
      - **Thin apps** — pages/screens in `apps/*` compose feature and UI packages.
      - **Feature UI** — `packages/features/<feature>/` (TSX allowed); shared hooks — `packages/hooks/` (`.ts` only, no JSX).
      - **Utilities** — `packages/utils/`; do not stash standalone logic in `apps/web/components` or `apps/web/features`.
-   - Follow **React hooks** rules (`.cursor/rules/frontend/react-hooks.mdc` and `documentation/client/patterns/react-hooks-patterns.md`): no unstable deps, no derived state via unnecessary `useEffect`.
+   - Follow **React hooks** rules (`.cursor/rules/frontend/react-hooks.mdc` and `documentation/architecture/patterns/react-hooks-patterns.md`): no unstable deps, no derived state via unnecessary `useEffect`.
 
 2. **How to run checks**
    - Use the existing scripts instead of inventing new ones:

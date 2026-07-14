@@ -1,24 +1,42 @@
 /**
  * AgentRetentionRiskPanel — SIL-278
  *
- * Shows brokerage admins which agents are flight risks (top producers
- * underpaid vs market benchmarks) and which are over-compensated relative
- * to their production volume. Ranked by risk score.
- *
- * Methodology is surfaced inline so brokerage admins can explain the
- * scoring to agents in retention conversations.
+ * Shows brokerage admins blended ML flight-risk scores and per-factor drivers.
  */
-import React, { useState } from "react";
+import { useState } from "react";
 
-import Button from "packages/ui/components/actions/button/Button";
+import { Icon } from "@ui/icons";
+
+import { color } from "packages/design-tokens";
+import { useAgentRetentionRisk } from "packages/features/brokerage/hooks/useAgentRetentionRisk";
+import type { AgentRetentionRisk } from "packages/features/brokerage/types/analytics";
+import { exportAnalyticsCsv } from "packages/features/brokerage/utils/analytics/exportCsv";
+import {
+  FLIGHT_RISK_FACTOR_KEYS,
+  FLIGHT_RISK_FACTOR_LABELS,
+  type RiskScoreBand,
+  riskScoreBand,
+  topFlightRiskDrivers,
+} from "packages/features/brokerage/utils/analytics/flightRiskFactors";
+import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
+import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
+import type { IconName } from "packages/ui/types/icons";
 
-import { useAgentRetentionRisk } from "../../hooks/useAgentRetentionRisk";
-import type { BrokerageAgentRetentionFixture } from "../../utils/brokerageAnalyticsFixtures";
+import { AgentRowActions } from "./AgentRowActions";
+import { AnalyticsDataTable } from "./AnalyticsDataTable";
+import { SectionCard } from "./AnalyticsShellShared";
+
+function driverScoreColor(band: RiskScoreBand): string {
+  if (band === "high") return color("state.danger.DEFAULT");
+  if (band === "medium") return color("state.warning.DEFAULT");
+  return color("state.success.DEFAULT");
+}
 
 type RiskTier = "flight_risk" | "watch" | "stable" | "over_comp";
+type RetentionAgent = AgentRetentionRisk["agents"][number];
 
 const TIER_LABELS: Record<RiskTier, string> = {
   flight_risk: "Flight Risk",
@@ -34,279 +52,258 @@ const TIER_STYLES: Record<RiskTier, string> = {
   over_comp: "bg-purple-100 text-purple-700",
 };
 
-const TIER_FILTERS: { label: string; value: string }[] = [
+const TIER_ICONS: Record<RiskTier, IconName> = {
+  flight_risk: "alert-triangle",
+  watch: "eye",
+  stable: "check-circle",
+  over_comp: "trending-up",
+};
+
+const TIER_FILTERS: { label: string; value: string; iconName?: IconName }[] = [
   { label: "All", value: "all" },
-  { label: "Flight Risk", value: "flight_risk" },
-  { label: "Watch", value: "watch" },
-  { label: "Stable", value: "stable" },
-  { label: "Over-Comp", value: "over_comp" },
+  { label: "Flight Risk", value: "flight_risk", iconName: "alert-triangle" },
+  { label: "Watch", value: "watch", iconName: "eye" },
+  { label: "Stable", value: "stable", iconName: "check-circle" },
+  { label: "Over-Comp", value: "over_comp", iconName: "trending-up" },
 ];
 
-function exportToCsv(rows: BrokerageAgentRetentionFixture["agents"]) {
-  const headers = [
-    "Name",
-    "Office",
-    "Transactions",
-    "Est. GCI ($)",
-    "Current Split %",
-    "Market Benchmark %",
-    "Split Gap",
-    "Risk Score",
-    "Risk Tier",
-    "Percentile",
-    "Recommended Action",
-  ];
-  const lines = rows.map((a) =>
+function exportRetentionCsv(rows: RetentionAgent[]) {
+  exportAnalyticsCsv(
+    "agent-retention-risk.csv",
     [
+      "Name",
+      "Office",
+      "Transactions",
+      "Est. GCI ($)",
+      "Blended Risk Score",
+      "Risk Tier",
+      ...FLIGHT_RISK_FACTOR_KEYS.map((key) => FLIGHT_RISK_FACTOR_LABELS[key]),
+      "Current Split %",
+      "Market Benchmark %",
+      "Split Gap",
+      "Percentile",
+      "Recommended Action",
+    ],
+    rows.map((a) => [
       a.name,
       a.office,
       a.total_transactions,
       a.estimated_gci,
+      a.risk_score,
+      a.risk_tier,
+      ...FLIGHT_RISK_FACTOR_KEYS.map((key) => a.factor_scores[key]),
       a.current_split_percent,
       a.market_benchmark_split_percent,
       a.split_gap,
-      a.risk_score,
-      a.risk_tier,
       a.peer_production_percentile,
       `"${a.recommended_action}"`,
-    ].join(",")
+    ])
   );
-  const csv = [headers.join(","), ...lines].join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "agent-retention-risk.csv";
-  link.click();
-  URL.revokeObjectURL(url);
 }
 
-export function AgentRetentionRiskPanel({
-  period = "all",
-}: {
-  period?: import("../../hooks/useBrokerageAnalytics").TimePeriod;
-}) {
+export function AgentRetentionRiskPanel({ period = "all" }: { period?: TimePeriod }) {
   const { data, isLoading, error } = useAgentRetentionRisk(period);
   const [tierFilter, setTierFilter] = useState<string>("all");
 
   if (isLoading) {
     return (
-      <Box className="rounded-xl border border-gray-200 bg-white p-6">
-        <BodyText size="sm" className="text-gray-400">
+      <SectionCard title="Agent Retention Risk" iconName="alert-triangle">
+        <BodyText size="sm" muted>
           Loading retention risk data...
         </BodyText>
-      </Box>
+      </SectionCard>
     );
   }
 
   if (error || !data) {
     return (
-      <Box className="rounded-xl border border-gray-200 bg-white p-6">
-        <BodyText size="sm" className="text-red-500">
+      <SectionCard title="Agent Retention Risk" iconName="alert-triangle">
+        <BodyText size="sm" muted>
           Failed to load retention risk data.
         </BodyText>
-      </Box>
+      </SectionCard>
     );
   }
 
   const filtered =
     tierFilter === "all" ? data.agents : data.agents.filter((a) => a.risk_tier === tierFilter);
 
+  const summaryCards: { tier: RiskTier; count: number; detail?: string }[] = [
+    {
+      tier: "flight_risk",
+      count: data.summary.flight_risk_count,
+      detail: `$${data.summary.estimated_at_risk_gci.toLocaleString()} GCI at risk`,
+    },
+    { tier: "watch", count: data.summary.watch_count },
+    { tier: "stable", count: data.summary.stable_count },
+    { tier: "over_comp", count: data.summary.over_comp_count },
+  ];
+
   return (
-    <Box className="space-y-6 rounded-xl border border-gray-200 bg-white p-6">
-      {/* Header */}
-      <Box className="flex items-start justify-between gap-4">
-        <Box>
-          <Title size="sm" as="h2" className="font-sans font-semibold text-gray-900 sm:text-lg">
-            Agent Retention Risk
-          </Title>
-          <BodyText size="sm" className="mt-1 text-gray-500">
-            Cross-references production volume against split structures to flag flight risks and
-            over-compensated agents.
-          </BodyText>
-        </Box>
+    <SectionCard title="Agent Retention Risk" iconName="alert-triangle">
+      <Box className="mb-4 flex items-start justify-between gap-4">
+        <BodyText size="sm" muted>
+          Blended ML retention model scores agents across compensation, production momentum, peer
+          standing, engagement, and ancillary attach — then ranks flight risk by the combined score.
+        </BodyText>
         <Button
-          onClick={() => exportToCsv(filtered)}
+          type="button"
           variant="outline"
           size="sm"
+          iconName="download"
+          onPress={() => exportRetentionCsv(filtered)}
           className="shrink-0"
         >
           Export CSV
         </Button>
       </Box>
 
-      {/* Summary KPIs */}
-      <Box className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Box className="rounded-lg bg-red-50 p-4">
-          <BodyText size="xs" className="uppercase tracking-wide text-red-500">
-            Flight Risk
-          </BodyText>
-          <Title size="lg" className="mt-1 font-sans font-bold text-red-700">
-            {data.summary.flight_risk_count}
-          </Title>
-          <BodyText size="xs" className="mt-1 text-red-400">
-            ${data.summary.estimated_at_risk_gci.toLocaleString()} GCI at risk
-          </BodyText>
-        </Box>
-        <Box className="rounded-lg bg-yellow-50 p-4">
-          <BodyText size="xs" className="uppercase tracking-wide text-yellow-600">
-            Watch
-          </BodyText>
-          <Title size="lg" className="mt-1 font-sans font-bold text-yellow-700">
-            {data.summary.watch_count}
-          </Title>
-        </Box>
-        <Box className="rounded-lg bg-green-50 p-4">
-          <BodyText size="xs" className="uppercase tracking-wide text-green-600">
-            Stable
-          </BodyText>
-          <Title size="lg" className="mt-1 font-sans font-bold text-green-700">
-            {data.summary.stable_count}
-          </Title>
-        </Box>
-        <Box className="rounded-lg bg-purple-50 p-4">
-          <BodyText size="xs" className="uppercase tracking-wide text-purple-600">
-            Over-Comp
-          </BodyText>
-          <Title size="lg" className="mt-1 font-sans font-bold text-purple-700">
-            {data.summary.over_comp_count}
-          </Title>
-        </Box>
+      <Box className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {summaryCards.map(({ tier, count, detail }) => (
+          <Box key={tier} className="border-border bg-background-surface rounded-lg border p-4">
+            <Box className="flex items-center gap-1.5">
+              <Icon name={TIER_ICONS[tier]} className="text-text-secondary h-3.5 w-3.5 shrink-0" />
+              <BodyText size="xs" muted className="uppercase tracking-wide">
+                {TIER_LABELS[tier]}
+              </BodyText>
+            </Box>
+            <Title size="lg" className="mt-1">
+              {count}
+            </Title>
+            {detail ? (
+              <BodyText size="xs" muted className="mt-1">
+                {detail}
+              </BodyText>
+            ) : null}
+          </Box>
+        ))}
       </Box>
 
-      {/* Methodology note */}
-      <Box className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
-        <BodyText size="xs" className="text-gray-500">
-          <BodyText as="span" size="xs" className="font-medium text-gray-700">
+      <Box className="border-border bg-background-muted mb-4 rounded-lg border px-4 py-3">
+        <BodyText size="xs" muted>
+          <BodyText as="span" size="xs" className="font-medium">
             Methodology:{" "}
           </BodyText>
           {data.methodology}
         </BodyText>
       </Box>
 
-      {/* Tier filter tabs */}
-      <Box className="flex flex-wrap gap-2">
+      <Box className="mb-4 flex flex-wrap gap-2">
         {TIER_FILTERS.map((f) => (
           <Button
             key={f.value}
-            onClick={() => setTierFilter(f.value)}
-            variant={tierFilter === f.value ? "primary" : "secondary"}
+            type="button"
+            variant={tierFilter === f.value ? "primary" : "ghost"}
             size="sm"
-            rounded="full"
+            iconName={f.iconName}
+            onPress={() => setTierFilter(f.value)}
+            className={
+              tierFilter === f.value
+                ? "rounded-full"
+                : "rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }
           >
             {f.label}
           </Button>
         ))}
       </Box>
 
-      {/* Agent Table */}
-      <Box className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 text-left text-xs uppercase tracking-wide text-gray-500">
-              <th className="pb-3 pr-4 font-medium">Agent</th>
-              <th className="pb-3 pr-4 text-right font-medium">GCI</th>
-              <th className="pb-3 pr-4 text-right font-medium">Their Split</th>
-              <th className="pb-3 pr-4 text-right font-medium">Market</th>
-              <th className="pb-3 pr-4 text-right font-medium">Gap</th>
-              <th className="pb-3 pr-4 text-right font-medium">Score</th>
-              <th className="pb-3 font-medium">Tier</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filtered.map((agent) => (
-              <tr key={agent.agent_id}>
-                <td className="py-3 pr-4">
-                  <BodyText size="sm" className="font-medium text-gray-900">
-                    {agent.name}
-                  </BodyText>
-                  <BodyText size="xs" className="mt-0.5 text-gray-400">
-                    {agent.office}
-                  </BodyText>
-                  <BodyText size="xs" className="mt-0.5 italic text-gray-400">
-                    {agent.recommended_action}
-                  </BodyText>
-                </td>
-                <td className="py-3 pr-4 text-right text-gray-700">
-                  ${agent.estimated_gci.toLocaleString()}
-                </td>
-                <td className="py-3 pr-4 text-right font-medium text-gray-900">
-                  {agent.current_split_percent}%
-                </td>
-                <td className="py-3 pr-4 text-right text-gray-500">
-                  {agent.market_benchmark_split_percent}%
-                </td>
-                <td className="py-3 pr-4 text-right">
-                  <BodyText
-                    as="span"
-                    size="sm"
-                    className={
-                      agent.split_gap < 0
-                        ? "font-semibold text-red-600"
-                        : agent.split_gap > 5
-                          ? "font-semibold text-purple-600"
-                          : "text-gray-500"
-                    }
-                  >
-                    {agent.split_gap > 0 ? "+" : ""}
-                    {agent.split_gap}pts
-                  </BodyText>
-                </td>
-                <td className="py-3 pr-4 text-right">
-                  <BodyText
-                    as="span"
-                    size="sm"
-                    className={
-                      agent.risk_score >= 70
-                        ? "font-bold text-red-600"
-                        : agent.risk_score >= 40
-                          ? "font-semibold text-yellow-600"
-                          : "text-gray-500"
-                    }
-                  >
-                    {agent.risk_score}
-                  </BodyText>
-                </td>
-                <td className="py-3">
-                  <BodyText
-                    as="span"
-                    size="xs"
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      TIER_STYLES[agent.risk_tier as RiskTier]
-                    }`}
-                  >
-                    {TIER_LABELS[agent.risk_tier as RiskTier]}
-                  </BodyText>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {filtered.length === 0 && (
-          <BodyText size="sm" className="py-6 text-center text-gray-400">
-            No agents in this tier.
-          </BodyText>
-        )}
-      </Box>
-
-      {/* Market Benchmark Reference */}
-      <Box>
-        <BodyText size="xs" className="mb-3 font-medium uppercase tracking-wide text-gray-500">
-          Market Benchmark Splits by Production Tier
-        </BodyText>
-        <Box className="flex flex-wrap gap-3">
-          {data.market_benchmarks.map((b) => (
-            <Box key={b.tier} className="rounded-lg border border-gray-200 px-3 py-2">
-              <BodyText as="span" size="sm" className="text-gray-500">
-                {b.tier}
+      <AnalyticsDataTable
+        rows={filtered}
+        rowKey={(agent) => agent.agent_id}
+        emptyMessage="No agents in this tier."
+        columns={[
+          {
+            key: "agent",
+            header: "Agent",
+            render: (agent) => (
+              <Box>
+                <BodyText className="font-medium">{agent.name}</BodyText>
+                <BodyText size="xs" muted className="mt-0.5">
+                  {agent.office}
+                </BodyText>
+                <BodyText size="xs" muted className="mt-0.5 italic">
+                  {agent.recommended_action}
+                </BodyText>
+              </Box>
+            ),
+          },
+          {
+            key: "gci",
+            header: "GCI",
+            headerClassName: "py-2 pr-4 text-right font-medium",
+            cellClassName: "py-2 pr-4 text-right",
+            render: (agent) => `$${agent.estimated_gci.toLocaleString()}`,
+          },
+          {
+            key: "score",
+            header: "Score",
+            headerClassName: "py-2 pr-4 text-right font-medium",
+            cellClassName: "py-2 pr-4 text-right",
+            render: (agent) => (
+              <BodyText
+                as="span"
+                className="font-bold tabular-nums"
+                style={{
+                  color: driverScoreColor(riskScoreBand(agent.risk_score)),
+                }}
+              >
+                {agent.risk_score}
               </BodyText>
-              <BodyText as="span" size="sm" className="ml-2 font-semibold text-gray-800">
-                {b.market_split_percent}/{100 - b.market_split_percent}
+            ),
+          },
+          {
+            key: "drivers",
+            header: "Top drivers",
+            headerClassName: "py-2 pr-4 font-medium",
+            cellClassName: "py-2 pr-4",
+            render: (agent) => {
+              const drivers = topFlightRiskDrivers(agent.factor_scores, 3);
+              return (
+                <Box className="flex min-w-[9.5rem] flex-col gap-1">
+                  {drivers.map((d) => (
+                    <Box key={d.key} className="flex items-baseline justify-between gap-3">
+                      <BodyText size="xs" muted className="truncate">
+                        {d.label}
+                      </BodyText>
+                      <BodyText
+                        size="xs"
+                        className="shrink-0 font-semibold tabular-nums"
+                        style={{
+                          color: driverScoreColor(riskScoreBand(d.score)),
+                        }}
+                      >
+                        {d.score}
+                      </BodyText>
+                    </Box>
+                  ))}
+                </Box>
+              );
+            },
+          },
+          {
+            key: "tier",
+            header: "Tier",
+            cellClassName: "py-2",
+            render: (agent) => (
+              <BodyText
+                as="span"
+                size="xs"
+                className={`inline-flex rounded-full px-2 py-0.5 font-medium ${
+                  TIER_STYLES[agent.risk_tier as RiskTier]
+                }`}
+              >
+                {TIER_LABELS[agent.risk_tier as RiskTier]}
               </BodyText>
-            </Box>
-          ))}
-        </Box>
-      </Box>
-    </Box>
+            ),
+          },
+          {
+            key: "actions",
+            header: "Actions",
+            render: (agent) => <AgentRowActions agentId={agent.agent_id} agentName={agent.name} />,
+          },
+        ]}
+      />
+    </SectionCard>
   );
 }

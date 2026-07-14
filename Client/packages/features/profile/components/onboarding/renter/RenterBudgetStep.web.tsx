@@ -38,11 +38,8 @@ export function RenterBudgetStep({ formData, updateFormData }: Props) {
             min={0}
             step={100}
             value={formData.renter_budget_min ?? ""}
-            onChange={(e) =>
-              updateFormData(
-                "renter_budget_min",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+            onValueChange={(text) =>
+              updateFormData("renter_budget_min", text ? Number(text) : undefined)
             }
             placeholder="e.g. 1500"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
@@ -57,11 +54,8 @@ export function RenterBudgetStep({ formData, updateFormData }: Props) {
             min={0}
             step={100}
             value={formData.renter_budget_max ?? ""}
-            onChange={(e) =>
-              updateFormData(
-                "renter_budget_max",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+            onValueChange={(text) =>
+              updateFormData("renter_budget_max", text ? Number(text) : undefined)
             }
             placeholder="e.g. 2500"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"

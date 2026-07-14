@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
+import { LandingSectionShell } from "packages/features/homeauth/components/homepage/landing/shared/LandingSectionShell";
 import { LANDING_CONTENT } from "packages/features/homeauth/utils/landingContent";
 import { LANDING_DEMO_LAYOUT } from "packages/features/homeauth/utils/landingSectionLayout";
 import { Box } from "packages/ui/components/structure/primitives";
+import { getWindow } from "packages/utils/core/platform";
 
 import { BodyText } from "@/components/ui";
-
-import { LandingSectionShell } from "../shared/LandingSectionShell";
 
 type DemoRevealKey = "dc1" | "dc2" | "dc3" | "dc4" | "dw1" | "dw2";
 
@@ -23,13 +23,16 @@ export function LandingDemoPreview() {
   });
 
   useEffect(() => {
+    const win = getWindow();
+    if (!win) return;
+
     const statIds: DemoRevealKey[] = ["dc1", "dc2", "dc3", "dc4"];
     const wideIds: DemoRevealKey[] = ["dw1", "dw2"];
     const timers: number[] = [];
 
     statIds.forEach((id, index) => {
       timers.push(
-        window.setTimeout(
+        win.setTimeout(
           () => {
             setShown((prev) => ({ ...prev, [id]: true }));
           },
@@ -40,7 +43,7 @@ export function LandingDemoPreview() {
 
     wideIds.forEach((id, index) => {
       timers.push(
-        window.setTimeout(
+        win.setTimeout(
           () => {
             setShown((prev) => ({ ...prev, [id]: true }));
           },
@@ -49,7 +52,7 @@ export function LandingDemoPreview() {
       );
     });
 
-    return () => timers.forEach((timer) => window.clearTimeout(timer));
+    return () => timers.forEach((timer) => win.clearTimeout(timer));
   }, []);
 
   const cardReveal = (visible: boolean, delayClass = "") =>
@@ -65,22 +68,17 @@ export function LandingDemoPreview() {
       className="px-responsive-sm pb-16 pt-4"
       fullBleed
     >
-      <Box className="border-border bg-background-base mx-auto max-w-[880px] overflow-hidden rounded-2xl border shadow-lg">
+      <Box className="border-border bg-background-base mx-auto max-w-4xl overflow-hidden rounded-2xl border shadow-lg">
         <Box className="border-border bg-background-surface border-b px-4 py-3">
           <Box className="flex items-center gap-2">
-            {["#D4C4A8", "#D4C4A8", "#D4C4A8"].map((dotColor) => (
-              <Box
-                key={dotColor}
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: dotColor }}
-                aria-hidden
-              />
+            {[0, 1, 2].map((dotIndex) => (
+              <Box key={dotIndex} className="bg-gold-locked h-2.5 w-2.5 rounded-full" aria-hidden />
             ))}
             <BodyText as="span" size="xs" muted className="ml-2 font-medium">
               {demo.windowTitle}
             </BodyText>
           </Box>
-          <BodyText as="p" size="xs" muted className="mt-1 pl-[38px]">
+          <BodyText as="p" size="xs" muted className="mt-1 pl-10">
             {demo.syncCaption}
           </BodyText>
         </Box>

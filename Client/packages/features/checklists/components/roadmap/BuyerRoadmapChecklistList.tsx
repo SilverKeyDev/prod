@@ -4,6 +4,7 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { ChecklistType, TaskChecklistItem } from "packages/features/checklists/api/checklists";
+import { BuyerBrokerStatusBanner } from "packages/features/checklists/components/integrations/buyerBrokerReview/BuyerBrokerStatusBanner";
 import { ChecklistUpdatePendingProvider } from "packages/features/checklists/components/roadmap/ChecklistUpdatePendingProvider";
 import ChecklistDispatchAutomationModal from "packages/features/checklists/components/slots/ChecklistDispatchAutomationModal";
 import { useChecklistStepExpansion } from "packages/features/checklists/hooks/useChecklistStepExpansion";
@@ -25,8 +26,6 @@ import { Box, Pressable, Text } from "packages/ui/components/structure/primitive
 import Card from "packages/ui/components/surfaces/cards/Card";
 
 import { BuyerRoadmapChecklistItemCard } from "./BuyerRoadmapChecklistItemCard";
-
-import { BuyerBrokerStatusBanner } from "packages/features/checklists/components/integrations/buyerBrokerReview/BuyerBrokerStatusBanner";
 
 export type BuyerRoadmapChecklistListProps = {
   currentTab: ChecklistTab;

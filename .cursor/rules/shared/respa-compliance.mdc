@@ -70,4 +70,4 @@ Every **partner exposure** event (render, click-through to partner, embed open) 
 
 ## When unsure
 
-Stop and ask. Do not ship partner surfacing logic without the comment block and a logging plan. Long-form legal/product notes may live under `documentation/compliance/` when added — link from here, do not duplicate in this rule.
+Stop and ask. Do not ship partner surfacing logic without the comment block and a logging plan. Long-form legal/product notes may live under `documentation/policies/` when added — link from here, do not duplicate in this rule.

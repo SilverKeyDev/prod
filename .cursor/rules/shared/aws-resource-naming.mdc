@@ -42,6 +42,6 @@ Every AWS resource should include:
 
 ## References
 
-- `documentation/compliance/PRIVACY_POLICY.md`
-- `documentation/compliance/GDPR.md`
+- `documentation/policies/privacy-policy.md`
+- `documentation/policies/gdpr.md`
 - `.cursor/rules/shared/security.mdc`

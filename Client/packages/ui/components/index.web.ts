@@ -123,12 +123,20 @@ export { default as ReportCard } from "./surfaces/cards/ReportCard";
 
 // Data visualization (charts)
 export type {
+  ChartLegendItem,
+  ChartLegendProps,
   DonutChartProps,
   LabeledBarRowProps,
   LollipopChartProps,
   VerticalBarChartProps,
 } from "./data-viz";
-export { DonutChart, LabeledBarRow, LollipopChart, VerticalBarChart } from "./data-viz";
+export {
+  ChartLegend,
+  DonutChart,
+  LabeledBarRow,
+  LollipopChart,
+  VerticalBarChart,
+} from "./data-viz";
 
 // Asset components
 export { default as AppImage } from "./media/asset/AppImage";

@@ -138,7 +138,7 @@ const response = await userApi.getProfile();
 
 ## Further Reading
 
-- [shared-packages.md](../../../documentation/client/architecture/shared-packages.md) — canonical API import path
-- [layered-architecture-imports.md](../../../documentation/client/architecture/layered-architecture-imports.md)
+- [shared-packages.md](../../../documentation/architecture/shared-packages.md) — canonical API import path
+- [layered-architecture-imports.md](../../../documentation/architecture/layered-architecture-imports.md)
 - [config/query/README.md](../config/query/README.md) — React Query setup
 - [packages/README.md](../README.md)

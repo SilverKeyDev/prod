@@ -37,11 +37,8 @@ export function SellerPricingStep({ formData, updateFormData }: Props) {
             min={0}
             step={10000}
             value={formData.seller_price_target ?? ""}
-            onChange={(e) =>
-              updateFormData(
-                "seller_price_target",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+            onValueChange={(text) =>
+              updateFormData("seller_price_target", text ? Number(text) : undefined)
             }
             placeholder="e.g. 450000"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
@@ -56,11 +53,8 @@ export function SellerPricingStep({ formData, updateFormData }: Props) {
             min={0}
             step={10000}
             value={formData.seller_price_min ?? ""}
-            onChange={(e) =>
-              updateFormData(
-                "seller_price_min",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+            onValueChange={(text) =>
+              updateFormData("seller_price_min", text ? Number(text) : undefined)
             }
             placeholder="e.g. 400000"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
