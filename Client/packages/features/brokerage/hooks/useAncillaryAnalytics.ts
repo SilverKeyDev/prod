@@ -9,6 +9,8 @@ import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeri
 
 import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
+import { fetchAncillaryAnalytics } from "../api/analytics";
+
 export { buildAncillaryData } from "packages/features/brokerage/utils/analytics/ancillaryTransforms";
 
 export function useAncillaryAnalytics(period: TimePeriod = "all") {
@@ -16,7 +18,9 @@ export function useAncillaryAnalytics(period: TimePeriod = "all") {
 
   const query = useQuery({
     queryKey: ["brokerage-analytics", "ancillary", brokerageOrgId, period],
-    queryFn: async () => buildAncillaryData(period),
+    queryFn: brokerageOrgId
+      ? () => fetchAncillaryAnalytics({ brokerageOrgId, timeline: period })
+      : async () => buildAncillaryData(period),
     initialData: () => buildAncillaryData(period),
     staleTime: 60_000,
   });

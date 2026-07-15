@@ -9,6 +9,8 @@ import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeri
 
 import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
+import { fetchDealFailureForensics } from "../api/analytics";
+
 export { buildFailureData } from "packages/features/brokerage/utils/analytics/dealFailureTransforms";
 
 export function useDealFailureForensics(period: TimePeriod = "all") {
@@ -16,7 +18,9 @@ export function useDealFailureForensics(period: TimePeriod = "all") {
 
   const query = useQuery({
     queryKey: ["brokerage-analytics", "deal-failure", brokerageOrgId, period],
-    queryFn: async () => buildFailureData(period),
+    queryFn: brokerageOrgId
+      ? () => fetchDealFailureForensics({ brokerageOrgId, timeline: period })
+      : async () => buildFailureData(period),
     initialData: () => buildFailureData(period),
     staleTime: 60_000,
   });

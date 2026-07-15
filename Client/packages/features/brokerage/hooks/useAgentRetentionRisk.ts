@@ -8,6 +8,8 @@ import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeri
 
 import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
+import { fetchAgentRetentionRisk } from "../api/analytics";
+
 export { buildRetentionData } from "packages/features/brokerage/utils/analytics/engagementTransforms";
 
 export function useAgentRetentionRisk(period: TimePeriod = "all") {
@@ -15,7 +17,9 @@ export function useAgentRetentionRisk(period: TimePeriod = "all") {
 
   const query = useQuery({
     queryKey: ["brokerage-analytics", "agent-retention-risk", brokerageOrgId, period],
-    queryFn: async () => buildRetentionData(period),
+    queryFn: brokerageOrgId
+      ? () => fetchAgentRetentionRisk({ brokerageOrgId, timeline: period })
+      : async () => buildRetentionData(period),
     initialData: () => buildRetentionData(period),
     staleTime: 60_000,
   });

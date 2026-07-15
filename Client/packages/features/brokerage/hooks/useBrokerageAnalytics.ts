@@ -12,6 +12,8 @@ import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeri
 
 import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
+import { fetchBrokerageAnalyticsOverview, fetchAgentAnalytics } from "../api/analytics";
+
 export type { TimePeriod };
 
 export {
@@ -31,7 +33,15 @@ export function useBrokerageAnalytics(period: TimePeriod = "all") {
 
   const query = useQuery({
     queryKey: ["brokerage-analytics", "overview", brokerageOrgId, period],
-    queryFn: async () => overviewResult(period),
+    queryFn: brokerageOrgId
+      ? async () => {
+        const [overview, agents] = await Promise.all([
+          fetchBrokerageAnalyticsOverview({ brokerageOrgId, timeline: period }),
+          fetchAgentAnalytics({ brokerageOrgId, timeline: period }),
+        ]);
+        return { data: overview, agents };
+      }
+      : async () => overviewResult(period),
     initialData: () => overviewResult(period),
     staleTime: 60_000,
   });

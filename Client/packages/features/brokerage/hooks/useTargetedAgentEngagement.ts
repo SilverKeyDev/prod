@@ -9,6 +9,8 @@ import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeri
 
 import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
+import { fetchTargetedAgentEngagement } from "../api/analytics";
+
 export { buildEngagementData } from "packages/features/brokerage/utils/analytics/engagementTransforms";
 
 export function useTargetedAgentEngagement(period: TimePeriod = "all") {
@@ -16,7 +18,9 @@ export function useTargetedAgentEngagement(period: TimePeriod = "all") {
 
   const query = useQuery({
     queryKey: ["brokerage-analytics", "targeted-agent-engagement", brokerageOrgId, period],
-    queryFn: async () => buildEngagementData(period),
+    queryFn: brokerageOrgId
+      ? () => fetchTargetedAgentEngagement({ brokerageOrgId, timeline: period })
+      : async () => buildEngagementData(period),
     initialData: () => buildEngagementData(period),
     staleTime: 60_000,
   });
