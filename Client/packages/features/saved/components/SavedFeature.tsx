@@ -5,7 +5,7 @@ import { useSavedLibraryChrome } from "packages/features/saved/hooks/ui/useSaved
 import { useSavedDocumentsCoordinator } from "packages/features/saved/hooks/useSavedDocumentsCoordinator";
 import type { SavedFeatureProps } from "packages/features/saved/types/savedFeatureProps";
 import { useIsMobile, useSavedPageEffects, useSavedPageModals } from "packages/hooks/ui";
-import { useAgentDashboardStore, useAuthStore } from "packages/store";
+import { useAgentDashboardStore, useAuthStore, useWorkspaceStore } from "packages/store";
 
 import SavedHomesHeader from "./header/SavedHomesHeader";
 import { SavedPageLayout } from "./layout/SavedPageLayout";
@@ -20,6 +20,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
   const { viewType, setViewType } = useSavedPageView();
   const selectedClientId = useAgentDashboardStore((s) => s.selectedClientId);
   const setSelectedClientId = useAgentDashboardStore((s) => s.setSelectedClientId);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [eventTypeFilter, setEventTypeFilter] = useState<
     "listed" | "price_change" | "sold" | "withdrawn" | ""
   >("");
@@ -27,6 +28,8 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
 
   const user = useAuthStore((s) => s.user);
   const isAgent = (user?.roles ?? []).includes("agent");
+  const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
+  const isBrokerageWorkspace = activeWorkspace === "brokerage";
 
   const libraryChrome = useSavedLibraryChrome(viewType, setViewType, isAgent);
   const {
@@ -85,6 +88,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     <SavedHomesHeader
       isMobile={true}
       isAgent={isAgent}
+      isBrokerageWorkspace={isBrokerageWorkspace}
       searchTerm={searchTerm}
       onSearchChange={setSearchTerm}
       viewType={viewType}
@@ -104,6 +108,8 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
       }
       selectedClientId={selectedClientId}
       onClientChange={setSelectedClientId}
+      selectedAgentId={selectedAgentId}
+      onAgentChange={setSelectedAgentId}
       eventTypeFilter={eventTypeFilter}
       onEventTypeFilterChange={setEventTypeFilter}
       libraryViewMode={libraryViewMode}
@@ -124,6 +130,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     isMobile,
     setMobileHeaderActions,
     isAgent,
+    isBrokerageWorkspace,
     searchTerm,
     viewType,
     refreshing,
@@ -132,6 +139,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     docs.agreementsTabCount,
     formsLibraryTotalCount,
     selectedClientId,
+    selectedAgentId,
     eventTypeFilter,
     libraryViewMode,
     showLibraryViewToggle,
@@ -147,6 +155,9 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
         setSearchTerm={setSearchTerm}
         selectedClientId={selectedClientId}
         setSelectedClientId={setSelectedClientId}
+        isBrokerageWorkspace={isBrokerageWorkspace}
+        selectedAgentId={selectedAgentId}
+        onAgentChange={setSelectedAgentId}
         eventTypeFilter={eventTypeFilter}
         setEventTypeFilter={setEventTypeFilter}
         setViewType={setViewType}
