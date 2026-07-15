@@ -9,7 +9,6 @@ import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibrar
 import type { Property } from "packages/features/search";
 import type { SavedHome, SearchResult } from "packages/types";
 import { Input } from "packages/ui";
-import AgentSelector from "packages/ui/components/actions/button/propertyActions/AgentSelector";
 import { Box } from "packages/ui/components/structure/primitives";
 import { BaseModal } from "packages/ui/components/surfaces/modals";
 
@@ -37,9 +36,6 @@ export type SavedPageLayoutProps = {
   setSearchTerm: (v: string) => void;
   selectedClientId: string | null;
   setSelectedClientId: (v: string | null) => void;
-  isBrokerageWorkspace?: boolean;
-  selectedAgentId?: string | null;
-  onAgentChange?: (agentId: string | null) => void;
   eventTypeFilter: EventTypeFilter;
   setEventTypeFilter: (v: EventTypeFilter) => void;
   setViewType: (v: SavedPageViewType) => void;
@@ -68,6 +64,7 @@ export type SavedPageLayoutProps = {
   currentDocumentId: string | null;
   currentDocumentName: string | null;
   closePdfModal: () => void;
+  // Document actions (optional on web layout, required for native layout)
   onViewDocument?: (documentId: string, documentName: string) => void;
   onDownloadDocument?: (documentId: string, documentName: string) => Promise<void>;
   onShareDocument?: (
@@ -78,6 +75,7 @@ export type SavedPageLayoutProps = {
   onSignNow?: (document: DocumentData) => void;
   onViewSignedAgreement?: (document: DocumentData) => void;
   onFormSendForSignature?: (form: import("packages/features/documents").ChecklistForm) => void;
+  /** Total checklist forms in library (for toolbar count on Forms tab). */
   formsLibraryTotalCount: number;
   sendForSignatureModal?: SendForSignatureModalState;
   onToggleHomeSelection: (homeId: string) => void;
@@ -89,6 +87,7 @@ export type SavedPageLayoutProps = {
   onClearComparison: () => void;
   clearSelectedProperty: () => void;
   refetchDocuments: () => Promise<unknown>;
+  // Optional refresh controls (used by native layout)
   refresh?: () => Promise<void> | void;
   refreshing?: boolean;
 };
@@ -100,9 +99,6 @@ export function SavedPageLayout({
   setSearchTerm,
   selectedClientId,
   setSelectedClientId,
-  isBrokerageWorkspace = false,
-  selectedAgentId = null,
-  onAgentChange,
   eventTypeFilter,
   setEventTypeFilter,
   setViewType,
@@ -151,17 +147,6 @@ export function SavedPageLayout({
   sendForSignatureModal,
 }: SavedPageLayoutProps) {
   const { t } = useLocalization();
-
-  const toolbarSelector =
-    isBrokerageWorkspace && onAgentChange ? (
-      <AgentSelector selectedAgentId={selectedAgentId} onAgentChange={onAgentChange} />
-    ) : isAgent ? (
-      <ClientSelector
-        selectedClientId={selectedClientId}
-        onClientChange={setSelectedClientId}
-      />
-    ) : undefined;
-
   return (
     <Box>
       <PdfModal
@@ -171,12 +156,20 @@ export function SavedPageLayout({
         onClose={closePdfModal}
       />
       <Box className="mb-responsive-lg mt-4 flex flex-col gap-4 sm:mt-6">
+        {/* Mirror DashboardScreen: horizontal inset inside dashboard-content (outer shell uses md:px-0). */}
         <Box className="w-full px-4">
           {!isMobile && (
             <Box className="w-full">
               <SavedPageTabsAndSearch
                 isAgent={isAgent}
-                toolbarLeading={toolbarSelector}
+                toolbarLeading={
+                  isAgent ? (
+                    <ClientSelector
+                      selectedClientId={selectedClientId}
+                      onClientChange={setSelectedClientId}
+                    />
+                  ) : undefined
+                }
                 toolbarShowSearch
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}

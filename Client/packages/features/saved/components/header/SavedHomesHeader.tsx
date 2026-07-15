@@ -1,15 +1,14 @@
 import { useLocalization } from "packages/contexts";
 import type { SavedPageViewType } from "packages/features/documents";
 import type { LibraryViewMode } from "packages/features/saved/hooks/ui/useLibraryViewMode";
-import AgentSelector from "packages/ui/components/actions/button/propertyActions/AgentSelector";
 import { Box } from "packages/ui/components/structure/primitives";
-import { ClientSelector } from "@/components/ui";
-import SavedLayout from "./SavedLayout";
 
+import { ClientSelector } from "@/components/ui";
+
+import SavedLayout from "./SavedLayout";
 export type SavedHomesHeaderProps = {
   isMobile: boolean;
   isAgent: boolean;
-  isBrokerageWorkspace?: boolean;
   searchTerm: string;
   onSearchChange: (term: string) => void;
   viewType: SavedPageViewType;
@@ -21,8 +20,6 @@ export type SavedHomesHeaderProps = {
   documentsCount: number;
   selectedClientId: string | null;
   onClientChange: (clientId: string | null) => void;
-  selectedAgentId?: string | null;
-  onAgentChange?: (agentId: string | null) => void;
   eventTypeFilter?: "listed" | "price_change" | "sold" | "withdrawn" | "";
   onEventTypeFilterChange?: (
     eventType: "listed" | "price_change" | "sold" | "withdrawn" | ""
@@ -37,7 +34,6 @@ export type SavedHomesHeaderProps = {
 export default function SavedHomesHeader({
   isMobile,
   isAgent,
-  isBrokerageWorkspace = false,
   searchTerm,
   onSearchChange,
   viewType,
@@ -49,8 +45,6 @@ export default function SavedHomesHeader({
   documentsCount: _documentsCount,
   selectedClientId,
   onClientChange,
-  selectedAgentId = null,
-  onAgentChange,
   eventTypeFilter = "",
   onEventTypeFilterChange,
   libraryViewMode,
@@ -76,12 +70,9 @@ export default function SavedHomesHeader({
         ? "Refresh"
         : "Refresh documents";
 
-  const toolbar =
-    isBrokerageWorkspace && onAgentChange ? (
-      <AgentSelector selectedAgentId={selectedAgentId} onAgentChange={onAgentChange} />
-    ) : isAgent ? (
-      <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
-    ) : undefined;
+  const clientToolbar = isAgent ? (
+    <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
+  ) : undefined;
 
   if (isMobile) {
     return (
@@ -89,7 +80,7 @@ export default function SavedHomesHeader({
         <SavedLayout
           key={`saved-layout-${viewType}`}
           isAgent={isAgent}
-          toolbarLeading={toolbar}
+          toolbarLeading={clientToolbar}
           searchTerm={searchTerm}
           onSearchChange={onSearchChange}
           searchPlaceholder={searchPlaceholder}
@@ -117,7 +108,7 @@ export default function SavedHomesHeader({
   return (
     <SavedLayout
       isAgent={isAgent}
-      toolbarLeading={toolbar}
+      toolbarLeading={clientToolbar}
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       searchPlaceholder={searchPlaceholder}
