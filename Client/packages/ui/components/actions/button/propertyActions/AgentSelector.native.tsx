@@ -3,11 +3,11 @@
  * Native sheet/modal version of AgentSelector for brokerage library.
  * Mirrors ClientSelector.native pattern.
  */
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import Button from "@ui/button/Button";
 import { Icon } from "@ui/icons";
-import { Pressable } from "react-native";
+import { Pressable, TextInput } from "react-native";
 
 import { useLocalization } from "packages/contexts";
 import { useBrokerageOrgId } from "packages/features/brokerage/hooks/useBrokerageOrgId";
@@ -20,7 +20,7 @@ import type { AgentSelectorAgent } from "./AgentSelector";
 
 function useBrokerageAgents(): { agents: AgentSelectorAgent[]; isLoading: boolean } {
   const brokerageOrgId = useBrokerageOrgId();
-  const agents: AgentSelectorAgent[] = BROKERAGE_AGENTS_FIXTURE.slice(0, 50).map((a) => ({
+  const agents: AgentSelectorAgent[] = BROKERAGE_AGENTS_FIXTURE.map((a) => ({
     id: a.id,
     name: a.name,
     office: a.office,
@@ -41,11 +41,21 @@ export default function AgentSelectorNative({
   const { agents, isLoading } = useBrokerageAgents();
   const { t } = useLocalization();
   const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(
+    () =>
+      search.trim().length === 0
+        ? agents
+        : agents.filter((a) => a.name.toLowerCase().includes(search.toLowerCase())),
+    [agents, search]
+  );
 
   const handleSelect = useCallback(
     (agentId: string | null) => {
       onAgentChange(agentId);
       setIsOpen(false);
+      setSearch("");
     },
     [onAgentChange]
   );
@@ -70,10 +80,20 @@ export default function AgentSelectorNative({
 
       <BaseModal
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={() => { setIsOpen(false); setSearch(""); }}
         title={t("agent_selector.select_agent", { defaultValue: "Select agent" })}
+        panelLayout="fixed"
       >
         <Box className="gap-2">
+          {/* Search */}
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder={t("agent_selector.search_agents", { defaultValue: "Search agents..." })}
+            className="border-border rounded-lg border px-3 py-2 text-sm"
+            autoFocus
+          />
+
           {/* All agents row */}
           <Pressable
             onPress={() => handleSelect(null)}
@@ -96,15 +116,12 @@ export default function AgentSelectorNative({
             <Text className="text-text-secondary px-4 py-2 text-sm">
               {t("agent_selector.loading_agents", { defaultValue: "Loading agents..." })}
             </Text>
-          ) : agents.length === 0 ? (
-            <Box className="flex flex-row items-start gap-3 px-2 py-2">
-              <Icon name="users" className="text-text-secondary mt-0.5 h-5 w-5 shrink-0" />
-              <Text className="text-text-primary text-sm font-medium">
-                {t("agent_selector.no_agents_found", { defaultValue: "No agents found" })}
-              </Text>
-            </Box>
+          ) : filtered.length === 0 ? (
+            <Text className="text-text-secondary px-4 py-2 text-sm">
+              {t("agent_selector.no_agents_found", { defaultValue: "No agents found" })}
+            </Text>
           ) : (
-            agents.map((agent) => (
+            filtered.map((agent) => (
               <Pressable
                 key={agent.id}
                 onPress={() => handleSelect(agent.id)}

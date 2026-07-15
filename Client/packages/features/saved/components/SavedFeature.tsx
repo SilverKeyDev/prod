@@ -46,12 +46,7 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
     [formsLibraryCategories]
   );
 
-  // In brokerage workspace, scope documents by selectedAgentId instead of selectedClientId
-  const docs = useSavedDocumentsCoordinator(
-    isBrokerageWorkspace ? selectedAgentId : selectedClientId,
-    viewType,
-    eventTypeFilter
-  );
+  const docs = useSavedDocumentsCoordinator(selectedClientId, viewType, eventTypeFilter);
 
   const {
     isCompareModalOpen,
@@ -158,8 +153,11 @@ export function SavedFeature({ setMobileHeaderActions }: SavedFeatureProps) {
         viewType={viewType}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        selectedClientId={isBrokerageWorkspace ? selectedAgentId : selectedClientId}
-        setSelectedClientId={isBrokerageWorkspace ? setSelectedAgentId : setSelectedClientId}
+        selectedClientId={selectedClientId}
+        setSelectedClientId={setSelectedClientId}
+        isBrokerageWorkspace={isBrokerageWorkspace}
+        selectedAgentId={selectedAgentId}
+        onAgentChange={setSelectedAgentId}
         eventTypeFilter={eventTypeFilter}
         setEventTypeFilter={setEventTypeFilter}
         setViewType={setViewType}

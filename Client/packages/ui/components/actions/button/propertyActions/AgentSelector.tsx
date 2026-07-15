@@ -4,6 +4,7 @@
  * Mirrors ClientSelector pattern; does NOT modify ClientSelector.
  * Consumed by brokerage library header (SIL-230).
  */
+import { useMemo, useState } from "react";
 import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 
@@ -25,19 +26,12 @@ type AgentSelectorProps = {
   selectedAgentId: string | null;
   onAgentChange: (agentId: string | null) => void;
   className?: string;
-  /** Use `"above"` when the trigger sits on a fixed bottom bar. */
   menuPlacement?: "below" | "above";
 };
 
-/**
- * Hook returning brokerage member agents.
- * Uses fixture agents for UI-only milestone (SIL-231).
- * TODO SIL-230: swap for real membership API once SIL-191 backend lands.
- */
 function useBrokerageAgents(): { agents: AgentSelectorAgent[]; isLoading: boolean } {
   const brokerageOrgId = useBrokerageOrgId();
-  // Fixture-backed for now — real API in SIL-230 hookup
-  const agents: AgentSelectorAgent[] = BROKERAGE_AGENTS_FIXTURE.slice(0, 50).map((a) => ({
+  const agents: AgentSelectorAgent[] = BROKERAGE_AGENTS_FIXTURE.map((a) => ({
     id: a.id,
     name: a.name,
     office: a.office,
@@ -53,6 +47,15 @@ export default function AgentSelector({
 }: AgentSelectorProps) {
   const { agents, isLoading } = useBrokerageAgents();
   const { t } = useLocalization();
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(
+    () =>
+      search.trim().length === 0
+        ? agents
+        : agents.filter((a) => a.name.toLowerCase().includes(search.toLowerCase())),
+    [agents, search]
+  );
 
   const triggerLabel =
     selectedAgentId === null
@@ -98,6 +101,18 @@ export default function AgentSelector({
         };
         return (
           <Box className="flex flex-col gap-1 px-1">
+            {/* Search input */}
+            <Box className="px-2 py-1">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t("agent_selector.search_agents", { defaultValue: "Search agents..." })}
+                className="border-border w-full rounded-md border px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                autoFocus
+              />
+            </Box>
+
             {/* All agents row */}
             <Button
               type="button"
@@ -117,7 +132,7 @@ export default function AgentSelector({
               </BodyText>
             </Button>
 
-            {agents.length > 0 && (
+            {filtered.length > 0 && (
               <Box className="border-border mx-1 my-1 border-t" />
             )}
 
@@ -125,17 +140,12 @@ export default function AgentSelector({
               <Box className="text-text-secondary px-3 py-3 text-left text-sm">
                 {t("agent_selector.loading_agents", { defaultValue: "Loading agents..." })}
               </Box>
-            ) : agents.length === 0 ? (
-              <Box className="flex items-start gap-3 px-3 py-3">
-                <Icon name="users" className="text-text-secondary mt-0.5 h-5 w-5 shrink-0" />
-                <Box className="flex min-w-0 flex-col gap-1">
-                  <BodyText as="span" size="sm" muted className="text-left">
-                    {t("agent_selector.no_agents_found", { defaultValue: "No agents found" })}
-                  </BodyText>
-                </Box>
+            ) : filtered.length === 0 ? (
+              <Box className="px-3 py-3 text-left text-sm text-gray-400">
+                {t("agent_selector.no_agents_found", { defaultValue: "No agents found" })}
               </Box>
             ) : (
-              agents.map((agent) => (
+              filtered.map((agent) => (
                 <Button
                   key={agent.id}
                   type="button"

@@ -64,36 +64,78 @@ export default function SavedHomesHeader({
     viewType === "agreements"
       ? "Search agreements..."
       : viewType === "documents"
-        ? "Search documents..."
-        : "Search...";
+        ? t("saved.search_documents_placeholder")
+        : viewType === "forms-library"
+          ? t("saved.search_forms_placeholder")
+          : "Search";
+
+  const refreshTitle =
+    viewType === "agreements"
+      ? "Refresh agreements"
+      : viewType === "forms-library"
+        ? "Refresh"
+        : "Refresh documents";
+
+  const toolbar =
+    isBrokerageWorkspace && onAgentChange ? (
+      <AgentSelector selectedAgentId={selectedAgentId} onAgentChange={onAgentChange} />
+    ) : isAgent ? (
+      <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
+    ) : undefined;
+
+  if (isMobile) {
+    return (
+      <Box className="flex w-full flex-col justify-center gap-1.5" key={viewType}>
+        <SavedLayout
+          key={`saved-layout-${viewType}`}
+          isAgent={isAgent}
+          toolbarLeading={toolbar}
+          searchTerm={searchTerm}
+          onSearchChange={onSearchChange}
+          searchPlaceholder={searchPlaceholder}
+          showSearch={false}
+          leftContent={null}
+          onRefresh={onRefresh}
+          isRefreshing={isRefreshing}
+          isLoading={isLoading}
+          refreshTitle={refreshTitle}
+          viewType={viewType}
+          onViewTypeChange={onViewTypeChange}
+          eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
+          onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
+          viewMode={libraryViewMode}
+          onViewModeChange={onLibraryViewModeChange}
+          showViewToggle={showLibraryViewToggle}
+          librarySortKey={librarySortKey}
+          onLibrarySortChange={onLibrarySortChange}
+          embeddedInMobileHeader
+        />
+      </Box>
+    );
+  }
 
   return (
     <SavedLayout
-      isMobile={isMobile}
+      isAgent={isAgent}
+      toolbarLeading={toolbar}
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
       searchPlaceholder={searchPlaceholder}
-      viewType={viewType}
-      onViewTypeChange={onViewTypeChange}
+      showSearch
+      leftContent={null}
       onRefresh={onRefresh}
       isRefreshing={isRefreshing}
       isLoading={isLoading}
-      eventTypeFilter={eventTypeFilter}
-      onEventTypeFilterChange={onEventTypeFilterChange}
-      libraryViewMode={libraryViewMode}
-      onLibraryViewModeChange={onLibraryViewModeChange}
-      showLibraryViewToggle={showLibraryViewToggle}
+      refreshTitle={refreshTitle}
+      viewType={viewType}
+      onViewTypeChange={onViewTypeChange}
+      eventTypeFilter={viewType === "documents" ? eventTypeFilter : undefined}
+      onEventTypeFilterChange={viewType === "documents" ? onEventTypeFilterChange : undefined}
+      viewMode={libraryViewMode}
+      onViewModeChange={onLibraryViewModeChange}
+      showViewToggle={showLibraryViewToggle}
       librarySortKey={librarySortKey}
       onLibrarySortChange={onLibrarySortChange}
-    >
-      {isBrokerageWorkspace && onAgentChange ? (
-        <AgentSelector
-          selectedAgentId={selectedAgentId}
-          onAgentChange={onAgentChange}
-        />
-      ) : isAgent ? (
-        <ClientSelector selectedClientId={selectedClientId} onClientChange={onClientChange} />
-      ) : null}
-    </SavedLayout>
+    />
   );
 }
