@@ -9,6 +9,8 @@ import { buildFailureData } from "packages/features/brokerage/utils/analytics/de
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
+export { buildFailureData } from "packages/features/brokerage/utils/analytics/dealFailureTransforms";
+
 function adaptDealFailureResponse(serverData: Record<string, unknown>, period: TimePeriod) {
   const fixture = buildFailureData(period);
   return {
