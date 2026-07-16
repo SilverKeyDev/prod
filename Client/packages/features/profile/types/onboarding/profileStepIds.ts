@@ -30,6 +30,11 @@ export const PROFILE_STEP_IDS = [
   "renter_amenities",
   "brokerage_shell_setup",
   "integration_partner_shell_setup",
+  "ip_org_details",
+  "ip_integration_type",
+  "ip_point_of_contact",
+  "ip_service_area",
+  "ip_agreement",
 ] as const;
 export type ProfileStepId = (typeof PROFILE_STEP_IDS)[number];
 /** Sections shown only to agents (brokerage, licensing, public profile). */

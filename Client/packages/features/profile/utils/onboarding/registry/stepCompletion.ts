@@ -63,6 +63,31 @@ function isRenterMoveTimelineStepComplete(formData: OnboardingData): boolean {
   );
 }
 
+function isIpOrgDetailsComplete(formData: OnboardingData): boolean {
+  return typeof formData.ip_org_name === "string" && formData.ip_org_name.trim() !== "";
+}
+
+function isIpIntegrationTypeComplete(formData: OnboardingData): boolean {
+  return typeof formData.ip_integration_type === "string" && formData.ip_integration_type.trim() !== "";
+}
+
+function isIpPointOfContactComplete(formData: OnboardingData): boolean {
+  return (
+    typeof formData.ip_contact_name === "string" &&
+    formData.ip_contact_name.trim() !== "" &&
+    typeof formData.ip_contact_email === "string" &&
+    formData.ip_contact_email.trim() !== ""
+  );
+}
+
+function isIpServiceAreaComplete(formData: OnboardingData): boolean {
+  return Array.isArray(formData.ip_service_states) && formData.ip_service_states.length > 0;
+}
+
+function isIpAgreementComplete(formData: OnboardingData): boolean {
+  return formData.ip_agreement_acknowledged === true;
+}
+
 const STEP_COMPLETION_HANDLERS: Partial<
   Record<ProfileStepId, (formData: OnboardingData) => boolean>
 > = {
@@ -87,6 +112,11 @@ const STEP_COMPLETION_HANDLERS: Partial<
   renter_move_timeline: isRenterMoveTimelineStepComplete,
   renter_household: () => true,
   renter_amenities: () => true,
+  ip_org_details: isIpOrgDetailsComplete,
+  ip_integration_type: isIpIntegrationTypeComplete,
+  ip_point_of_contact: isIpPointOfContactComplete,
+  ip_service_area: isIpServiceAreaComplete,
+  ip_agreement: isIpAgreementComplete,
 };
 
 export function getStepCompletionHandler(
