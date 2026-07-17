@@ -13,7 +13,7 @@ approval-required draft suggestions on top of the SIL-306 campaign API.
 | ------- | --------------- | ---------------------------- |
 | Category sections, settings, variants, projections, email preview | `CAMPAIGN_CATEGORIES_FIXTURE` through `useCampaignCategories()` | React state only; changes reset on reload and do not call the campaign API |
 | Campaign learning panel | SIL-306/307/309 routes through `campaignAnalyticsApi` | Reads DB campaigns and writes learning artifacts to the local filesystem |
-| `POST /brokerage/analytics/campaigns` | SQLAlchemy campaign service | Creates DB records; `send=true` records sent state, but SES delivery is stubbed and only logged |
+| `POST /api/v1/brokerage/analytics/campaigns` | SQLAlchemy campaign service | Creates DB records; `send=true` records sent state, but SES delivery is stubbed and only logged |
 
 The learning panel does not consume the category fixture state. A draft produced by the learning
 loop appears in the panel only; it is not inserted into the editable category sections and is never
@@ -27,7 +27,8 @@ sent automatically.
 3. Reject datasets with fewer than 20 rows or only one outcome class.
 4. Pick the model by holdout AUC, then accuracy, then the simpler-model tie-break order.
 5. Send aggregate metrics and variant copy to Perplexity, or use cached/generated fallback content.
-6. Mark the proposed variants `pending_approval` and persist the full result for replay.
+6. Set the proposed draft's `status` to `pending_approval`, require approval, and persist the full
+   result for replay.
 
 For DB campaigns, CTA and incentive metadata are inferred from subject/body text. Agent tenure,
 volume, prior engagement, and office values are deterministic synthetic features because the
@@ -38,9 +39,9 @@ campaign ORM does not contain those fields.
 | Source | Role |
 | ------ | ---- |
 | DB `email_campaigns*` + `scripts.skyslope.seed_demo_campaigns` | Campaign list used by the UI (`UUID` IDs) |
-| `data/skyslope-demo/campaigns/campaigns.json` | Offline CLI/test matrix (`camp-*` IDs); not listed in the UI |
-| `data/skyslope-demo/campaigns/learning_cache/` | Last Perplexity review/draft or generated fallback |
-| `data/skyslope-demo/campaigns/learning_results/` | Last complete learning result, one JSON file per campaign ID |
+| `Server/data/skyslope-demo/campaigns/campaigns.json` | Offline CLI/test matrix (`camp-*` IDs); not listed in the UI |
+| `Server/data/skyslope-demo/campaigns/learning_cache/` | Last Perplexity review/draft or generated fallback |
+| `Server/data/skyslope-demo/campaigns/learning_results/` | Last complete learning result, one JSON file per campaign ID |
 
 Learning artifacts are not stored in Postgres. They disappear if the runtime filesystem is replaced
 or the data directory is cleared. JSON campaigns are returned only when the request's
@@ -66,9 +67,10 @@ The learning-loop body is optional:
 
 `skip_perplexity: true` forces generated fallback review and draft content. Otherwise a missing key,
 timeout, non-JSON response, or upstream error falls back to cached content and then generated
-content. The Perplexity request timeout is 45 seconds, and the HTTP route waits for the complete
-loop. Celery tasks exist on the `heavy` queue as alternate entry points, but the UI and HTTP handler
-do not enqueue them.
+content. Review and drafting are two sequential Perplexity calls, each with a 45-second timeout, so
+the synchronous HTTP request can take about 90 seconds plus scoring before fallback completes.
+Celery tasks exist on the `heavy` queue as alternate entry points, but the UI and HTTP handler do
+not enqueue them.
 
 These Flask routes are registered in `Server/endpoints.json` but are not represented in `openapi/`
 as of the verification date. Do not hand-edit generated client types for them.
@@ -124,7 +126,8 @@ For the UI path:
 
 - Perplexity receives aggregate statistics and variant copy, not agent IDs, names, email addresses,
   phone numbers, or addresses.
-- Drafts always set `approval_required: true`, `status: pending_approval`, and `auto_send: false`.
+- The next-iteration draft always sets `approval_required: true` and `status: pending_approval`.
+  Top-level guardrails also set `approval_required: true` and `auto_send: false`.
 - The feature is CPU-only. Torch is optional; sklearn candidates remain available without it.
 - Campaign creation's SES path is stubbed for the demo; UI category edits have no server side effect.
 
