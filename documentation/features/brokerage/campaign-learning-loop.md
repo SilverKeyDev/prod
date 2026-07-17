@@ -75,11 +75,13 @@ as of the verification date. Do not hand-edit generated client types for them.
 
 ## Local validation
 
-The JSON path validates scoring and fallback drafting without Postgres, API auth, or Perplexity:
+The JSON path validates scoring and fallback drafting without a running Postgres service, API auth,
+or Perplexity. It still imports server configuration, so provide the test-mode SQLite URL:
 
 ```bash
 cd Server
-.venv/bin/python scripts/evaluate_sil309.py --run-loop
+TESTING=true DATABASE_URL='sqlite:///:memory:' \
+  .venv/bin/python scripts/evaluate_sil309.py --run-loop
 ```
 
 For the DB path, start Postgres in an environment where repository migrations are already applied,
