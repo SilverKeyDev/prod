@@ -2,4 +2,4 @@
 
 | Doc | Description |
 | --- | ----------- |
-| [campaign-learning-loop.md](./campaign-learning-loop.md) | SIL-309 — engagement scoring, Perplexity review/draft, one-click learning loop |
+| [campaign-learning-loop.md](./campaign-learning-loop.md) | Campaign editor/API boundaries, SIL-309 scoring and drafting, setup, and troubleshooting |

@@ -1,94 +1,143 @@
 # Campaign learning loop (SIL-309)
 
-Self-improving A/B email campaigns for the SkySlope brokerage demo — builds on
-related tickets below. Demo target: Tue 7/14.
+**Status:** demo-only · **Last verified:** 2026-07-17
 
-## Related tickets
+The brokerage Campaigns page combines a client-side campaign editor with an API-backed learning
+panel. They share a page, but they are not one persistence flow: editing a category or variant does
+not update the campaigns scored by the learning panel. SIL-309 adds scoring, aggregate review, and
+approval-required draft suggestions on top of the SIL-306 campaign API.
 
-| Ticket | What SIL-309 reuses |
-| ------ | ------------------- |
-| **SIL-285** | SkySlope demo org + agent seed |
-| **SIL-208** | Celery `heavy` queue + CPU sklearn/torch ML pattern |
-| **SIL-306** | DB campaign CRUD (`email_campaigns*`), list/create API |
-| **SIL-307** | Results / lift payload + Campaigns UI shell |
-| **SIL-308** | Completed A/B seed story (Title vs Home Warranty; B wins Title) |
+## Page architecture
 
-SIL-309 adds the **closed loop** on top: score → winner → Perplexity review/draft →
-persist for dashboard replay. It does **not** replace the DB campaign engine.
+| Surface | Source of truth | Persistence and side effects |
+| ------- | --------------- | ---------------------------- |
+| Category sections, settings, variants, projections, email preview | `CAMPAIGN_CATEGORIES_FIXTURE` through `useCampaignCategories()` | React state only; changes reset on reload and do not call the campaign API |
+| Campaign learning panel | SIL-306/307/309 routes through `campaignAnalyticsApi` | Reads DB campaigns and writes learning artifacts to the local filesystem |
+| `POST /brokerage/analytics/campaigns` | SQLAlchemy campaign service | Creates DB records; `send=true` records sent state, but SES delivery is stubbed and only logged |
 
-## What it does
+The learning panel does not consume the category fixture state. A draft produced by the learning
+loop appears in the panel only; it is not inserted into the editable category sections and is never
+sent automatically.
 
-1. **Scores** seeded campaign recipients (open/click/attach) with a fit-on-request model
-2. **Picks a winner** and segment propensities
-3. **Reviews** aggregate results via Perplexity (or cached / forced fallback)
-4. **Drafts** the next A/B variant pair (`approval_required` — never auto-send)
+## Learning workflow
 
-## Data sources
+1. Load a brokerage-scoped campaign. `camp-*` IDs use the JSON store; all other IDs use Postgres.
+2. Build recipient rows from campaign events and compare logistic regression, histogram gradient
+   boosting, and, when installed, a small CPU torch MLP.
+3. Reject datasets with fewer than 20 rows or only one outcome class.
+4. Pick the model by holdout AUC, then accuracy, then the simpler-model tie-break order.
+5. Send aggregate metrics and variant copy to Perplexity, or use cached/generated fallback content.
+6. Mark the proposed variants `pending_approval` and persist the full result for replay.
+
+For DB campaigns, CTA and incentive metadata are inferred from subject/body text. Agent tenure,
+volume, prior engagement, and office values are deterministic synthetic features because the
+campaign ORM does not contain those fields.
+
+## Data and artifact lifecycle
 
 | Source | Role |
 | ------ | ---- |
-| DB `email_campaigns*` (SIL-306) + `seed_demo_campaigns.py` | Primary demo campaigns (UUID ids) |
-| `Server/data/skyslope-demo/campaigns/campaigns.json` | Offline/unit-test feature matrix (`camp-*` ids) |
-| `learning_cache/` + `learning_results/` | Perplexity fallback + persisted one-click output |
+| DB `email_campaigns*` + `scripts.skyslope.seed_demo_campaigns` | Campaign list used by the UI (`UUID` IDs) |
+| `data/skyslope-demo/campaigns/campaigns.json` | Offline CLI/test matrix (`camp-*` IDs); not listed in the UI |
+| `data/skyslope-demo/campaigns/learning_cache/` | Last Perplexity review/draft or generated fallback |
+| `data/skyslope-demo/campaigns/learning_results/` | Last complete learning result, one JSON file per campaign ID |
 
-Learning loads DB first (events → features; variant CTA/incentive inferred from subject/body).
-Stable `camp-*` JSON ids remain for pytest without Postgres.
+Learning artifacts are not stored in Postgres. They disappear if the runtime filesystem is replaced
+or the data directory is cleared. JSON campaigns are returned only when the request's
+`brokerage_org_id` matches the org in `campaigns.json`.
 
-## Model choice
+## HTTP interface
 
-`CampaignEngagementModel` compares logistic regression, hist gradient boosting, and an optional
-CPU torch MLP on holdout AUC. Winner is reported in the payload (demo accuracy > architecture).
+Every route requires authentication, a non-empty `user.brokerage_org_ids`, and a
+`brokerage_org_id` query parameter that belongs to that user.
 
-## API (added by SIL-309)
+| Method | Path | Purpose |
+| ------ | ---- | ------- |
+| `GET` | `/api/v1/brokerage/analytics/campaigns` | List DB campaigns for the org |
+| `GET` | `/api/v1/brokerage/analytics/campaigns/{id}/results` | Return funnel, lift, recovered dollars, and saved learning when present |
+| `GET` | `/api/v1/brokerage/analytics/campaigns/{id}/learning` | Return the last saved learning result or `learning: null` |
+| `POST` | `/api/v1/brokerage/analytics/campaigns/{id}/learning-loop` | Run scoring, review, draft, and persistence synchronously |
 
-| Method | Path |
-| ------ | ---- |
-| GET | `/api/v1/brokerage/analytics/campaigns/{id}/learning` |
-| POST | `/api/v1/brokerage/analytics/campaigns/{id}/learning-loop` |
+The learning-loop body is optional:
 
-Existing SIL-306/307 routes unchanged; `GET …/results` now may include `learning` when present.
-Optional body on POST: `{"skip_perplexity": true}` for offline demo.
+```json
+{ "skip_perplexity": true }
+```
 
-Celery (`heavy`): `tasks.score_campaign_engagement_task`, `tasks.run_campaign_learning_loop_task`.
+`skip_perplexity: true` forces generated fallback review and draft content. Otherwise a missing key,
+timeout, non-JSON response, or upstream error falls back to cached content and then generated
+content. The Perplexity request timeout is 45 seconds, and the HTTP route waits for the complete
+loop. Celery tasks exist on the `heavy` queue as alternate entry points, but the UI and HTTP handler
+do not enqueue them.
 
-Brokerage campaign routes follow the same pattern as SIL-306 (Flask + `endpoints.json`;
-not yet in OpenAPI).
+These Flask routes are registered in `Server/endpoints.json` but are not represented in `openapi/`
+as of the verification date. Do not hand-edit generated client types for them.
 
-## Local demo
+## Local validation
+
+The JSON path validates scoring and fallback drafting without Postgres, API auth, or Perplexity:
 
 ```bash
-# Postgres up
-make db-up && make migrate   # if needed
-cd Server && .venv/bin/python -m scripts.skyslope.seed_demo_campaigns
-
-# Offline loop (JSON, no auth)
+cd Server
 .venv/bin/python scripts/evaluate_sil309.py --run-loop
+```
 
-# Against DB Title Q1 campaign
+For the DB path, start Postgres in an environment where repository migrations are already applied,
+seed the demo campaigns, and run the same loop against the seeded Title campaign:
+
+```bash
+make db-up
+cd Server
+.venv/bin/python -m scripts.skyslope.seed_demo_campaigns
 .venv/bin/python scripts/evaluate_sil309.py --from-db --run-loop
 ```
 
-UI: Brokerage **Campaigns** page → **Campaign learning loop** panel → Run learning loop /
-Offline fallback.
+For the UI path:
 
-## Acceptance checklist
+1. Use a brokerage account whose `brokerage_org_ids` includes the demo org. See
+   [Provision QA test accounts](../../runbooks/qa/provision-test-accounts.md).
+2. Open the brokerage **Campaigns** page.
+3. In **Campaign learning loop**, select a seeded DB campaign.
+4. Use **Run learning loop** for Perplexity-with-fallback or **Offline fallback** to force local
+   fallback content.
+5. Confirm the winner, source, and next-iteration draft appear and the draft remains
+   `pending_approval`.
 
-- [x] One click → winner analysis + what-worked + next draft pair
-- [x] Model compares candidates; reports chosen model + AUC
-- [x] Perplexity down → cached / forced fallback still drafts
-- [x] No auto-send; drafts `pending_approval`
-- [x] No PII in Perplexity prompts (aggregates + variant copy)
-- [x] Optional Meet CTA stretch via `meet_link.py` (`addGoogleMeet` contract hint)
-- [x] Works on SIL-306 DB campaigns + JSON offline path for tests
+## Troubleshooting
 
-## Key code
+| Symptom | Check |
+| ------- | ----- |
+| No seeded campaigns / list request fails | Confirm DB seed data, authentication, and that the user's `brokerage_org_ids` contains the requested org |
+| `400 brokerage_org_id is required` | Include `?brokerage_org_id={id}`; client helpers add it automatically |
+| `403 Brokerage access is not configured` | Attach brokerage org membership to the account; the client demo-org fallback does not bypass server authorization |
+| `403 Forbidden for this brokerage organization` | The requested org is outside the authenticated user's allowed list |
+| `404 Campaign not found` | Confirm campaign ID and org; `camp-*` IDs must also match the JSON store org |
+| `500 db_unavailable` or failed campaign load | Start Postgres and confirm the environment has existing migrations applied |
+| `500 insufficient_rows` | Use a campaign with at least 20 recipient feature rows |
+| `500 single_class_labels` | Seed both positive and negative outcomes for the model's attach target |
+| Perplexity is unavailable | Use **Offline fallback** or inspect `learning_cache/`; drafts remain approval-required |
+| Saved learning vanished after restart/deploy | Check `learning_results/`; results use local files, not Postgres |
+
+## Guardrails
+
+- Perplexity receives aggregate statistics and variant copy, not agent IDs, names, email addresses,
+  phone numbers, or addresses.
+- Drafts always set `approval_required: true`, `status: pending_approval`, and `auto_send: false`.
+- The feature is CPU-only. Torch is optional; sklearn candidates remain available without it.
+- Campaign creation's SES path is stubbed for the demo; UI category edits have no server side effect.
+
+## Key code and tests
 
 | Layer | Path |
 | ----- | ---- |
-| Learning package | `Server/app/services/brokerage/campaigns/learning/` |
-| DB/JSON bridge | `learning/campaign_loader.py`, `learning_artifacts.py` |
+| Page composition | `Client/packages/features/brokerage/components/campaigns/BrokerageCampaignsShell.tsx` |
+| Client-only editor state | `Client/packages/features/brokerage/hooks/useCampaigns.ts` |
+| Learning UI and API hooks | `Client/packages/features/brokerage/components/campaigns/CampaignLearningPanel.tsx`, `hooks/useCampaignLearning.ts` |
+| HTTP client | `Client/packages/features/brokerage/api/campaignAnalytics.ts` |
 | Routes | `Server/app/routes/brokerage_analytics/__init__.py` |
-| Celery | `Server/app/celery/tasks/campaign_learning.py` |
-| UI | `Client/.../campaigns/CampaignLearningPanel.tsx` |
-| Eval | `Server/scripts/evaluate_sil309.py` |
-| Tests | `Server/tests/unit/services/brokerage/test_sil309_campaign_learning.py` |
+| Campaign CRUD | `Server/app/services/brokerage/campaigns/service.py` |
+| Learning package | `Server/app/services/brokerage/campaigns/learning/` |
+| DB/JSON bridge and artifacts | `learning/campaign_loader.py`, `campaigns/learning_artifacts.py` |
+| Optional Celery entry points | `Server/app/celery/tasks/campaign_learning.py` |
+| CLI validation | `Server/scripts/evaluate_sil309.py` |
+| Tests | `Server/tests/unit/services/brokerage/test_sil309_campaign_learning.py`, `Server/tests/unit/routes/brokerage_analytics/test_campaigns.py`, `Client/packages/features/brokerage/components/campaigns/CampaignLearningPanel.test.tsx` |
