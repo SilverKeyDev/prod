@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from typing import Final
 
-ANCILLARY_FEE_DISCLAIMER: Final[str] = (
-    "Assumed brokerage placement share per attach " "(not a referral fee)."
+ANCILLARY_FEE_DISCLAIMER: Final = (
+    "Assumed brokerage placement share per attach (not a referral fee)."
 )
 
 # Dollars per attach — SIL-277 / SIL-307 (placement-share assumptions)
