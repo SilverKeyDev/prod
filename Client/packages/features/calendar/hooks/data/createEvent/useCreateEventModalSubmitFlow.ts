@@ -81,15 +81,18 @@ export function useCreateEventModalSubmitFlow(params: {
           const conv = conversations.find((c) => c.client_id === params.selectedClientId);
           conversationId = conv?.id ?? "new";
         } else {
-          const clientConv = conversations[0];
-          if (!clientConv) {
+          const activeId = params.calendarEventRequest.activeConversationId?.trim();
+          const clientConv =
+            (activeId ? conversations.find((c) => c.id === activeId) : undefined) ??
+            conversations[0];
+          if (!clientConv && !activeId) {
             params.enqueueToast({
               type: "error",
               message: "No conversation found. Open messaging first.",
             });
             return;
           }
-          conversationId = clientConv.id;
+          conversationId = clientConv?.id ?? activeId ?? null;
         }
 
         const clientIdToPass =

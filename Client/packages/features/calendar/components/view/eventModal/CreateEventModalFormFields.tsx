@@ -54,11 +54,13 @@ export function CreateEventModalFormFields({
   mutualSchedule,
   onCalendarTimedSlotPick,
   registerOutsideClickSafeTarget,
+  scheduleRequired = false,
 }: CreateEventModalFormFieldsProps) {
   const hasAnyScheduleDate = Boolean(
     (startDate?.trim() ?? "").length > 0 || (endDate?.trim() ?? "").length > 0
   );
-  const showScheduleTimeControls = mode === "edit" || hasAnyScheduleDate || mode === "create";
+  const showScheduleTimeControls =
+    mode === "edit" || hasAnyScheduleDate || mode === "create" || scheduleRequired;
   const showCustomTitle = eventKindId === "other";
 
   const kindDropdownOptions = allowedKindIds.map((id) => ({
@@ -152,17 +154,21 @@ export function CreateEventModalFormFields({
       <Box>
         <CalendarStyleDateRangePicker
           id="event-date-range"
-          label={mode === "edit" ? "Dates" : "Add to calendar"}
-          required={mode === "edit"}
+          label={scheduleRequired ? "Date" : mode === "edit" ? "Dates" : "Add to calendar"}
+          required={mode === "edit" || scheduleRequired}
           helperText={
-            mode === "create"
-              ? "Optional. Leave empty for a to-do without a scheduled time."
-              : undefined
+            scheduleRequired
+              ? "Pick a date and time for the request."
+              : mode === "create"
+                ? "Optional. Leave empty for a to-do without a scheduled time."
+                : undefined
           }
           startDate={startDate}
           endDate={endDate}
           onRangeChange={onDateRangeChange}
-          onClear={mode === "create" ? () => onDateRangeChange("", "") : undefined}
+          onClear={
+            mode === "create" && !scheduleRequired ? () => onDateRangeChange("", "") : undefined
+          }
           mutualAvailabilityEnabled={Boolean(mutualSchedule?.mutualUiEnabled)}
           mutualAvailabilityHintsReady={Boolean(mutualSchedule?.hintsReady)}
           mutualDayKeys={mutualSchedule?.mutualDayKeys}

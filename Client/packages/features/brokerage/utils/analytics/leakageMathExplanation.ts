@@ -110,8 +110,7 @@ export function buildLeakageMathExplanation(
   const topSlice = [...slices].sort((a, b) => b.dollars - a.dollars)[0];
   const topShare =
     topSlice && oppHigh > 0 ? Math.round((topSlice.dollars / oppHigh) * 1000) / 10 : 0;
-  const vsAvgValue =
-    oppAvg <= 0 ? "At industry average" : `${formatAncillaryDollars(oppAvg)} behind`;
+  const vsAvgValue = formatAncillaryDollars(oppAvg);
   const biggestLeakValue = topSlice
     ? `${topSlice.label} · ${formatAncillaryDollars(topSlice.dollars)}`
     : "—";
@@ -120,7 +119,7 @@ export function buildLeakageMathExplanation(
     hero: {
       label: leakageHeroLabel(period),
       value: formatAncillaryDollars(oppHigh),
-      secondaryLabel: "vs industry average",
+      secondaryLabel: "Opportunity vs industry average",
       secondaryValue: vsAvgValue,
     },
     formulaRows,
@@ -144,7 +143,7 @@ export function buildLeakageMathExplanation(
       },
       {
         label: "vs industry avg",
-        value: oppAvg <= 0 ? "At average" : formatAncillaryDollars(oppAvg),
+        value: vsAvgValue,
       },
       {
         label: "$/closing to high",

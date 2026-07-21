@@ -314,6 +314,7 @@ export default function ClientMessaging({
           onSelectDocument={handlers.handleSelectDocument}
           onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
           sendCalendarEventMessage={sendMessageApi}
+          activeConversationId={activeConversationId || null}
         />
       }
     />

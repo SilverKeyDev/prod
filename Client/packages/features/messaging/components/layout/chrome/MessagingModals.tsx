@@ -25,6 +25,10 @@ type MessagingModalsProps = {
     message: string,
     options: MessagingSendMessageOptions & { conversationId: string }
   ) => Promise<void>;
+  /** Agent: prefill Client in the calendar request modal from the open thread. */
+  initialClientId?: string | null;
+  /** Active messaging conversation id (buyer submit routing / recipient ready). */
+  activeConversationId?: string | null;
 };
 
 export default function MessagingModals({
@@ -41,6 +45,8 @@ export default function MessagingModals({
   onSelectDocument,
   onCalendarEventSuccess,
   sendCalendarEventMessage,
+  initialClientId = null,
+  activeConversationId = null,
 }: MessagingModalsProps) {
   return (
     <>
@@ -64,6 +70,8 @@ export default function MessagingModals({
         onClose={() => setShowCalendarEventModal(false)}
         onSuccess={onCalendarEventSuccess}
         sendCalendarEventMessage={sendCalendarEventMessage}
+        initialClientId={initialClientId}
+        activeConversationId={activeConversationId}
       />
     </>
   );

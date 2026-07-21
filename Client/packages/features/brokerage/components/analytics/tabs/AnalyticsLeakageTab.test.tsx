@@ -82,7 +82,7 @@ describe("AnalyticsLeakageTab", () => {
 
     const snapshot = screen.getByTestId("leakage-section-snapshot");
     expect(snapshot.textContent).toContain("Opportunity to high");
-    expect(snapshot.textContent).toContain("vs industry avg");
+    expect(snapshot.textContent).toContain("Opportunity vs industry avg");
     expect(snapshot.textContent).toContain("Biggest leak");
     expect(snapshot.textContent).toContain("Closings in period");
 

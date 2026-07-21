@@ -128,7 +128,7 @@ export function AncillaryAgentLeaderboardCard({ data, onViewAllAgents }: Leaderb
     <SectionCard title="Agent Opportunity Leaderboard" iconName="users">
       <Box className="mb-4 flex items-center justify-between gap-3">
         <BodyText size="xs" muted className="min-w-0">
-          Agents sorted by opportunity to industry high (title + lending), highest coaching priority
+          Agents sorted by opportunity vs industry avg (title + lending), highest coaching priority
         </BodyText>
         {onViewAllAgents ? (
           <Button type="button" variant="ghost" size="sm" onPress={onViewAllAgents}>

@@ -136,6 +136,8 @@ describe("BrokerageCampaignsShell", () => {
     renderShell();
     expect(await screen.findByTestId("brokerage-campaigns-shell")).toBeTruthy();
     expect(screen.getByTestId("campaigns-sidebar")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Learning loop" })).toBeNull();
+    expect(screen.queryByTestId("campaign-learning-panel")).toBeNull();
 
     expect(screen.queryByRole("heading", { level: 1, name: "Campaigns" })).toBeNull();
     expect(screen.queryByText(/A\/B email campaigns/i)).toBeNull();

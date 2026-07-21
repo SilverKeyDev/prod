@@ -53,6 +53,8 @@ type MessagingScreenNativeOverlaysProps = {
   onCloseCalendarEventModal: () => void;
   onCalendarEventSuccess: () => void;
   sendMessage: (text: string) => Promise<void>;
+  initialClientId?: string | null;
+  activeConversationId?: string | null;
   currentPdf: string | null;
   currentDocumentId: string | null;
   currentDocumentName: string | null;
@@ -82,6 +84,8 @@ export function MessagingScreenNativeOverlays({
   onCloseCalendarEventModal,
   onCalendarEventSuccess,
   sendMessage,
+  initialClientId = null,
+  activeConversationId = null,
   currentPdf,
   currentDocumentId,
   currentDocumentName,
@@ -118,6 +122,8 @@ export function MessagingScreenNativeOverlays({
         onClose={onCloseCalendarEventModal}
         onSuccess={onCalendarEventSuccess}
         sendCalendarEventMessage={sendMessage}
+        initialClientId={initialClientId}
+        activeConversationId={activeConversationId}
       />
 
       {currentPdf ? (

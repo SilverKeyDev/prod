@@ -84,7 +84,7 @@ Under CCPA/CPRA, California consumers have the following rights:
 
 **You have the right to request correction of inaccurate personal information.**
 
-**How:** Submit correction request via privacy@silverkey.com or in-app settings
+**How:** Submit correction request via jayce@usesilverkey.com or in-app settings
 **Response Time:** Within 45 days (extendable to 90 days with notice)
 
 ### 4. Right to Opt-Out of Sale or Sharing (Cal. Civ. Code § 1798.120)
@@ -108,7 +108,7 @@ Under CCPA/CPRA, California consumers have the following rights:
 
 **Current Use:** We use sensitive personal information only for disclosed, expected purposes (home buying services). No secondary uses requiring opt-out.
 
-**How to Opt Out (if applicable):** privacy@silverkey.com or in-app settings
+**How to Opt Out (if applicable):** jayce@usesilverkey.com or in-app settings
 
 ### 6. Right to Non-Discrimination (Cal. Civ. Code § 1798.125)
 
@@ -329,7 +329,7 @@ We may offer optional financial incentives (e.g., consumer referral or promotion
 
 ### Submission Process
 
-- **Email:** privacy@silverkey.com with subject "Authorized Agent Request"
+- **Email:** jayce@usesilverkey.com with subject "Authorized Agent Request"
 - **Include:**
   - Consumer's full name and email
   - Signed authorization letter from consumer
@@ -359,7 +359,7 @@ We do not knowingly collect personal information from children under 13. If we l
 
 ### Parental Rights
 
-If you believe your child under 18 has created an account, contact privacy@silverkey.com immediately for account deletion.
+If you believe your child under 18 has created an account, contact jayce@usesilverkey.com immediately for account deletion.
 
 ---
 
@@ -368,7 +368,7 @@ If you believe your child under 18 has created an account, contact privacy@silve
 ### Request Methods
 
 #### 1. Email
-- **Address:** privacy@silverkey.com
+- **Address:** jayce@usesilverkey.com
 - **Subject Line:** "CCPA Request - [Right to Know/Delete/Correct/Opt-Out]"
 - **Include:** Full name, email address, description of request
 
@@ -451,18 +451,18 @@ If we cannot verify your identity, we will inform you and may request additional
 
 ### California Privacy Rights Inquiries
 
-**Email:** privacy@silverkey.com
+**Email:** jayce@usesilverkey.com
 **Subject Line:** "CCPA Request - [Your Name]"
 **Response Time:** Within 10 business days (acknowledgment), 45 days (full response)
 
 ### Data Protection Officer (DPO)
 
-**Email:** privacy@silverkey.com
+**Email:** jayce@usesilverkey.com
 **Phone:** [To be established]
 
 ### General Privacy Questions
 
-**Email:** privacy@silverkey.com
+**Email:** jayce@usesilverkey.com
 **In-App:** Settings > Privacy > Contact Us
 
 ---
@@ -514,4 +514,4 @@ We may update this CCPA notice from time to time. Changes will be posted with a 
 
 ---
 
-*This document is maintained by the SilverKey Legal and Compliance team. For questions or updates, contact privacy@silverkey.com.*
+*This document is maintained by the SilverKey Legal and Compliance team. For questions or updates, contact jayce@usesilverkey.com.*
