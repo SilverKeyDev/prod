@@ -13,3 +13,11 @@ class QueryGuardrailError(BrokerageDbQueryError):
     def __init__(self, message: str, *, code: str = "query_rejected") -> None:
         super().__init__(message)
         self.code = code
+
+
+class ConnectionConfigError(BrokerageDbQueryError):
+    """Brokerage DB connection config missing or invalid."""
+
+    def __init__(self, message: str, *, code: str = "connection_config") -> None:
+        super().__init__(message)
+        self.code = code
