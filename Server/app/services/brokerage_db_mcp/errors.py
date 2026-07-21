@@ -21,3 +21,11 @@ class ConnectionConfigError(BrokerageDbQueryError):
     def __init__(self, message: str, *, code: str = "connection_config") -> None:
         super().__init__(message)
         self.code = code
+
+
+class QueryExecutionError(BrokerageDbQueryError):
+    """Read-only query failed validation or execution."""
+
+    def __init__(self, message: str, *, code: str = "query_execution") -> None:
+        super().__init__(message)
+        self.code = code

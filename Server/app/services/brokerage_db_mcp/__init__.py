@@ -9,8 +9,10 @@ from app.services.brokerage_db_mcp.connection import (
 from app.services.brokerage_db_mcp.errors import (
     BrokerageDbQueryError,
     ConnectionConfigError,
+    QueryExecutionError,
     QueryGuardrailError,
 )
+from app.services.brokerage_db_mcp.executor import QueryResult, execute_readonly
 from app.services.brokerage_db_mcp.guardrails import DEFAULT_MAX_LIMIT, validate_read_only_sql
 from app.services.brokerage_db_mcp.introspection import (
     ColumnInfo,
@@ -27,9 +29,12 @@ __all__ = [
     "DEFAULT_MAX_LIMIT",
     "MODE_SILVERKEY_MIRROR",
     "MIRROR_ALLOWED_TABLES",
+    "QueryExecutionError",
     "QueryGuardrailError",
+    "QueryResult",
     "SchemaSnapshot",
     "TableInfo",
+    "execute_readonly",
     "introspect_schema",
     "resolve_connection_config",
     "validate_read_only_sql",
