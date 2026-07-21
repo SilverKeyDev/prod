@@ -28,12 +28,16 @@ export type UseCalendarEventRequestFormParams = {
     message: string,
     options: MessagingSendMessageOptions & { conversationId: string }
   ) => Promise<void>;
+  initialClientId?: string | null;
+  activeConversationId?: string | null;
 };
 
 export function useCalendarEventRequestForm({
   onClose,
   onSuccess,
   sendCalendarEventMessage,
+  initialClientId = null,
+  activeConversationId = null,
 }: UseCalendarEventRequestFormParams) {
   const isAgent = useIsAgent();
   const enqueueToast = useUIStore((s: UIState) => s.enqueueToast);
@@ -81,7 +85,29 @@ export function useCalendarEventRequestForm({
     [conversations]
   );
 
-  const clientConversation = !isAgent && conversations.length > 0 ? conversations[0] : null;
+  const clientConversation = useMemo(() => {
+    if (isAgent) {
+      return null;
+    }
+    const activeId = activeConversationId?.trim();
+    if (activeId) {
+      const match = conversations.find((c) => c.id === activeId);
+      if (match) {
+        return match;
+      }
+    }
+    return conversations.length > 0 ? conversations[0] : null;
+  }, [activeConversationId, conversations, isAgent]);
+
+  useEffect(() => {
+    if (!isAgent) {
+      return;
+    }
+    const next = initialClientId?.trim() || null;
+    if (next) {
+      setSelectedClientId(next);
+    }
+  }, [initialClientId, isAgent]);
 
   const minDate = dateNow().add(1, "day").format("YYYY-MM-DD");
 

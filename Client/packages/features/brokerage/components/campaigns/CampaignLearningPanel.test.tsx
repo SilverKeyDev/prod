@@ -85,9 +85,12 @@ describe("CampaignLearningPanel", () => {
   it("renders the learning loop controls and results funnel", async () => {
     renderPanel();
     expect(await screen.findByTestId("campaign-learning-panel")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "Learning loop" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Run learning loop" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Run offline fallback" })).toBeTruthy();
-    expect(await screen.findByText(/lift 4\.2pp/i)).toBeTruthy();
-    expect(screen.getByText(/recovered \$12,000/i)).toBeTruthy();
+    expect(await screen.findByTestId("campaign-learning-results")).toBeTruthy();
+    expect(screen.getByText("+4.20 pp")).toBeTruthy();
+    expect(screen.getByText("$12K")).toBeTruthy();
+    expect(screen.getByTestId("campaign-learning-empty")).toBeTruthy();
   });
 });

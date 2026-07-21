@@ -302,6 +302,8 @@ export default function AgentMessaging({ setMobileHeaderActions }: AgentMessagin
           onSelectDocument={handlers.handleSelectDocument}
           onCalendarEventSuccess={handlers.handleCalendarEventSuccess}
           sendCalendarEventMessage={sendMessageApi}
+          initialClientId={selectedClientId}
+          activeConversationId={activeConversationId || null}
         />
       }
     />

@@ -25,7 +25,7 @@ export type QuantMathFormulaRow = {
   label: string;
   /** e.g. "+4.00 pp × 1,854 closings × $150/attach = $11.1K" */
   equation: string;
-  /** e.g. "15% current · 15% avg · 19% high · 1,854 closings" */
+  /** e.g. "13% current · 15% avg · 19% high · 1,854 closings" */
   inputs?: string;
 };
 

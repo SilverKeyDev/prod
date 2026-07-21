@@ -125,6 +125,8 @@ export function MessagingScreenNative() {
         onCloseCalendarEventModal={() => c.setShowCalendarEventModal(false)}
         onCalendarEventSuccess={c.handlers.handleCalendarEventSuccess}
         sendMessage={c.sendMessage}
+        initialClientId={c.selectedClientId}
+        activeConversationId={c.activeConversationId || null}
         currentPdf={c.currentPdf}
         currentDocumentId={c.currentDocumentId}
         currentDocumentName={c.currentDocumentName}

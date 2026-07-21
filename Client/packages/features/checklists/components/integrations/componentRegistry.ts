@@ -9,7 +9,6 @@ import PartnerTransactionIntegration from "packages/features/partners/components
 
 import ChooseAreasSection from "./areas/ChooseAreasSection";
 import SetBudgetSection from "./budget/SetBudgetSection";
-import BuyerBrokerReviewSection from "./buyerBrokerReview/BuyerBrokerReviewSection";
 import ReviewComparablesSection from "./comparables/ReviewComparablesSection";
 import DefineCriteriaSection from "./criteria/DefineCriteriaSection";
 import FindingHome from "./findingHome/FindingHome";
@@ -24,7 +23,6 @@ export const COMPONENT_REGISTRY: Record<
   finding_home: FindingHome,
   partner_placements: PartnerTransactionIntegration,
   partner_agent: PartnerAgentSection,
-  buyer_broker_review: BuyerBrokerReviewSection,
   review_comparables: ReviewComparablesSection,
   set_budget: SetBudgetSection,
 };

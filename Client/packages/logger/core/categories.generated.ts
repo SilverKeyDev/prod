@@ -56,7 +56,6 @@ export type LogPath =
   | "DOCUSIGN"
   | "DOCUMENTS"
   | "TRANSACTIONS"
-  | "TRANSACTIONS.BBA_REVIEW"
   | "EMAIL"
   | "PROFILE_PREFERENCES";
 
@@ -121,7 +120,6 @@ export const LOG_PATHS = [
   "DOCUSIGN",
   "DOCUMENTS",
   "TRANSACTIONS",
-  "TRANSACTIONS.BBA_REVIEW",
   "EMAIL",
   "PROFILE_PREFERENCES",
 ] as const;

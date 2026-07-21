@@ -77,8 +77,9 @@ describe("campaignFixtures category parity", () => {
       const service = category.dashboard_service!;
       const row = BROKERAGE_ANCILLARY_FIXTURE.by_service.find((s) => s.service === service);
       expect(row).toBeTruthy();
-      expect(category.baseline_attach_rate_percent).toBe(row!.attach_rate_percent);
       expect(category.baseline_attach_rate_percent).toBe(row!.industry_avg_percent);
+      expect(category.baseline_attach_rate_percent).not.toBe(row!.attach_rate_percent);
+      expect(row!.attach_rate_percent).toBeLessThan(row!.industry_avg_percent);
       expect(category.post_attach_rate_percent).toBe(row!.industry_high_percent);
       expect(category.fee_assumption).toBe(ANCILLARY_FEES[service]);
       expect(category.performance_weekly[0]?.attach_rate_percent).toBe(

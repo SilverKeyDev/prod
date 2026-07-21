@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { color } from "packages/design-tokens";
+import { KpiCard } from "packages/features/brokerage/components/analytics/AnalyticsShellShared";
 import { AnalyticsBarChart } from "packages/features/brokerage/components/charts";
 import {
   useCampaignLearning,
@@ -16,8 +17,11 @@ import {
   useRunCampaignLearningLoop,
 } from "packages/features/brokerage/hooks/useCampaignLearning";
 import type { CampaignLearningResult } from "packages/features/brokerage/types/campaignLearning";
-import Button from "packages/ui/components/actions/button/Button";
+import { formatLiftPp } from "packages/features/brokerage/utils/analyticsFormat";
+import { formatAncillaryDollars } from "packages/features/brokerage/utils/ancillaryServiceLabels";
+import { Button } from "packages/ui";
 import Select from "packages/ui/components/inputs/form/pickers/Select";
+import StatusBadge from "packages/ui/components/media/asset/StatusBadge";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
@@ -27,90 +31,137 @@ function formatPctRate(rate: number | undefined): string {
   return `${(rate * 100).toFixed(1)}%`;
 }
 
+function InsightList({ items }: { items: string[] }) {
+  if (items.length === 0) {
+    return (
+      <BodyText size="xs" muted>
+        —
+      </BodyText>
+    );
+  }
+  return (
+    <Box className="flex flex-col gap-1.5">
+      {items.map((item) => (
+        <Box key={item} className="flex gap-2">
+          <BodyText size="xs" muted className="shrink-0" aria-hidden>
+            ·
+          </BodyText>
+          <BodyText size="xs">{item}</BodyText>
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
 function LearningOutput({ result }: { result: CampaignLearningResult }) {
   const winner = result.winner_analysis;
   const draft = result.next_iteration_draft;
   const successColor = color("state.success.DEFAULT");
+  const modelLabel = winner.model?.chosen_model ?? "—";
+  const aucLabel =
+    winner.model?.chosen_auc != null ? `AUC ${winner.model.chosen_auc.toFixed(2)}` : null;
 
   return (
-    <Box className="flex flex-col gap-4">
-      <Box className="border-border rounded-lg border p-4">
-        <Title size="sm" as="h4" className="mb-2">
-          Winner analysis
-        </Title>
-        <BodyText size="sm">
-          Variant{" "}
-          <BodyText as="span" size="sm" className="font-semibold" style={{ color: successColor }}>
-            {winner.winner_variant}
+    <Box className="flex flex-col gap-4" data-testid="campaign-learning-output">
+      <Box className="grid gap-3 sm:grid-cols-3">
+        <KpiCard
+          label="Model winner"
+          value={winner.winner_variant ? `Variant ${winner.winner_variant}` : "—"}
+          delta={
+            winner.winner_attach_rate != null
+              ? `Attach ${formatPctRate(winner.winner_attach_rate)}`
+              : undefined
+          }
+          deltaTone="up"
+          iconName="sparkles"
+          valueColor={successColor}
+        />
+        <KpiCard
+          label="Scoring model"
+          value={modelLabel}
+          delta={aucLabel ?? winner.model?.rationale}
+          iconName="trending-up"
+        />
+        <KpiCard
+          label="Draft status"
+          value={draft.status.replace(/_/g, " ")}
+          delta="Human approval required · never auto-sent"
+          iconName="file"
+        />
+      </Box>
+
+      {(winner.drivers ?? []).length > 0 ? (
+        <Box className="border-border/60 flex flex-col gap-1.5 border-t pt-3">
+          <BodyText size="xs" muted className="font-medium uppercase tracking-wide">
+            Why it won
           </BodyText>
-          {" · "}
-          attach {formatPctRate(winner.winner_attach_rate)}
-          {" · "}
-          model {winner.model?.chosen_model ?? "—"}
-          {winner.model?.chosen_auc != null ? ` (AUC ${winner.model.chosen_auc})` : ""}
-        </BodyText>
-        <Box className="mt-2 flex flex-col gap-1">
-          {(winner.drivers ?? []).map((d) => (
-            <BodyText key={d} size="xs" muted>
-              • {d}
+          <InsightList items={winner.drivers ?? []} />
+          {winner.model?.rationale ? (
+            <BodyText size="xs" muted className="mt-1">
+              {winner.model.rationale}
             </BodyText>
-          ))}
+          ) : null}
         </Box>
-        {winner.model?.rationale ? (
-          <BodyText size="xs" muted className="mt-2">
-            {winner.model.rationale}
-          </BodyText>
-        ) : null}
+      ) : null}
+
+      <Box className="grid gap-3 md:grid-cols-2">
+        <Box className="border-border bg-background rounded-lg border p-4">
+          <Box className="mb-2 flex items-center gap-2">
+            <Title size="sm" as="h4">
+              What worked
+            </Title>
+            <StatusBadge text={result.review.source} variant="info" size="xs" />
+          </Box>
+          <InsightList items={result.review.what_worked ?? []} />
+        </Box>
+        <Box className="border-border bg-background rounded-lg border p-4">
+          <Title size="sm" as="h4" className="mb-2">
+            What didn&apos;t
+          </Title>
+          <InsightList items={result.review.what_did_not_work ?? []} />
+        </Box>
       </Box>
 
-      <Box className="border-border rounded-lg border p-4">
-        <Title size="sm" as="h4" className="mb-2">
-          What worked / what didn&apos;t
-        </Title>
-        <BodyText size="xs" muted className="mb-1">
-          Source: {result.review.source}
+      {result.review.recommended_next_test ? (
+        <BodyText size="sm" className="text-gold">
+          Next test: {result.review.recommended_next_test}
         </BodyText>
-        <BodyText size="sm" className="mb-1">
-          Worked
-        </BodyText>
-        {(result.review.what_worked ?? []).map((item) => (
-          <BodyText key={item} size="xs" muted>
-            • {item}
+      ) : null}
+
+      <Box className="border-border/60 flex flex-col gap-3 border-t pt-3">
+        <Box className="flex flex-wrap items-center gap-2">
+          <Title size="sm" as="h4">
+            Next-iteration draft
+          </Title>
+          <StatusBadge text="Approval required" variant="warning" size="xs" />
+          <BodyText size="xs" muted>
+            {draft.source}
           </BodyText>
-        ))}
-        <BodyText size="sm" className="mb-1 mt-3">
-          Did not work
-        </BodyText>
-        {(result.review.what_did_not_work ?? []).map((item) => (
-          <BodyText key={item} size="xs" muted>
-            • {item}
-          </BodyText>
-        ))}
-        {result.review.recommended_next_test ? (
-          <BodyText size="xs" className="mt-3">
-            Next test: {result.review.recommended_next_test}
+        </Box>
+        {draft.conditioning_summary ? (
+          <BodyText size="xs" muted>
+            {draft.conditioning_summary}
           </BodyText>
         ) : null}
-      </Box>
-
-      <Box className="border-border rounded-lg border p-4">
-        <Title size="sm" as="h4" className="mb-1">
-          Next-iteration draft (approval required)
-        </Title>
-        <BodyText size="xs" muted className="mb-3">
-          Status: {draft.status} · source: {draft.source} · never auto-sent
-        </BodyText>
         <Box className="grid gap-3 md:grid-cols-2">
           {(draft.variants ?? []).map((v) => (
-            <Box key={v.key} className="border-border rounded-lg border p-3">
-              <BodyText size="xs" muted>
-                Variant {v.key}
-                {v.include_meet_link ? " · Meet CTA" : ""}
-              </BodyText>
-              <BodyText size="sm" className="mt-1 font-medium">
+            <Box
+              key={v.key}
+              className="border-border bg-background flex flex-col gap-2 rounded-lg border p-4"
+              data-testid={`campaign-learning-draft-${v.key}`}
+            >
+              <Box className="flex flex-wrap items-center gap-2">
+                <BodyText size="sm" className="font-semibold">
+                  Variant {v.key}
+                </BodyText>
+                {v.include_meet_link ? (
+                  <StatusBadge text="Meet CTA" variant="info" size="xs" />
+                ) : null}
+              </Box>
+              <BodyText size="sm" className="font-medium">
                 {v.subject}
               </BodyText>
-              <BodyText size="xs" muted className="mt-2">
+              <BodyText size="xs" muted className="line-clamp-4 whitespace-pre-wrap">
                 {v.body_template}
               </BodyText>
             </Box>
@@ -169,17 +220,30 @@ export function CampaignLearningPanel() {
     return bars;
   }, [results]);
 
-  const successColor = color("state.success.DEFAULT");
   const chartColor = color("chart.1");
+  const successColor = color("state.success.DEFAULT");
   const winner = results?.variants?.find((v) => v.is_winner)?.variant_key;
+  const hasLearning = Boolean(learning && "winner_analysis" in learning);
 
   return (
-    <Box className="flex flex-col gap-5" data-testid="campaign-learning-panel">
-      <Box className="border-border-warning bg-background-warning rounded-lg border px-3 py-2">
-        <BodyText size="xs" muted>
-          Demo learning loop — model picks winners, Perplexity reviews + drafts next A/B. Drafts
-          require human approval. No PII in prompts.
-        </BodyText>
+    <Box
+      id="learning-loop"
+      className="border-border bg-background-surface flex min-w-0 scroll-mt-24 flex-col gap-4 rounded-xl border p-5 shadow-sm"
+      data-testid="campaign-learning-panel"
+    >
+      <Box className="flex flex-wrap items-start justify-between gap-3">
+        <Box className="flex min-w-0 flex-col gap-1">
+          <Box className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+            <Title size="md" as="h2">
+              Learning loop
+            </Title>
+            <StatusBadge text="Approval required" variant="warning" size="xs" />
+          </Box>
+          <BodyText size="xs" muted>
+            Model picks the winning A/B variant, reviews what moved attach rate, and drafts the next
+            pair — never auto-sent.
+          </BodyText>
+        </Box>
       </Box>
 
       <Box className="flex flex-wrap items-end gap-3">
@@ -220,59 +284,68 @@ export function CampaignLearningPanel() {
       </Box>
 
       {listQuery.isError || runLoop.isError ? (
-        <BodyText size="sm" className="text-state-danger">
+        <BodyText size="sm" className="text-state-danger" role="alert">
           {runLoop.isError
             ? "Learning loop failed — try Offline fallback (cached draft)."
-            : "Could not load campaigns — seed with seed_demo_campaigns and ensure API auth."}
+            : "Could not load campaigns — seed demo campaigns and ensure API auth."}
         </BodyText>
       ) : null}
 
       {results?.success ? (
-        <Box className="border-border bg-background-surface rounded-xl border p-5">
-          <Box className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-            <Title size="sm" as="h3">
-              {results.name ?? "Campaign results"}
-            </Title>
-            <BodyText size="sm">
-              {winner ? (
-                <>
-                  Winner:{" "}
-                  <BodyText
-                    as="span"
-                    size="sm"
-                    className="font-semibold"
-                    style={{ color: successColor }}
-                  >
-                    Variant {winner}
-                  </BodyText>
-                </>
-              ) : null}
-              {results.attach_rate_lift_pp != null
-                ? ` · lift ${results.attach_rate_lift_pp}pp`
-                : ""}
-              {results.recovered_dollars_total != null
-                ? ` · recovered $${results.recovered_dollars_total.toLocaleString()}`
-                : ""}
-            </BodyText>
+        <Box className="flex flex-col gap-3" data-testid="campaign-learning-results">
+          <Box className="grid gap-3 sm:grid-cols-3">
+            <KpiCard
+              label="Campaign"
+              value={results.name ?? "Results"}
+              delta={winner ? `Winner: Variant ${winner}` : undefined}
+              deltaTone={winner ? "up" : undefined}
+              iconName="mail"
+              valueColor={winner ? successColor : undefined}
+            />
+            <KpiCard
+              label="Attach lift"
+              value={
+                results.attach_rate_lift_pp != null
+                  ? `+${formatLiftPp(results.attach_rate_lift_pp)} pp`
+                  : "—"
+              }
+              deltaTone={results.attach_rate_lift_pp != null ? "up" : undefined}
+              iconName="trending-up"
+            />
+            <KpiCard
+              label="Recovered"
+              value={
+                results.recovered_dollars_total != null
+                  ? formatAncillaryDollars(results.recovered_dollars_total)
+                  : "—"
+              }
+              deltaTone={results.recovered_dollars_total != null ? "up" : undefined}
+              iconName="key"
+              valueColor={color("gold.DEFAULT")}
+            />
           </Box>
           {funnelBars.length > 0 ? (
-            <AnalyticsBarChart
-              data={funnelBars}
-              orientation="vertical"
-              color={chartColor}
-              height={220}
-              unit="%"
-            />
+            <Box data-testid="campaign-learning-funnel-chart">
+              <BodyText size="xs" muted className="mb-2">
+                Funnel rates by variant
+              </BodyText>
+              <AnalyticsBarChart
+                data={funnelBars}
+                orientation="vertical"
+                color={chartColor}
+                height={200}
+                unit="%"
+              />
+            </Box>
           ) : null}
         </Box>
       ) : null}
 
-      {learning && "winner_analysis" in learning ? (
+      {hasLearning && learning ? (
         <LearningOutput result={learning} />
       ) : (
-        <BodyText size="sm" muted>
-          Click &quot;Run learning loop&quot; for winner analysis, what-worked summary, and a
-          drafted next-iteration variant pair.
+        <BodyText size="sm" muted data-testid="campaign-learning-empty">
+          Run the learning loop for winner analysis, what worked, and a drafted next-iteration pair.
         </BodyText>
       )}
     </Box>

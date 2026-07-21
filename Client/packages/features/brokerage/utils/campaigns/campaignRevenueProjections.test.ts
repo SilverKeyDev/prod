@@ -69,8 +69,8 @@ describe("buildCampaignRevenueProjections", () => {
     const year = buildAncillaryData("year");
     expect(month.total_transactions).toBe(MONTH_TRANSACTIONS);
     expect(year.total_transactions).toBe(YEAR_TRANSACTIONS);
-    expect(month.summary.total_leakage_dollars).toBe(37_375);
-    expect(month.summary.opportunity_vs_avg_dollars).toBe(0);
+    expect(month.summary.total_leakage_dollars).toBe(58_650);
+    expect(month.summary.opportunity_vs_avg_dollars).toBe(21_275);
     expect(year.summary.total_leakage_dollars).toBeGreaterThan(month.summary.total_leakage_dollars);
     // Far below former 100%-attach month total (~$894K)
     expect(year.summary.total_leakage_dollars).toBeLessThan(1_000_000);
@@ -79,17 +79,17 @@ describe("buildCampaignRevenueProjections", () => {
     expect(result.rows).toHaveLength(6);
     expect(result.totalProjectedDollars).toBeGreaterThan(0);
 
-    // Overlapping title/lending/warranty campaign lifts align with opportunity-to-high slices
+    // Campaigns lift avg→high; brokerage current is below avg, so recovery matches that slice only
     const overlapIds = new Set(["title_insurance", "mortgage", "home_warranty"]);
     const overlapRecovery = result.rows
       .filter((r) => overlapIds.has(r.categoryId))
       .reduce((sum, r) => sum + r.projectedDollars, 0);
-    const overlapOpportunity = year.by_service
+    const overlapOpportunityAvgToHigh = year.by_service
       .filter(
         (s) => s.service === "title" || s.service === "lending" || s.service === "home_warranty"
       )
-      .reduce((sum, s) => sum + s.opportunity_vs_high_dollars, 0);
-    expect(overlapRecovery).toBe(overlapOpportunity);
+      .reduce((sum, s) => sum + (s.opportunity_vs_high_dollars - s.opportunity_vs_avg_dollars), 0);
+    expect(overlapRecovery).toBe(overlapOpportunityAvgToHigh);
   });
 });
 

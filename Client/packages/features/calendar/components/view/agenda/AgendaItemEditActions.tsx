@@ -10,23 +10,18 @@ type AgendaItemEditActionsProps = {
 
 export function AgendaItemEditActions({ onEdit, onCancel, className }: AgendaItemEditActionsProps) {
   return (
-    <Box className={twMergeClasses("w-full flex-row gap-2", className)}>
+    <Box className={twMergeClasses("flex shrink-0 flex-row items-center gap-2", className)}>
       <Button
         variant="outline"
         size="sm"
         onPress={onEdit}
         iconName="pencil"
         label="Edit"
-        className="min-h-touch min-w-0 flex-1"
+        className="min-h-touch shrink-0"
       >
         Edit
       </Button>
-      <CancelButton
-        size="sm"
-        onPress={onCancel}
-        label="Cancel"
-        className="min-h-touch min-w-0 flex-1"
-      >
+      <CancelButton size="sm" onPress={onCancel} label="Cancel" className="min-h-touch shrink-0">
         Cancel
       </CancelButton>
     </Box>

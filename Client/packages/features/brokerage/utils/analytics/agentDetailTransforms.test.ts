@@ -32,7 +32,7 @@ describe("buildAgentDetailView", () => {
     const view = buildAgentDetailView(PRIMARY_AGENT_ID);
     expect(view?.leakageAgent).not.toBeNull();
     expect(view?.leakageAgent?.name).toBe("Brittney Collins");
-    // Above industry high on title + lending → $0 gap-to-high opportunity
+    // Above industry avg on title + lending → $0 gap-to-avg opportunity
     expect(view?.leakageAgent?.total_leakage_dollars).toBe(0);
     expect(view?.kpis.estimatedLeakage).toBe(0);
   });
@@ -83,7 +83,7 @@ describe("buildAgentDetailView", () => {
     expect(view?.ancillaryAttach.services).toHaveLength(4);
     expect(view?.ancillaryAttach.services[0].service).toBe("Title");
     expect(view?.ancillaryAttach.services[0].agentRate).toBe(22);
-    expect(view?.ancillaryAttach.services[0].brokerageAvg).toBe(15);
+    expect(view?.ancillaryAttach.services[0].brokerageAvg).toBe(13);
     expect(view?.ancillaryAttach.totalLeakage).toBe(0);
   });
 

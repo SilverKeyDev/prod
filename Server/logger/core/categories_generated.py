@@ -98,7 +98,6 @@ LOG_PATHS: tuple[str, ...] = (
     "DOCUSIGN",
     "DOCUMENTS",
     "TRANSACTIONS",
-    "TRANSACTIONS.BBA_REVIEW",
     "EMAIL",
     "PROFILE_PREFERENCES",
 )

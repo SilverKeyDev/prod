@@ -41,7 +41,7 @@ def cognito_email_from_address() -> str:
 
 def cognito_reply_to_address() -> str:
     """Optional reply-to for Cognito verification / password-reset mail."""
-    return os.getenv("SES_REPLY_TO_EMAIL", "").strip() or f"support@{SES_SENDING_DOMAIN}"
+    return os.getenv("SES_REPLY_TO_EMAIL", "").strip() or f"jayce@{SES_SENDING_DOMAIN}"
 
 
 def app_links_base_url() -> str:

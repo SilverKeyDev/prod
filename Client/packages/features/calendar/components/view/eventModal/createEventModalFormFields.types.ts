@@ -37,4 +37,6 @@ export type CreateEventModalFormFieldsProps = {
   mutualSchedule: CreateEventMutualAvailability | null;
   registerOutsideClickSafeTarget?: (element: HTMLElement) => () => void;
   onCalendarTimedSlotPick: (payload: { startTime: string; endTime: string }) => void;
+  /** Messaging calendar request: date/time required (not optional to-do). */
+  scheduleRequired?: boolean;
 };
