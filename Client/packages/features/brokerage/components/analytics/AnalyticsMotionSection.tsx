@@ -1,5 +1,5 @@
 /**
- * Staggered section entrance for analytics/campaigns demo polish.
+ * Staggered section entrance for analytics demo polish.
  * Respects prefers-reduced-motion.
  */
 import { motion, useReducedMotion } from "framer-motion";

@@ -23,8 +23,6 @@ const templateMap: Record<string, () => Promise<EmailTemplateModule>> = {
   ListingsEmail: () => import("./templates/ListingsEmail.tsx") as Promise<EmailTemplateModule>,
   NewPropertiesEmail: () =>
     import("./templates/NewPropertiesEmail.tsx") as Promise<EmailTemplateModule>,
-  CampaignAgentEmail: () =>
-    import("./templates/CampaignAgentEmail.tsx") as Promise<EmailTemplateModule>,
 };
 
 async function main() {

@@ -6,7 +6,6 @@ export type WorkspaceNavTabKey =
   | "dashboard"
   | "search"
   | "inventory"
-  | "campaigns"
   | "decide"
   | "agent"
   | "profile";
@@ -22,7 +21,6 @@ const TAB_ORDER: WorkspaceNavTabKey[] = [
   "dashboard",
   "search",
   "inventory",
-  "campaigns",
   "decide",
   "agent",
   "profile",
@@ -39,8 +37,6 @@ function labelKeyForTab(workspace: Workspace, key: WorkspaceNavTabKey): string {
       return "workspace.nav.search";
     case "inventory":
       return "workspace.nav.inventory";
-    case "campaigns":
-      return "workspace.nav.campaigns";
     case "decide":
       return workspace === "agent" ? "workspace.nav.library.agent" : "workspace.nav.library.buyer";
     case "agent":
@@ -65,8 +61,6 @@ function isTabVisible(workspace: Workspace, key: WorkspaceNavTabKey, _isMobile: 
     if (key === "search") return false;
     return true;
   }
-  // Non-brokerage: hide campaigns
-  if (key === "campaigns") return false;
   return true;
 }
 
