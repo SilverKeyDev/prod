@@ -10,10 +10,5 @@ export { ListingCardImageSection } from "./components/ListingCardImageSection";
 export * from "./components/listingCardTypes";
 export * from "./components/listingCardUtils";
 export { Logo } from "./components/Logo";
-export { renderCampaignAgentEmailHtml } from "./renderCampaignAgentEmailHtml";
-export {
-  default as CampaignAgentEmail,
-  type CampaignAgentEmailProps,
-} from "./templates/CampaignAgentEmail";
 export { default as ListingsEmail } from "./templates/ListingsEmail";
 export { default as NewPropertiesEmail } from "./templates/NewPropertiesEmail";

@@ -1,5 +1,5 @@
 /**
- * Quant-style math explanation payloads for Leakage and Campaigns strips.
+ * Quant-style math explanation payloads for Leakage strips.
  */
 export type QuantMathStat = {
   label: string;
@@ -43,7 +43,8 @@ export type QuantMathExplanation = {
   formulaRows: QuantMathFormulaRow[];
   formulaTotal?: string;
   stats: QuantMathStat[];
-  bridge: QuantMathBridge;
+  /** Optional CTA link under the strip. */
+  bridge?: QuantMathBridge;
   /** Present on Leakage explanations; used by Snapshot KPIs. */
   snapshot?: LeakageSnapshotKpis;
 };

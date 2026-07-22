@@ -1,5 +1,3 @@
 # Brokerage features
 
-| Doc | Description |
-| --- | ----------- |
-| [campaign-learning-loop.md](./campaign-learning-loop.md) | SIL-309 — engagement scoring, Perplexity review/draft, one-click learning loop |
+Brokerage product docs live here as features land. Analytics, inventory, and partner placement notes should be added under this hub when they are documented as as-built guides.

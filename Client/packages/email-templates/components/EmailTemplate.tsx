@@ -16,7 +16,7 @@ type EmailTemplateProps = {
   children: React.ReactNode;
   /** When provided, replaces the default footer for `footerVariant="custom"`. */
   footerContent?: React.ReactNode;
-  /** Defaults to buyer copy (listings). Use `agent` for brokerage campaigns. */
+  /** Defaults to buyer copy (listings). Use `agent` for agent-facing emails. */
   footerVariant?: EmailFooterVariant;
   /** Show SilverKey logo above the title. Defaults to true. */
   showLogo?: boolean;
@@ -95,7 +95,7 @@ export function EmailTemplate({
     (footerVariant === "agent" ? (
       <DefaultFooter
         title="SilverKey for your brokerage"
-        body="You're receiving this because your brokerage runs agent campaigns in SilverKey. Reply to your ops lead if you have questions."
+        body="You're receiving this because your brokerage uses SilverKey. Reply to your ops lead if you have questions."
       />
     ) : (
       <DefaultFooter
