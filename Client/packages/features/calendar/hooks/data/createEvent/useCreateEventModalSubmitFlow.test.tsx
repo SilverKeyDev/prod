@@ -77,6 +77,7 @@ describe("useCreateEventModalSubmitFlow", () => {
       conversationId: "conversation-2",
       clientIdForAgent: undefined,
     });
+    expect(sendCalendarEventMessage).toHaveBeenCalledTimes(1);
   });
 
   it("uses the active conversation id while the conversation list is still loading", async () => {
@@ -100,5 +101,6 @@ describe("useCreateEventModalSubmitFlow", () => {
       conversationId: "conversation-pending",
       clientIdForAgent: undefined,
     });
+    expect(sendCalendarEventMessage).toHaveBeenCalledTimes(1);
   });
 });
