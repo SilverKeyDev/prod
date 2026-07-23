@@ -477,3 +477,76 @@ def get_brokerage_inventory(user):
     brokerage_org_id = req.args.get("brokerage_org_id")
     status = req.args.get("status")
     return _handle_result(get_brokerage_inventory_listings(brokerage_org_id, status_filter=status))
+
+
+@brokerage_analytics_bp.route("/nl-query", methods=["POST"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def post_brokerage_analytics_nl_query(user):
+    """POST /api/v1/brokerage/analytics/nl-query - SIL-323 NL -> read-only SQL."""
+    from app.services.brokerage_db_mcp import (
+        ConnectionConfigError,
+        NlQueryError,
+        QueryExecutionError,
+        QueryGuardrailError,
+        run_nl_query,
+    )
+
+    body = req.get_json(silent=True) or {}
+    brokerage_org_id = str(
+        body.get("brokerage_org_id") or req.args.get("brokerage_org_id") or ""
+    ).strip()
+    question = str(body.get("question") or "").strip()
+
+    if not question:
+        return jsonify(
+            {"success": False, "error": "validation_error", "message": "question is required"}
+        ), 400
+
+    try:
+        result = run_nl_query(brokerage_org_id, question)
+    except QueryGuardrailError as exc:
+        return jsonify(
+            {
+                "success": False,
+                "error": getattr(exc, "code", "query_rejected"),
+                "message": "Query was rejected by read-only guardrails",
+            }
+        ), 400
+    except (NlQueryError, ConnectionConfigError, QueryExecutionError) as exc:
+        code = getattr(exc, "code", "nl_query")
+        status = (
+            400
+            if code
+            in {
+                "empty_question",
+                "missing_brokerage_org_id",
+                "brokerage_not_found",
+                "empty_sql",
+                "tenancy_bind_missing",
+                "tenancy_predicate_missing",
+                "table_not_allowed",
+                "no_table",
+            }
+            else 500
+        )
+        return jsonify(
+            {
+                "success": False,
+                "error": code,
+                "message": "Unable to answer this question",
+            }
+        ), status
+
+    return jsonify(
+        {
+            "success": True,
+            "brokerage_org_id": brokerage_org_id,
+            "question": result.question,
+            "sql": result.sql,
+            "viz_hint": result.viz_hint,
+            "columns": list(result.columns),
+            "rows": list(result.rows),
+            "row_count": result.row_count,
+        }
+    ), 200

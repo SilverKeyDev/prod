@@ -683,6 +683,35 @@ class BrokerageSkySlopeCredentialTestResponse(BaseModel):
     message: str = Field(..., description="Safe, non-secret connection test result")
 
 
+class NlQueryRequest(BaseModel):
+    brokerage_org_id: str = Field(
+        ...,
+        description="Brokerage organization UUID (must be in the caller's brokerage_org_ids)",
+    )
+    question: constr(min_length=1) = Field(
+        ..., description="Plain-English analytics question (read-only NL path)"
+    )
+
+
+class VizHint(Enum):
+    bar = "bar"
+    table = "table"
+    none = "none"
+
+
+class NlQueryResponse(BaseModel):
+    success: bool
+    brokerage_org_id: str
+    question: str
+    sql: str = Field(..., description="Guarded SELECT that was executed (LIMIT applied)")
+    viz_hint: VizHint
+    columns: list[str]
+    rows: list[dict[str, Any]] = Field(
+        ..., description="JSON-safe row objects (keys match columns)"
+    )
+    row_count: conint(ge=0)
+
+
 class Role2(Enum):
     user = "user"
     assistant = "assistant"
