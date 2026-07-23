@@ -29,3 +29,11 @@ class QueryExecutionError(BrokerageDbQueryError):
     def __init__(self, message: str, *, code: str = "query_execution") -> None:
         super().__init__(message)
         self.code = code
+
+
+class NlQueryError(BrokerageDbQueryError):
+    """Natural-language query planning failed."""
+
+    def __init__(self, message: str, *, code: str = "nl_query") -> None:
+        super().__init__(message)
+        self.code = code
