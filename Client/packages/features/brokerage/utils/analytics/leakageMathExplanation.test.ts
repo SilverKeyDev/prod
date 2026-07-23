@@ -4,23 +4,7 @@ import { buildAncillaryData } from "packages/features/brokerage/utils/analytics/
 import { buildLeakageMathExplanation } from "packages/features/brokerage/utils/analytics/leakageMathExplanation";
 import { fallOffOpportunityDollars } from "packages/features/brokerage/utils/ancillaryAttachBenchmarks";
 import { formatAncillaryDollars } from "packages/features/brokerage/utils/ancillaryServiceLabels";
-import {
-  MONTH_TRANSACTIONS,
-  YEAR_TRANSACTIONS,
-} from "packages/features/brokerage/utils/brokerageDemoVolumeAssumptions";
-import {
-  demoCampaignLeakageAlignedRecoveryDollars,
-  demoCampaignYearRecoveryDollars,
-  demoYearLeakageDollars,
-  recoveryPercentOfLeakage,
-} from "packages/features/brokerage/utils/campaigns/brokerageMathBridge";
-import { CAMPAIGN_CATEGORIES_FIXTURE } from "packages/features/brokerage/utils/campaigns/campaignFixtures";
-import {
-  ANALYTICS_LEAKAGE_HREF,
-  buildCampaignMathExplanation,
-} from "packages/features/brokerage/utils/campaigns/campaignMathExplanation";
-import { buildCampaignRevenueProjections } from "packages/features/brokerage/utils/campaigns/campaignRevenueProjections";
-import { ROUTES } from "packages/navigation/types/routes";
+import { MONTH_TRANSACTIONS } from "packages/features/brokerage/utils/brokerageDemoVolumeAssumptions";
 
 /** Month attach opportunity-to-high at 1,854 closings (current 2 pp below avg). */
 const MONTH_ATTACH_OPPORTUNITY = 58_650;
@@ -33,12 +17,7 @@ const MONTH_OPPORTUNITY_WITH_FALL_OFF =
 describe("leakageMathExplanation", () => {
   it("uses gap-to-high opportunity with title 13% current / 15% avg / 19% high and fall-off row", () => {
     const data = buildAncillaryData("month");
-    const yearOpportunity = demoYearLeakageDollars();
-    const recovery = demoCampaignLeakageAlignedRecoveryDollars();
-    const explanation = buildLeakageMathExplanation(data, "month", {
-      campaignRecoveryDollars: recovery,
-      yearLeakageDollars: yearOpportunity,
-    });
+    const explanation = buildLeakageMathExplanation(data, "month");
 
     expect(data.summary.total_leakage_dollars).toBe(MONTH_ATTACH_OPPORTUNITY);
     expect(data.summary.opportunity_vs_avg_dollars).toBe(MONTH_OPPORTUNITY_VS_AVG);
@@ -71,10 +50,7 @@ describe("leakageMathExplanation", () => {
     expect(explanation.snapshot?.biggestLeak).toMatch(/· \$/);
     expect(explanation.snapshot?.closingsInPeriod).toBe(MONTH_TRANSACTIONS.toLocaleString());
     expect(explanation.snapshot?.behindIndustryAvg).toBe(true);
-    expect(explanation.bridge.to).toBe(ROUTES.CAMPAIGNS);
-    expect(explanation.bridge.label).toContain(
-      String(recoveryPercentOfLeakage(recovery, yearOpportunity))
-    );
+    expect(explanation.bridge).toBeUndefined();
   });
 
   it("scales opportunity with period", () => {
@@ -85,51 +61,5 @@ describe("leakageMathExplanation", () => {
     );
     expect(buildLeakageMathExplanation(year, "year").hero.label).toContain("this year");
     expect(buildLeakageMathExplanation(week, "week").hero.label).toContain("this week");
-  });
-});
-
-describe("campaignMathExplanation", () => {
-  it("includes baseline→post inputs and keep-rate equation for fall-off", () => {
-    const projection = buildCampaignRevenueProjections(
-      CAMPAIGN_CATEGORIES_FIXTURE,
-      YEAR_TRANSACTIONS
-    );
-    const yearLeakage = demoYearLeakageDollars();
-    const explanation = buildCampaignMathExplanation(projection, {
-      yearClosings: YEAR_TRANSACTIONS,
-      yearLeakageDollars: yearLeakage,
-    });
-
-    expect(explanation.hero.value).toMatch(/\$/);
-    expect(explanation.formulaRows).toHaveLength(projection.rows.length);
-    expect(explanation.formulaTotal).toContain("Σ portfolio recovery");
-
-    const titleRow = explanation.formulaRows.find((row) => row.label === "Title Insurance");
-    expect(titleRow?.inputs).toMatch(/15% → 19%/);
-    expect(titleRow?.equation).toMatch(/\/attach/);
-
-    const fallOffRow = explanation.formulaRows.find((row) => row.label === "Transaction Fall-Off");
-    expect(fallOffRow?.inputs).toMatch(/keep/);
-    expect(fallOffRow?.equation).toMatch(/saved closing/);
-
-    expect(explanation.stats.find((s) => s.label === "Year closings")?.value).toBe(
-      YEAR_TRANSACTIONS.toLocaleString()
-    );
-    expect(explanation.bridge.to).toBe(ANALYTICS_LEAKAGE_HREF);
-    expect(explanation.bridge.to).toBe("/dashboard?tab=leakage");
-  });
-});
-
-describe("brokerageMathBridge", () => {
-  it("aligned recovery stays under year opportunity-to-high including fall-off", () => {
-    const aligned = demoCampaignLeakageAlignedRecoveryDollars();
-    const portfolio = demoCampaignYearRecoveryDollars();
-    const opportunity = demoYearLeakageDollars();
-    expect(aligned).toBeGreaterThan(0);
-    expect(portfolio).toBeGreaterThan(aligned);
-    expect(opportunity).toBeGreaterThan(MONTH_OPPORTUNITY_WITH_FALL_OFF);
-    expect(aligned).toBeLessThan(opportunity);
-    expect(recoveryPercentOfLeakage(aligned, opportunity)).toBeGreaterThan(0);
-    expect(recoveryPercentOfLeakage(aligned, opportunity)).toBeLessThan(100);
   });
 });

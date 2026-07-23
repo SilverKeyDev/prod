@@ -3,7 +3,7 @@
  */
 import { useState } from "react";
 
-import type { QuantMathExplanation } from "packages/features/brokerage/utils/campaigns/quantMathExplanation";
+import type { QuantMathExplanation } from "packages/features/brokerage/utils/analytics/quantMathExplanation";
 import { Link } from "packages/navigation";
 import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
@@ -148,16 +148,18 @@ export function QuantMathStrip({
         </Box>
       )}
 
-      <Box data-testid={`${testId}-bridge`} className="flex flex-wrap items-baseline gap-1.5">
-        <BodyText size="xs" muted>
-          Next:
-        </BodyText>
-        <BodyText size="xs">
-          <Link to={bridge.to} className="underline underline-offset-2">
-            {bridge.label}
-          </Link>
-        </BodyText>
-      </Box>
+      {bridge ? (
+        <Box data-testid={`${testId}-bridge`} className="flex flex-wrap items-baseline gap-1.5">
+          <BodyText size="xs" muted>
+            Next:
+          </BodyText>
+          <BodyText size="xs">
+            <Link to={bridge.to} className="underline underline-offset-2">
+              {bridge.label}
+            </Link>
+          </BodyText>
+        </Box>
+      ) : null}
     </Box>
   );
 }

@@ -4,10 +4,6 @@ from .agent import AgentConnectionRequest, AgentConnections, ChatHistory, Todo
 from .brokerage import (
     BrokerageIntegrationCredential,
     BrokerageOrg,
-    EmailCampaign,
-    EmailCampaignEvent,
-    EmailCampaignRecipient,
-    EmailCampaignVariant,
     UserOrgMembership,
 )
 from .calendar import CalendarEvent, CalendarShare
@@ -79,10 +75,6 @@ def init_db():
 __all__ = [
     "BrokerageIntegrationCredential",
     "BrokerageOrg",
-    "EmailCampaign",
-    "EmailCampaignEvent",
-    "EmailCampaignRecipient",
-    "EmailCampaignVariant",
     "UserOrgMembership",
     "BrokeragePartnerAdoption",
     "PartnerOperator",

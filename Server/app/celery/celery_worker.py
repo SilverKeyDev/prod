@@ -57,8 +57,6 @@ celery.conf.update(
             "skyslope.sync_brokerage_transactions": {"queue": "default"},
             "skyslope.sync_all_brokerages_incremental": {"queue": "default"},
             "tasks.score_brokerage_ml_insights_task": {"queue": "heavy"},
-            "tasks.score_campaign_engagement_task": {"queue": "heavy"},
-            "tasks.run_campaign_learning_loop_task": {"queue": "heavy"},
         },
         # Celery Beat schedule for periodic tasks
         "beat_schedule": {

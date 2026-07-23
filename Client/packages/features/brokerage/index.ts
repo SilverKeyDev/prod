@@ -2,8 +2,6 @@ export { AgentRetentionRiskPanel } from "./components/analytics/AgentRetentionRi
 export { AncillaryInsightPanel } from "./components/analytics/AncillaryInsightPanel";
 export { BrokerageAnalyticsShell } from "./components/analytics/BrokerageAnalyticsShell";
 export { TargetedAgentEngagementPanel } from "./components/analytics/TargetedAgentEngagementPanel";
-export { BrokerageCampaignsShell } from "./components/campaigns/BrokerageCampaignsShell";
-export { CampaignLearningPanel } from "./components/campaigns/CampaignLearningPanel";
 export { BrokerageDashboardShell } from "./components/dashboard/BrokerageDashboardShell";
 export { BrokerageInventoryPanel } from "./components/inventory/BrokerageInventoryPanel";
 export { BROKERAGE_TRANSLATIONS } from "./types/translations";
