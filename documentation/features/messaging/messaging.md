@@ -1,7 +1,7 @@
 # Messaging feature
 
 > **Status:** Shipped for buyer/seller/agent (agent–client stack) and brokerage/integrator/admin (workspace stack)  
-> **Last verified:** 2026-07-12  
+> **Last verified:** 2026-07-24  
 > **Code:** `Client/packages/features/messaging/`, `Server/app/routes/conversations/`, `Server/app/routes/agent/` (legacy chats)
 
 Unified messaging across two stacks:
@@ -11,13 +11,15 @@ Unified messaging across two stacks:
 | Agent–client | buyer, seller, agent | `/api/v1/agent/chats/*` |
 | Workspace | brokerage, integrator, admin support | `/api/v1/conversations/*` |
 
-Workspace personas share `WorkspaceMessagingShell`, persona configs, and hooks under `hooks/data/workspace/`. Eligible contacts power new thread creation for brokerage↔agent and integrator↔brokerage threads.
+Workspace mapping: `getMessagingSurfaceForWorkspace` in `Client/packages/utils/comms/messaging/`. Seller uses the agent–client stack with a seller copy overlay (`ClientMessaging`), not a placeholder page. Brokerage uses `BrokerageMessaging` / workspace hooks.
+
+Eligible contacts power new thread creation for brokerage↔agent and integrator↔brokerage threads.
 
 ## Architecture
 
 - Persona matrix: [persona-variations.md](../../architecture/messaging/persona-variations.md)
 - Workspace API: [workspace-conversations.md](../../architecture/messaging/workspace-conversations.md)
-- SSE: [sse.md](../../architecture/messaging/sse.md)
+- SSE (three web hooks, dual stream URLs, mobile gap): [sse.md](../../architecture/messaging/sse.md)
 
 ## Ops
 
