@@ -32,9 +32,9 @@ Post-onboarding navigation lands on `/dashboard` for all roles. Workspace select
 
 Public APIs [`getOnboardingSteps`](../../../Client/packages/features/profile/utils/onboarding/steps/steps.ts) and [`getPersonalizationSteps`](../../../Client/packages/features/profile/utils/onboarding/steps/steps.ts) delegate to `buildProfileFlow`.
 
-## Brokerage workspace shell
+## Brokerage / seller workspace shells
 
-The **brokerage workspace placeholder** (dashboard + messaging only) is separate from this registry. See [workspaces-placeholder-shells.md](../../architecture/workspaces-placeholder-shells.md). Onboarding registry work does not change placeholder routing.
+Onboarding registry work does not decide dashboard UX. Brokerage dashboard analytics and seller/brokerage messaging are documented under [workspaces-placeholder-shells.md](../../architecture/workspaces-placeholder-shells.md) and [brokerage-analytics.md](../brokerage/brokerage-analytics.md).
 
 ## Tests
 
