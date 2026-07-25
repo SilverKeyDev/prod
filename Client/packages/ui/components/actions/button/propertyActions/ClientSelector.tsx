@@ -40,8 +40,7 @@ export default function ClientSelector({
       ? hideMeOption
         ? t("client_selector.select_client")
         : t("client_selector.me")
-      : clients.find((c) => c.id === selectedClientId)?.name ||
-        t("client_selector.select_client");
+      : clients.find((c) => c.id === selectedClientId)?.name || t("client_selector.select_client");
   // Render the menu in a portal so it is not clipped by scrolling/overflow ancestors
   // (e.g. the horizontally scrollable library toolbar on mobile).
   return (
@@ -103,9 +102,7 @@ export default function ClientSelector({
                     {t("client_selector.me")}
                   </BodyText>
                 </Button>
-                {clients.length > 0 ? (
-                  <Box className="border-border mx-1 my-1 border-t" />
-                ) : null}
+                {clients.length > 0 ? <Box className="border-border mx-1 my-1 border-t" /> : null}
               </>
             ) : null}
 
@@ -118,10 +115,7 @@ export default function ClientSelector({
               </Box>
             ) : clients.length === 0 ? (
               <Box className="flex items-start gap-3 px-3 py-3">
-                <Icon
-                  name="users"
-                  className="text-text-secondary mt-0.5 h-5 w-5 shrink-0"
-                />
+                <Icon name="users" className="text-text-secondary mt-0.5 h-5 w-5 shrink-0" />
                 <Box className="flex min-w-0 flex-col gap-1">
                   <BodyText as="span" size="sm" muted className="text-left">
                     {t("client_selector.no_clients_found", {
@@ -157,12 +151,7 @@ export default function ClientSelector({
                       {client.name}
                     </BodyText>
                     {client.email && (
-                      <BodyText
-                        as="span"
-                        size="xs"
-                        muted
-                        className="w-full truncate text-left"
-                      >
+                      <BodyText as="span" size="xs" muted className="w-full truncate text-left">
                         {client.email}
                       </BodyText>
                     )}
