@@ -4,9 +4,9 @@
 
 The React Native app installed and showed the native splash storyboard, then never rendered.
 The cause turned out to be **thirteen independent bugs stacked on top of each other**: each fix
-only revealed the next. This runbook records the symptom, every root cause, the two systemic
-lessons worth internalising, and a diagnostic checklist so the next occurrence takes minutes
-rather than days.
+only revealed the next. A follow-up QA sweep across every screen then found **four more** of the
+same families. This runbook records the symptom, every root cause, the systemic lessons worth
+internalising, and a diagnostic checklist so the next occurrence takes minutes rather than days.
 
 ---
 
@@ -72,6 +72,24 @@ not the same thing when the build is slower than the client's timeout.**
 | 13 | **Web markup rendered on native.** Four variants of the same mistake: a `<header>` root in a file already named `.native.tsx`; a polymorphic component defaulting to `as="section"`; an inline `<svg><path>` icon; and a bare `" "` string inside a `View`. Plus 11 platform-neutral files importing icons from web `lucide-react`, whose components render raw `<svg>/<path>`. | `…/landing/nav/LandingNav.native.tsx`, `…/landing/shared/LandingSectionShell.tsx`, `…/landing/footer/LandingFooter.tsx`, `…/landing/hero/LandingHero.tsx`, `Client/apps/mobile/metro.config.cjs` (rule `0c2`) | RN primitives instead of HTML; `isWeb` branch for the semantic landmark; `XIcon` split into `.tsx`/`.native.tsx` (shared path in `xIconPath.ts`, documented in `packages/config/platform/variants.json`); wrapped the bare string in a text component; aliased `lucide-react` → `lucide-react-native` on native. |
 
 **Result:** app launches past the splash and renders the landing UI with zero JS errors.
+
+### Phase 4 — found by the follow-up QA sweep across every screen
+
+Once the app booted, a sweep of all 8 unauthenticated screens, all 5 authenticated tabs and the
+3 authenticated root-stack screens surfaced four more defects of the same families.
+
+| # | Root cause | Location | Fix |
+|---|-----------|----------|-----|
+| 14 | **Search tab aborted the process (SIGABRT).** `getUseGoogleMapsProvider()` is meant to fall back to Apple Maps on the simulator, but detected it with `Constants.isDevice === false`. expo-constants 17 (SDK 52) **removed** `isDevice`, so the expression was `undefined === false` → `false`: every simulator looked like a real device, got the Google provider, and `+[GMSServices checkServicePreconditions]` aborts when no Maps SDK key is configured. | `packages/utils/product/maps/native/nativeGoogleMapsCloudConfig.native.ts` | Use `expo-device`'s `Device.isDevice` (current API, already a declared dependency). |
+| 15 | 26 symbols were missing from four more `index.native.ts` barrels — the same defect as bug 12, spread across all five authenticated tabs (`agent`, `profile`, `saved`, `propertyDetails`). | those four barrels | Re-export each from its own module. |
+| 16 | Library and Profile logged "Text strings must be rendered within a `<Text>`": `UnderlineTabs` rendered `{item.label}` (a string for every caller) directly inside a `Box`. | `packages/ui/components/structure/tabs/UnderlineTabs.tsx` | Wrap string labels in `Text`; pass ReactNode labels through. |
+| 17 | Profile's seven tabs each collapsed to ~56pt on a phone, wrapping labels mid-word over their icons. | `packages/features/profile/components/ProfileScreen.tsx` | Pass the existing `scrollable` prop on native only (`scrollable={!isWeb}`). |
+
+**Lesson from #14 — a removed Expo API fails silently.** `Constants.isDevice` did not throw when it
+disappeared; it became `undefined`, and a strict `=== false` comparison quietly inverted the
+behaviour. When an Expo major version drops an API, every truthiness/equality check against it
+flips. After an SDK bump, grep for the removed symbols rather than trusting the absence of type
+errors — `Constants` is typed loosely enough that `Constants.isDevice` still compiled.
 
 ---
 
@@ -202,14 +220,36 @@ Work top to bottom. Each step is cheap and eliminates a whole class of cause.
     grep -rn 'from "lucide-react"' packages apps --include='*.tsx' | grep -v '\.web\.'
     ```
 
-### E. Native build mechanics (this machine)
+### E. Driving a screen-by-screen sweep (and two traps that fake a pass)
 
-15. `expo run:ios --device "<name>"` crashes in Expo CLI's **physical-device** usbmux plist
+19. **`simctl openurl` cannot drive automated QA on iOS 26.** The app resolves `silverkey://<path>`
+    through `useDeepLink` → `resolveDeepLinkTarget`, but iOS shows a modal
+    **"Open in 'SilverKey'?" → [Cancel] [Open]** for custom schemes — even cold from the
+    springboard — and nothing taps it. Queued calls stack up dialogs that grey out later
+    screenshots. `idb` (which can tap) is not installed.
+20. **Instead:** temporarily force the auth branch in `RootContent`, disable `useDeepLink()`, and
+    rewrite the navigator's `initialRouteName` per screen. **Cold-launch between screens** —
+    React Navigation only honours `initialRouteName` on first mount, so Fast Refresh silently
+    keeps the previous screen (three tabs produced byte-identical screenshots before this was
+    caught). Mark the scaffold with a distinctive comment and grep for it before committing.
+21. **Trap 1 — a broken `PATH` in the sweep loop reports every screen "clean."** If `sed`/`tail`
+    are not found the error-grep produces an empty string, which reads as success. Always assert
+    a screenshot file exists and pin `PATH` explicitly in the script.
+22. **Trap 2 — grepping only JS errors misses native crashes.** The Maps SIGABRT (#14) printed
+    nothing to Metro; the screenshot showed the springboard. A sweep must also check
+    `xcrun simctl spawn <sim> launchctl list | grep com.silverkey.mobile` for process liveness and
+    watch `~/Library/Logs/DiagnosticReports` for a new `SilverKey-*.ips`.
+23. **Confirm the screens actually differed** — compare screenshot hashes. Identical hashes mean
+    navigation never moved, so "no errors" proves nothing.
+
+### F. Native build mechanics (this machine)
+
+24. `expo run:ios --device "<name>"` crashes in Expo CLI's **physical-device** usbmux plist
     parsing (`DOMParser.parseFromString … mimeType "undefined"`). Build with `xcodebuild` and a
     simulator destination instead.
-16. `pod install` fails with `Unicode Normalization not appropriate for ASCII-8BIT` unless the
+25. `pod install` fails with `Unicode Normalization not appropriate for ASCII-8BIT` unless the
     locale is UTF-8: `export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8`.
-17. Codesign fails with `resource fork, Finder information, or similar detritus not allowed`
+26. Codesign fails with `resource fork, Finder information, or similar detritus not allowed`
     because the repo sits under an iCloud-synced `~/Desktop` and the file-provider daemon keeps
     re-applying `com.apple.FinderInfo`. In-place `xattr -cr` does not stick; copy out and sign:
     ```bash
@@ -218,7 +258,7 @@ Work top to bottom. Each step is cheap and eliminates a whole class of cause.
       --generate-entitlement-der /tmp/sk-build/SilverKey.app
     xcrun simctl install booted /tmp/sk-build/SilverKey.app
     ```
-18. **Verify a module is really in the binary** — the debug build keeps code in the dylib, not the
+27. **Verify a module is really in the binary** — the debug build keeps code in the dylib, not the
     thin stub executable:
     ```bash
     strings "$APP/SilverKey.debug.dylib" | grep -c ReactNativeBlobUtil
