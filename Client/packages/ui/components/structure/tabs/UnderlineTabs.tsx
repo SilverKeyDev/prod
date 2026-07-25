@@ -191,7 +191,10 @@ export function UnderlineTabs({
               ) : (
                 item.icon != null && <Box className={`${iconSizeClass} shrink-0`}>{item.icon}</Box>
               )}
-              {item.label}
+              {/* String labels are wrapped: React Native cannot render a raw string inside a
+                  View ("Text strings must be rendered within a <Text> component"). Non-string
+                  ReactNode labels are passed through untouched. */}
+              {typeof item.label === "string" ? <Text as="span">{item.label}</Text> : item.label}
               {isJourneyPhase ? (
                 <Box className="bg-gold-muted inline-flex shrink-0 flex-row items-center gap-0.5 rounded-full py-0.5 pl-1.5 pr-1.5">
                   <Box className="bg-gold h-1 w-1 shrink-0 rounded-full" aria-hidden />
