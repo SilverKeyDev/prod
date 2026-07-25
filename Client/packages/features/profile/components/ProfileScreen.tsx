@@ -182,6 +182,10 @@ export function ProfileScreen({ agentSubject = null }: ProfileScreenProps) {
             activeId={activeSection}
             onChange={(id) => setActiveSection(id)}
             compact
+            /* Seven equal-width tabs collapse to ~56pt on a phone, wrapping each label mid-word
+               and overlapping its icon. Sizing tabs to their labels and scrolling the row keeps
+               them legible; web keeps the equal-width layout it has room for. */
+            scrollable={!isWeb}
             className="mb-4"
           />
 
