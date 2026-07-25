@@ -61,7 +61,9 @@ export function LandingHero() {
               >
                 {word}
               </BodyText>
-              {index < hero.headlineWords.length - 1 ? " " : null}
+              {/* Wrapped rather than a bare " " so React Native can mount it: a raw string
+                  directly inside a View throws "Text strings must be rendered within a <Text>". */}
+              {index < hero.headlineWords.length - 1 ? <BodyText as="span"> </BodyText> : null}
             </Box>
           ))}
         </Title>

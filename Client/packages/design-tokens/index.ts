@@ -14,6 +14,8 @@ export {
   fontSize,
   motionDuration,
   motionEasing,
+  shadowElevated,
+  shadowSubtle,
   shadowTokens,
   spacing as spacingMap,
   Z_LAYERS,

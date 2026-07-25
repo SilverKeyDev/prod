@@ -16,7 +16,7 @@ export function LandingNav() {
   const activeSectionId = useLandingActiveSection();
 
   return (
-    <header
+    <Box
       className={`safe-top border-border z-header bg-background-base/95 fixed left-0 right-0 top-0 border-b backdrop-blur-md ${LANDING_NAV_SCROLL_MARGIN_CLASS}`}
     >
       <Box className="px-responsive-sm mx-auto flex h-14 max-w-6xl items-center justify-between gap-3">
@@ -83,6 +83,6 @@ export function LandingNav() {
           </Button>
         </Box>
       </Box>
-    </header>
+    </Box>
   );
 }

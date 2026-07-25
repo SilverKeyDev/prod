@@ -950,5 +950,12 @@
     "webPath": "packages/features/search/components/filters/SearchStrictPreferencesControl.web.tsx",
     "nativePath": "packages/features/search/components/filters/SearchStrictPreferencesControl.native.tsx",
     "reason": "Web uses design-system OliveCheckbox. Native uses React Native Switch and StyleSheet for row layout."
+  },
+  {
+    "id": "landing-footer-x-icon",
+    "description": "X (Twitter) social mark on the landing footer: inline SVG on web, react-native-svg on native.",
+    "webPath": "packages/features/homeauth/components/homepage/landing/footer/XIcon.tsx",
+    "nativePath": "packages/features/homeauth/components/homepage/landing/footer/XIcon.native.tsx",
+    "reason": "Lucide ships no X brand mark, so the glyph is drawn from a path. React Native cannot mount <svg>/<path> host elements, so native renders the shared path via react-native-svg and applies the text-secondary token directly (no color inheritance on native). Path lives in xIconPath.ts so both variants stay in sync."
   }
 ]
