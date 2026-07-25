@@ -54,6 +54,19 @@ const { getMetroPathRewrites } = require(
 );
 const PACKAGES_PATH_REWRITES = getMetroPathRewrites(monorepoRoot);
 
+// macOS/APFS is case-insensitive by default: fs.existsSync("AlignedRow") matches a sibling
+// "alignedRow/" directory too. Verify the parent directory's real listing before trusting a
+// no-extension existsSync/statSync check, or a file can be mistaken for a same-named directory.
+function existsCaseSensitive(fullPath) {
+  const dir = path.dirname(fullPath);
+  const base = path.basename(fullPath);
+  try {
+    return fs.readdirSync(dir).includes(base);
+  } catch {
+    return false;
+  }
+}
+
 /** Resolve module name to file path under monorepoRoot (packages/... or absolute). Tries .ts, .tsx, .js, /index. */
 function resolvePackagesPath(moduleName, platform) {
   const root = path.normalize(monorepoRoot);
@@ -85,8 +98,8 @@ function resolvePackagesPath(moduleName, platform) {
     fs.statSync(path.join(root, logicalPath)).isFile()
   )
     return path.join(root, logicalPath);
-  if (fs.existsSync(base) && fs.statSync(base).isFile()) return base;
-  const baseIsDirectory = fs.existsSync(base) && fs.statSync(base).isDirectory();
+  if (existsCaseSensitive(base) && fs.statSync(base).isFile()) return base;
+  const baseIsDirectory = existsCaseSensitive(base) && fs.statSync(base).isDirectory();
   // When `base` is a package directory (e.g. packages/features/search), do not resolve to a
   // sibling stem.native.ts (e.g. packages/features/search.native.ts); use <dir>/index(.native).ts.
   if (!baseIsDirectory) {
@@ -232,7 +245,19 @@ function logResolutionError(phase, moduleName, platform, err) {
   console.error(lines.join("\n"));
 }
 
+let _resolveCallCount = 0;
+const _RESOLVE_LOG_LIMIT = 30;
+
 function customResolveRequest(context, moduleName, platform) {
+  _resolveCallCount += 1;
+  if (_resolveCallCount <= _RESOLVE_LOG_LIMIT || _resolveCallCount % 500 === 0) {
+    console.info("[Metro resolver]", {
+      count: _resolveCallCount,
+      moduleName: String(moduleName).slice(0, 120),
+      platform,
+      origin: (context.originModulePath || "").slice(-80),
+    });
+  }
   try {
     return customResolveRequestImpl(context, moduleName, platform);
   } catch (err) {
@@ -315,15 +340,16 @@ function customResolveRequestImpl(context, moduleName, platform) {
     isMetroPlatform &&
     isFromNavigation &&
     typeof moduleName === "string" &&
-    moduleName.startsWith("./")
+    moduleName.startsWith("./") &&
+    origin
   ) {
-    const navDir = path.resolve(monorepoRoot, "packages/navigation");
-    const base = moduleName.replace(/^\.\//, "").replace(/\.(web|native)(\.[^.]+)?$/, "");
-    const baseName = path.basename(base, path.extname(base)) || base;
-    const candidates = [
-      path.join(navDir, baseName + ".native.ts"),
-      path.join(navDir, baseName + ".native.tsx"),
-    ];
+    // Resolve relative to the importing file's own directory (not packages/navigation's root) so
+    // nested imports like "./link/Link" or "./hooks/useNavigation" find their real .native sibling
+    // instead of a non-existent path directly under packages/navigation/.
+    const originDir = path.dirname(origin);
+    const stripped = moduleName.replace(/\.(web|native)(\.[^.]+)?$/, "");
+    const resolvedBase = path.resolve(originDir, stripped);
+    const candidates = [resolvedBase + ".native.ts", resolvedBase + ".native.tsx"];
     for (const p of candidates) {
       if (fs.existsSync(p)) return { type: "sourceFile", filePath: p };
     }
@@ -452,19 +478,6 @@ function customResolveRequestImpl(context, moduleName, platform) {
     if (fs.existsSync(indexTsx)) return { type: "sourceFile", filePath: indexTsx };
   }
 
-  if (moduleName.startsWith("packages/utils/core/")) {
-    const rest = moduleName.replace("packages/utils/core/", "packages/utils/");
-    const safeContext =
-      context && typeof context.resolveRequest === "function"
-        ? { ...config.resolver, ...context, resolveRequest: context.resolveRequest }
-        : { ...config.resolver, resolveRequest: wrapDefaultResolveRequest(defaultResolveRequest) };
-    try {
-      return safeContext.resolveRequest(safeContext, rest, platform);
-    } catch (err) {
-      logResolutionError("delegate (packages/utils/core)", rest, platform, err);
-      throw err;
-    }
-  }
   if (moduleName === "@babel/runtime" || moduleName.startsWith("@babel/runtime/")) {
     const subpath = moduleName.replace("@babel/runtime", "").replace(/^\//, "");
     const base = subpath || "index.js";
@@ -473,6 +486,14 @@ function customResolveRequestImpl(context, moduleName, platform) {
     const rootFile = path.join(rootNodeModules, "@babel/runtime", withJs);
     if (fs.existsSync(projectFile)) return { type: "sourceFile", filePath: projectFile };
     if (fs.existsSync(rootFile)) return { type: "sourceFile", filePath: rootFile };
+    // Some @babel/runtime helpers (e.g. regenerator/) ship as a directory with its own
+    // index.js rather than a flat <subpath>.js file — check that before falling back.
+    const projectDirIndex = path.join(projectNodeModules, "@babel/runtime", subpath, "index.js");
+    const rootDirIndex = path.join(rootNodeModules, "@babel/runtime", subpath, "index.js");
+    if (subpath && fs.existsSync(projectDirIndex))
+      return { type: "sourceFile", filePath: projectDirIndex };
+    if (subpath && fs.existsSync(rootDirIndex))
+      return { type: "sourceFile", filePath: rootDirIndex };
     const projectPkg = path.join(projectNodeModules, "@babel/runtime", "package.json");
     const rootPkg = path.join(rootNodeModules, "@babel/runtime", "package.json");
     if (fs.existsSync(projectPkg))
