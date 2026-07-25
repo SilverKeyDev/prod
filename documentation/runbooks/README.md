@@ -13,6 +13,7 @@ Operational and QA procedures.
 | [scaling-playbook.md](./scaling-playbook.md) | Capacity tuning, multi-instance |
 | [scripts-guide.md](./scripts-guide.md) | Script inventory and conventions |
 | [messaging-sse-operations.md](./messaging-sse-operations.md) | Messaging SSE ops |
+| [mobile-splash-screen-freeze.md](./mobile-splash-screen-freeze.md) | iOS splash freeze: 13 root causes, Metro/native-linking diagnostics |
 
 ## PostHog
 
