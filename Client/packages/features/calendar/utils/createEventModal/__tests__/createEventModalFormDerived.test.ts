@@ -84,5 +84,17 @@ describe("deriveCreateEventModalFormSubmitState", () => {
         },
       }).canSubmit
     ).toBe(false);
+    expect(
+      deriveCreateEventModalFormSubmitState({
+        ...base,
+        startDate: "",
+        endDate: "",
+        calendarEventRequest: {
+          ...base.calendarEventRequest,
+          selectedClientId: "c1",
+        },
+      }).canSubmit
+    ).toBe(false);
+    expect(deriveCreateEventModalFormSubmitState(base).primaryActionLabel).toBe("Send Request");
   });
 });

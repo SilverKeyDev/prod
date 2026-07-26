@@ -4,11 +4,12 @@ These items are **not** verifiable in the codebase. Owners should complete with 
 and your corporate/admin team.
 
 - [ ] **Entity:** Register the operating company; ensure contracts and in-product legal notices use
-  the correct legal name and address.
+  the correct legal name and address (`792 Techwood Dr NW, Atlanta, GA 30332` in current policy copy).
 - [ ] **Trademark:** Clear the **SilverKey** name and logo in your key jurisdictions before major
   marketing spend.
-- [ ] **Domain and email:** Confirm registrar/WHOIS for production domains; configure MX for
-  `privacy@` and `legal@` (or update `staticLegalContact` in the Client to working addresses).
+- [ ] **Domain and email:** Confirm registrar/WHOIS for production domains; human-facing privacy/legal
+  contact is `jayce@usesilverkey.com` via Client `staticLegalContact` (transactional From remains
+  `noreply@usesilverkey.com`).
 - [ ] **Vendors:** Execute DPAs / SCCs with subprocessors (cloud, email, payments, etc.) that
   process personal data on your behalf.
 - [ ] **EU/UK:** If you have users in the EEA/UK, document lawful basis, records of processing, and

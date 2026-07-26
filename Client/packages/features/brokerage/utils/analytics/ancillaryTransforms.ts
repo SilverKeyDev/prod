@@ -1,6 +1,7 @@
 /**
  * Pure ancillary analytics transforms (fixture-backed).
- * Opportunity = gap to industry avg / high (campaign benchmarks), not gap to 100%.
+ * Service opportunity = gap to industry avg / high (campaign benchmarks), not gap to 100%.
+ * Agent Total opportunity = gap to industry avg (title + lending), precise dollars.
  */
 import type { AncillaryAnalytics } from "packages/features/brokerage/types/analytics";
 import { periodScale, type TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
@@ -8,11 +9,13 @@ import {
   ANCILLARY_ATTACH_BENCHMARKS,
   type LeakageBenchmarkService,
   opportunityDollars,
+  opportunityDollarsPrecise,
 } from "packages/features/brokerage/utils/ancillaryAttachBenchmarks";
 import { ANCILLARY_SERVICE_ORDER } from "packages/features/brokerage/utils/ancillaryFees";
 import { BROKERAGE_ANCILLARY_FIXTURE } from "packages/features/brokerage/utils/brokerageAnalyticsFixtures";
 import { transactionsForPeriod } from "packages/features/brokerage/utils/brokerageDemoVolumeAssumptions";
 
+/** Agent coaching dollars: attach gap vs industry avg (precise — small tx must not round to $0). */
 function agentOpportunityDollars(
   transactions: number,
   titleAttach: number,
@@ -21,8 +24,8 @@ function agentOpportunityDollars(
   const title = ANCILLARY_ATTACH_BENCHMARKS.title;
   const lending = ANCILLARY_ATTACH_BENCHMARKS.lending;
   return (
-    opportunityDollars(transactions, titleAttach, title.industryHigh, title.fee) +
-    opportunityDollars(transactions, lendingAttach, lending.industryHigh, lending.fee)
+    opportunityDollarsPrecise(transactions, titleAttach, title.industryAvg, title.fee) +
+    opportunityDollarsPrecise(transactions, lendingAttach, lending.industryAvg, lending.fee)
   );
 }
 

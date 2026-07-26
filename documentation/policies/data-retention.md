@@ -218,7 +218,7 @@ This Data Retention Policy defines how long SilverKey retains personal data, whe
 
 #### 1. Account Deletion (Full Data Removal)
 
-**Trigger:** User requests account deletion via in-app settings or privacy@silverkey.com
+**Trigger:** User requests account deletion via in-app settings or jayce@usesilverkey.com
 
 **Procedure:**
 1. **Confirmation:** User confirms deletion (7-day grace period to cancel)
@@ -250,7 +250,7 @@ This Data Retention Policy defines how long SilverKey retains personal data, whe
 - Delete saved homes: Immediate removal from profile
 - Delete specific messages: Immediate removal (unless party to ongoing transaction)
 
-**Procedure:** User requests via in-app settings or privacy@silverkey.com
+**Procedure:** User requests via in-app settings or jayce@usesilverkey.com
 **Timeline:** Within 24-48 hours for most requests
 
 ---
@@ -334,7 +334,7 @@ Data deletion may be delayed or refused in the following circumstances:
 If deletion request is denied or delayed:
 - **Notification:** Within 30 days, explain reason for denial/delay
 - **Timeline:** Provide estimated timeline for deletion (if applicable)
-- **Appeal:** User may appeal decision via privacy@silverkey.com
+- **Appeal:** User may appeal decision via jayce@usesilverkey.com
 
 ---
 
@@ -377,7 +377,7 @@ If deletion request is denied or delayed:
 This Data Retention Policy supports user rights under GDPR and CCPA:
 
 #### 1. Right to Erasure (GDPR Article 17)
-- Users can request deletion via in-app settings or privacy@silverkey.com
+- Users can request deletion via in-app settings or jayce@usesilverkey.com
 - Data deleted within 30-90 days (except legal hold)
 
 #### 2. Right to Delete (CCPA § 1798.105)
@@ -396,7 +396,7 @@ This Data Retention Policy supports user rights under GDPR and CCPA:
 
 **Methods:**
 - **In-App:** Settings > Privacy > Delete Account
-- **Email:** privacy@silverkey.com with subject "Data Deletion Request"
+- **Email:** jayce@usesilverkey.com with subject "Data Deletion Request"
 - **Timeframe:** Deletion completed within 30-90 days (confirmation email sent)
 
 ---
@@ -479,14 +479,14 @@ This Data Retention Policy supports user rights under GDPR and CCPA:
 ## Contact Information
 
 **Privacy Inquiries:**
-- **Email:** privacy@silverkey.com
+- **Email:** jayce@usesilverkey.com
 - **Subject Line:** "Data Retention Policy Question"
 
 **Deletion Requests:**
-- **Email:** privacy@silverkey.com
+- **Email:** jayce@usesilverkey.com
 - **Subject Line:** "Data Deletion Request"
 - **In-App:** Settings > Privacy > Delete Account
 
 ---
 
-*This document is maintained by the SilverKey Legal and Compliance team. For questions or updates, contact privacy@silverkey.com.*
+*This document is maintained by the SilverKey Legal and Compliance team. For questions or updates, contact jayce@usesilverkey.com.*

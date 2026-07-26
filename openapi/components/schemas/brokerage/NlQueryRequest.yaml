@@ -1,0 +1,12 @@
+type: object
+required:
+  - brokerage_org_id
+  - question
+properties:
+  brokerage_org_id:
+    type: string
+    description: Brokerage organization UUID (must be in the caller's brokerage_org_ids)
+  question:
+    type: string
+    minLength: 1
+    description: Plain-English analytics question (read-only NL path)

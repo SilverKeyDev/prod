@@ -78,7 +78,7 @@ export function AnalyticsLeakageTab({ timePeriod, officeId = null }: Props) {
         valueColor: color("state.danger.DEFAULT"),
       },
       {
-        label: "vs industry avg",
+        label: "Opportunity vs industry avg",
         value: snap.vsIndustryAvg,
         iconName: "target",
         delta: snap.behindIndustryAvg ? "Behind average" : "At or above average",

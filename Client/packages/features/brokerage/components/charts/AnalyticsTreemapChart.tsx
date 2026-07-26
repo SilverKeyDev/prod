@@ -1,6 +1,7 @@
 import ReactECharts from "echarts-for-react";
 
 import { color } from "packages/design-tokens";
+import { Box } from "packages/ui/components/structure/primitives";
 
 export interface TreemapLeaf {
   name: string;
@@ -77,12 +78,12 @@ export function AnalyticsTreemapChart({
   };
 
   return (
-    <div data-testid="analytics-treemap-chart">
+    <Box data-testid="analytics-treemap-chart">
       <ReactECharts
         option={option}
         style={{ height, width: "100%" }}
         opts={{ renderer: "canvas" }}
       />
-    </div>
+    </Box>
   );
 }

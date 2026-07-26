@@ -2,4 +2,4 @@
 
 | Doc | Description |
 | --- | ----------- |
-| [campaign-learning-loop.md](./campaign-learning-loop.md) | Campaign editor/API boundaries, SIL-309 scoring and drafting, setup, and troubleshooting |
+| [db-mcp-schema-normalization.md](./db-mcp-schema-normalization.md) | SIL-323 — brokerage DB MCP schema variance and normalization strategy |

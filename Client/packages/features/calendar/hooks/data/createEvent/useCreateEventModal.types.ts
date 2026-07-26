@@ -14,6 +14,13 @@ export type CalendarEventRequestModalIntegration = {
     message: string,
     options: MessagingSendMessageOptions & { conversationId: string }
   ) => Promise<void>;
+  /**
+   * Prefill for agents opening the request from an existing messaging thread.
+   * Without this, Send Request stays disabled until Client is re-selected in the modal.
+   */
+  initialClientId?: string | null;
+  /** Buyer/client: active thread id so submit does not depend only on conversations[0]. */
+  activeConversationId?: string | null;
 };
 
 export type CreateModalPrefilledCreateSnapshot = {

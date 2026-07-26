@@ -101,6 +101,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/brokerage/analytics/nl-query": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Natural-language brokerage analytics query (SIL-323)
+     * @description Converts a plain-English question into a guarded read-only SQL query against the brokerage's connected data (v1 silverkey_mirror), then returns columns/rows plus a viz_hint for charts/tables.
+     */
+    post: operations["postBrokerageAnalyticsNlQuery"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/preferences": {
     parameters: {
       query?: never;
@@ -3565,6 +3585,27 @@ export interface components {
       success: boolean;
       /** @description Safe, non-secret connection test result */
       message: string;
+    };
+    NlQueryRequest: {
+      /** @description Brokerage organization UUID (must be in the caller's brokerage_org_ids) */
+      brokerage_org_id: string;
+      /** @description Plain-English analytics question (read-only NL path) */
+      question: string;
+    };
+    NlQueryResponse: {
+      success: boolean;
+      brokerage_org_id: string;
+      question: string;
+      /** @description Guarded SELECT that was executed (LIMIT applied) */
+      sql: string;
+      /** @enum {string} */
+      viz_hint: "bar" | "table" | "none";
+      columns: string[];
+      /** @description JSON-safe row objects (keys match columns) */
+      rows: {
+        [key: string]: unknown;
+      }[];
+      row_count: number;
     };
     ChatbotHistoryMessage: {
       id: string;
@@ -7447,6 +7488,66 @@ export interface operations {
         };
       };
       /** @description Server error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  postBrokerageAnalyticsNlQuery: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["NlQueryRequest"];
+      };
+    };
+    responses: {
+      /** @description Query succeeded */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["NlQueryResponse"];
+        };
+      };
+      /** @description Validation failed or query rejected by guardrails */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Forbidden for this brokerage */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description Planning or execution failed (sanitized) */
       500: {
         headers: {
           [name: string]: unknown;

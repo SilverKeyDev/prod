@@ -6,7 +6,6 @@ export type ChecklistComponentKey =
   | "finding_home"
   | "partner_placements"
   | "partner_agent"
-  | "buyer_broker_review"
   | "review_comparables";
 
 import type { PartnerPlacement } from "packages/features/partners/api/partners";
@@ -28,7 +27,6 @@ const VALID_KEYS: ChecklistComponentKey[] = [
   "finding_home",
   "partner_placements",
   "partner_agent",
-  "buyer_broker_review",
   "review_comparables",
 ];
 

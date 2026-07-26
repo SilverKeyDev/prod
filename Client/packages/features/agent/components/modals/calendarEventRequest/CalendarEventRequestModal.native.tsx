@@ -18,6 +18,8 @@ export default function CalendarEventRequestModalNative({
   onClose,
   onSuccess,
   sendCalendarEventMessage,
+  initialClientId,
+  activeConversationId,
 }: CalendarEventRequestModalNativeProps) {
   if (!isOpen) {
     return null;
@@ -37,6 +39,8 @@ export default function CalendarEventRequestModalNative({
             onClose={onClose}
             onSuccess={onSuccess}
             sendCalendarEventMessage={sendCalendarEventMessage}
+            initialClientId={initialClientId}
+            activeConversationId={activeConversationId}
           />
         </View>
       </View>

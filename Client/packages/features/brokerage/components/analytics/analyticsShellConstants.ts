@@ -2,7 +2,7 @@ import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeri
 import type { IconName } from "packages/ui/types/icons";
 
 export type { TimePeriod };
-export type AnalyticsTab = "overview" | "agents" | "leakage" | "forensics" | "market";
+export type AnalyticsTab = "overview" | "ask" | "agents" | "leakage" | "forensics" | "market";
 
 export const TIME_PERIOD_OPTIONS: { value: TimePeriod; label: string }[] = [
   { value: "week", label: "7D" },
@@ -14,6 +14,7 @@ export const TIME_PERIOD_OPTIONS: { value: TimePeriod; label: string }[] = [
 
 export const DASHBOARD_TABS: { id: AnalyticsTab; label: string; iconName: IconName }[] = [
   { id: "overview", label: "Overview", iconName: "bar-chart-2" },
+  { id: "ask", label: "Ask", iconName: "sparkles" },
   { id: "leakage", label: "Leakage", iconName: "trending-down" },
   { id: "agents", label: "Agents", iconName: "users" },
   { id: "forensics", label: "Deal forensics", iconName: "search" },
