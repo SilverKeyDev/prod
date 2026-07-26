@@ -20,6 +20,7 @@ import {
   type TimePeriod,
 } from "./analyticsShellConstants";
 import { AnalyticsAgentsTab } from "./tabs/AnalyticsAgentsTab";
+import { AnalyticsAskTab } from "./tabs/AnalyticsAskTab";
 import { AnalyticsForensicsTab } from "./tabs/AnalyticsForensicsTab";
 import { AnalyticsLeakageTab } from "./tabs/AnalyticsLeakageTab";
 import { AnalyticsMarketTab } from "./tabs/AnalyticsMarketTab";
@@ -148,6 +149,7 @@ export function BrokerageAnalyticsShell() {
       {activeTab === "overview" && (
         <AnalyticsOverviewTab timePeriod={timePeriod} officeId={scopedOfficeId} />
       )}
+      {activeTab === "ask" && <AnalyticsAskTab />}
       {activeTab === "leakage" && (
         <AnalyticsLeakageTab timePeriod={timePeriod} officeId={scopedOfficeId} />
       )}

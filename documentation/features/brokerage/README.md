@@ -1,3 +1,5 @@
 # Brokerage features
 
-Brokerage product docs live here as features land. Analytics, inventory, and partner placement notes should be added under this hub when they are documented as as-built guides.
+| Doc | Description |
+| --- | ----------- |
+| [db-mcp-schema-normalization.md](./db-mcp-schema-normalization.md) | SIL-323 — brokerage DB MCP schema variance and normalization strategy |
