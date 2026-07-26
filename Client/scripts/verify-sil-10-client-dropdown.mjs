@@ -37,9 +37,7 @@ async function main() {
     });
     const loginJson = await loginRes.json();
     if (!loginRes.ok || !loginJson?.success) {
-      throw new Error(
-        `Agent login failed (${loginRes.status}): ${JSON.stringify(loginJson)}`,
-      );
+      throw new Error(`Agent login failed (${loginRes.status}): ${JSON.stringify(loginJson)}`);
     }
 
     await page.goto(new URL("/login", BASE_URL).toString(), {
@@ -66,8 +64,8 @@ async function main() {
           },
           version: 1,
         };
-        window.sessionStorage.setItem("auth-store", JSON.stringify(authState));
-        window.sessionStorage.setItem(
+        globalThis.sessionStorage.setItem("auth-store", JSON.stringify(authState));
+        globalThis.sessionStorage.setItem(
           "session-store",
           JSON.stringify({
             state: {
@@ -80,10 +78,10 @@ async function main() {
               featureGates: {},
             },
             version: 1,
-          }),
+          })
         );
       },
-      { user: loginJson.user },
+      { user: loginJson.user }
     );
 
     await page.goto(new URL("/library", BASE_URL).toString(), {
@@ -119,8 +117,7 @@ async function main() {
       throw new Error("Could not measure dialog/trigger bounding boxes");
     }
 
-    const dialogBelowTrigger =
-      dialogBox.y >= triggerBox.y + triggerBox.height - 4;
+    const dialogBelowTrigger = dialogBox.y >= triggerBox.y + triggerBox.height - 4;
     const dialogVisibleHeight = dialogBox.height > 80;
 
     console.log(
@@ -137,8 +134,8 @@ async function main() {
           ],
         },
         null,
-        2,
-      ),
+        2
+      )
     );
 
     if (!dialogBelowTrigger || !dialogVisibleHeight) {

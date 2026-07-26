@@ -3,7 +3,7 @@
  * overviewTransforms / useBrokerageAnalytics (SIL-207).
  */
 import type { InventoryListing } from "packages/features/brokerage/types/inventory";
-import { periodScale,type TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
+import { periodScale, type TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
 
 import { INVENTORY_FIXTURE } from "./inventoryFixtures";
 

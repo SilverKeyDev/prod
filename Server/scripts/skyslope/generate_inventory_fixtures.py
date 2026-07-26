@@ -197,24 +197,24 @@ def render_ts(listings: list[dict[str, object]], summary: dict[str, int]) -> str
     ]
     for L in listings:
         lines.append("    {")
-        lines.append(f'      id: {json.dumps(L["id"])},')
-        lines.append(f'      external_id: {json.dumps(L["external_id"])},')
-        lines.append(f'      address: {json.dumps(L["address"])},')
-        lines.append(f'      status: {json.dumps(L["status"])},')
-        lines.append(f'      price: {L["price"]},')
-        lines.append(f'      lat: {L["lat"]},')
-        lines.append(f'      lng: {L["lng"]},')
-        lines.append(f'      agent_name: {json.dumps(L["agent_name"])},')
-        lines.append(f'      property_type: {json.dumps(L["property_type"])},')
+        lines.append(f"      id: {json.dumps(L['id'])},")
+        lines.append(f"      external_id: {json.dumps(L['external_id'])},")
+        lines.append(f"      address: {json.dumps(L['address'])},")
+        lines.append(f"      status: {json.dumps(L['status'])},")
+        lines.append(f"      price: {L['price']},")
+        lines.append(f"      lat: {L['lat']},")
+        lines.append(f"      lng: {L['lng']},")
+        lines.append(f"      agent_name: {json.dumps(L['agent_name'])},")
+        lines.append(f"      property_type: {json.dumps(L['property_type'])},")
         lines.append("    },")
     lines.extend(
         [
             "  ],",
             "  summary: {",
-            f'    active_count: {summary["active_count"]},',
-            f'    sold_count: {summary["sold_count"]},',
-            f'    total_count: {summary["total_count"]},',
-            f'    median_price: {summary["median_price"]},',
+            f"    active_count: {summary['active_count']},",
+            f"    sold_count: {summary['sold_count']},",
+            f"    total_count: {summary['total_count']},",
+            f"    median_price: {summary['median_price']},",
             "  },",
             "};",
             "",
