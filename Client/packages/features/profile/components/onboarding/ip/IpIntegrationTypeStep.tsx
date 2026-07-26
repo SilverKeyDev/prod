@@ -3,8 +3,9 @@
  * Captures the type of integration the partner provides.
  */
 import React from "react";
-import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
