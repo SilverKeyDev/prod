@@ -30,6 +30,11 @@ const STEP_TITLES: Record<ProfileStepId, string> = {
   renter_move_timeline: "Timeline",
   renter_household: "Household",
   renter_amenities: "Amenities",
+  ip_org_details: "Organization",
+  ip_integration_type: "Service type",
+  ip_point_of_contact: "Contact",
+  ip_service_area: "Service area",
+  ip_agreement: "Agreement",
 };
 
 export function profileStepFromId(id: ProfileStepId): ProfileStep {

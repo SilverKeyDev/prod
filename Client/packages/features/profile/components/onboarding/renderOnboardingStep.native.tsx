@@ -13,6 +13,13 @@ import {
   BuyerFinancingStepContent,
 } from "packages/features/profile/components/onboarding/buyer";
 import {
+  IpAgreementStep,
+  IpIntegrationTypeStep,
+  IpOrgDetailsStep,
+  IpPointOfContactStep,
+  IpServiceAreaStep,
+} from "packages/features/profile/components/onboarding/ip";
+import {
   RenterAmenitiesStep,
   RenterBudgetStep,
   RenterHouseholdStep,
@@ -237,6 +244,21 @@ export function renderOnboardingStep({
           }}
         />
       );
+
+    case "ip_org_details":
+      return <IpOrgDetailsStep formData={formData} updateFormData={updateFormData} />;
+
+    case "ip_integration_type":
+      return <IpIntegrationTypeStep formData={formData} updateFormData={updateFormData} />;
+
+    case "ip_point_of_contact":
+      return <IpPointOfContactStep formData={formData} updateFormData={updateFormData} />;
+
+    case "ip_service_area":
+      return <IpServiceAreaStep formData={formData} updateFormData={updateFormData} />;
+
+    case "ip_agreement":
+      return <IpAgreementStep formData={formData} updateFormData={updateFormData} />;
 
     default:
       return (
