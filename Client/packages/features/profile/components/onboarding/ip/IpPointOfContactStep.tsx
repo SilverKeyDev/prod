@@ -3,8 +3,10 @@
  * Captures the integration partner's primary point of contact.
  */
 import React from "react";
-import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { Input } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
@@ -26,36 +28,29 @@ export function IpPointOfContactStep({ formData, updateFormData }: Props) {
         </BodyText>
       </Box>
       <Box className="flex flex-col gap-4">
-        <Box className="flex flex-col gap-1">
-          <BodyText size="sm" className="font-medium">Full name</BodyText>
-          <input
-            type="text"
-            value={formData.ip_contact_name ?? ""}
-            onChange={(e) => updateFormData("ip_contact_name", e.target.value)}
-            placeholder="Jane Smith"
-            className="border-border rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400"
-          />
-        </Box>
-        <Box className="flex flex-col gap-1">
-          <BodyText size="sm" className="font-medium">Email</BodyText>
-          <input
-            type="email"
-            value={formData.ip_contact_email ?? ""}
-            onChange={(e) => updateFormData("ip_contact_email", e.target.value)}
-            placeholder="jane@yourcompany.com"
-            className="border-border rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400"
-          />
-        </Box>
-        <Box className="flex flex-col gap-1">
-          <BodyText size="sm" className="font-medium">Phone</BodyText>
-          <input
-            type="tel"
-            value={formData.ip_contact_phone ?? ""}
-            onChange={(e) => updateFormData("ip_contact_phone", e.target.value)}
-            placeholder="+1 (555) 000-0000"
-            className="border-border rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400"
-          />
-        </Box>
+        {/* `type` is honoured on both platforms: the web Input passes it through to <input>, and
+            the native Input maps it to the matching TextInput keyboard. */}
+        <Input
+          label="Full name"
+          type="text"
+          value={formData.ip_contact_name ?? ""}
+          onValueChange={(text) => updateFormData("ip_contact_name", text)}
+          placeholder="Jane Smith"
+        />
+        <Input
+          label="Email"
+          type="email"
+          value={formData.ip_contact_email ?? ""}
+          onValueChange={(text) => updateFormData("ip_contact_email", text)}
+          placeholder="jane@yourcompany.com"
+        />
+        <Input
+          label="Phone"
+          type="tel"
+          value={formData.ip_contact_phone ?? ""}
+          onValueChange={(text) => updateFormData("ip_contact_phone", text)}
+          placeholder="+1 (555) 000-0000"
+        />
       </Box>
     </Box>
   );

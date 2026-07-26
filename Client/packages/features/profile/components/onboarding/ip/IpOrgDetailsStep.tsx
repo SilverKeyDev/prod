@@ -3,8 +3,10 @@
  * Captures integration partner organization/company details.
  */
 import React from "react";
-import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { Input } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
@@ -26,26 +28,22 @@ export function IpOrgDetailsStep({ formData, updateFormData }: Props) {
         </BodyText>
       </Box>
       <Box className="flex flex-col gap-4">
-        <Box className="flex flex-col gap-1">
-          <BodyText size="sm" className="font-medium">Organization name</BodyText>
-          <input
-            type="text"
-            value={formData.ip_org_name ?? ""}
-            onChange={(e) => updateFormData("ip_org_name", e.target.value)}
-            placeholder="Acme Real Estate Services"
-            className="border-border rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400"
-          />
-        </Box>
-        <Box className="flex flex-col gap-1">
-          <BodyText size="sm" className="font-medium">Website</BodyText>
-          <input
-            type="url"
-            value={formData.ip_website ?? ""}
-            onChange={(e) => updateFormData("ip_website", e.target.value)}
-            placeholder="https://yourcompany.com"
-            className="border-border rounded-lg border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400"
-          />
-        </Box>
+        {/* The form Input renders its own visible label and wires it up for accessibility, so no
+            separate label element is needed (a second one would read out twice). */}
+        <Input
+          label="Organization name"
+          type="text"
+          value={formData.ip_org_name ?? ""}
+          onValueChange={(text) => updateFormData("ip_org_name", text)}
+          placeholder="Acme Real Estate Services"
+        />
+        <Input
+          label="Website"
+          type="url"
+          value={formData.ip_website ?? ""}
+          onValueChange={(text) => updateFormData("ip_website", text)}
+          placeholder="https://yourcompany.com"
+        />
       </Box>
     </Box>
   );

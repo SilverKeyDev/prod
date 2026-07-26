@@ -7,6 +7,7 @@ import type {
 } from "packages/features/homeauth/utils/landingSectionLayout";
 import { Box } from "packages/ui/components/structure/primitives";
 import RippleBackground from "packages/ui/components/surfaces/backgrounds/RippleBackground";
+import { isWeb } from "packages/utils/core/platform";
 
 import { LandingSectionDivider } from "./LandingSectionDivider";
 
@@ -30,7 +31,7 @@ const TONE_CLASS: Record<LandingSectionTone, string> = {
 
 export function LandingSectionShell({
   id,
-  as: Tag = "section",
+  as: asTag = "section",
   layout,
   tone,
   ripple,
@@ -40,6 +41,11 @@ export function LandingSectionShell({
   contentClassName = "",
   fullBleed = false,
 }: LandingSectionShellProps) {
+  // `section`/`footer` are web landmark elements. React Native has no view config for them
+  // ("View config getter callback for component `section` must be a function"), so on native
+  // render a plain Box and keep the semantic tag for web only.
+  const Tag = isWeb ? asTag : Box;
+
   const resolvedTone = tone ?? layout?.tone ?? "base";
   const resolvedRipple = ripple ?? layout?.ripple ?? false;
   const resolvedDividerBefore = dividerBefore ?? layout?.dividerBefore ?? false;

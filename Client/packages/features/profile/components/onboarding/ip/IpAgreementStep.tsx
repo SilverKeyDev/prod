@@ -3,8 +3,11 @@
  * Integration partner agreement acknowledgement.
  */
 import React from "react";
-import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { Button } from "packages/ui";
+import OliveCheckbox from "packages/ui/components/inputs/form/checkbox/OliveCheckbox";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
@@ -29,23 +32,30 @@ export function IpAgreementStep({ formData, updateFormData }: Props) {
       <Box className="border-border rounded-xl border p-5">
         <BodyText size="sm" muted className="leading-relaxed">
           By completing this onboarding, you confirm that your organization is authorized to offer
-          ancillary real estate services and agrees to SilverKey's integration partner terms.
-          SilverKey will use the information provided to configure your integration and connect
-          you with relevant brokerage partners. Data is handled per our Privacy Policy.
+          ancillary real estate services and agrees to SilverKey&apos;s integration partner terms.
+          SilverKey will use the information provided to configure your integration and connect you
+          with relevant brokerage partners. Data is handled per our Privacy Policy.
         </BodyText>
       </Box>
-      <Box className="flex items-start gap-3">
-        <input
-          id="ip-agreement"
-          type="checkbox"
-          checked={agreed}
-          onChange={(e) => updateFormData("ip_agreement_acknowledged", e.target.checked)}
-          className="mt-0.5 h-4 w-4 cursor-pointer rounded border-gray-300"
-        />
-        <label htmlFor="ip-agreement" className="cursor-pointer text-sm text-gray-700">
+      {/* Button (not TouchableBox) so the row carries checkbox semantics on both platforms —
+          TouchableBox hardcodes role="button". OliveCheckbox is presentational here: it only
+          reacts to onToggle, which React Native would ignore on its underlying View, so the
+          whole row owns the press instead. */}
+      <Button
+        type="button"
+        variant="ghost"
+        label={INTEGRATION_PARTNER_TRANSLATIONS.IP_AGREEMENT_CHECKBOX_LABEL}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: agreed }}
+        onPress={() => updateFormData("ip_agreement_acknowledged", !agreed)}
+        contentAlign="start"
+        className="flex flex-row items-start gap-3 px-0 py-0"
+      >
+        <OliveCheckbox checked={agreed} />
+        <BodyText size="sm" className="text-text-secondary flex-1 text-left">
           {INTEGRATION_PARTNER_TRANSLATIONS.IP_AGREEMENT_CHECKBOX_LABEL}
-        </label>
-      </Box>
+        </BodyText>
+      </Button>
     </Box>
   );
 }

@@ -3,8 +3,10 @@
  * Captures the states/markets the integration partner serves.
  */
 import React from "react";
-import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
+import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
+import { Button } from "packages/ui";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";
 import Title from "packages/ui/components/structure/text/Title";
@@ -15,10 +17,56 @@ type Props = {
 };
 
 const US_STATES = [
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
-  "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
-  "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
-  "VA","WA","WV","WI","WY",
+  "AL",
+  "AK",
+  "AZ",
+  "AR",
+  "CA",
+  "CO",
+  "CT",
+  "DE",
+  "FL",
+  "GA",
+  "HI",
+  "ID",
+  "IL",
+  "IN",
+  "IA",
+  "KS",
+  "KY",
+  "LA",
+  "ME",
+  "MD",
+  "MA",
+  "MI",
+  "MN",
+  "MS",
+  "MO",
+  "MT",
+  "NE",
+  "NV",
+  "NH",
+  "NJ",
+  "NM",
+  "NY",
+  "NC",
+  "ND",
+  "OH",
+  "OK",
+  "OR",
+  "PA",
+  "RI",
+  "SC",
+  "SD",
+  "TN",
+  "TX",
+  "UT",
+  "VT",
+  "VA",
+  "WA",
+  "WV",
+  "WI",
+  "WY",
 ];
 
 export function IpServiceAreaStep({ formData, updateFormData }: Props) {
@@ -41,21 +89,34 @@ export function IpServiceAreaStep({ formData, updateFormData }: Props) {
           {INTEGRATION_PARTNER_TRANSLATIONS.IP_SERVICE_AREA_SUBTITLE}
         </BodyText>
       </Box>
-      <Box className="flex flex-wrap gap-2">
-        {US_STATES.map((state) => (
-          <button
-            key={state}
-            type="button"
-            onClick={() => toggleState(state)}
-            className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-              selected.includes(state)
-                ? "border-gray-900 bg-gray-900 text-white"
-                : "border-gray-200 bg-white text-gray-700 hover:border-gray-400"
-            }`}
-          >
-            {state}
-          </button>
-        ))}
+      <Box className="flex flex-row flex-wrap gap-2">
+        {US_STATES.map((state) => {
+          const isSelected = selected.includes(state);
+          return (
+            <Button
+              key={state}
+              type="button"
+              variant="outline"
+              size="sm"
+              label={state}
+              accessibilityState={{ selected: isSelected }}
+              onPress={() => toggleState(state)}
+              className={`rounded-lg border px-3 py-1.5 ${
+                isSelected ? "border-gray-900 bg-gray-900" : "border-gray-200 bg-white"
+              }`}
+            >
+              {/* Button.Label renders the visible text; the `label` prop above is the
+                  accessibility name only, so this is not a duplicate. */}
+              <Button.Label
+                variant="outline"
+                size="sm"
+                className={isSelected ? "text-white" : "text-gray-700"}
+              >
+                {state}
+              </Button.Label>
+            </Button>
+          );
+        })}
       </Box>
       {selected.length > 0 && (
         <BodyText size="xs" muted>
