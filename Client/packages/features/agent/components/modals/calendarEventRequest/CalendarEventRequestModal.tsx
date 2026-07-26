@@ -8,6 +8,10 @@ import { useAgentChats } from "@/features/messaging/hooks/data/useAgentChats";
 
 export type CalendarEventRequestModalProps = UseCalendarEventRequestFormParams & {
   isOpen: boolean;
+  /** Agent: client already selected in messaging — prefill so Send Request can enable. */
+  initialClientId?: string | null;
+  /** Client: active messaging thread id for recipient + submit routing. */
+  activeConversationId?: string | null;
 };
 
 export default function CalendarEventRequestModal({
@@ -15,6 +19,8 @@ export default function CalendarEventRequestModal({
   onClose,
   onSuccess,
   sendCalendarEventMessage,
+  initialClientId = null,
+  activeConversationId = null,
 }: CalendarEventRequestModalProps) {
   const { calendars } = useGoogleCalendarStoreIntegration();
   const scopedCalendars = useMemo(() => calendars ?? [], [calendars]);
@@ -31,6 +37,8 @@ export default function CalendarEventRequestModal({
       sendMessageDirect,
       onSuccess,
       sendCalendarEventMessage,
+      initialClientId,
+      activeConversationId,
     },
   });
 

@@ -1,6 +1,6 @@
 /**
- * Build always-visible Leakage math explanation (formula + decision stats + bridge).
- * Opportunity = gap to industry high (campaign posts) + fall-off keep-rate gap.
+ * Build always-visible Leakage math explanation (formula + decision stats).
+ * Opportunity = gap to industry high + fall-off keep-rate gap.
  */
 import type { AncillaryAnalytics } from "packages/features/brokerage/types/analytics";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
@@ -13,16 +13,10 @@ import {
   ANCILLARY_SERVICE_LABELS,
   formatAncillaryDollars,
 } from "packages/features/brokerage/utils/ancillaryServiceLabels";
-import {
-  demoCampaignLeakageAlignedRecoveryDollars,
-  demoYearLeakageDollars,
-  recoveryPercentOfLeakage,
-} from "packages/features/brokerage/utils/campaigns/brokerageMathBridge";
 import type {
   QuantMathExplanation,
   QuantMathFormulaRow,
-} from "packages/features/brokerage/utils/campaigns/quantMathExplanation";
-import { ROUTES } from "packages/navigation/types/routes";
+} from "packages/features/brokerage/utils/analytics/quantMathExplanation";
 
 const PERIOD_HERO_LABEL: Record<TimePeriod, string> = {
   week: "Opportunity to industry high (this week)",
@@ -38,11 +32,7 @@ export function leakageHeroLabel(period: TimePeriod): string {
 
 export function buildLeakageMathExplanation(
   data: AncillaryAnalytics,
-  period: TimePeriod,
-  options?: {
-    campaignRecoveryDollars?: number;
-    yearLeakageDollars?: number;
-  }
+  period: TimePeriod
 ): QuantMathExplanation {
   const attachOppHigh =
     data.summary.opportunity_vs_high_dollars ?? data.summary.total_leakage_dollars;
@@ -50,10 +40,6 @@ export function buildLeakageMathExplanation(
   const closings = data.total_transactions;
   const fallOffOpp = fallOffOpportunityDollars(closings);
   const oppHigh = attachOppHigh + fallOffOpp;
-  const campaignRecovery =
-    options?.campaignRecoveryDollars ?? demoCampaignLeakageAlignedRecoveryDollars();
-  const yearOpportunity = options?.yearLeakageDollars ?? demoYearLeakageDollars();
-  const recoveryPct = recoveryPercentOfLeakage(campaignRecovery, yearOpportunity);
 
   const formulaRows: QuantMathFormulaRow[] = data.by_service.map((row) => {
     const label = ANCILLARY_SERVICE_LABELS[row.service] ?? row.service;
@@ -110,8 +96,7 @@ export function buildLeakageMathExplanation(
   const topSlice = [...slices].sort((a, b) => b.dollars - a.dollars)[0];
   const topShare =
     topSlice && oppHigh > 0 ? Math.round((topSlice.dollars / oppHigh) * 1000) / 10 : 0;
-  const vsAvgValue =
-    oppAvg <= 0 ? "At industry average" : `${formatAncillaryDollars(oppAvg)} behind`;
+  const vsAvgValue = formatAncillaryDollars(oppAvg);
   const biggestLeakValue = topSlice
     ? `${topSlice.label} · ${formatAncillaryDollars(topSlice.dollars)}`
     : "—";
@@ -120,7 +105,7 @@ export function buildLeakageMathExplanation(
     hero: {
       label: leakageHeroLabel(period),
       value: formatAncillaryDollars(oppHigh),
-      secondaryLabel: "vs industry average",
+      secondaryLabel: "Opportunity vs industry average",
       secondaryValue: vsAvgValue,
     },
     formulaRows,
@@ -144,7 +129,7 @@ export function buildLeakageMathExplanation(
       },
       {
         label: "vs industry avg",
-        value: oppAvg <= 0 ? "At average" : formatAncillaryDollars(oppAvg),
+        value: vsAvgValue,
       },
       {
         label: "$/closing to high",
@@ -158,10 +143,6 @@ export function buildLeakageMathExplanation(
       biggestLeak: biggestLeakValue,
       closingsInPeriod: closings.toLocaleString(),
       behindIndustryAvg: oppAvg > 0,
-    },
-    bridge: {
-      label: `Campaigns project recovering ${formatAncillaryDollars(campaignRecovery)} (~${recoveryPct}% of annual opportunity to high) →`,
-      to: ROUTES.CAMPAIGNS,
     },
   };
 }

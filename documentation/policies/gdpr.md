@@ -26,7 +26,7 @@ Last Updated: April 5, 2026
 **SilverKey Platform**
 - **Role:** Data Controller
 - **Jurisdiction:** United States (with EU data subject rights)
-- **DPO Contact:** privacy@silverkey.com
+- **DPO Contact:** jayce@usesilverkey.com
 - **EU Representative:** [To be appointed if processing substantial EU data]
 
 ---
@@ -148,38 +148,38 @@ SilverKey respects all GDPR rights for EU data subjects. You have the right to:
 
 ### 1. Right to Access (Article 15)
 - **What:** Receive a copy of your personal data we hold
-- **How:** Submit request to privacy@silverkey.com or via in-app settings
+- **How:** Submit request to jayce@usesilverkey.com or via in-app settings
 - **Timeframe:** Within 30 days (1 month)
 - **Format:** Machine-readable JSON or PDF export
 
 ### 2. Right to Rectification (Article 16)
 - **What:** Correct inaccurate or incomplete data
-- **How:** Update in app settings or request via privacy@silverkey.com
+- **How:** Update in app settings or request via jayce@usesilverkey.com
 - **Timeframe:** Immediate (self-service) or within 30 days (assisted)
 
 ### 3. Right to Erasure ("Right to be Forgotten") (Article 17)
 - **What:** Request deletion of your personal data
-- **How:** In-app account deletion or email privacy@silverkey.com
+- **How:** In-app account deletion or email jayce@usesilverkey.com
 - **Timeframe:** Within 30 days
 - **Exceptions:** Legal obligations (e.g., transaction records), ongoing disputes
 - **Scope:** Complete account and data deletion (see Data Retention policy)
 
 ### 4. Right to Data Portability (Article 20)
 - **What:** Receive your data in machine-readable format
-- **How:** Request via privacy@silverkey.com
+- **How:** Request via jayce@usesilverkey.com
 - **Format:** JSON export with schema documentation
 - **Includes:** Account data, preferences, saved homes, documents (if permissible)
 - **Timeframe:** Within 30 days
 
 ### 5. Right to Restrict Processing (Article 18)
 - **What:** Limit how we process your data
-- **How:** Request via privacy@silverkey.com
+- **How:** Request via jayce@usesilverkey.com
 - **Effect:** Data stored but not actively processed (except storage, legal claims, or with consent)
 - **Duration:** Until restriction is lifted or data is deleted
 
 ### 6. Right to Object (Article 21)
 - **What:** Object to processing based on legitimate interest or direct marketing
-- **How:** Opt-out links in emails, in-app settings, or privacy@silverkey.com
+- **How:** Opt-out links in emails, in-app settings, or jayce@usesilverkey.com
 - **Effect:** Immediate cessation of that processing
 - **Exceptions:** Compelling legitimate grounds override objection (rare, must be justified)
 
@@ -190,7 +190,7 @@ SilverKey respects all GDPR rights for EU data subjects. You have the right to:
 
 ### 8. Right to Withdraw Consent (Article 7(3))
 - **What:** Withdraw consent at any time (for consent-based processing)
-- **How:** In-app settings, email privacy@silverkey.com
+- **How:** In-app settings, email jayce@usesilverkey.com
 - **Effect:** Immediate cessation of that processing (does not affect lawfulness of prior processing)
 - **Examples:** Calendar integration, financial data access, marketing emails
 
@@ -486,20 +486,20 @@ If breach is likely to result in a **high risk** to rights and freedoms, we will
 ## Contact Information
 
 ### Data Protection Officer (DPO)
-- **Email:** privacy@silverkey.com
+- **Email:** jayce@usesilverkey.com
 - **Response Time:** Within 5 business days
 
 ### User Rights Requests
-- **Email:** privacy@silverkey.com
+- **Email:** jayce@usesilverkey.com
 - **Subject Line:** "GDPR Request - [Your Name]"
 - **In-App:** Settings > Privacy > Data Rights
 
 ### Supervisory Authority Inquiries
-- **Email:** legal@silverkey.com
+- **Email:** jayce@usesilverkey.com
 - **Reference:** "GDPR Supervisory Authority Inquiry"
 
 ### General Privacy Questions
-- **Email:** privacy@silverkey.com
+- **Email:** jayce@usesilverkey.com
 - **Response Time:** Within 10 business days
 
 ---
@@ -520,4 +520,4 @@ If breach is likely to result in a **high risk** to rights and freedoms, we will
 
 ---
 
-*This document is maintained by the SilverKey Legal and Compliance team. For questions or updates, contact privacy@silverkey.com.*
+*This document is maintained by the SilverKey Legal and Compliance team. For questions or updates, contact jayce@usesilverkey.com.*

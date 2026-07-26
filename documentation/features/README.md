@@ -9,6 +9,6 @@ As-built product documentation, grouped by domain. Gaps belong in [Linear](https
 | [admin/](./admin/) | Admin UI and in-app Wiki |
 | [account/](./account/) | Auth, profile, onboarding, public agent profile |
 | [messaging/](./messaging/) | Agent–client and workspace messaging |
-| [brokerage/](./brokerage/) | Brokerage analytics, campaigns, learning loop |
+| [brokerage/](./brokerage/) | Brokerage analytics, Market inventory, agent detail |
 
 Maps setup how-to: [guides/google-maps-web-setup.md](../guides/google-maps-web-setup.md).

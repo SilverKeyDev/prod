@@ -37,13 +37,6 @@ const BrokerageDashboardPage = lazy(
     () => import("@/pages/workspace/BrokerageDashboardPage")
   )
 );
-const BrokerageCampaignsPage = lazy(
-  traceLazyImport(
-    "ROUTING",
-    "lazy:BrokerageCampaignsPage",
-    () => import("@/pages/workspace/BrokerageCampaignsPage")
-  )
-);
 const IntegrationPartnerDashboardPage = lazy(
   traceLazyImport(
     "DASHBOARD",
@@ -142,18 +135,13 @@ export function DashboardContent({
     activeKey !== "messaging" &&
     activeKey !== null;
   const contentTopMargin =
-    route.isDashboard ||
-    route.isProfile ||
-    route.isFindAgents ||
-    route.isAnalytics ||
-    route.isCampaigns;
+    route.isDashboard || route.isProfile || route.isFindAgents || route.isAnalytics;
   const contentBottomMargin =
     route.isDashboard ||
     route.isProfile ||
     route.isLibrary ||
     route.isFindAgents ||
     route.isAnalytics ||
-    route.isCampaigns ||
     route.isAgreementSigningComplete;
 
   const mapLikeFullHeight = isSearch;
@@ -211,16 +199,6 @@ export function DashboardContent({
     </PageErrorBoundary>
   ) : activeKey === "inventory" ? (
     <Navigate to="/dashboard" replace />
-  ) : activeKey === "campaigns" ? (
-    activeWorkspace === "brokerage" ? (
-      <PageErrorBoundary key="campaigns" pageLabel="Campaigns">
-        <Suspense fallback={loadingFallback}>
-          <BrokerageCampaignsPage />
-        </Suspense>
-      </PageErrorBoundary>
-    ) : (
-      <Navigate to="/dashboard" replace />
-    )
   ) : activeKey === "profile" ? (
     <Suspense fallback={loadingFallback}>
       <ProfilePage setMobileHeaderActions={setMobileHeaderActions} />

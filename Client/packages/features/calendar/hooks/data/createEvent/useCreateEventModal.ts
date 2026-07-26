@@ -5,6 +5,7 @@ import type { UIState } from "packages/store";
 import { useGoogleMapsStore, useUIStore } from "packages/store";
 import type { GoogleMapsWindow } from "packages/types/integrations/google-maps";
 import { isVirtualMeetingEnabled } from "packages/utils/comms/calendar/parsing/eventMeetLink";
+import { dateNow } from "packages/utils/core/date";
 import { getWindow } from "packages/utils/core/platform";
 
 import type { CreateEventModalFormProps } from "@/features/calendar/components/view/eventModal/CreateEventModalForm";
@@ -152,6 +153,37 @@ export function useCreateEventModal({
     setEventKindId,
   });
 
+  // After reset-on-close: prefill recipient from the messaging thread that opened this modal.
+  useEffect(() => {
+    if (!isOpen || !isCalendarEventRequestFlow || !isAgent) {
+      return;
+    }
+    const next = calendarEventRequest?.initialClientId?.trim() || null;
+    if (next) {
+      setSelectedClientId(next);
+    }
+  }, [isOpen, isCalendarEventRequestFlow, isAgent, calendarEventRequest?.initialClientId]);
+
+  // Request flow requires a schedule; seed today so Send Request is not stuck disabled
+  // when title/times look filled but the date picker was left empty (create UI says optional).
+  useEffect(() => {
+    if (!isOpen || !isCalendarEventRequestFlow) {
+      return;
+    }
+    setStartDate((prev) => {
+      if (prev.trim()) {
+        return prev;
+      }
+      return dateNow().format("YYYY-MM-DD");
+    });
+    setEndDate((prev) => {
+      if (prev.trim()) {
+        return prev;
+      }
+      return dateNow().format("YYYY-MM-DD");
+    });
+  }, [isOpen, isCalendarEventRequestFlow]);
+
   const { onDateRangeChange, onCalendarTimedSlotPick, onIsAllDayChange } =
     useCreateEventModalDateHandlers(
       mode,
@@ -239,7 +271,9 @@ export function useCreateEventModal({
             enabled: true,
             isAgent,
             selectedClientId,
-            hasClientRecipientConversation: calendarEventRequest.conversations.length > 0,
+            hasClientRecipientConversation:
+              calendarEventRequest.conversations.length > 0 ||
+              Boolean(calendarEventRequest.activeConversationId?.trim()),
             isSendingRequest: isSendingCalendarRequest,
           }
         : undefined,
@@ -290,6 +324,7 @@ export function useCreateEventModal({
     existingEvent,
     mutualSchedule: mutualScheduleForForm,
     registerOutsideClickSafeTarget,
+    scheduleRequired: isCalendarEventRequestFlow,
   });
 
   return { formProps };

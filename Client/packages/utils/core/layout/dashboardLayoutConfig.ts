@@ -10,7 +10,6 @@
 export const PATH_PREFIXES = {
   search: "/search",
   inventory: "/inventory",
-  campaigns: "/campaigns",
   dashboard: "/dashboard",
   analytics: "/analytics",
   find_agents: "/find-agents",
@@ -25,7 +24,6 @@ export type PathPrefix = keyof typeof PATH_PREFIXES;
 const DASHBOARD_ROUTE_ORDER: PathPrefix[] = [
   "search",
   "inventory",
-  "campaigns",
   "messaging",
   "dashboard",
   "analytics",
@@ -70,7 +68,6 @@ export function getActiveDashboardKey(pathname: string): PathPrefix | null {
 export const PATH_WIDTH_PERCENT: Record<PathPrefix, number> = {
   search: 100,
   inventory: 100,
-  campaigns: 100,
   dashboard: 90,
   analytics: 90,
   find_agents: 90,

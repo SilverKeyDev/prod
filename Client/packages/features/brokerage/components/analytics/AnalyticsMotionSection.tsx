@@ -1,9 +1,11 @@
 /**
- * Staggered section entrance for analytics/campaigns demo polish.
+ * Staggered section entrance for analytics demo polish.
  * Respects prefers-reduced-motion.
  */
 import { motion, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
+
+import { Box } from "packages/ui/components/structure/primitives";
 
 type Props = {
   children: ReactNode;
@@ -17,9 +19,9 @@ export function AnalyticsMotionSection({ children, index = 0, className, testId 
 
   if (reduce) {
     return (
-      <div className={className} data-testid={testId}>
+      <Box className={className} data-testid={testId}>
         {children}
-      </div>
+      </Box>
     );
   }
 

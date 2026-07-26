@@ -162,42 +162,50 @@ export function EventCard({
           <Box className="flex flex-row items-stretch">
             <Box className="w-1 shrink-0" style={{ backgroundColor: stripeColor }} />
             <Box className="min-w-0 flex-1 p-3 text-left">
-              <Box className="flex flex-col gap-2">
-                <Box className="min-w-0 flex-1">
-                  {showAgendaComplete ? (
-                    <Box className="space-y-1">
-                      <Box className="flex flex-row items-center gap-2">
-                        <AgendaCompleteControl
-                          completed={agendaComplete}
-                          canToggle={canToggleAgendaComplete}
-                          onToggle={() => onToggleAgendaComplete?.()}
-                        />
-                        {onClick ? (
-                          <TouchableBox
-                            onPress={onClick}
-                            className="min-w-0 flex-1 text-left outline-none"
-                          >
-                            {eventTitle}
-                          </TouchableBox>
-                        ) : (
-                          <Box className="min-w-0 flex-1">{eventTitle}</Box>
-                        )}
-                      </Box>
-                      {dateRange || event.location || showVirtualMeet || event.description ? (
-                        <Box className="space-y-1 pl-8">{eventDetails}</Box>
+              <Box className="flex flex-col gap-1">
+                {showAgendaComplete ? (
+                  <Box className="space-y-1">
+                    <Box className="flex min-w-0 flex-row items-center gap-2">
+                      <AgendaCompleteControl
+                        completed={agendaComplete}
+                        canToggle={canToggleAgendaComplete}
+                        onToggle={() => onToggleAgendaComplete?.()}
+                      />
+                      {onClick ? (
+                        <TouchableBox
+                          onPress={onClick}
+                          className="min-w-0 flex-1 text-left outline-none"
+                        >
+                          {eventTitle}
+                        </TouchableBox>
+                      ) : (
+                        <Box className="min-w-0 flex-1">{eventTitle}</Box>
+                      )}
+                      {showEditActions ? (
+                        <AgendaItemEditActions onEdit={handleEdit} onCancel={handleCancel} />
                       ) : null}
                     </Box>
-                  ) : onClick ? (
-                    <TouchableBox onPress={onClick} className="space-y-1 text-left outline-none">
-                      {eventBody}
-                    </TouchableBox>
-                  ) : (
-                    <Box className="space-y-1">{eventBody}</Box>
-                  )}
-                </Box>
-                {showEditActions ? (
-                  <AgendaItemEditActions onEdit={handleEdit} onCancel={handleCancel} />
-                ) : null}
+                    {dateRange || event.location || showVirtualMeet || event.description ? (
+                      <Box className="space-y-1 pl-8">{eventDetails}</Box>
+                    ) : null}
+                  </Box>
+                ) : (
+                  <Box className="flex min-w-0 flex-row items-start gap-2">
+                    {onClick ? (
+                      <TouchableBox
+                        onPress={onClick}
+                        className="min-w-0 flex-1 space-y-1 text-left outline-none"
+                      >
+                        {eventBody}
+                      </TouchableBox>
+                    ) : (
+                      <Box className="min-w-0 flex-1 space-y-1">{eventBody}</Box>
+                    )}
+                    {showEditActions ? (
+                      <AgendaItemEditActions onEdit={handleEdit} onCancel={handleCancel} />
+                    ) : null}
+                  </Box>
+                )}
               </Box>
             </Box>
           </Box>

@@ -4,7 +4,6 @@ import { Icon } from "@ui/icons";
 
 import { useLocalization } from "packages/contexts";
 import type { ChecklistType, TaskChecklistItem } from "packages/features/checklists/api/checklists";
-import { BuyerBrokerStatusBanner } from "packages/features/checklists/components/integrations/buyerBrokerReview/BuyerBrokerStatusBanner";
 import { ChecklistUpdatePendingProvider } from "packages/features/checklists/components/roadmap/ChecklistUpdatePendingProvider";
 import ChecklistDispatchAutomationModal from "packages/features/checklists/components/slots/ChecklistDispatchAutomationModal";
 import { useChecklistStepExpansion } from "packages/features/checklists/hooks/useChecklistStepExpansion";
@@ -233,18 +232,7 @@ export function BuyerRoadmapChecklistList({
     isAgent,
     onOpenDispatchModal: setDispatchModalItemId,
     renderItemAgentFooter,
-    renderItemFooter: (item: TaskChecklistItem) => {
-      const callerFooter = renderItemFooter?.(item) ?? null;
-      if (item.id === 6 && !isAgent && transactionId) {
-        return (
-          <>
-            <BuyerBrokerStatusBanner transactionId={transactionId} />
-            {callerFooter}
-          </>
-        );
-      }
-      return callerFooter;
-    },
+    renderItemFooter,
     getRoadmapItemBlocker,
     sectionProgress,
     onRoadmapTabNavigate,

@@ -1,7 +1,7 @@
 /**
  * Shared attach benchmarks for Leakage + Campaigns.
  * Industry avg = campaign baselines; industry high = campaign reachable posts.
- * Brokerage current = at industry average for the demo (gap-to-avg ≈ $0).
+ * Brokerage current = 2 pp below industry average (gap-to-avg > 0).
  */
 import {
   ANCILLARY_FEES,
@@ -30,25 +30,25 @@ export const ANCILLARY_ATTACH_BENCHMARKS: Record<
   AncillaryAttachBenchmark
 > = {
   title: {
-    current: 15,
+    current: 13,
     industryAvg: 15,
     industryHigh: 19,
     fee: ANCILLARY_FEES.title,
   },
   lending: {
-    current: 15,
+    current: 13,
     industryAvg: 15,
     industryHigh: 18,
     fee: ANCILLARY_FEES.lending,
   },
   escrow: {
-    current: 18,
+    current: 16,
     industryAvg: 18,
     industryHigh: 22,
     fee: ANCILLARY_FEES.escrow,
   },
   home_warranty: {
-    current: 20,
+    current: 18,
     industryAvg: 20,
     industryHigh: 23.5,
     fee: ANCILLARY_FEES.home_warranty,

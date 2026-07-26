@@ -23,10 +23,7 @@ export function setPendingPublicSearch(pending: PendingPublicSearch): void {
   const label = pending.label.trim();
   if (!label) return;
   try {
-    getSessionStorage().setItem(
-      PENDING_PUBLIC_SEARCH_KEY,
-      JSON.stringify({ ...pending, label })
-    );
+    getSessionStorage().setItem(PENDING_PUBLIC_SEARCH_KEY, JSON.stringify({ ...pending, label }));
   } catch {
     /* storage unavailable — handoff simply loses the query */
   }

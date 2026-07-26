@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { getWorkspaceNavTabs } from "./workspaceNavConfig";
 
 describe("getWorkspaceNavTabs", () => {
-  it("buyer shows search on desktop and excludes inventory/campaigns", () => {
+  it("buyer shows search on desktop and excludes inventory", () => {
     const keys = getWorkspaceNavTabs("buyer", false).map((t) => t.key);
     expect(keys).toContain("search");
     expect(keys).toContain("dashboard");
@@ -11,27 +11,25 @@ describe("getWorkspaceNavTabs", () => {
     expect(keys).toContain("agent");
     expect(keys).toContain("profile");
     expect(keys).not.toContain("inventory");
-    expect(keys).not.toContain("campaigns");
   });
 
-  it("agent shows full desktop nav without inventory/campaigns", () => {
+  it("agent shows full desktop nav without inventory", () => {
     const keys = getWorkspaceNavTabs("agent", false).map((t) => t.key);
     expect(keys).toContain("search");
     expect(keys).toContain("decide");
     expect(keys).toContain("agent");
     expect(keys).not.toContain("inventory");
-    expect(keys).not.toContain("campaigns");
   });
 
-  it("brokerage shows Campaigns and hides Search and Inventory", () => {
+  it("brokerage hides Search and Inventory", () => {
     const keys = getWorkspaceNavTabs("brokerage", false).map((t) => t.key);
-    expect(keys).toEqual(["dashboard", "campaigns", "decide", "agent", "profile"]);
+    expect(keys).toEqual(["dashboard", "decide", "agent", "profile"]);
     expect(keys).not.toContain("search");
     expect(keys).not.toContain("inventory");
     expect(keys).not.toContain("analytics");
   });
 
-  it("seller, renter, and integration_partner keep Search and exclude inventory/campaigns", () => {
+  it("seller, renter, and integration_partner keep Search and exclude inventory", () => {
     for (const ws of ["seller", "renter", "integration_partner"] as const) {
       const keys = getWorkspaceNavTabs(ws, false).map((t) => t.key);
       expect(keys).toContain("dashboard");
@@ -39,7 +37,6 @@ describe("getWorkspaceNavTabs", () => {
       expect(keys).toContain("agent");
       expect(keys).toContain("profile");
       expect(keys).not.toContain("inventory");
-      expect(keys).not.toContain("campaigns");
     }
   });
 

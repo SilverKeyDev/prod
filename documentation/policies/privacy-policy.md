@@ -15,8 +15,8 @@ Welcome to SilverKey. We respect your privacy and are committed to protecting yo
 
 **Who We Are:**
 - **Company:** SilverKey, Inc.
-- **Contact:** privacy@silverkey.com
-- **Address:** [Company Address]
+- **Contact:** jayce@usesilverkey.com
+- **Address:** 792 Techwood Dr NW, Atlanta, GA 30332
 
 ---
 
@@ -216,15 +216,15 @@ You have the following rights regarding your personal information:
 
 #### 1. Access
 - Request a copy of your personal data
-- **How:** Settings > Privacy > Download My Data, or email privacy@silverkey.com
+- **How:** Settings > Privacy > Download My Data, or email jayce@usesilverkey.com
 
 #### 2. Correction
 - Update or correct inaccurate information
-- **How:** Settings > Profile, or email privacy@silverkey.com
+- **How:** Settings > Profile, or email jayce@usesilverkey.com
 
 #### 3. Deletion
 - Request deletion of your account and data
-- **How:** Settings > Privacy > Delete Account, or email privacy@silverkey.com
+- **How:** Settings > Privacy > Delete Account, or email jayce@usesilverkey.com
 - **Timeline:** Completed within 30-90 days (see [Data Retention Policy](./data-retention.md))
 - **Exceptions:** Legal obligations (e.g., transaction records retained for 7 years)
 
@@ -234,7 +234,7 @@ You have the following rights regarding your personal information:
 
 #### 5. Withdraw Consent
 - Disconnect third-party integrations (Plaid, Google Calendar)
-- **How:** Settings > Integrations, or email privacy@silverkey.com
+- **How:** Settings > Integrations, or email jayce@usesilverkey.com
 
 ### California Residents (CCPA/CPRA)
 
@@ -246,7 +246,7 @@ See [CCPA Compliance](./ccpa.md) for detailed California privacy rights, includi
 - Right to Limit Use of Sensitive Personal Information
 - Right to Non-Discrimination
 
-**Contact:** privacy@silverkey.com with subject "CCPA Request"
+**Contact:** jayce@usesilverkey.com with subject "CCPA Request"
 
 ### EU/UK Residents (GDPR)
 
@@ -259,7 +259,7 @@ See [GDPR Compliance](./gdpr.md) for detailed EU/UK privacy rights, including:
 - Right to Object (Article 21)
 - Right to Lodge a Complaint with supervisory authority
 
-**Contact:** privacy@silverkey.com with subject "GDPR Request"
+**Contact:** jayce@usesilverkey.com with subject "GDPR Request"
 
 ---
 
@@ -409,7 +409,7 @@ Our platform integrates with third-party services to provide enhanced functional
 - If we learn we have collected data from a child under 13, we will delete it immediately
 - If you are under 18, do not use our platform or provide any personal information
 
-**Parental Notice:** If you believe your child under 18 has created an account, contact privacy@silverkey.com immediately for account deletion.
+**Parental Notice:** If you believe your child under 18 has created an account, contact jayce@usesilverkey.com immediately for account deletion.
 
 ---
 
@@ -425,14 +425,14 @@ If you are in the European Union or United Kingdom:
 - We comply with GDPR requirements (see [GDPR Compliance](./gdpr.md))
 - Data transfers rely on EU-US Data Privacy Framework and/or Standard Contractual Clauses (SCCs)
 - You have additional rights under GDPR (Right to Erasure, Data Portability, etc.)
-- Contact our Data Protection Officer: privacy@silverkey.com
+- Contact our Data Protection Officer: jayce@usesilverkey.com
 
 ### California Users (CCPA/CPRA Compliance)
 
 If you are a California resident:
 - We comply with CCPA/CPRA requirements (see [CCPA Compliance](./ccpa.md))
 - You have additional rights (Right to Know, Delete, Correct, Opt-Out)
-- Contact: privacy@silverkey.com with subject "CCPA Request"
+- Contact: jayce@usesilverkey.com with subject "CCPA Request"
 
 ### Other Jurisdictions
 
@@ -461,7 +461,7 @@ If you are located outside the US, EU, or California, your use of SilverKey is g
 **Your Rights:**
 - Right to Know, Delete, Correct, Opt-Out, Limit Use of Sensitive PI
 - See [CCPA Compliance](./ccpa.md) for details
-- Contact: privacy@silverkey.com
+- Contact: jayce@usesilverkey.com
 
 ### Do Not Sell or Share My Personal Information
 
@@ -499,9 +499,9 @@ We process your personal data under the following legal bases:
 - Right to Withdraw Consent (Art. 7(3))
 - Right to Lodge a Complaint (Art. 77)
 
-**Exercise Your Rights:** privacy@silverkey.com with subject "GDPR Request"
+**Exercise Your Rights:** jayce@usesilverkey.com with subject "GDPR Request"
 
-**Data Protection Officer:** privacy@silverkey.com
+**Data Protection Officer:** jayce@usesilverkey.com
 
 **Supervisory Authority:** You have the right to lodge a complaint with your national data protection authority. [List of EU authorities](https://edpb.europa.eu/about-edpb/board/members_en)
 
@@ -535,13 +535,13 @@ We review this policy at least annually.
 
 ### General Privacy Inquiries
 
-**Email:** privacy@silverkey.com
+**Email:** jayce@usesilverkey.com
 **Subject Line:** "Privacy Policy Question"
 **Response Time:** Within 10 business days
 
 ### Data Subject Rights Requests
 
-**Email:** privacy@silverkey.com
+**Email:** jayce@usesilverkey.com
 **Subject Lines:**
 - "GDPR Request" (EU/UK residents)
 - "CCPA Request" (California residents)
@@ -554,12 +554,12 @@ We review this policy at least annually.
 
 ### Data Protection Officer (DPO)
 
-**Email:** privacy@silverkey.com
-**Mailing Address:** [Company Address]
+**Email:** jayce@usesilverkey.com
+**Mailing Address:** 792 Techwood Dr NW, Atlanta, GA 30332
 
 ### Customer Support (Non-Privacy Issues)
 
-**Email:** support@silverkey.com
+**Email:** jayce@usesilverkey.com
 **In-App:** Settings > Help & Support
 
 ---
@@ -585,9 +585,9 @@ We review this policy at least annually.
 *This Privacy Policy was last updated on April 5, 2026. By using SilverKey, you acknowledge that you have read and understood this Privacy Policy.*
 
 **SilverKey, Inc.**
-Email: privacy@silverkey.com
+Email: jayce@usesilverkey.com
 Website: [Company Website]
 
 ---
 
-*This document is maintained by the SilverKey Legal and Compliance team. For questions or updates, contact privacy@silverkey.com.*
+*This document is maintained by the SilverKey Legal and Compliance team. For questions or updates, contact jayce@usesilverkey.com.*

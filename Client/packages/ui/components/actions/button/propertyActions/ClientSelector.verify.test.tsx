@@ -10,8 +10,7 @@ vi.mock("packages/contexts", () => ({
   useLocalization: () => ({
     t: (key: string, opts?: { defaultValue?: string }) => {
       if (key === "client_selector.me") return "Me";
-      if (key === "client_selector.select_client")
-        return opts?.defaultValue ?? "Select client";
+      if (key === "client_selector.select_client") return opts?.defaultValue ?? "Select client";
       return opts?.defaultValue ?? key;
     },
   }),
@@ -22,8 +21,7 @@ vi.mock("packages/hooks/store", () => ({
 }));
 
 vi.mock("packages/store", () => ({
-  useAuthStore: (selector: (s: { authReady: boolean }) => unknown) =>
-    selector({ authReady: true }),
+  useAuthStore: (selector: (s: { authReady: boolean }) => unknown) => selector({ authReady: true }),
 }));
 
 vi.mock("@/features/agent/hooks/data/clients/useAgentClients", () => ({
@@ -55,16 +53,9 @@ describe("ClientSelector (SIL-10 regression)", () => {
 
     const { getByTestId } = render(
       // Replicates the mobile library toolbar that clips absolute children.
-      <div
-        data-testid="toolbar"
-        className="overflow-x-auto"
-        style={{ width: 200, height: 44 }}
-      >
-        <ClientSelector
-          selectedClientId={null}
-          onClientChange={onClientChange}
-        />
-      </div>,
+      <div data-testid="toolbar" className="overflow-x-auto" style={{ width: 200, height: 44 }}>
+        <ClientSelector selectedClientId={null} onClientChange={onClientChange} />
+      </div>
     );
 
     const toolbar = getByTestId("toolbar");

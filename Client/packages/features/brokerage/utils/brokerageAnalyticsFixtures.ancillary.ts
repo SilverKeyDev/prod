@@ -1,8 +1,9 @@
 /**
  * Brokerage analytics fixtures — demo ancillary / leakage.
  * Volume: Kaggle closings via brokerageDemoVolumeAssumptions (~1,854/month).
- * Attach: shared ANCILLARY_ATTACH_BENCHMARKS (current = industry avg; high = campaign posts).
- * Opportunity dollars = gap to industry high (not gap to 100% attach).
+ * Attach: shared ANCILLARY_ATTACH_BENCHMARKS (current = 2 pp below avg; high = campaign posts).
+ * Service opportunity dollars = gap to industry high (not gap to 100% attach).
+ * Agent Total opportunity = gap to industry avg (title + lending), precise dollars.
  * by_agent.transactions aligned with BROKERAGE_AGENTS_FIXTURE.closings (monthly baselines).
  */
 
@@ -41,7 +42,7 @@ function serviceRow(service: LeakageBenchmarkService) {
   };
 }
 
-/** Agent opportunity vs industry high for title + lending only. */
+/** Agent opportunity vs industry avg for title + lending only (precise dollars). */
 function agentTitleLendingOpportunity(
   transactions: number,
   titleAttach: number,
@@ -51,13 +52,13 @@ function agentTitleLendingOpportunity(
     opportunityDollarsPrecise(
       transactions,
       titleAttach,
-      ANCILLARY_ATTACH_BENCHMARKS.title.industryHigh,
+      ANCILLARY_ATTACH_BENCHMARKS.title.industryAvg,
       ANCILLARY_FEES.title
     ) +
     opportunityDollarsPrecise(
       transactions,
       lendingAttach,
-      ANCILLARY_ATTACH_BENCHMARKS.lending.industryHigh,
+      ANCILLARY_ATTACH_BENCHMARKS.lending.industryAvg,
       ANCILLARY_FEES.lending
     )
   );

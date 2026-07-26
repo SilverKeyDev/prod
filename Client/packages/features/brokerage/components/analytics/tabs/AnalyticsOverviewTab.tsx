@@ -30,7 +30,7 @@ import {
   formatDeltaCompact,
 } from "packages/features/brokerage/utils/analyticsFormat";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
-import { ANALYTICS_LEAKAGE_HREF } from "packages/features/brokerage/utils/campaigns/campaignMathExplanation";
+import { ANALYTICS_LEAKAGE_HREF } from "packages/features/brokerage/utils/analytics/analyticsLeakageHref";
 import { Link } from "packages/navigation";
 import { Box } from "packages/ui/components/structure/primitives";
 import BodyText from "packages/ui/components/structure/text/BodyText";

@@ -20,12 +20,6 @@ from app.services.transactions.checklist_support.checklist_rules import (
 from logger import log
 
 _SIGNATURE_BASED = "signature_based"
-_SIGNATURE_PLUS_REVIEW = "signature_plus_review"
-_BBA_FORM_KEYS = {
-    "buyer_broker_exclusive",
-    "buyer_broker_non_exclusive",
-    "buyer_broker_single_property",
-}
 
 
 def _linked_item_key(category: str, item_id: int) -> str:
@@ -91,55 +85,7 @@ def _item_id(item: dict[str, Any]) -> int | None:
 
 
 def _is_signature_based_item(item: dict[str, Any]) -> bool:
-    ct = str(item.get("completion_type") or "")
-    return ct in (_SIGNATURE_BASED, _SIGNATURE_PLUS_REVIEW)
-
-
-def _is_bba_item(item: dict[str, Any]) -> bool:
-    """True when this checklist item is the buyer-broker agreement step."""
-    suggested = set(item.get("suggested_form_ids") or [])
-    return bool(suggested & _BBA_FORM_KEYS)
-
-
-def _assert_bba_send_allowed(
-    transaction_id: str,
-    buyer_user_id: str,
-) -> bool:
-    """
-    RESPA compliance gate — blocks BBA DocuSign send until agent has explicitly
-    approved on a call. Returns True if send is allowed, False if blocked.
-
-    LogPath: TRANSACTIONS.BBA_REVIEW
-    Only applies to signature_plus_review items (checklist item 6).
-    Non-BBA signature steps are unaffected.
-    TODO SIL-183 Phase 2: also check approved_preferences_fingerprint matches
-    current preferences to catch material-change invalidation.
-    """
-    from app.models.transactions.buyer_broker_review import BuyerBrokerReview
-
-    review = db.session.scalar(
-        select(BuyerBrokerReview).where(BuyerBrokerReview.transaction_id == str(transaction_id))
-    )
-    if review is None:
-        log.info(
-            "TRANSACTIONS.BBA_REVIEW",
-            "bba_send_blocked_no_review",
-            {"transaction_id": transaction_id, "buyer_user_id": buyer_user_id},
-        )
-        return False
-
-    allowed = review.status == "approved"
-    if not allowed:
-        log.info(
-            "TRANSACTIONS.BBA_REVIEW",
-            "bba_send_blocked",
-            {
-                "transaction_id": transaction_id,
-                "buyer_user_id": buyer_user_id,
-                "review_status": review.status,
-            },
-        )
-    return allowed
+    return str(item.get("completion_type") or "") == _SIGNATURE_BASED
 
 
 def _signature_step_selectable(
@@ -234,14 +180,6 @@ def run_signature_step_auto_send(
         ):
             continue
         if not _signature_step_selectable(item, effective_checked_ids):
-            continue
-
-        # Gate: BBA items require explicit agent approval before DocuSign send.
-        # Non-BBA signature steps are unaffected.
-        if _is_bba_item(item) and not _assert_bba_send_allowed(
-            transaction_id=str(tx_id),
-            buyer_user_id=str(buyer_user_id),
-        ):
             continue
 
         form = _first_resolved_checklist_form(item)

@@ -69,9 +69,6 @@ ignore = [
 "scripts/endpoints/check_dead_endpoints.py" = ["T201"]
 "scripts/endpoints/sync_inventory_posthog.py" = ["T201"]
 "scripts/evaluate_sil208.py" = ["T201", "E402"]
-"scripts/evaluate_sil309.py" = ["T201", "E402"]
-"scripts/skyslope/seed_campaign_demo.py" = ["T201", "E402"]
-"scripts/skyslope/seed_demo_campaigns.py" = ["T201", "E402"]
 # ORM relationship Mapped[] forward refs: quoted names for pyright; F821/UP037 waived in models.
 "app/models/**/*.py" = ["F821", "UP037"]
 

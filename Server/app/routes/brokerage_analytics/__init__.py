@@ -337,136 +337,6 @@ def get_analytics_agent_retention_risk(user):
     return _handle_result(get_agent_retention_risk(filters))
 
 
-@brokerage_analytics_bp.route("/campaigns", methods=["GET"])
-@handle_exceptions_with_logging
-@require_brokerage_scope
-def list_analytics_campaigns(user):
-    """GET /api/v1/brokerage/analytics/campaigns — list A/B email campaigns (SIL-306)."""
-    from app.services.brokerage.campaigns.service import list_campaigns
-
-    brokerage_org_id = req.args.get("brokerage_org_id")
-    return _handle_result(list_campaigns(brokerage_org_id))
-
-
-@brokerage_analytics_bp.route("/campaigns", methods=["POST"])
-@handle_exceptions_with_logging
-@require_brokerage_scope
-def create_analytics_campaign(user):
-    """POST /api/v1/brokerage/analytics/campaigns — create A/B campaign (SIL-306)."""
-    from app.services.brokerage.campaigns.service import create_campaign
-
-    brokerage_org_id = req.args.get("brokerage_org_id")
-    body = req.get_json(silent=True) or {}
-    result = create_campaign(
-        brokerage_org_id,
-        name=str(body.get("name") or "").strip(),
-        goal_metric=str(body.get("goal_metric") or "title_attach"),
-        variants=list(body.get("variants") or []),
-        segment=str(body.get("segment") or "targeted_engagement"),
-        send=bool(body.get("send", True)),
-    )
-    if not result.get("success"):
-        error = result.get("error", "unknown_error")
-        if error == "validation_error":
-            return jsonify(
-                {
-                    "success": False,
-                    "error": error,
-                    "message": result.get("message", "Invalid request"),
-                }
-            ), 400
-        return jsonify({"success": False, "error": error}), 500
-    return jsonify(result), 201
-
-
-@brokerage_analytics_bp.route("/campaigns/<campaign_id>", methods=["GET"])
-@handle_exceptions_with_logging
-@require_brokerage_scope
-def get_analytics_campaign(user, campaign_id: str):
-    """GET /api/v1/brokerage/analytics/campaigns/{id} — campaign detail (SIL-306)."""
-    from app.services.brokerage.campaigns.service import get_campaign
-
-    brokerage_org_id = req.args.get("brokerage_org_id")
-    result = get_campaign(brokerage_org_id, campaign_id)
-    if not result.get("success"):
-        if result.get("error") == "campaign_not_found":
-            return jsonify({"success": False, "error": "Campaign not found"}), 404
-        return jsonify({"success": False, "error": "Failed to load campaign"}), 500
-    return jsonify(result), 200
-
-
-@brokerage_analytics_bp.route("/campaigns/<campaign_id>/results", methods=["GET"])
-@handle_exceptions_with_logging
-@require_brokerage_scope
-def get_analytics_campaign_results(user, campaign_id: str):
-    """GET /api/v1/brokerage/analytics/campaigns/{id}/results — lift + $ (SIL-307)."""
-    from app.services.brokerage.campaigns.results import get_campaign_results
-
-    brokerage_org_id = req.args.get("brokerage_org_id")
-    result = get_campaign_results(brokerage_org_id, campaign_id)
-    if not result.get("success"):
-        if result.get("error") == "campaign_not_found":
-            return jsonify({"success": False, "error": "Campaign not found"}), 404
-        return jsonify({"success": False, "error": "Failed to compute results"}), 500
-    return jsonify(result), 200
-
-
-@brokerage_analytics_bp.route("/campaigns/<campaign_id>/learning", methods=["GET"])
-@handle_exceptions_with_logging
-@require_brokerage_scope
-def get_analytics_campaign_learning(user, campaign_id: str):
-    """GET …/campaigns/{id}/learning — last SIL-309 learning-loop result."""
-    from app.services.brokerage.campaigns.learning_artifacts import load_learning_result
-    from app.services.brokerage.campaigns.service import get_campaign
-
-    brokerage_org_id = req.args.get("brokerage_org_id")
-    detail = get_campaign(brokerage_org_id, campaign_id)
-    if not detail.get("success"):
-        if detail.get("error") == "campaign_not_found":
-            return jsonify({"success": False, "error": "Campaign not found"}), 404
-        return jsonify({"success": False, "error": "Failed to load campaign"}), 500
-    learning = load_learning_result(campaign_id)
-    if not learning:
-        return jsonify(
-            {
-                "success": True,
-                "brokerage_org_id": brokerage_org_id,
-                "campaign_id": campaign_id,
-                "learning": None,
-            }
-        ), 200
-    return jsonify(learning), 200
-
-
-@brokerage_analytics_bp.route("/campaigns/<campaign_id>/learning-loop", methods=["POST"])
-@handle_exceptions_with_logging
-@require_brokerage_scope
-def post_analytics_campaign_learning_loop(user, campaign_id: str):
-    """
-    POST …/campaigns/{id}/learning-loop — SIL-309 one-click loop.
-
-    Scores winners, reviews what worked (Perplexity or cache), drafts next A/B
-    pair. Drafts require human approval (never auto-send).
-    Body optional: ``{"skip_perplexity": true}`` for offline demo.
-    """
-    from app.services.brokerage.campaigns.learning.learning_loop import (
-        run_campaign_learning_loop,
-    )
-
-    brokerage_org_id = req.args.get("brokerage_org_id")
-    body = req.get_json(silent=True) or {}
-    result = run_campaign_learning_loop(
-        brokerage_org_id,
-        campaign_id,
-        skip_perplexity=bool(body.get("skip_perplexity")),
-    )
-    if not result.get("success"):
-        if result.get("error") == "campaign_not_found":
-            return jsonify({"success": False, "error": "Campaign not found"}), 404
-        return jsonify({"success": False, "error": result.get("error", "learning_failed")}), 500
-    return jsonify(result), 200
-
-
 @brokerage_analytics_bp.route("/inventory", methods=["GET"])
 @handle_exceptions_with_logging
 @require_brokerage_scope
@@ -477,3 +347,76 @@ def get_brokerage_inventory(user):
     brokerage_org_id = req.args.get("brokerage_org_id")
     status = req.args.get("status")
     return _handle_result(get_brokerage_inventory_listings(brokerage_org_id, status_filter=status))
+
+
+@brokerage_analytics_bp.route("/nl-query", methods=["POST"])
+@handle_exceptions_with_logging
+@require_brokerage_scope
+def post_brokerage_analytics_nl_query(user):
+    """POST /api/v1/brokerage/analytics/nl-query - SIL-323 NL -> read-only SQL."""
+    from app.services.brokerage_db_mcp import (
+        ConnectionConfigError,
+        NlQueryError,
+        QueryExecutionError,
+        QueryGuardrailError,
+        run_nl_query,
+    )
+
+    body = req.get_json(silent=True) or {}
+    brokerage_org_id = str(
+        body.get("brokerage_org_id") or req.args.get("brokerage_org_id") or ""
+    ).strip()
+    question = str(body.get("question") or "").strip()
+
+    if not question:
+        return jsonify(
+            {"success": False, "error": "validation_error", "message": "question is required"}
+        ), 400
+
+    try:
+        result = run_nl_query(brokerage_org_id, question)
+    except QueryGuardrailError as exc:
+        return jsonify(
+            {
+                "success": False,
+                "error": getattr(exc, "code", "query_rejected"),
+                "message": "Query was rejected by read-only guardrails",
+            }
+        ), 400
+    except (NlQueryError, ConnectionConfigError, QueryExecutionError) as exc:
+        code = getattr(exc, "code", "nl_query")
+        status = (
+            400
+            if code
+            in {
+                "empty_question",
+                "missing_brokerage_org_id",
+                "brokerage_not_found",
+                "empty_sql",
+                "tenancy_bind_missing",
+                "tenancy_predicate_missing",
+                "table_not_allowed",
+                "no_table",
+            }
+            else 500
+        )
+        return jsonify(
+            {
+                "success": False,
+                "error": code,
+                "message": "Unable to answer this question",
+            }
+        ), status
+
+    return jsonify(
+        {
+            "success": True,
+            "brokerage_org_id": brokerage_org_id,
+            "question": result.question,
+            "sql": result.sql,
+            "viz_hint": result.viz_hint,
+            "columns": list(result.columns),
+            "rows": list(result.rows),
+            "row_count": result.row_count,
+        }
+    ), 200

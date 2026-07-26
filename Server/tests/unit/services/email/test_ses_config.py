@@ -29,9 +29,9 @@ def test_get_ses_region_prefers_aws_region(monkeypatch):
     assert ses_config.get_ses_region() == "us-west-2"
 
 
-def test_cognito_reply_to_defaults_to_support(monkeypatch):
+def test_cognito_reply_to_defaults_to_jayce(monkeypatch):
     monkeypatch.delenv("SES_REPLY_TO_EMAIL", raising=False)
-    assert ses_config.cognito_reply_to_address() == "support@usesilverkey.com"
+    assert ses_config.cognito_reply_to_address() == "jayce@usesilverkey.com"
 
 
 def test_app_links_base_url_production(monkeypatch):
