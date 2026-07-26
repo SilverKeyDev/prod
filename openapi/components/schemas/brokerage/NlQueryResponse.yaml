@@ -1,0 +1,39 @@
+type: object
+required:
+  - success
+  - brokerage_org_id
+  - question
+  - sql
+  - viz_hint
+  - columns
+  - rows
+  - row_count
+properties:
+  success:
+    type: boolean
+  brokerage_org_id:
+    type: string
+  question:
+    type: string
+  sql:
+    type: string
+    description: Guarded SELECT that was executed (LIMIT applied)
+  viz_hint:
+    type: string
+    enum:
+      - bar
+      - table
+      - none
+  columns:
+    type: array
+    items:
+      type: string
+  rows:
+    type: array
+    items:
+      type: object
+      additionalProperties: true
+    description: JSON-safe row objects (keys match columns)
+  row_count:
+    type: integer
+    minimum: 0

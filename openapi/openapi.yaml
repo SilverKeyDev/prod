@@ -65,6 +65,8 @@ tags:
     description: Workspace-scoped operator messaging (brokerage, integrator, support).
   - name: Chatbot
     description: Property chatbot for address-based conversations (routes under /api/v1/chat).
+  - name: BrokerageAnalytics
+    description: Brokerage analytics and NL query (routes under /api/v1/brokerage/analytics).
 
 components:
   schemas:
@@ -170,6 +172,10 @@ components:
       $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialStatus.yaml"
     BrokerageSkySlopeCredentialTestResponse:
       $ref: "./components/schemas/admin/BrokerageSkySlopeCredentialTestResponse.yaml"
+    NlQueryRequest:
+      $ref: "./components/schemas/brokerage/NlQueryRequest.yaml"
+    NlQueryResponse:
+      $ref: "./components/schemas/brokerage/NlQueryResponse.yaml"
     ChatbotHistoryMessage:
       $ref: "./components/schemas/shared/chatbot/ChatbotHistoryMessage.yaml"
     ChatbotHistoryResponse:
@@ -963,6 +969,53 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/brokerage/analytics/nl-query:
+    post:
+      tags:
+        - BrokerageAnalytics
+      summary: Natural-language brokerage analytics query (SIL-323)
+      operationId: postBrokerageAnalyticsNlQuery
+      description: >
+        Converts a plain-English question into a guarded read-only SQL query
+        against the brokerage's connected data (v1 silverkey_mirror), then
+        returns columns/rows plus a viz_hint for charts/tables.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NlQueryRequest"
+      responses:
+        "200":
+          description: Query succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NlQueryResponse"
+        "400":
+          description: Validation failed or query rejected by guardrails
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden for this brokerage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Planning or execution failed (sanitized)
           content:
             application/json:
               schema:

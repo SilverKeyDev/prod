@@ -3,6 +3,13 @@ import React from "react";
 import { BrokerageShellSetupStep } from "packages/features/brokerage/components/onboarding/BrokerageShellSetupStep.web";
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
 import {
+  IpAgreementStep,
+  IpIntegrationTypeStep,
+  IpOrgDetailsStep,
+  IpPointOfContactStep,
+  IpServiceAreaStep,
+} from "packages/features/profile/components/onboarding/ip";
+import {
   AgentBrokerageSection,
   AgentLicensingSection,
   AgentProfileServiceSection,
@@ -250,6 +257,21 @@ export function renderOnboardingStep({
           }}
         />
       );
+
+    case "ip_org_details":
+      return <IpOrgDetailsStep formData={formData} updateFormData={updateFormData} />;
+
+    case "ip_integration_type":
+      return <IpIntegrationTypeStep formData={formData} updateFormData={updateFormData} />;
+
+    case "ip_point_of_contact":
+      return <IpPointOfContactStep formData={formData} updateFormData={updateFormData} />;
+
+    case "ip_service_area":
+      return <IpServiceAreaStep formData={formData} updateFormData={updateFormData} />;
+
+    case "ip_agreement":
+      return <IpAgreementStep formData={formData} updateFormData={updateFormData} />;
 
     default:
       return (

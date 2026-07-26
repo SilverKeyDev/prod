@@ -145,11 +145,16 @@ describe("BrokerageAnalyticsShell", () => {
     const tabs = screen.getAllByRole("tab");
     expect(tabs.map((t) => t.textContent)).toEqual([
       "Overview",
+      "Ask",
       "Leakage",
       "Agents",
       "Deal forensics",
       "Market",
     ]);
+
+    await user.click(screen.getByRole("tab", { name: "Ask" }));
+    expect(screen.getByTestId("analytics-ask-panel")).toBeTruthy();
+    expect(navState.search).toContain("tab=ask");
 
     await user.click(screen.getByRole("tab", { name: "Leakage" }));
     expect(screen.getByTestId("leakage-section-snapshot")).toBeTruthy();

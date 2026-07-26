@@ -1,7 +1,5 @@
 import React from "react";
-
 import { Icon } from "@ui/icons";
-
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import {
   getOnboardingSteps,
@@ -74,6 +72,16 @@ const iconNameForStepId = (id: ProfileStepId): IconName | undefined => {
       return "building-2";
     case "integration_partner_shell_setup":
       return "settings-2";
+    case "ip_org_details":
+      return "building-2";
+    case "ip_integration_type":
+      return "plug";
+    case "ip_point_of_contact":
+      return "user";
+    case "ip_service_area":
+      return "map-pin";
+    case "ip_agreement":
+      return "file-check";
     default:
       return undefined;
   }

@@ -9,7 +9,8 @@ This document describes the structure and purpose of each file in the React Nati
 | File | Purpose |
 |------|--------|
 | **`App.tsx`** | Expo entry component. Imports `react-native-gesture-handler` at the very top (required by React Navigation), loads `global.css` (NativeWind), and renders `AppRoot`. No `react-dom`, no `BrowserRouter`. |
-| **`app.json`** | Expo config: app name (SilverKey), slug, scheme (`silverkey` for deep links), iOS/Android bundle IDs, splash, orientation. |
+| **`app.json`** | Expo config: app name (SilverKey), slug, scheme (`silverkey` for deep links), iOS/Android bundle IDs, splash, orientation. Points at `assets/icon.png`, `assets/adaptive-icon*.png`, and `assets/splash.png` (1024 icons / portrait splash for store builds). |
+| **`assets/`** | Store-ready masters (`icon.png`, `adaptive-icon.png`, `adaptive-icon-background.png`, `splash.png`) plus density exports under `assets/android/` for Android mipmap/drawable layers. iOS copies live in `ios/.../Images.xcassets`. |
 | **`package.json`** | Mobile app dependencies (Expo, React Navigation, AsyncStorage, React Query, Zustand, safe-area-context, gesture-handler, screens, splash-screen, NativeWind, etc.) and scripts (`start`, `ios`, `android`). |
 | **`tsconfig.json`** | Extends Expo base; path alias `packages/*` → `../../packages/*`; includes app and shared packages for typechecking. |
 | **`global.css`** | NativeWind/Tailwind entry; consumed by Metro via `withNativeWind`. |

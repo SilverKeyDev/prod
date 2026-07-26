@@ -4,14 +4,14 @@ _Update this when starting or finishing a focused workstream (not every small ed
 
 ## Current focus
 
-- Workspace placeholder shells: seller, brokerage, integration_partner are barren (nav + route guards + shared placeholder page). Buyer/agent documented in `documentation/architecture/workspace-first-architecture.md`.
+- **SIL-325** — Export app icons and splash screen assets (iOS + Android). Assets generated and wired; awaiting commit/PR.
 
 ## Open questions
 
-- 
+- Confirm black splash/icon background vs previous white (brand mark is copper on black).
 
 ## Links
 
-- Docs: `documentation/architecture/workspace-first-architecture.md`, `documentation/architecture/workspaces-placeholder-shells.md`
-- Linear: 
+- Linear: https://linear.app/silverkey/issue/SIL-325/export-app-icons-and-splash-screen-assets-ios-android
+- Branch: `adibiamir17/sil-325-export-app-icons-and-splash-screen-assets-ios-android`
 - PR: 
