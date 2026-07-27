@@ -247,17 +247,17 @@ def render_ts(rows: list[dict[str, object]]) -> str:
     for r in rows:
         stall = "null" if r["stall"] is None else json.dumps(r["stall"])
         lines.append("  {")
-        lines.append(f'    id: {json.dumps(r["id"])},')
-        lines.append(f'    name: {json.dumps(r["name"])},')
-        lines.append(f'    office: {json.dumps(r["office"])},')
-        lines.append(f'    team: {json.dumps(r["team"])},')
-        lines.append(f'    activeClients: {r["activeClients"]},')
-        lines.append(f'    closings: {r["closings"]},')
-        lines.append(f'    volumeDollars: {r["volumeDollars"]},')
-        lines.append(f'    gci: {r["gci"]},')
-        lines.append(f'    momentum90dPercent: {r["momentum90dPercent"]},')
+        lines.append(f"    id: {json.dumps(r['id'])},")
+        lines.append(f"    name: {json.dumps(r['name'])},")
+        lines.append(f"    office: {json.dumps(r['office'])},")
+        lines.append(f"    team: {json.dumps(r['team'])},")
+        lines.append(f"    activeClients: {r['activeClients']},")
+        lines.append(f"    closings: {r['closings']},")
+        lines.append(f"    volumeDollars: {r['volumeDollars']},")
+        lines.append(f"    gci: {r['gci']},")
+        lines.append(f"    momentum90dPercent: {r['momentum90dPercent']},")
         lines.append(f"    stall: {stall},")
-        lines.append(f'    status: {json.dumps(r["status"])},')
+        lines.append(f"    status: {json.dumps(r['status'])},")
         lines.append("  },")
     lines.extend(
         [
@@ -292,8 +292,7 @@ def main() -> int:
     healthy = sum(1 for r in rows if r["status"] == "healthy")
     at_risk = sum(1 for r in rows if r["status"] == "at_risk")
     print(  # noqa: T201
-        f"Wrote {len(rows)} agents → {args.output} "
-        f"(top={top} healthy={healthy} at_risk={at_risk})"
+        f"Wrote {len(rows)} agents → {args.output} (top={top} healthy={healthy} at_risk={at_risk})"
     )
     return 0
 

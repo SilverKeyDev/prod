@@ -196,18 +196,24 @@ class TestPersistenceFieldMapping:
 class TestDataModuleBarrel:
     def test_all_exports(self):
         from app.services.search.data import (
+            RAPIDAPI_BASE,
             SLIPSTREAM_BASE,
             SLIPSTREAM_MARKET,
             get_property_comps,
             get_property_detail,
             get_property_images,
+            get_rapidapi_headers,
             normalize_listing,
             normalize_listings,
+            rapidapi_get,
             slipstream_get,
             slipstream_post,
             validate_token,
         )
 
+        assert RAPIDAPI_BASE.startswith("https://")
+        assert callable(get_rapidapi_headers)
+        assert callable(rapidapi_get)
         assert SLIPSTREAM_BASE == "https://slipstream.homejunction.com"
         assert SLIPSTREAM_MARKET == "GAMLS"
         assert callable(get_property_detail)
@@ -218,3 +224,62 @@ class TestDataModuleBarrel:
         assert callable(slipstream_get)
         assert callable(slipstream_post)
         assert callable(validate_token)
+
+
+# ---- RapidAPI Client ----
+
+
+class TestRapidApiClient:
+    @patch("app.services.search.data.client.RAPIDAPI_KEY", "test-rapidapi-key")
+    def test_headers(self):
+        from app.services.search.data.client import get_rapidapi_headers
+        from app.services.search.data.config import RAPIDAPI_HOST
+
+        h = get_rapidapi_headers()
+        assert h["x-rapidapi-host"] == RAPIDAPI_HOST
+        assert h["x-rapidapi-key"] == "test-rapidapi-key"
+        assert h["Accept"] == "application/json"
+
+    @patch("app.services.search.data.client.RAPIDAPI_KEY", None)
+    def test_headers_missing_key(self):
+        from app.services.search.data.client import get_rapidapi_headers
+
+        h = get_rapidapi_headers()
+        assert h["x-rapidapi-key"] == ""
+
+    def test_session_singleton(self):
+        import app.services.search.data.client as mod
+
+        old = mod._rapidapi_session
+        mod._rapidapi_session = None
+        try:
+            s1 = mod.get_rapidapi_session()
+            s2 = mod.get_rapidapi_session()
+            assert s1 is s2
+        finally:
+            mod._rapidapi_session = old
+
+    @patch("app.services.search.data.client.get_rapidapi_session")
+    def test_rapidapi_get_builds_url_and_headers(self, mock_get_session):
+        from app.services.search.data.client import rapidapi_get
+        from app.services.search.data.config import RAPIDAPI_BASE
+
+        mock_session = mock_get_session.return_value
+        mock_session.get.return_value = object()
+
+        with patch("app.services.search.data.client.RAPIDAPI_KEY", "k"):
+            rapidapi_get("/property", params={"zpid": "123"})
+
+        args, kwargs = mock_session.get.call_args
+        assert args[0] == f"{RAPIDAPI_BASE}/property"
+        assert kwargs["params"] == {"zpid": "123"}
+        assert kwargs["headers"]["x-rapidapi-key"] == "k"
+        assert kwargs["timeout"] == 300
+
+
+class TestRapidApiConfig:
+    def test_constants(self):
+        from app.services.search.data.config import RAPIDAPI_BASE, RAPIDAPI_HOST
+
+        assert RAPIDAPI_HOST == "us-housing-market-data1.p.rapidapi.com"
+        assert RAPIDAPI_BASE == f"https://{RAPIDAPI_HOST}"
