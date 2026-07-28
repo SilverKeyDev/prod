@@ -19,142 +19,136 @@ from ...auth import get_current_user
 def map_user_preferences_to_filters(
     user_preferences: dict[str, Any], status_type: str = "ForSale"
 ) -> dict[str, Any]:
-    """Map user preferences to Slipstream API filter params.
+    """Map user preferences to RapidAPI ``propertyByPolygon`` filter params.
 
-    Slipstream uses operator-based syntax:
-      beds=>=3, baths=>=2, listPrice=min:max, size=min:max,
-      propertyType=Single Family Residence, sortField/sortOrder.
+    Output keys match what ``search_loop_helpers`` forwards:
+      home_type, bedsMin, bathsMin, minPrice, maxPrice,
+      minSqft, maxSqft, daysOnMarketMin, daysOnMarketMax
+      (plus rentMinPrice/rentMaxPrice when status_type is ForRent).
     """
     filters: dict[str, Any] = {}
 
     budget_min = user_preferences.get("home_budget_min")
     budget_max = user_preferences.get("home_budget_max")
 
-    if budget_min is not None or budget_max is not None:
+    if budget_max is not None:
         try:
-            if budget_min is not None and budget_max is not None:
-                filters["listPrice"] = f"{int(budget_min)}:{int(budget_max)}"
-            elif budget_min is not None:
-                filters["listPrice"] = f">={int(budget_min)}"
-            elif budget_max is not None:
-                filters["listPrice"] = f"{int(int(budget_max) * 0.65)}:{int(budget_max)}"
+            budget_max_i = int(budget_max)
+            if status_type == "ForRent":
+                filters["rentMaxPrice"] = int(budget_max_i / 12)
+                if budget_min is not None:
+                    filters["rentMinPrice"] = int(int(budget_min) / 12)
+                else:
+                    filters["rentMinPrice"] = int(budget_max_i * 0.7 / 12)
+            else:
+                filters["maxPrice"] = budget_max_i
+                if budget_min is not None:
+                    filters["minPrice"] = int(budget_min)
+                else:
+                    filters["minPrice"] = int(budget_max_i * 0.65)
+        except (TypeError, ValueError):
+            pass
+    elif budget_min is not None:
+        try:
+            if status_type == "ForRent":
+                filters["rentMinPrice"] = int(int(budget_min) / 12)
+            else:
+                filters["minPrice"] = int(budget_min)
         except (TypeError, ValueError):
             pass
 
     beds_min = user_preferences.get("preferred_bedrooms_min")
     if beds_min is not None:
         try:
-            filters["beds"] = f">={int(beds_min)}"
+            filters["bedsMin"] = int(beds_min)
         except (TypeError, ValueError):
             pass
 
     baths_min = user_preferences.get("preferred_bathrooms_min")
     if baths_min is not None:
         try:
-            filters["baths"] = f">={int(baths_min)}"
+            filters["bathsMin"] = int(baths_min)
         except (TypeError, ValueError):
             pass
-
-    # Slipstream property types from GAMLS market
-    _SLIPSTREAM_TYPE_MAP = {
-        "single_family": "Single Family Residence",
-        "house": "Single Family Residence",
-        "houses": "Single Family Residence",
-        "condo": "Condominium",
-        "condos": "Condominium",
-        "condos-co-ops": "Condominium",
-        "townhouse": "Townhouse",
-        "townhome": "Townhouse",
-        "townhomes": "Townhouse",
-        "apartment": "Condominium",
-        "apartments": "Condominium",
-        "multi_family": "Multi-Family",
-        "multi-family": "Multi-Family",
-        "multifamily": "Multi-Family",
-        "manufactured": "Manufactured Home",
-        "mobile": "Manufactured Home",
-        "land": "Land",
-        "lot": "Land",
-        "lots": "Land",
-        "lots-land": "Land",
-    }
 
     raw_type = str(
         user_preferences.get("preferred_housing_type", user_preferences.get("housing_type", ""))
     )
     if raw_type:
-        mapped_values = []
-        for token in raw_type.split(","):
-            mapped = _SLIPSTREAM_TYPE_MAP.get(token.strip().lower())
-            if mapped and mapped not in mapped_values:
-                mapped_values.append(mapped)
-        if mapped_values:
-            filters["propertyType"] = ",".join(mapped_values)
+        # RapidAPI accepts a single home_type token for the first mapped value.
+        # Comma-separated prefs: use the first recognized token.
+        first_token = raw_type.split(",")[0].strip().lower()
+
+        if status_type == "ForRent":
+            rent_type_map = {
+                "single_family": "Houses",
+                "house": "Houses",
+                "houses": "Houses",
+                "townhouse": "Townhomes",
+                "townhome": "Townhomes",
+                "townhomes": "Townhomes",
+                "condo": "Apartments_Condos_Co-ops",
+                "condos": "Apartments_Condos_Co-ops",
+                "condos-co-ops": "Apartments_Condos_Co-ops",
+                "apartment": "Apartments_Condos_Co-ops",
+                "apartments": "Apartments_Condos_Co-ops",
+                "co-op": "Apartments_Condos_Co-ops",
+                "coop": "Apartments_Condos_Co-ops",
+            }
+            mapped = rent_type_map.get(first_token)
+            if mapped:
+                filters["home_type"] = mapped
+        else:
+            sale_type_map = {
+                "single_family": "Houses",
+                "house": "Houses",
+                "houses": "Houses",
+                "condo": "Condos",
+                "condos": "Condos",
+                "townhouse": "Townhomes",
+                "townhome": "Townhomes",
+                "townhomes": "Townhomes",
+                "apartment": "Apartments",
+                "apartments": "Apartments",
+                "multi_family": "Multi-family",
+                "multi-family": "Multi-family",
+                "multifamily": "Multi-family",
+                "manufactured": "Manufactured",
+                "mobile": "Manufactured",
+                "land": "LotsLand",
+                "lot": "LotsLand",
+                "lots": "LotsLand",
+                "lots-land": "LotsLand",
+            }
+            mapped = sale_type_map.get(first_token)
+            if mapped:
+                filters["home_type"] = mapped
 
     sqft_min = user_preferences.get("preferred_sqft_min")
     sqft_max = user_preferences.get("preferred_sqft_max")
-    if sqft_min is not None and sqft_max is not None:
-        filters["size"] = f"{int(sqft_min)}:{int(sqft_max)}"
-    elif sqft_min is not None:
-        filters["size"] = f">={int(sqft_min)}"
-    elif sqft_max is not None:
-        filters["size"] = f"<={int(sqft_max)}"
+    if sqft_min is not None:
+        try:
+            filters["minSqft"] = int(sqft_min)
+        except (TypeError, ValueError):
+            pass
+    if sqft_max is not None:
+        try:
+            filters["maxSqft"] = int(sqft_max)
+        except (TypeError, ValueError):
+            pass
 
     dom_min = user_preferences.get("days_on_market_min")
     dom_max = user_preferences.get("days_on_market_max")
-    if dom_min is not None and dom_max is not None:
-        filters["daysOnMarket"] = f"{int(dom_min)}:{int(dom_max)}"
-    elif dom_max is not None:
-        filters["daysOnMarket"] = f"<={int(dom_max)}"
-
-    lot_min = user_preferences.get("preferred_lot_size_min")
-    lot_max = user_preferences.get("preferred_lot_size_max")
-    if lot_min is not None and lot_max is not None:
-        filters["lotSize"] = f"{float(lot_min)}:{float(lot_max)}"
-    elif lot_min is not None:
-        filters["lotSize"] = f">={float(lot_min)}"
-    elif lot_max is not None:
-        filters["lotSize"] = f"<={float(lot_max)}"
-
-    age_min = user_preferences.get("preferred_home_age_min")
-    age_max = user_preferences.get("preferred_home_age_max")
-    if age_min is not None or age_max is not None:
-        import datetime as _dt
-
-        current_year = _dt.datetime.now(tz=_dt.timezone.utc).year
-        if age_min is not None and age_max is not None:
-            year_newest = current_year - int(age_min)
-            year_oldest = current_year - int(age_max)
-            filters["yearBuilt"] = f"{year_oldest}:{year_newest}"
-        elif age_min is not None:
-            year_newest = current_year - int(age_min)
-            filters["yearBuilt"] = f"<={year_newest}"
-        elif age_max is not None:
-            year_oldest = current_year - int(age_max)
-            filters["yearBuilt"] = f">={year_oldest}"
-
-    listing_type_prefs = user_preferences.get("listing_type")
-    if isinstance(listing_type_prefs, list):
-        for lt in listing_type_prefs:
-            lt_norm = str(lt).strip().lower().replace("-", "_")
-            if lt_norm == "new_construction":
-                filters["newConstruction"] = "true"
-                break
-
-    listing_status = user_preferences.get("listing_status")
-    if isinstance(listing_status, str) and listing_status.strip():
-        _STATUS_MAP = {
-            "active": "Active",
-            "pending": "Pending",
-            "contingent": "Contingent",
-            "coming_soon": "Coming Soon",
-        }
-        mapped_status = _STATUS_MAP.get(listing_status.strip().lower())
-        if mapped_status:
-            filters["status"] = mapped_status
-
-    filters["sortField"] = "listPrice"
-    filters["sortOrder"] = "asc"
+    if dom_min is not None:
+        try:
+            filters["daysOnMarketMin"] = int(dom_min)
+        except (TypeError, ValueError):
+            pass
+    if dom_max is not None:
+        try:
+            filters["daysOnMarketMax"] = int(dom_max)
+        except (TypeError, ValueError):
+            pass
 
     return filters
 

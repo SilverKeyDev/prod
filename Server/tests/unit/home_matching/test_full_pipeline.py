@@ -58,14 +58,10 @@ def _slipstream_raw_response(count: int = 5) -> dict:
 
 
 class TestEndToEndPipeline:
-    """Verify the full polygon search pipeline works with Slipstream data."""
+    """Verify the full polygon search pipeline works with RapidAPI-shaped data."""
 
     def test_preferences_to_filters(self):
-        """Step 1: User preferences become Slipstream API filter params.
-
-        Delegates to the dedicated test (test_preferences_filters.py has 61
-        tests). Here we verify the function is importable and test a basic case.
-        """
+        """Step 1: User preferences become RapidAPI filter params."""
         from app.services.search.helpers.preferences_helpers import (
             map_user_preferences_to_filters,
         )
@@ -78,7 +74,11 @@ class TestEndToEndPipeline:
             },
         )
         assert isinstance(filters, dict)
-        assert "sortField" in filters
+        assert filters["minPrice"] == 250000
+        assert filters["maxPrice"] == 500000
+        assert filters["bedsMin"] == 3
+        assert "sortField" not in filters
+        assert "listPrice" not in filters
 
     def test_geometry_conversion(self):
         """Step 2: Internal polygon coords -> GeoJSON for Slipstream."""

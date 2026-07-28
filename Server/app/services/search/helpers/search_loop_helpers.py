@@ -13,13 +13,15 @@ from ..data.client import rapidapi_get
 
 _MAX_429_RETRIES_PER_PAGE = 24
 
-# RapidAPI filter keys we forward as-is (Phase 5 will map prefs into these).
+# RapidAPI filter keys forwarded from map_user_preferences_to_filters.
 _RAPIDAPI_FILTER_KEYS = (
     "home_type",
     "bedsMin",
     "bathsMin",
     "minPrice",
     "maxPrice",
+    "rentMinPrice",
+    "rentMaxPrice",
     "minSqft",
     "maxSqft",
     "daysOnMarketMin",
