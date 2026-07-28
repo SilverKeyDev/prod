@@ -34,7 +34,7 @@ def fetch_basic_property_data(params: dict):
     if not data or not isinstance(data, dict):
         return None, {
             "success": False,
-            "error": "SLIPSTREAM_ERROR",
+            "error": "RAPIDAPI_ERROR",
             "status_code": 200,
             "details": "API returned no data",
         }

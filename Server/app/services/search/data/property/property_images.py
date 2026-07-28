@@ -1,10 +1,4 @@
-"""Fetch property images via Slipstream /ws/listings/get with details=true.
-
-Slipstream embeds images in the listing detail response as an ``images`` array
-of URL strings.  There is no separate images endpoint.
-
-Full single-home JSON envelope: ``slipstream_response_reference.SLIPSTREAM_LISTINGS_GET_RESPONSE_EXAMPLE``.
-"""
+"""Fetch property images via RapidAPI /images."""
 
 from __future__ import annotations
 
@@ -12,51 +6,54 @@ from typing import Any
 
 from logger import log
 
-from ..client import slipstream_get
-from ..config import SLIPSTREAM_MARKET
+from ..client import rapidapi_get
+
+
+def _extract_image_urls(payload: Any) -> list[str]:
+    if not isinstance(payload, dict):
+        return []
+
+    out: list[str] = []
+    for key in ("images", "photos", "imageList", "data"):
+        items = payload.get(key)
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if isinstance(item, str) and item:
+                out.append(item)
+            elif isinstance(item, dict):
+                for url_key in ("url", "src", "href", "link"):
+                    val = item.get(url_key)
+                    if isinstance(val, str) and val:
+                        out.append(val)
+                        break
+        if out:
+            break
+    return out
 
 
 def get_property_images(listing_id: str) -> list[str]:
-    """Return image URLs for a listing.
-
-    Falls back to an empty list on any error so callers can always iterate.
-    """
+    """Return image URLs for a zpid. Empty list on any error."""
     if not listing_id:
         return []
 
     try:
-        params: dict[str, Any] = {
-            "market": SLIPSTREAM_MARKET,
-            "id": listing_id,
-            "details": "true",
-        }
-        resp = slipstream_get("/ws/listings/get", params=params)
+        resp = rapidapi_get("/images", params={"zpid": str(listing_id)})
         if not resp.ok:
             return []
 
-        body = resp.json() if resp.content else {}
-        if not body.get("success"):
-            return []
-
-        listings = (body.get("result") or {}).get("listings") or []
-
+        payload = resp.json() if resp.content else {}
+        images = _extract_image_urls(payload)
         log.debug(
             "API",
-            "Slipstream /ws/listings/get full response (property images)",
+            "RapidAPI /images response",
             {
                 "caller": "get_property_images",
-                "endpoint": "/ws/listings/get",
+                "endpoint": "/images",
                 "listing_id": listing_id,
-                "response": body,
+                "image_count": len(images),
             },
         )
-
-        if not listings:
-            return []
-
-        raw = listings[0]
-        images = raw.get("images") or []
-        return [img for img in images if isinstance(img, str)]
-
+        return images
     except Exception:
         return []

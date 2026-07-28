@@ -7,7 +7,7 @@ class TestPropertyCompsRoutes:
     """Test property comparables endpoint"""
 
     MOCK_AUTH = "app.routes.search.search.get_authenticated_user"
-    MOCK_COMPS = "app.routes.search.search.slipstream_get_comps"
+    MOCK_COMPS = "app.routes.search.search.rapidapi_get_comps"
 
     def test_property_comps_with_address(self, client):
         """Test GET /api/v1/search/propertyComps with address"""

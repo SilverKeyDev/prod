@@ -1,10 +1,9 @@
-"""Tests for Slipstream call sites: property_stream_steps and property_research_cache.
+"""Tests for RapidAPI call sites: property_stream_steps and property_research_cache.
 
-Verifies that the functions that used to call RapidAPI now correctly
-delegate to the Slipstream data module.
+Verifies wrappers correctly delegate to the RapidAPI-backed data module.
 
 These tests pre-mock deep dependency chains (models, db, scoring, home_matching)
-to isolate just the data-fetching logic we're auditing in the migration.
+to isolate just the data-fetching logic.
 """
 
 from __future__ import annotations
@@ -15,8 +14,7 @@ from unittest.mock import MagicMock, patch
 
 def _mock_detail_success():
     return {
-        "zpid": "MLS-555",
-        "mls_home_id": "MLS-555",
+        "zpid": "12345",
         "address": "300 Pine St, Atlanta, GA 30301",
         "streetAddress": "300 Pine St",
         "city": "Atlanta",
@@ -96,11 +94,11 @@ class TestFetchBasicPropertyData:
     def test_by_zpid(self):
         with patch.object(_stream_mod, "get_property_detail") as mock_detail:
             mock_detail.return_value = (_mock_detail_success(), None)
-            data, err = _stream_mod.fetch_basic_property_data({"zpid": "MLS-555"})
+            data, err = _stream_mod.fetch_basic_property_data({"zpid": "12345"})
             assert err is None
-            assert data["zpid"] == "MLS-555"
+            assert data["zpid"] == "12345"
             assert data["bedrooms"] == 3
-            mock_detail.assert_called_once_with(listing_id="MLS-555", address=None)
+            mock_detail.assert_called_once_with(listing_id="12345", address=None)
 
     def test_by_address(self):
         with patch.object(_stream_mod, "get_property_detail") as mock_detail:
@@ -124,10 +122,10 @@ class TestFetchBasicPropertyData:
             mock_detail.return_value = (None, None)
             data, err = _stream_mod.fetch_basic_property_data({"zpid": "X"})
             assert data is None
-            assert err["error"] == "SLIPSTREAM_ERROR"
+            assert err["error"] == "RAPIDAPI_ERROR"
 
 
-# ---- fetch_zillow_images (now Slipstream) ----
+# ---- fetch_zillow_images (RapidAPI-backed) ----
 
 
 class TestFetchZillowImages:
@@ -139,10 +137,10 @@ class TestFetchZillowImages:
     def test_fallback_to_api(self):
         with patch.object(_stream_mod, "get_property_images") as mock_imgs:
             mock_imgs.return_value = ["x.jpg", "y.jpg"]
-            data = {"images": [], "zpid": "MLS-123"}
-            imgs = _stream_mod.fetch_zillow_images({"zpid": "MLS-123"}, data)
+            data = {"images": [], "zpid": "12345"}
+            imgs = _stream_mod.fetch_zillow_images({"zpid": "12345"}, data)
             assert imgs == ["x.jpg", "y.jpg"]
-            mock_imgs.assert_called_once_with("MLS-123")
+            mock_imgs.assert_called_once_with("12345")
 
     def test_no_images_no_id(self):
         imgs = _stream_mod.fetch_zillow_images({}, {})
@@ -151,7 +149,7 @@ class TestFetchZillowImages:
     def test_fallback_from_data_mls_home_id(self):
         with patch.object(_stream_mod, "get_property_images") as mock_imgs:
             mock_imgs.return_value = ["z.jpg"]
-            data = {"images": [], "mls_home_id": "MLS-999"}
+            data = {"images": [], "mls_home_id": "999"}
             imgs = _stream_mod.fetch_zillow_images({}, data)
             assert imgs == ["z.jpg"]
 
@@ -183,16 +181,16 @@ class TestGetPropertyAddress:
         assert _stream_mod.get_property_address(data, "  Use This  ") == "Use This"
 
 
-# ---- fetch_property_detail_for_research (Slipstream) ----
+# ---- fetch_property_detail_for_research (RapidAPI) ----
 
 
 class TestFetchPropertyDetailForResearch:
-    def test_delegates_to_slipstream(self):
+    def test_delegates_to_data_module(self):
         with patch.object(_cache_mod, "get_property_detail") as mock_detail:
             mock_detail.return_value = (_mock_detail_success(), None)
-            data, err = _cache_mod.fetch_property_detail_for_research({"zpid": "MLS-555"})
+            data, err = _cache_mod.fetch_property_detail_for_research({"zpid": "12345"})
             assert err is None
-            assert data["zpid"] == "MLS-555"
+            assert data["zpid"] == "12345"
             mock_detail.assert_called_once()
 
     def test_error_returns_tuple(self):
@@ -218,15 +216,15 @@ class TestFetchPropertyDetailForResearch:
 
 
 class TestResearchPropertyImages:
-    @patch("app.services.research.property.property_images._slipstream_get_images")
-    def test_delegates_to_slipstream(self, mock_imgs):
+    @patch("app.services.research.property.property_images._property_get_images")
+    def test_delegates_to_property_images(self, mock_imgs):
         mock_imgs.return_value = ["a.jpg", "b.jpg"]
 
         from app.services.research.property.property_images import fetch_zillow_images
 
-        imgs = fetch_zillow_images("MLS-123")
+        imgs = fetch_zillow_images("12345")
         assert imgs == ["a.jpg", "b.jpg"]
-        mock_imgs.assert_called_once_with("MLS-123")
+        mock_imgs.assert_called_once_with("12345")
 
     def test_extract_primary_image_from_list(self):
         from app.services.research.property.property_images import extract_primary_image

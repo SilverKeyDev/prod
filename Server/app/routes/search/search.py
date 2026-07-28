@@ -17,7 +17,7 @@ from app.utils.route.http_errors import (
 from app.utils.validation import validate_request, validate_response
 from logger import log
 
-from ...services.search.data import get_property_comps as slipstream_get_comps
+from ...services.search.data import get_property_comps as rapidapi_get_comps
 from ...services.search.data.neighborhood_boundaries import (
     geojson_to_viewport_ring,
     get_area_boundary,
@@ -52,7 +52,7 @@ def _area_boundary_error_response(err: str):
 @search_bp.route("/propertyComps", methods=["GET"])
 def get_property_comps():
     """
-    Get property comparables via Slipstream geographic proximity search.
+    Get property comparables via RapidAPI.
     Prioritizes address parameter, with zpid as fallback.
     """
     try:
@@ -72,16 +72,16 @@ def get_property_comps():
         if zpid:
             listing_id = str(zpid).strip()
 
-        comps, err = slipstream_get_comps(
+        comps, err = rapidapi_get_comps(
             listing_id=listing_id,
             address=str(address).strip() if address else None,
         )
 
         if err:
-            log.error("SEARCH", "property_comps_slipstream_error", {"error": str(err)})
+            log.error("SEARCH", "property_comps_rapidapi_error", {"error": str(err)})
             return SecureErrorHandler.handle_external_api_error(
                 Exception(err.get("details", "Unknown error")),
-                "Slipstream API",
+                "RapidAPI",
                 {"endpoint": "propertyComps"},
             )
 
@@ -90,7 +90,7 @@ def get_property_comps():
                 "success": True,
                 "query": {"address": address, "zpid": zpid},
                 "data": comps,
-                "source": "slipstream_gamls",
+                "source": "zillow_rapidapi",
             }
         ), 200
 
