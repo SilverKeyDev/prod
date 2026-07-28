@@ -4,9 +4,16 @@ Search must **always run** when the user taps Search. Missing home preferences (
 
 Related: [profile-onboarding.md](../account/profile-onboarding.md) (settings no longer require home prefs).
 
+## Upstream data providers (SIL-324)
+
+| Concern | Provider | Notes |
+|---------|----------|--------|
+| Polygon listing search, property detail, images, comps | **RapidAPI** | Source of truth for listing/search results |
+| Location bar area suggestions + area boundary polygons | **Slipstream** (HomeJunction) | Intentionally retained; Google Places remains a client fallback |
+
 ## Preference scoping (whose filters apply)
 
-Whose preferences drive Slipstream filters and scoring is determined by the **authenticated viewer** plus optional **`preferences_user_id`** on polygon/isochrone requests. The server resolves this through `resolve_preferences_user_id_for_research` (agents may only pass IDs in `client_ids`; buyers are always scoped to self).
+Whose preferences drive RapidAPI listing filters and scoring is determined by the **authenticated viewer** plus optional **`preferences_user_id`** on polygon/isochrone requests. The server resolves this through `resolve_preferences_user_id_for_research` (agents may only pass IDs in `client_ids`; buyers are always scoped to self).
 
 | Flow | Client | `preferences_user_id` / subject | Server prefs source |
 |------|--------|-----------------------------------|---------------------|

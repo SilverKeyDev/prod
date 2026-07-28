@@ -48,8 +48,7 @@ def test_execute_returns_tenant_scoped_rows(app, db_session):
         """
         SELECT agent_id, COUNT(*) AS closed_count
         FROM skyslope_transactions
-        WHERE brokerage_id = :brokerage_org_id
-          AND is_cancelled = 0
+        WHERE is_cancelled = 0
         GROUP BY agent_id
         """,
     )
@@ -60,22 +59,46 @@ def test_execute_returns_tenant_scoped_rows(app, db_session):
     # Tenancy: only default org rows (2), not OTHER
     total = sum(int(r["closed_count"]) for r in result.rows)
     assert total == 2
+    assert ":brokerage_org_id" in result.sql
+    assert "AS _sk_raw" in result.sql
+
+
+@pytest.mark.parametrize(
+    "bypass_sql",
+    [
+        # Substring-only checks would pass these; enforced rewrite must not leak.
+        """
+        SELECT * FROM skyslope_transactions
+        WHERE 'brokerage_id' IS NOT NULL
+          AND CAST(:brokerage_org_id AS text) IS NOT NULL
+        """,
+        """
+        SELECT * FROM skyslope_transactions
+        WHERE 1=1 OR brokerage_id = :brokerage_org_id
+        """,
+        """
+        SELECT * FROM skyslope_transactions
+        WHERE brokerage_id = brokerage_id
+          AND :brokerage_org_id IS NOT NULL
+        """,
+    ],
+)
+def test_tenancy_bypass_shapes_return_zero_foreign_rows(app, db_session, bypass_sql: str):
+    _seed_tx(brokerage_id=DEFAULT_BROKERAGE_ORG_ID, external_id="SS-OURS")
+    _seed_tx(brokerage_id=OTHER_BROKERAGE_ID, external_id="SS-OTHER")
+
+    cfg = resolve_connection_config(DEFAULT_BROKERAGE_ORG_ID)
+    result = execute_readonly(cfg, bypass_sql)
+
+    assert result.row_count == 1
+    assert all(r.get("brokerage_id") == DEFAULT_BROKERAGE_ORG_ID for r in result.rows)
+    assert all(r.get("skyslope_transaction_id") != "SS-OTHER" for r in result.rows)
 
 
 def test_rejects_delete_before_execute(app, db_session):
     cfg = resolve_connection_config(DEFAULT_BROKERAGE_ORG_ID)
     with pytest.raises(QueryGuardrailError):
         execute_readonly(cfg, "DELETE FROM skyslope_transactions")
-
-
-def test_rejects_missing_tenancy_bind(app, db_session):
-    cfg = resolve_connection_config(DEFAULT_BROKERAGE_ORG_ID)
-    with pytest.raises(QueryExecutionError) as exc:
-        execute_readonly(
-            cfg,
-            "SELECT id FROM skyslope_transactions WHERE brokerage_id = 'x'",
-        )
-    assert exc.value.code == "tenancy_bind_missing"
 
 
 def test_rejects_non_allowlisted_table(app, db_session):

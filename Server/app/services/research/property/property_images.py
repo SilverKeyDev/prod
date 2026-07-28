@@ -5,7 +5,7 @@ Handles fetching images from Slipstream property API.
 
 from typing import Any
 
-from app.services.search.data import get_property_images as _slipstream_get_images
+from app.services.search.data import get_property_images as _property_get_images
 from logger import log
 
 
@@ -23,7 +23,7 @@ def fetch_zillow_images(zpid: str) -> list[str]:
         return []
 
     try:
-        return _slipstream_get_images(str(zpid))
+        return _property_get_images(str(zpid))
     except Exception as e:
         log.warn(
             "API",

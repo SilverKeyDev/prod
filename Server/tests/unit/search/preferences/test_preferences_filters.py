@@ -1,22 +1,19 @@
-"""Tests for map_user_preferences_to_filters (Slipstream API param generation).
+"""Tests for map_user_preferences_to_filters (RapidAPI param generation).
 
-Covers every filter dimension: price, beds, baths, sqft, days on market,
-property type, lot size, year built / home age, new construction, and
-listing status.  Each dimension tested in isolation and with edge cases.
+Covers price, beds, baths, sqft, days on market, and home_type.
+Lot/year/status/newConstruction stay out of upstream RapidAPI filters
+(post-filters still handle them).
 """
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 import pytest
 
+from app.services.search.helpers.preferences_helpers import map_user_preferences_to_filters
 
-def _call(prefs: dict) -> dict:
-    """Shorthand to call map_user_preferences_to_filters."""
-    from app.services.search.helpers.preferences_helpers import map_user_preferences_to_filters
 
-    return map_user_preferences_to_filters(prefs)
+def _call(prefs: dict, status_type: str = "ForSale") -> dict:
+    return map_user_preferences_to_filters(prefs, status_type=status_type)
 
 
 # ---- Price / Budget ----
@@ -25,19 +22,39 @@ def _call(prefs: dict) -> dict:
 class TestPriceFilter:
     def test_budget_range(self):
         f = _call({"home_budget_min": 200000, "home_budget_max": 500000})
-        assert f["listPrice"] == "200000:500000"
+        assert f["minPrice"] == 200000
+        assert f["maxPrice"] == 500000
 
     def test_budget_max_only_derives_min(self):
         f = _call({"home_budget_max": 400000})
-        assert f["listPrice"] == "260000:400000"
+        assert f["minPrice"] == 260000
+        assert f["maxPrice"] == 400000
 
     def test_no_budget(self):
         f = _call({})
-        assert "listPrice" not in f
+        assert "minPrice" not in f
+        assert "maxPrice" not in f
 
     def test_budget_min_only_no_max(self):
         f = _call({"home_budget_min": 100000})
-        assert f["listPrice"] == ">=100000"
+        assert f["minPrice"] == 100000
+        assert "maxPrice" not in f
+
+    def test_for_rent_budget(self):
+        f = _call({"home_budget_min": 24000, "home_budget_max": 36000}, status_type="ForRent")
+        assert f["rentMinPrice"] == 2000
+        assert f["rentMaxPrice"] == 3000
+        assert "minPrice" not in f
+        assert "maxPrice" not in f
+
+    def test_for_rent_max_only(self):
+        f = _call({"home_budget_max": 36000}, status_type="ForRent")
+        assert f["rentMaxPrice"] == 3000
+        assert f["rentMinPrice"] == int(36000 * 0.7 / 12)
+
+    def test_no_slipstream_list_price(self):
+        f = _call({"home_budget_min": 200000, "home_budget_max": 500000})
+        assert "listPrice" not in f
 
 
 # ---- Bedrooms ----
@@ -46,23 +63,27 @@ class TestPriceFilter:
 class TestBedsFilter:
     def test_beds_min(self):
         f = _call({"preferred_bedrooms_min": 3})
-        assert f["beds"] == ">=3"
+        assert f["bedsMin"] == 3
 
     def test_beds_min_zero(self):
         f = _call({"preferred_bedrooms_min": 0})
-        assert f["beds"] == ">=0"
+        assert f["bedsMin"] == 0
 
     def test_beds_none(self):
         f = _call({})
-        assert "beds" not in f
+        assert "bedsMin" not in f
 
     def test_beds_invalid_string(self):
         f = _call({"preferred_bedrooms_min": "abc"})
-        assert "beds" not in f
+        assert "bedsMin" not in f
 
     def test_beds_float_truncated(self):
         f = _call({"preferred_bedrooms_min": 2.7})
-        assert f["beds"] == ">=2"
+        assert f["bedsMin"] == 2
+
+    def test_no_slipstream_beds_operator(self):
+        f = _call({"preferred_bedrooms_min": 3})
+        assert "beds" not in f
 
 
 # ---- Bathrooms ----
@@ -71,14 +92,18 @@ class TestBedsFilter:
 class TestBathsFilter:
     def test_baths_min(self):
         f = _call({"preferred_bathrooms_min": 2})
-        assert f["baths"] == ">=2"
+        assert f["bathsMin"] == 2
 
     def test_baths_none(self):
         f = _call({})
-        assert "baths" not in f
+        assert "bathsMin" not in f
 
     def test_baths_invalid_string(self):
         f = _call({"preferred_bathrooms_min": "xyz"})
+        assert "bathsMin" not in f
+
+    def test_no_slipstream_baths_operator(self):
+        f = _call({"preferred_bathrooms_min": 2})
         assert "baths" not in f
 
 
@@ -88,18 +113,26 @@ class TestBathsFilter:
 class TestSqftFilter:
     def test_sqft_range(self):
         f = _call({"preferred_sqft_min": 1000, "preferred_sqft_max": 3000})
-        assert f["size"] == "1000:3000"
+        assert f["minSqft"] == 1000
+        assert f["maxSqft"] == 3000
 
     def test_sqft_min_only(self):
         f = _call({"preferred_sqft_min": 1500})
-        assert f["size"] == ">=1500"
+        assert f["minSqft"] == 1500
+        assert "maxSqft" not in f
 
     def test_sqft_max_only(self):
         f = _call({"preferred_sqft_max": 2500})
-        assert f["size"] == "<=2500"
+        assert f["maxSqft"] == 2500
+        assert "minSqft" not in f
 
     def test_sqft_none(self):
         f = _call({})
+        assert "minSqft" not in f
+        assert "maxSqft" not in f
+
+    def test_no_slipstream_size(self):
+        f = _call({"preferred_sqft_min": 1000, "preferred_sqft_max": 3000})
         assert "size" not in f
 
 
@@ -109,18 +142,26 @@ class TestSqftFilter:
 class TestDomFilter:
     def test_dom_range(self):
         f = _call({"days_on_market_min": 5, "days_on_market_max": 30})
-        assert f["daysOnMarket"] == "5:30"
+        assert f["daysOnMarketMin"] == 5
+        assert f["daysOnMarketMax"] == 30
 
     def test_dom_max_only(self):
         f = _call({"days_on_market_max": 60})
-        assert f["daysOnMarket"] == "<=60"
+        assert f["daysOnMarketMax"] == 60
+        assert "daysOnMarketMin" not in f
 
     def test_dom_min_only(self):
         f = _call({"days_on_market_min": 10})
-        assert "daysOnMarket" not in f
+        assert f["daysOnMarketMin"] == 10
+        assert "daysOnMarketMax" not in f
 
     def test_dom_none(self):
         f = _call({})
+        assert "daysOnMarketMin" not in f
+        assert "daysOnMarketMax" not in f
+
+    def test_no_slipstream_days_on_market(self):
+        f = _call({"days_on_market_min": 5, "days_on_market_max": 30})
         assert "daysOnMarket" not in f
 
 
@@ -131,167 +172,84 @@ class TestPropertyTypeFilter:
     @pytest.mark.parametrize(
         "pref_value,expected",
         [
-            ("single_family", "Single Family Residence"),
-            ("house", "Single Family Residence"),
-            ("houses", "Single Family Residence"),
-            ("condo", "Condominium"),
-            ("condos", "Condominium"),
-            ("condos-co-ops", "Condominium"),
-            ("townhouse", "Townhouse"),
-            ("townhome", "Townhouse"),
-            ("townhomes", "Townhouse"),
-            ("apartment", "Condominium"),
-            ("apartments", "Condominium"),
-            ("multi_family", "Multi-Family"),
-            ("multi-family", "Multi-Family"),
-            ("multifamily", "Multi-Family"),
-            ("manufactured", "Manufactured Home"),
-            ("mobile", "Manufactured Home"),
-            ("land", "Land"),
-            ("lot", "Land"),
-            ("lots", "Land"),
-            ("lots-land", "Land"),
+            ("single_family", "Houses"),
+            ("house", "Houses"),
+            ("houses", "Houses"),
+            ("condo", "Condos"),
+            ("condos", "Condos"),
+            ("townhouse", "Townhomes"),
+            ("townhome", "Townhomes"),
+            ("townhomes", "Townhomes"),
+            ("apartment", "Apartments"),
+            ("apartments", "Apartments"),
+            ("multi_family", "Multi-family"),
+            ("multi-family", "Multi-family"),
+            ("multifamily", "Multi-family"),
+            ("manufactured", "Manufactured"),
+            ("mobile", "Manufactured"),
+            ("land", "LotsLand"),
+            ("lot", "LotsLand"),
+            ("lots", "LotsLand"),
+            ("lots-land", "LotsLand"),
         ],
     )
     def test_property_type_mapping(self, pref_value, expected):
         f = _call({"preferred_housing_type": pref_value})
-        assert f["propertyType"] == expected
+        assert f["home_type"] == expected
 
-    def test_property_type_multi_value_mapping(self):
+    def test_property_type_multi_value_uses_first(self):
         f = _call({"preferred_housing_type": "townhome,condos-co-ops,lots-land"})
-        assert f["propertyType"] == "Townhouse,Condominium,Land"
+        assert f["home_type"] == "Townhomes"
 
     def test_property_type_fallback_to_housing_type(self):
         f = _call({"housing_type": "condo"})
-        assert f["propertyType"] == "Condominium"
+        assert f["home_type"] == "Condos"
 
     def test_property_type_case_insensitive(self):
         f = _call({"preferred_housing_type": "TOWNHOUSE"})
-        assert f["propertyType"] == "Townhouse"
+        assert f["home_type"] == "Townhomes"
 
     def test_unknown_property_type(self):
         f = _call({"preferred_housing_type": "castle"})
-        assert "propertyType" not in f
+        assert "home_type" not in f
 
     def test_empty_property_type(self):
         f = _call({"preferred_housing_type": ""})
+        assert "home_type" not in f
+
+    def test_for_rent_home_type(self):
+        f = _call({"preferred_housing_type": "condo"}, status_type="ForRent")
+        assert f["home_type"] == "Apartments_Condos_Co-ops"
+
+    def test_no_slipstream_property_type(self):
+        f = _call({"preferred_housing_type": "house"})
         assert "propertyType" not in f
 
 
-# ---- Lot size ----
+# ---- Not forwarded upstream (post-filters handle these) ----
 
 
-class TestLotSizeFilter:
-    def test_lot_range(self):
+class TestNotForwardedUpstream:
+    def test_lot_size_not_in_rapidapi_filters(self):
         f = _call({"preferred_lot_size_min": 0.25, "preferred_lot_size_max": 1.0})
-        assert f["lotSize"] == "0.25:1.0"
-
-    def test_lot_min_only(self):
-        f = _call({"preferred_lot_size_min": 0.5})
-        assert f["lotSize"] == ">=0.5"
-
-    def test_lot_max_only(self):
-        f = _call({"preferred_lot_size_max": 2.0})
-        assert f["lotSize"] == "<=2.0"
-
-    def test_lot_none(self):
-        f = _call({})
         assert "lotSize" not in f
 
-
-# ---- Year built / home age ----
-
-
-class TestYearBuiltFilter:
-    @pytest.fixture(autouse=True)
-    def _freeze_year(self):
-        self.current_year = datetime.now(tz=timezone.utc).year
-
-    def test_age_range(self):
+    def test_year_built_not_in_rapidapi_filters(self):
         f = _call({"preferred_home_age_min": 5, "preferred_home_age_max": 20})
-        expected_oldest = self.current_year - 20
-        expected_newest = self.current_year - 5
-        assert f["yearBuilt"] == f"{expected_oldest}:{expected_newest}"
-
-    def test_age_min_only(self):
-        f = _call({"preferred_home_age_min": 10})
-        expected_newest = self.current_year - 10
-        assert f["yearBuilt"] == f"<={expected_newest}"
-
-    def test_age_max_only(self):
-        f = _call({"preferred_home_age_max": 30})
-        expected_oldest = self.current_year - 30
-        assert f["yearBuilt"] == f">={expected_oldest}"
-
-    def test_age_none(self):
-        f = _call({})
         assert "yearBuilt" not in f
 
-    def test_age_zero_min(self):
-        f = _call({"preferred_home_age_min": 0, "preferred_home_age_max": 5})
-        expected_oldest = self.current_year - 5
-        expected_newest = self.current_year
-        assert f["yearBuilt"] == f"{expected_oldest}:{expected_newest}"
-
-
-# ---- New construction ----
-
-
-class TestNewConstructionFilter:
-    def test_new_construction_in_listing_type(self):
+    def test_new_construction_not_in_rapidapi_filters(self):
         f = _call({"listing_type": ["new_construction"]})
-        assert f["newConstruction"] == "true"
-
-    def test_new_construction_mixed(self):
-        f = _call({"listing_type": ["agent_listed", "new_construction"]})
-        assert f["newConstruction"] == "true"
-
-    def test_no_new_construction(self):
-        f = _call({"listing_type": ["agent_listed"]})
         assert "newConstruction" not in f
 
-    def test_empty_listing_type(self):
-        f = _call({"listing_type": []})
-        assert "newConstruction" not in f
-
-
-# ---- Listing status ----
-
-
-class TestListingStatusFilter:
-    def test_active_status(self):
+    def test_listing_status_not_in_rapidapi_filters(self):
         f = _call({"listing_status": "active"})
-        assert f["status"] == "Active"
-
-    def test_pending_status(self):
-        f = _call({"listing_status": "pending"})
-        assert f["status"] == "Pending"
-
-    def test_contingent_status(self):
-        f = _call({"listing_status": "contingent"})
-        assert f["status"] == "Contingent"
-
-    def test_coming_soon_status(self):
-        f = _call({"listing_status": "coming_soon"})
-        assert f["status"] == "Coming Soon"
-
-    def test_unknown_status(self):
-        f = _call({"listing_status": "sold"})
         assert "status" not in f
 
-    def test_empty_status(self):
-        f = _call({"listing_status": ""})
-        assert "status" not in f
-
-
-# ---- Sort defaults ----
-
-
-class TestSortDefaults:
-    def test_sort_always_present(self):
+    def test_no_slipstream_sort_defaults(self):
         f = _call({})
-        assert f["sortField"] == "listPrice"
-        assert f["sortOrder"] == "asc"
+        assert "sortField" not in f
+        assert "sortOrder" not in f
 
 
 # ---- Combined preferences ----
@@ -314,12 +272,16 @@ class TestCombinedFilters:
                 "listing_status": "active",
             }
         )
-        assert f["listPrice"] == "300000:600000"
-        assert f["beds"] == ">=3"
-        assert f["baths"] == ">=2"
-        assert f["size"] == "1500:3000"
-        assert f["propertyType"] == "Single Family Residence"
-        assert f["lotSize"] == ">=0.25"
-        assert f["daysOnMarket"] == "<=30"
-        assert f["newConstruction"] == "true"
-        assert f["status"] == "Active"
+        assert f["minPrice"] == 300000
+        assert f["maxPrice"] == 600000
+        assert f["bedsMin"] == 3
+        assert f["bathsMin"] == 2
+        assert f["minSqft"] == 1500
+        assert f["maxSqft"] == 3000
+        assert f["home_type"] == "Houses"
+        assert f["daysOnMarketMax"] == 30
+        assert "lotSize" not in f
+        assert "newConstruction" not in f
+        assert "status" not in f
+        assert "listPrice" not in f
+        assert "sortField" not in f

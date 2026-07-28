@@ -5,7 +5,7 @@ import time
 from app.services.search.data.normalizer import slim_properties_for_search_response
 from app.services.search.helpers.geometry_helpers import (
     simplify_polygon,
-    to_geojson_polygon,
+    to_polygon_param,
 )
 from app.services.search.helpers.preferences_helpers import map_user_preferences_to_filters
 from app.services.search.helpers.scoring_helpers import score_and_sort_properties
@@ -131,7 +131,7 @@ def run_force_search_pipeline(
     if polygon[0] != polygon[-1]:
         polygon.append(polygon[0])
     polygon = simplify_polygon(polygon, max_points=50)
-    polygon_param = to_geojson_polygon(polygon)
+    polygon_param = to_polygon_param(polygon)
 
     filters = map_user_preferences_to_filters(user_preferences, status_type)
     log_polygon_prefs_snapshot(request_id, pref_source_id, user_preferences, request_prefs, filters)

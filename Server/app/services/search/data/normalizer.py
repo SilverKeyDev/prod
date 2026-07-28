@@ -1,11 +1,6 @@
-"""Normalize Slipstream listings and slim rows for search API responses.
+"""Normalize RapidAPI (and legacy Slipstream) listings; slim rows for search API responses.
 
-Field names confirmed via live API responses (Phase 0 discovery).
 The output dict matches what scoring, persistence, and client transforms expect.
-
-Full Slipstream envelope for one home (``body`` from ``/ws/listings/get``): see
-``slipstream_response_reference.SLIPSTREAM_LISTINGS_GET_RESPONSE_EXAMPLE``; live responses are
-debug-logged from ``get_property_detail``.
 """
 
 from __future__ import annotations

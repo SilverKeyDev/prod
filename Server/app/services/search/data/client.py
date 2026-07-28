@@ -1,7 +1,6 @@
-"""Pooled HTTP client for Slipstream API with retry/backoff and auth injection.
+"""Pooled HTTP clients for search upstream APIs (RapidAPI + Slipstream).
 
-Example full JSON for ``GET /ws/listings/get`` (single home, ``details=true``): see
-``slipstream_response_reference.SLIPSTREAM_LISTINGS_GET_RESPONSE_EXAMPLE``.
+SIL-324: listing/search will use RapidAPI; Slipstream remains for area routes until cut over.
 """
 
 from __future__ import annotations
@@ -12,31 +11,80 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from .config import SLIPSTREAM_BASE, SLIPSTREAM_MARKET, SLIPSTREAM_PRIVATE
+from .config import (
+    RAPIDAPI_BASE,
+    RAPIDAPI_HOST,
+    RAPIDAPI_KEY,
+    SLIPSTREAM_BASE,
+    SLIPSTREAM_MARKET,
+    SLIPSTREAM_PRIVATE,
+)
 
 
-def _build_session() -> requests.Session:
-    """Build pooled session with retry/backoff for Slipstream."""
+def _build_session(*, allow_post: bool) -> requests.Session:
+    """Build pooled session with retry/backoff."""
     s = requests.Session()
+    methods = frozenset(["GET", "POST"] if allow_post else ["GET"])
     retry = Retry(
         total=5,
         backoff_factor=0.5,
         status_forcelist=(429, 500, 502, 503, 504),
-        allowed_methods=frozenset(["GET", "POST"]),
+        allowed_methods=methods,
         raise_on_status=False,
     )
-    s.mount("https://", HTTPAdapter(max_retries=retry))  # type: ignore[arg-type]
+    adapter = HTTPAdapter(max_retries=retry)  # type: ignore[arg-type]
+    s.mount("https://", adapter)
+    s.mount("http://", adapter)
     return s
 
+
+# ---- RapidAPI session ----
+
+_rapidapi_session: requests.Session | None = None
+
+
+def get_rapidapi_session() -> requests.Session:
+    """Return the module-level RapidAPI session (lazily created)."""
+    global _rapidapi_session
+    if _rapidapi_session is None:
+        _rapidapi_session = _build_session(allow_post=False)
+    return _rapidapi_session
+
+
+def get_rapidapi_headers() -> dict[str, str]:
+    """Standard RapidAPI headers."""
+    return {
+        "x-rapidapi-host": RAPIDAPI_HOST,
+        "x-rapidapi-key": RAPIDAPI_KEY or "",
+        "Accept": "application/json",
+    }
+
+
+def rapidapi_get(
+    path: str,
+    params: dict[str, Any] | None = None,
+    timeout: int = 300,
+) -> requests.Response:
+    """Issue a GET to RapidAPI (e.g. ``/propertyByPolygon``, ``/property``)."""
+    url = f"{RAPIDAPI_BASE}{path}"
+    return get_rapidapi_session().get(
+        url,
+        headers=get_rapidapi_headers(),
+        params=params or {},
+        timeout=timeout,
+    )
+
+
+# ---- Slipstream session (unchanged behavior for Phase 2) ----
 
 _session: requests.Session | None = None
 
 
 def get_session() -> requests.Session:
-    """Return the module-level pooled session (lazily created)."""
+    """Return the module-level Slipstream session (lazily created)."""
     global _session
     if _session is None:
-        _session = _build_session()
+        _session = _build_session(allow_post=True)
     return _session
 
 
@@ -73,7 +121,7 @@ def slipstream_post(
 
 
 def validate_token() -> dict[str, Any]:
-    """Call /ws/api/status to verify the token and market access."""
+    """Call Slipstream /ws/api/status to verify the token and market access."""
     resp = slipstream_get("/ws/api/status", params={"markets": "true"})
     resp.raise_for_status()
     return resp.json()
