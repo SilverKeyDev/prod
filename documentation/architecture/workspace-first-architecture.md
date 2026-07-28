@@ -7,7 +7,8 @@ SilverKey distinguishes **who the user is on the server** (identity: `user_roles
 | Status | Meaning |
 | ------ | ------- |
 | **Implemented** | Full product shell: nav, onboarding, and primary routes as described below. |
-| **Placeholder (shell only)** | Identity + routing + empty dashboard; no product-specific tabs or flows. See [workspaces-placeholder-shells.md](workspaces-placeholder-shells.md). |
+| **Partial** | Some primary surfaces ship; others still use empty dashboard pages. See [workspaces-placeholder-shells.md](workspaces-placeholder-shells.md). |
+| **Placeholder dashboard** | Thin page still renders `WorkspacePlaceholderPage` even when messaging/nav have moved on. |
 
 ## Concepts
 
@@ -17,7 +18,7 @@ SilverKey distinguishes **who the user is on the server** (identity: `user_roles
 | **`allowedWorkspaces`** | Derived from identity (and optional `brokerage_org_ids` / roles); defines which workspace tabs the user may pick. |
 | **`activeWorkspace`** | Persisted per browser session; canonical hook **`useActiveWorkspace()`** in `packages/hooks/store/`. |
 | **`useIsAgent()`** | True when `roles` includes `"agent"`; use for API eligibility and agent UX, not primary nav shell selection. |
-| **`isPlaceholderWorkspace()`** | `true` for seller, brokerage, integration_partner — barren nav and route guards. |
+| **`isPlaceholderWorkspace()`** | Currently always `false` (empty set). Do not use it alone to infer shell-only UX — check the thin dashboard page and [workspaces-placeholder-shells.md](workspaces-placeholder-shells.md). |
 | **Admin dev persona** | Server-backed workspace QA via **`/admin/dev-persona`** (replaces session `devPreviewAllWorkspaces`). |
 
 ## Identity sync
@@ -38,11 +39,12 @@ Dashboard URLs are **role- and workspace-agnostic** (for example `/search`, `/me
 
 | Area | Location |
 |------|----------|
-| Derive allowed workspaces | `Client/packages/utils/workspace/deriveAllowedWorkspaces.ts` |
-| Placeholder workspace guard | `Client/packages/utils/workspace/isPlaceholderWorkspace.ts` |
+| Derive allowed workspaces | `Client/packages/utils/product/workspace/deriveAllowedWorkspaces.ts` |
+| Placeholder workspace guard | `Client/packages/utils/product/workspace/isPlaceholderWorkspace.ts` |
+| Nav visibility / labels | `Client/packages/utils/product/workspace/workspaceNavConfig.ts` |
 | Workspace Zustand slice | `Client/packages/store/slices/workspace/workspace.slice.ts` |
 | Sync from auth + profile | `Client/packages/hooks/store/integrations/useWorkspaceIdentitySync.ts` |
-| Path normalization (`stripWorkspaceShellPrefix`) | `Client/packages/utils/layout/dashboardLayoutConfig.ts` (layout keys only; no shell-prefix redirects) |
+| Path normalization (`stripWorkspaceShellPrefix`) | `Client/packages/utils/core/layout/dashboardLayoutConfig.ts` (layout keys only; no shell-prefix redirects) |
 | Dashboard area resolution | `Client/packages/utils/layout/dashboardLayoutConfig.ts`, `Client/apps/web/app/layouts/dashboard/useDashboardRoute.ts` |
 | Transaction party config | `Client/packages/utils/workspace/transactionShell.ts` + `useTransactionShellConfig` in `packages/hooks/store/` |
 | Per-workspace nav labels / visibility | `Client/packages/utils/workspace/workspaceNavConfig.ts` |
@@ -92,39 +94,40 @@ Canonical routes are shared; **nav visibility**, **labels**, **onboarding**, and
 | **Post-onboarding** | `/dashboard` |
 | **API identity** | `useIsAgent()` — agent role in `user.roles` for agent-only endpoints |
 
-### Seller — **Placeholder (shell only)**
+### Seller — **Partial**
 
-As-built shell for QA and role sync. Product surfaces are not shipped; track work in Linear.
+Onboarding and messaging ship; dashboard is still an empty shell.
 
 | Area | Detail |
 | ---- | ------ |
 | **Onboarding** | Public role picker: **Seller** → `onboarding_role` → `seller_property` → `seller_address` → `seller_timeline` → `seller_motivation` → `seller_pricing` → `seller_demographics` → submit. Sets roles via preferences sync; `activeWorkspace` → `seller`; lands on `/dashboard`. |
-| **Nav** | **Dashboard**, **Messaging** (generic labels). Same on mobile. |
-| **Dashboard / Messaging** | `WorkspacePlaceholderPage` |
-| **Blocked routes** | `/search`, `/library`, `/profile` render placeholder |
-| **Code** | `SellerDashboardPage.tsx`, `packages/features/seller/` |
+| **Nav** | Standard non-placeholder visibility (Dashboard, Search, Library, Messaging, Profile). Inventory is never a top-level tab. |
+| **Dashboard** | `SellerDashboardPage` → `WorkspacePlaceholderPage` |
+| **Messaging** | Agent–client stack with seller persona (`ClientMessaging`) |
+| **Code** | `SellerDashboardPage.tsx`, `packages/features/seller/`, messaging via `getMessagingSurfaceForWorkspace("seller")` |
 
-### Brokerage — **Placeholder (shell only)**
+### Brokerage — **Partial** (analytics shipped)
 
-As-built shell for QA and admin persona. Linear: [SIL-158](https://linear.app/silverkey/issue/SIL-158/broker-team-dashboard-read-only-team-kpis-broker-persona-routes).
+Fixture-backed analytics + Market inventory on web; messaging uses the workspace stack. Campaigns are not on main.
 
 | Area | Detail |
 | ---- | ------ |
 | **Onboarding** | Public role picker: **Brokerage** → `onboarding_role` → `brokerage_shell_setup` → submit. Grants `brokerage_admin` from `primary_onboarding_role` on first write; lands on `/dashboard`. |
-| **Nav** | **Dashboard**, **Messaging** (generic labels). |
-| **Dashboard / Messaging** | `WorkspacePlaceholderPage` |
-| **Blocked routes** | Same placeholder guard as seller |
+| **Nav** | Dashboard, Library, Messaging, Profile (Search hidden; Market inventory under `/dashboard?tab=market`) |
+| **Dashboard** | `BrokerageDashboardPage` → analytics shell ([brokerage-analytics.md](../features/brokerage/brokerage-analytics.md)) |
+| **Messaging** | Workspace stack (`BrokerageMessaging`) |
 | **Code** | `BrokerageDashboardPage.tsx`, `packages/features/brokerage/` |
 
-### Integration partner — **Placeholder (shell only)**
+### Integration partner — **Partial**
 
-As-built operator shell. Partner placement admin (brokerage-side) is documented separately; this shell is not buyer steering (RESPA).
+As-built operator shell with placeholder dashboard. Partner placement admin (brokerage-side) is documented separately; this shell is not buyer steering (RESPA).
 
 | Area | Detail |
 | ---- | ------ |
 | **Onboarding** | Public role picker: **Integration partner** → `onboarding_role` → `integration_partner_shell_setup` → submit. Grants `integration_partner` on first write; lands on `/dashboard`. |
-| **Nav** | **Dashboard**, **Messaging** (generic labels). |
-| **Dashboard / Messaging** | `WorkspacePlaceholderPage` |
+| **Nav** | Standard non-placeholder visibility. |
+| **Dashboard** | `IntegrationPartnerDashboardPage` → `WorkspacePlaceholderPage` |
+| **Messaging** | Workspace stack (`integrator` persona) |
 | **Related (brokerage-side)** | [rev-share-partners.md](../features/transaction-management/rev-share-partners.md) |
 | **Code** | `IntegrationPartnerDashboardPage.tsx`, `packages/features/integrationPartner/` |
 
@@ -139,13 +142,14 @@ As-built operator shell. Partner placement admin (brokerage-side) is documented 
 
 ## How to verify locally
 
-1. Complete onboarding as **Seller**, **Brokerage**, or **Integration partner** (role + shell setup step) → lands on placeholder dashboard with matching workspace.
-2. Open **Admin → Dev preview** (`/admin/dev-persona`) and choose brokerage or integration partner → barren nav and placeholder dashboard.
-3. As buyer or agent, confirm full tabs and flows unchanged.
-4. Run tests:
+1. Complete onboarding as **Seller** → placeholder dashboard + real messaging.
+2. Complete onboarding as **Brokerage** (or Admin → Dev persona) → analytics dashboard + workspace messaging.
+3. Complete onboarding as **Integration partner** → placeholder dashboard + workspace messaging.
+4. As buyer or agent, confirm full tabs and flows unchanged.
+5. Run tests:
 
 ```bash
-cd Client && pnpm test:run -- packages/utils/workspace packages/features/workspace packages/features/profile/utils/onboarding apps/web/app/layouts/dashboard/DashboardContent.workspace.test.tsx
+cd Client && pnpm test:run -- packages/utils/product/workspace packages/features/workspace packages/features/profile/utils/onboarding apps/web/app/layouts/dashboard/DashboardContent.workspace.test.tsx
 cd Server && .venv/bin/python -m pytest tests/unit/services/test_user_roles_sync.py tests/unit/routes/auth/test_routes_user_preferences.py::TestPreferences::test_create_preferences_syncs_seller_roles_to_profile -q --no-cov
 ```
 
@@ -156,7 +160,8 @@ cd Server && .venv/bin/python -m pytest tests/unit/services/test_user_roles_sync
 
 ## Related
 
-- [workspaces-placeholder-shells.md](workspaces-placeholder-shells.md) — placeholder contract and extension checklist.
+- [workspaces-placeholder-shells.md](workspaces-placeholder-shells.md) — placeholder vs partial shell contract.
+- [brokerage-analytics.md](../features/brokerage/brokerage-analytics.md) — brokerage dashboard surfaces.
 - [layered-architecture-imports.md](layered-architecture-imports.md) — import layers and features.
 - [Post–major change checklist](../internal/post-major-change-checklist.md) — update docs and Cursor config when architecture shifts.
 - Scoped Cursor rule: `.cursor/rules/shared/post-major-change-sync.mdc`.

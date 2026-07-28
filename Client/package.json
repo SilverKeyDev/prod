@@ -81,8 +81,8 @@
     "eslint-plugin-silverkey": "file:packages/config/eslint/eslint-plugin-silverkey",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-tailwindcss": "^3.18.3",
-    "expo-blur": "~13.0.2",
-    "expo-linear-gradient": "~13.0.2",
+    "expo-blur": "~14.0.3",
+    "expo-linear-gradient": "~14.0.2",
     "globals": "^15.9.0",
     "husky": "^9.1.6",
     "jest-axe": "^10.0.0",
@@ -133,7 +133,8 @@
     "zustand": "^5.0.8"
   },
   "overrides": {
-    "shell-quote": "1.10.0"
+    "shell-quote": "1.10.0",
+    "tar": "7.5.22"
   },
   "pnpm": {
     "overrides": {
@@ -143,7 +144,7 @@
       "@tanstack/react-query": "5.90.21",
       "@tanstack/query-core": "5.90.20",
       "react-native-svg": "15.12.1",
-      "tar": "7.5.16",
+      "tar": "7.5.22",
       "minimatch": ">=10.2.3",
       "rollup": ">=4.59.0",
       "prismjs": ">=1.30.0",

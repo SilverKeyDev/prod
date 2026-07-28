@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import { useRef } from "react";
 
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";

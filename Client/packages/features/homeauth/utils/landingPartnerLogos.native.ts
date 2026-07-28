@@ -1,6 +1,6 @@
 import type { LandingPartnerLogoKey } from "packages/features/homeauth/types/landingContent";
 
-import { LANDING_PARTNER_LOGO_URI } from "./landingPartnerLogos";
+import { LANDING_PARTNER_LOGO_URI } from "./landingPartnerLogoUris";
 
 /** Native resolves the same public URIs for web parity in Expo web builds. */
 export const LANDING_PARTNER_LOGO_SOURCE: Record<LandingPartnerLogoKey, { uri: string } | number> =

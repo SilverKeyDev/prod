@@ -1,4 +1,4 @@
-import Constants from "expo-constants";
+import * as Device from "expo-device";
 import { Platform } from "react-native";
 
 import { env, getEnv } from "packages/config";
@@ -44,7 +44,11 @@ export function getGoogleMapIdForNative(): string {
 export function getUseGoogleMapsProvider(): boolean {
   const isIOS = Platform.OS.toLowerCase().startsWith("ios");
   if (!isIOS) return true;
-  const isSimulator = Constants.isDevice === false;
+  // `Constants.isDevice` was removed in expo-constants 17 (SDK 52); it read as `undefined`, so
+  // `undefined === false` made every simulator look like a real device. That selected the Google
+  // provider, and GMSServices aborts the process when no Maps SDK key is configured
+  // (+[GMSServices checkServicePreconditions] -> SIGABRT). expo-device is the current API.
+  const isSimulator = Device.isDevice === false;
   const envCfg = getEnv();
   const forceGoogleInSimulator =
     String(envCfg.getRaw("EXPO_PUBLIC_USE_GOOGLE_MAPS_IOS_SIMULATOR") ?? "").trim() === "true";

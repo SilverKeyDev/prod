@@ -135,6 +135,7 @@ export type OnboardingData = {
   agent_primary_service_zips?: string[];
   agent_specialties?: string[];
   agent_social_links?: Record<string, string>;
+
   // Brokerage onboarding (MVP)
   brokerage_legal_business_name?: string;
   brokerage_dba_name?: string;
@@ -143,7 +144,6 @@ export type OnboardingData = {
   brokerage_primary_admin_phone?: string;
   brokerage_primary_admin_title?: string;
   brokerage_admin_is_broker_of_record?: boolean;
-
   brokerage_license_number?: string;
   brokerage_license_states?: string[];
   brokerage_broker_of_record_name?: string;
@@ -160,6 +160,17 @@ export type OnboardingData = {
   brokerage_branch_address?: string;
   brokerage_is_branch?: boolean;
   brokerage_is_subteam?: boolean;
+
+  // Integration partner onboarding (SIL-193)
+  ip_org_name?: string;
+  ip_website?: string;
+  ip_integration_type?: string;
+  ip_contact_name?: string;
+  ip_contact_email?: string;
+  ip_contact_phone?: string;
+  ip_service_states?: string[];
+  ip_agreement_acknowledged?: boolean;
+
   /** Server-assigned unique slug for `/a/{slug}`; read-only in forms (not submitted). */
   public_profile_slug?: string;
 };

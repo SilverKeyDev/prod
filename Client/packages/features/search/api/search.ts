@@ -232,7 +232,9 @@ export const searchApi = {
     options?: { signal?: AbortSignal }
   ): Promise<AreaBoundaryResponse> => {
     const url = buildApiUrl(
-      isAnonymousViewerNow() ? "/api/v1/public/search/area-boundary" : "/api/v1/search/area-boundary",
+      isAnonymousViewerNow()
+        ? "/api/v1/public/search/area-boundary"
+        : "/api/v1/search/area-boundary",
       {
         id: params.id,
       }

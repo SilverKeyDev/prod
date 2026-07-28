@@ -6,4 +6,8 @@ export const BROKERAGE_TRANSLATIONS = {
   BROKERAGE_SHELL_TEST_INPUT_LABEL: "Brokerage shell test input",
   BROKERAGE_MESSAGING_EMPTY_SIDEBAR:
     "Message platform support or agents at your brokerage. Conversations appear here.",
+  AGENT_SELECTOR_ALL_AGENTS: "All agents",
+  AGENT_SELECTOR_SELECT_AGENT: "Select agent",
+  AGENT_SELECTOR_LOADING: "Loading agents...",
+  AGENT_SELECTOR_NO_AGENTS: "No agents found",
 } as const;

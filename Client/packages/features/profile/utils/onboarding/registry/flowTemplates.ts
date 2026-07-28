@@ -2,6 +2,7 @@ import type { ProfileStepId } from "packages/features/profile/types/onboarding/p
 import { BUYER_PERSONALIZATION_SECTION_IDS } from "packages/features/profile/types/onboarding/profileStepIds";
 
 import type { FlowTemplateId } from "./types";
+
 const BUYER_ONBOARDING_AFTER_ROLE: ProfileStepId[] = [
   "demographics",
   "housing_essentials",
@@ -32,7 +33,13 @@ const RENTER_ONBOARDING_AFTER_ROLE: ProfileStepId[] = [
   "renter_amenities",
 ];
 const BROKERAGE_SHELL_AFTER_ROLE: ProfileStepId[] = ["brokerage_shell_setup"];
-const INTEGRATION_PARTNER_SHELL_AFTER_ROLE: ProfileStepId[] = ["integration_partner_shell_setup"];
+const INTEGRATION_PARTNER_ONBOARDING_AFTER_ROLE: ProfileStepId[] = [
+  "ip_org_details",
+  "ip_integration_type",
+  "ip_point_of_contact",
+  "ip_service_area",
+  "ip_agreement",
+];
 const PERSONALIZATION_BUYER_ORDER: ProfileStepId[] = [
   "housing_essentials",
   "location",
@@ -51,13 +58,14 @@ const BUYER_HOME_SEARCH_IDS = new Set<string>(BUYER_PERSONALIZATION_SECTION_IDS)
 const AGENT_PERSONALIZATION_SUFFIX: ProfileStepId[] = PERSONALIZATION_BUYER_ORDER.filter(
   (id) => !BUYER_HOME_SEARCH_IDS.has(id)
 );
+
 export const FLOW_TEMPLATE_STEP_IDS: Record<FlowTemplateId, readonly ProfileStepId[]> = {
   buyer_onboarding: ["onboarding_role", ...BUYER_ONBOARDING_AFTER_ROLE],
   agent_onboarding: ["onboarding_role", ...AGENT_ONBOARDING_AFTER_ROLE],
   seller_onboarding: ["onboarding_role", ...SELLER_ONBOARDING_AFTER_ROLE],
   renter_onboarding: ["onboarding_role", ...RENTER_ONBOARDING_AFTER_ROLE],
   brokerage_onboarding: ["onboarding_role", ...BROKERAGE_SHELL_AFTER_ROLE],
-  integration_partner_onboarding: ["onboarding_role", ...INTEGRATION_PARTNER_SHELL_AFTER_ROLE],
+  integration_partner_onboarding: ["onboarding_role", ...INTEGRATION_PARTNER_ONBOARDING_AFTER_ROLE],
   buyer_personalization: [...PERSONALIZATION_BUYER_ORDER, "privacy_data"],
   agent_personalization: [
     ...AGENT_PERSONALIZATION_PREFIX,
