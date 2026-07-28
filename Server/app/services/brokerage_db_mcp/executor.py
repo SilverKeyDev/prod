@@ -23,6 +23,11 @@ _TABLE_REF = re.compile(
     r"\b(?:from|join)\s+([a-zA-Z_][a-zA-Z0-9_]*)",
     re.IGNORECASE,
 )
+# Bare table after FROM/JOIN, optional AS alias (do not treat WHERE/ON as alias).
+_TABLE_FROM_JOIN = re.compile(
+    r"\b(from|join)\s+([a-zA-Z_][a-zA-Z0-9_]*)" r"(?:\s+as\s+([a-zA-Z_][a-zA-Z0-9_]*))?",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -53,23 +58,34 @@ def _assert_allowlisted_tables(sql: str, config: BrokerageDbConfig) -> None:
         )
 
 
-def _assert_mirror_tenancy(sql: str, config: BrokerageDbConfig) -> None:
+def _ensure_tenancy_config(config: BrokerageDbConfig) -> None:
     if config.mode != MODE_SILVERKEY_MIRROR:
         raise QueryExecutionError("Unsupported connection mode", code="unsupported_mode")
     if not config.tenancy_column:
         raise QueryExecutionError("Tenancy column is not configured", code="tenancy_missing")
-    lowered = sql.lower()
-    # Must filter by tenancy column and use the bound param name we will pass.
-    if config.tenancy_column.lower() not in lowered:
-        raise QueryExecutionError(
-            "Query must filter by brokerage tenancy column",
-            code="tenancy_predicate_missing",
+
+
+def _apply_tenancy_rewrite(sql: str, config: BrokerageDbConfig) -> str:
+    """Force row tenancy by rewriting allowlisted FROM/JOIN tables.
+
+    Do not trust model-generated WHERE clauses — substring checks are bypassable.
+    One-pass rewrite so the inner ``FROM table AS _sk_raw`` is not re-wrapped.
+    """
+    col = config.tenancy_column
+    assert col  # guarded by _ensure_tenancy_config
+    allowed = {t.lower() for t in config.allowed_tables}
+
+    def repl(match: re.Match[str]) -> str:
+        keyword, table, alias = match.group(1), match.group(2), match.group(3)
+        if table.lower() not in allowed:
+            return match.group(0)
+        outer_alias = alias or table
+        return (
+            f"{keyword} (SELECT * FROM {table} AS _sk_raw "
+            f"WHERE _sk_raw.{col} = :brokerage_org_id) AS {outer_alias}"
         )
-    if ":brokerage_org_id" not in sql:
-        raise QueryExecutionError(
-            "Query must bind :brokerage_org_id for tenancy",
-            code="tenancy_bind_missing",
-        )
+
+    return _TABLE_FROM_JOIN.sub(repl, sql)
 
 
 def _json_safe(value: Any) -> Any:
@@ -96,10 +112,11 @@ def execute_readonly(
     except QueryGuardrailError:
         raise
     _assert_allowlisted_tables(safe_sql, config)
-    _assert_mirror_tenancy(safe_sql, config)
+    _ensure_tenancy_config(config)
+    enforced_sql = _apply_tenancy_rewrite(safe_sql, config)
     params = {"brokerage_org_id": config.brokerage_org_id}
     try:
-        result = db.session.execute(text(safe_sql), params)
+        result = db.session.execute(text(enforced_sql), params)
         mappings = result.mappings().all()
     except QueryGuardrailError:
         raise
@@ -110,11 +127,11 @@ def execute_readonly(
             code="execution_failed",
         ) from exc
     if not mappings:
-        return QueryResult(sql=safe_sql, columns=(), rows=(), row_count=0)
+        return QueryResult(sql=enforced_sql, columns=(), rows=(), row_count=0)
     columns = tuple(mappings[0].keys())
     rows = tuple({col: _json_safe(row[col]) for col in columns} for row in mappings)
     return QueryResult(
-        sql=safe_sql,
+        sql=enforced_sql,
         columns=columns,
         rows=rows,
         row_count=len(rows),

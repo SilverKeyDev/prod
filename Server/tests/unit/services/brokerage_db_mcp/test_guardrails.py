@@ -20,9 +20,24 @@ def test_caps_existing_limit():
     assert out.lower().endswith("limit 500")
 
 
+def test_caps_limit_preserves_offset():
+    out = validate_read_only_sql("SELECT 1 LIMIT 9999 OFFSET 20")
+    lowered = out.lower()
+    assert "limit 500" in lowered
+    assert "offset 20" in lowered
+    assert lowered.index("limit 500") < lowered.index("offset 20")
+
+
 def test_preserves_limit_when_within_cap():
     out = validate_read_only_sql("SELECT 1 LIMIT 10")
     assert out.lower().endswith("limit 10")
+
+
+def test_preserves_limit_and_offset_when_within_cap():
+    out = validate_read_only_sql("SELECT 1 LIMIT 10 OFFSET 5")
+    lowered = out.lower()
+    assert "limit 10" in lowered
+    assert "offset 5" in lowered
 
 
 def test_allows_with_cte():

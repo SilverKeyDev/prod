@@ -55,10 +55,14 @@ def search_properties_paginated(
     requests_made = 0
     errors: list[dict[str, Any]] = []
 
-    # Some upstream versions use 0-based vs 1-based pages; try both starts.
-    try_page_orders = [1, 0]
+    # Some upstream versions use 0-based vs 1-based pages.
+    # Try 1-based first; only fall back to 0-based if page 1 returned empty.
+    first_base_got_props = False
 
-    for start_page in try_page_orders:
+    for start_page in (1, 0):
+        if start_page == 0 and first_base_got_props:
+            break
+
         for page in range(start_page, per_pages + 1):
             if len(all_properties) >= target_limit:
                 break
@@ -158,6 +162,9 @@ def search_properties_paginated(
                         page_fetched = True
                         break
 
+                    if start_page == 1 and page == 1:
+                        first_base_got_props = True
+
                     for prop in props:
                         if len(all_properties) >= target_limit:
                             break
@@ -186,6 +193,8 @@ def search_properties_paginated(
                 break
 
         if len(all_properties) >= target_limit:
+            break
+        if start_page == 1 and first_base_got_props:
             break
 
     return all_properties, requests_made, errors

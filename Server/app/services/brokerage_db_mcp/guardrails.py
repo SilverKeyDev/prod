@@ -53,7 +53,7 @@ _BANNED_PHRASES = (
 _COMMENT_LINE = re.compile(r"--.*?$", re.MULTILINE)
 _COMMENT_BLOCK = re.compile(r"/\*.*?\*/", re.DOTALL)
 _LIMIT_CLAUSE = re.compile(
-    r"\blimit\s+(\d+)\s*(?:offset\s+\d+)?\s*;?\s*$",
+    r"\blimit\s+(\d+)(\s+offset\s+(\d+))?\s*;?\s*$",
     re.IGNORECASE,
 )
 _TOKEN = re.compile(r"[a-z_][a-z0-9_]*", re.IGNORECASE)
@@ -111,9 +111,10 @@ def _ensure_limit(sql: str, max_limit: int) -> str:
     match = _LIMIT_CLAUSE.search(sql)
     if match:
         limit_val = int(match.group(1))
+        offset_clause = f" OFFSET {match.group(3)}" if match.group(3) is not None else ""
         if limit_val > max_limit:
-            # Replace trailing LIMIT n with capped value
-            sql = sql[: match.start()] + f"LIMIT {max_limit}"
+            # Cap LIMIT but preserve OFFSET when present.
+            sql = sql[: match.start()] + f"LIMIT {max_limit}{offset_clause}"
         return sql.rstrip().rstrip(";")
     return f"{sql.rstrip().rstrip(';')} LIMIT {max_limit}"
 
