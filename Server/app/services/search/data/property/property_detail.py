@@ -7,6 +7,7 @@ from typing import Any
 from logger import log
 
 from ..client import rapidapi_get
+from ..normalizer import normalize_listing
 
 
 def _normalize_payload(payload: Any) -> dict[str, Any] | None:
@@ -87,8 +88,7 @@ def get_property_detail(
                 "zpid": data.get("zpid"),
             },
         )
-        # RapidAPI is already Zillow-shaped; pass through (Phase 6 can add adapter).
-        return data, None
+        return normalize_listing(data), None
 
     except Exception as exc:
         return None, {

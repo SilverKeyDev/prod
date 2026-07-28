@@ -1,8 +1,8 @@
-"""Tests for Slipstream listing normalizer.
+"""Tests for RapidAPI-first listing normalizer.
 
-Verifies that every field in a raw Slipstream API response is correctly
-mapped to the internal property dict shape consumed by scoring,
-persistence, post-filters, and client transforms.
+Verifies RapidAPI / Zillow-shaped props map to the internal property dict
+consumed by scoring, persistence, post-filters, and client transforms.
+Also covers the legacy Slipstream fallback path.
 """
 
 from __future__ import annotations
@@ -12,33 +12,32 @@ from app.services.search.data.search_response_slim import slim_properties_for_se
 
 
 def _make_raw(**overrides) -> dict:
-    """Minimal raw Slipstream listing with sensible defaults."""
+    """Minimal raw RapidAPI listing with sensible defaults."""
     base = {
-        "id": "MLS-12345",
-        "address": {
-            "deliveryLine": "123 Main St",
-            "street": "Main St",
-            "city": "Atlanta",
-            "state": "GA",
-            "zip": "30301",
-        },
-        "beds": 3,
-        "baths": {"total": 2.5, "full": 2, "half": 1},
-        "coordinates": {"latitude": 33.749, "longitude": -84.388},
-        "listPrice": 350000,
+        "zpid": 12345,
+        "streetAddress": "123 Main St",
+        "city": "Atlanta",
+        "state": "GA",
+        "zipcode": "30301",
+        "bedrooms": 3,
+        "bathrooms": 2.5,
+        "latitude": 33.749,
+        "longitude": -84.388,
+        "price": 350000,
         "salePrice": None,
-        "size": 1800,
-        "lotSize": {"sqft": 8712, "acres": 0.2},
-        "propertyType": "Single Family Residence",
-        "listingType": "Residential",
-        "status": "Active",
-        "imageCount": 12,
+        "livingArea": 1800,
+        "lotAreaValue": 8712,
+        "lotAreaUnit": "sqft",
+        "homeType": "SINGLE_FAMILY",
+        "propertyType": "Single Family",
+        "listingStatus": "FOR_SALE",
+        "imgSrc": "https://photos.example.com/1.jpg",
         "images": [
             "https://photos.example.com/1.jpg",
             "https://photos.example.com/2.jpg",
         ],
         "yearBuilt": 2005,
-        "daysOnMarket": 14,
+        "daysOnZillow": 14,
         "description": "Beautiful home with central air, garage, pool.",
         "county": "Fulton",
         "subdivision": "Buckhead Estates",
@@ -57,14 +56,15 @@ def _make_raw(**overrides) -> dict:
 
 
 class TestNormalizerIdentifiers:
-    def test_zpid_from_id(self):
-        out = normalize_listing(_make_raw(id="MLS-99999"))
-        assert out["zpid"] == "MLS-99999"
-        assert out["mls_home_id"] == "MLS-99999"
+    def test_zpid_stringified(self):
+        out = normalize_listing(_make_raw(zpid=99999))
+        assert out["zpid"] == "99999"
+        assert out["mls_home_id"] == "99999"
 
-    def test_missing_id(self):
+    def test_missing_zpid(self):
         raw = _make_raw()
-        raw.pop("id", None)
+        raw.pop("zpid", None)
+        # Still RapidAPI-shaped via streetAddress/bedrooms
         out = normalize_listing(raw)
         assert out["zpid"] is None
         assert out["mls_home_id"] is None
@@ -83,19 +83,25 @@ class TestNormalizerAddress:
         assert "123 Main St" in out["address"]
         assert "Atlanta" in out["address"]
 
-    def test_missing_address_object(self):
-        out = normalize_listing(_make_raw(address=None))
+    def test_missing_address_fields(self):
+        out = normalize_listing(
+            _make_raw(streetAddress="", city="", state="", zipcode="", address=None)
+        )
         assert out["streetAddress"] == ""
         assert out["city"] == ""
         assert out["address"] == ""
 
-    def test_fallback_to_street(self):
+    def test_string_address_fallback(self):
         out = normalize_listing(
             _make_raw(
-                address={"street": "Elm St", "city": "Savannah", "state": "GA", "zip": "31401"}
+                streetAddress="",
+                city="",
+                state="",
+                zipcode="",
+                address="Elm St, Savannah, GA 31401",
             )
         )
-        assert out["streetAddress"] == "Elm St"
+        assert out["address"] == "Elm St, Savannah, GA 31401"
 
 
 # ---- Numeric property fields ----
@@ -103,36 +109,43 @@ class TestNormalizerAddress:
 
 class TestNormalizerNumericFields:
     def test_bedrooms(self):
-        assert normalize_listing(_make_raw(beds=4))["bedrooms"] == 4
+        assert normalize_listing(_make_raw(bedrooms=4))["bedrooms"] == 4
 
     def test_bedrooms_missing(self):
         raw = _make_raw()
-        raw.pop("beds", None)
+        raw.pop("bedrooms", None)
         assert normalize_listing(raw)["bedrooms"] is None
 
-    def test_bathrooms_from_nested(self):
-        assert (
-            normalize_listing(_make_raw(baths={"total": 3, "full": 2, "half": 1}))["bathrooms"] == 3
-        )
-
-    def test_bathrooms_as_number(self):
-        assert normalize_listing(_make_raw(baths=2))["bathrooms"] == 2
+    def test_bathrooms(self):
+        assert normalize_listing(_make_raw(bathrooms=3))["bathrooms"] == 3
 
     def test_bathrooms_missing(self):
         raw = _make_raw()
-        raw.pop("baths", None)
+        raw.pop("bathrooms", None)
         assert normalize_listing(raw)["bathrooms"] is None
 
     def test_living_area(self):
-        assert normalize_listing(_make_raw(size=2200))["livingArea"] == 2200
+        assert normalize_listing(_make_raw(livingArea=2200))["livingArea"] == 2200
 
     def test_living_area_missing(self):
         raw = _make_raw()
-        raw.pop("size", None)
+        raw.pop("livingArea", None)
+        raw.pop("sqft", None)
         assert normalize_listing(raw)["livingArea"] is None
 
     def test_price(self):
-        assert normalize_listing(_make_raw(listPrice=500000))["price"] == 500000
+        assert normalize_listing(_make_raw(price=500000))["price"] == 500000
+
+    def test_price_from_unformatted(self):
+        raw = {
+            "zpid": 1,
+            "streetAddress": "1 Main",
+            "city": "Atlanta",
+            "state": "GA",
+            "zipcode": "30301",
+            "unformattedPrice": 425000,
+        }
+        assert normalize_listing(raw)["price"] == 425000
 
     def test_sale_price(self):
         assert normalize_listing(_make_raw(salePrice=480000))["salePrice"] == 480000
@@ -140,26 +153,26 @@ class TestNormalizerNumericFields:
     def test_year_built(self):
         assert normalize_listing(_make_raw(yearBuilt=1990))["yearBuilt"] == 1990
 
-    def test_days_on_market(self):
-        assert normalize_listing(_make_raw(daysOnMarket=45))["daysOnMarket"] == 45
+    def test_days_on_zillow(self):
+        assert normalize_listing(_make_raw(daysOnZillow=45))["daysOnZillow"] == 45
 
-    def test_days_on_zillow_alias(self):
-        out = normalize_listing(_make_raw(daysOnMarket=45))
-        assert out["daysOnZillow"] == 45
+    def test_days_on_market_alias(self):
+        out = normalize_listing(_make_raw(daysOnZillow=45))
+        assert out["daysOnMarket"] == 45
         assert out["daysOnZillow"] == out["daysOnMarket"]
 
     def test_sqft_alias(self):
-        out = normalize_listing(_make_raw(size=2200))
+        out = normalize_listing(_make_raw(livingArea=2200))
         assert out["sqft"] == 2200
         assert out["sqft"] == out["livingArea"]
 
     def test_price_per_square_foot(self):
-        out = normalize_listing(_make_raw(listPrice=360000, size=1800))
+        out = normalize_listing(_make_raw(price=360000, livingArea=1800))
         assert out["pricePerSquareFoot"] == 200
 
     def test_price_per_square_foot_no_size(self):
-        raw = _make_raw(listPrice=360000)
-        raw.pop("size", None)
+        raw = _make_raw(price=360000)
+        raw.pop("livingArea", None)
         out = normalize_listing(raw)
         assert out["pricePerSquareFoot"] is None
 
@@ -174,7 +187,7 @@ class TestNormalizerCoordinates:
         assert out["longitude"] == -84.388
 
     def test_missing_coordinates(self):
-        out = normalize_listing(_make_raw(coordinates=None))
+        out = normalize_listing(_make_raw(latitude=None, longitude=None))
         assert out["latitude"] is None
         assert out["longitude"] is None
 
@@ -183,66 +196,59 @@ class TestNormalizerCoordinates:
 
 
 class TestNormalizerLotSize:
-    def test_lot_sqft_from_nested(self):
-        out = normalize_listing(_make_raw(lotSize={"sqft": 10000, "acres": 0.23}))
+    def test_lot_from_rapidapi_fields(self):
+        out = normalize_listing(_make_raw(lotAreaValue=10000, lotAreaUnit="sqft", lotAcres=0.23))
         assert out["lotAreaValue"] == 10000
         assert out["lotAreaUnit"] == "sqft"
         assert out["lotAcres"] == 0.23
 
     def test_lot_missing(self):
         raw = _make_raw()
+        raw.pop("lotAreaValue", None)
+        raw.pop("lotAcres", None)
         raw.pop("lotSize", None)
         out = normalize_listing(raw)
         assert out["lotAreaValue"] is None
         assert out["lotAcres"] is None
-        assert out["lotSize"] is None
-
-    def test_lot_as_number(self):
-        out = normalize_listing(_make_raw(lotSize=5000))
-        assert out["lotAreaValue"] == 5000
-        assert out["lotAcres"] is None
-
-    def test_lot_size_formatted_string(self):
-        out = normalize_listing(_make_raw(lotSize={"sqft": 8712, "acres": 0.2}))
-        assert out["lotSize"] == "8,712 sqft"
-
-    def test_lot_size_acres_only(self):
-        out = normalize_listing(_make_raw(lotSize={"acres": 1.5}))
-        assert out["lotSize"] == "1.5 acres"
 
 
 # ---- Images ----
 
 
 class TestNormalizerImages:
-    def test_img_src_first_image(self):
-        out = normalize_listing(_make_raw(images=["a.jpg", "b.jpg"]))
+    def test_img_src_and_images(self):
+        out = normalize_listing(_make_raw(imgSrc="a.jpg", images=["a.jpg", "b.jpg"]))
         assert out["imgSrc"] == "a.jpg"
         assert out["images"] == ["a.jpg", "b.jpg"]
 
+    def test_img_src_prepended_when_missing_from_list(self):
+        out = normalize_listing(_make_raw(imgSrc="hero.jpg", images=["b.jpg"]))
+        assert out["imgSrc"] == "hero.jpg"
+        assert out["images"][0] == "hero.jpg"
+        assert "b.jpg" in out["images"]
+
     def test_no_images(self):
-        out = normalize_listing(_make_raw(images=[]))
+        out = normalize_listing(_make_raw(imgSrc=None, images=[]))
         assert out["imgSrc"] is None
         assert out["images"] == []
-
-    def test_images_missing(self):
-        raw = _make_raw()
-        raw.pop("images", None)
-        out = normalize_listing(raw)
-        assert out["imgSrc"] is None
 
 
 # ---- Type / status / flags ----
 
 
 class TestNormalizerTypeStatus:
-    def test_property_type(self):
-        out = normalize_listing(_make_raw(propertyType="Townhouse"))
+    def test_property_type_and_home_type(self):
+        out = normalize_listing(_make_raw(homeType="TOWNHOUSE", propertyType="Townhouse"))
         assert out["propertyType"] == "Townhouse"
-        assert out["homeType"] == "Townhouse"
+        assert out["homeType"] == "TOWNHOUSE"
+
+    def test_home_type_fills_property_type(self):
+        out = normalize_listing(_make_raw(homeType="CONDO", propertyType=None))
+        assert out["homeType"] == "CONDO"
+        assert out["propertyType"] == "CONDO"
 
     def test_listing_status(self):
-        assert normalize_listing(_make_raw(status="Pending"))["listingStatus"] == "Pending"
+        assert normalize_listing(_make_raw(listingStatus="PENDING"))["listingStatus"] == "PENDING"
 
     def test_new_construction_flag(self):
         assert normalize_listing(_make_raw(newConstruction=True))["newConstruction"] is True
@@ -279,7 +285,7 @@ class TestNormalizerRichFields:
 
 class TestNormalizeListings:
     def test_batch(self):
-        results = normalize_listings([_make_raw(id="A"), _make_raw(id="B")])
+        results = normalize_listings([_make_raw(zpid="A"), _make_raw(zpid="B")])
         assert len(results) == 2
         assert results[0]["zpid"] == "A"
         assert results[1]["zpid"] == "B"
@@ -291,7 +297,7 @@ class TestNormalizeListings:
 class TestNormalizerScoringFields:
     def test_normalized_row_includes_fields_used_by_mcda(self):
         out = normalize_listing(_make_raw())
-        assert out.get("zpid") == "MLS-12345"
+        assert out.get("zpid") == "12345"
         assert out.get("price") == 350000
         assert out.get("bedrooms") == 3
         assert out.get("livingArea") == 1800
@@ -302,3 +308,35 @@ class TestNormalizerScoringFields:
         slimmed = slim_properties_for_search_response([row])
         assert len(slimmed) == 1
         assert slimmed[0].get("score") == 67.3
+
+
+# ---- Legacy Slipstream fallback ----
+
+
+class TestLegacySlipstreamFallback:
+    def test_legacy_slipstream_shape_still_maps(self):
+        out = normalize_listing(
+            {
+                "id": "MLS-1",
+                "address": {
+                    "deliveryLine": "1 Oak",
+                    "city": "Atlanta",
+                    "state": "GA",
+                    "zip": "30301",
+                },
+                "beds": 2,
+                "baths": {"total": 1},
+                "coordinates": {"latitude": 33.7, "longitude": -84.4},
+                "listPrice": 200000,
+                "size": 1000,
+                "status": "Active",
+            }
+        )
+        assert out["zpid"] == "MLS-1"
+        assert out["bedrooms"] == 2
+        assert out["bathrooms"] == 1
+        assert out["price"] == 200000
+        assert out["livingArea"] == 1000
+        assert out["latitude"] == 33.7
+        assert out["listingStatus"] == "Active"
+        assert "1 Oak" in out["address"]

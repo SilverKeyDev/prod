@@ -7,6 +7,7 @@ from typing import Any
 from logger import log
 
 from ..client import rapidapi_get
+from ..normalizer import normalize_listings
 
 
 def _extract_comps_list(payload: Any) -> list[dict[str, Any]]:
@@ -55,7 +56,7 @@ def get_property_comps(
             }
 
         payload = resp.json() if resp.content else []
-        comps = _extract_comps_list(payload)
+        comps = normalize_listings(_extract_comps_list(payload))
 
         if lid:
             comps = [c for c in comps if str(c.get("zpid") or "") != lid]

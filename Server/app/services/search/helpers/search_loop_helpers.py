@@ -10,6 +10,7 @@ from typing import Any
 from logger import log
 
 from ..data.client import rapidapi_get
+from ..data.normalizer import normalize_listing
 
 _MAX_429_RETRIES_PER_PAGE = 24
 
@@ -168,9 +169,7 @@ def search_properties_paginated(
                         zpid_key = str(zpid)
                         if zpid_key not in seen:
                             seen.add(zpid_key)
-                            # RapidAPI props are already Zillow-shaped; do NOT run
-                            # Slipstream normalize_listing here (Phase 6 may add a thin adapter).
-                            all_properties.append(prop)
+                            all_properties.append(normalize_listing(prop))
 
                     if len(props) < int(page_size):
                         page_fetched = True
