@@ -216,7 +216,8 @@ def search_properties_by_polygon(data: SearchByPolygonRequest):
 def get_area_suggestions():
     """
     Autocomplete for geographic areas (neighborhoods, cities, ZIP codes, counties)
-    via Slipstream /ws/areas/search. Returns matching areas with IDs for boundary lookup.
+    via Slipstream /ws/areas/search (intentionally separate from RapidAPI listings).
+    Returns matching areas with IDs for boundary lookup.
     Query: keyword (required), state (optional, e.g. "GA"), limit (optional, default 10).
     """
     user, auth_error = get_authenticated_user()
@@ -256,6 +257,7 @@ def get_area_suggestions():
 def get_area_boundary_route():
     """
     Get the boundary polygon for a Slipstream area by ID.
+    Used for map viewport / polygon search area (listings themselves come from RapidAPI).
     Returns GeoJSON geometry and a viewport ring suitable for polygon search.
     Query: id (required).
     """

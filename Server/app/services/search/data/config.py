@@ -1,7 +1,7 @@
 """Search upstream API configuration.
 
-RapidAPI (Zillow-shaped housing data) is the listing/search provider target for SIL-324.
-Slipstream constants remain for area-boundary routes until that decision is finalized.
+Listing/search/detail/comps: RapidAPI (SIL-324).
+Area suggestions + boundaries: Slipstream (HomeJunction) — intentionally retained.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ RAPIDAPI_HOST = "us-housing-market-data1.p.rapidapi.com"
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 RAPIDAPI_BASE = f"https://{RAPIDAPI_HOST}"
 
-# ---- Slipstream (HomeJunction) — keep for area suggestions/boundaries for now ----
+# ---- Slipstream (HomeJunction) — area suggestions / boundaries only ----
 SLIPSTREAM_BASE = "https://slipstream.homejunction.com"
 SLIPSTREAM_PRIVATE = os.getenv("SLIPSTREAM_PRIVATE")
 SLIPSTREAM_PUBLIC = os.getenv("SLIPSTREAM_PUBLIC")

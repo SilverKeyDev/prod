@@ -4,6 +4,8 @@ Uses the /ws/areas/search and /ws/areas/get endpoints to resolve
 neighborhood names, city names, ZIP codes, school districts, and other
 geographic areas into boundary polygons suitable for property search.
 
+Listings themselves are fetched via RapidAPI; this module only resolves geography.
+
 Slipstream area geoTypes:
   area/neighborhood, area/postal-city, area/census-place,
   area/county, area/zipcode, area/state, area/township

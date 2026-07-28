@@ -1,6 +1,9 @@
-"""Slipstream data module — single source for all property data fetching.
+"""Search data module.
 
-Reference JSON for a single-home ``/ws/listings/get`` response:
+RapidAPI: listings (polygon search, detail, images, comps).
+Slipstream: geographic area suggestions and boundary polygons only.
+
+Historical Slipstream listing envelope (reference only):
 ``slipstream_response_reference.SLIPSTREAM_LISTINGS_GET_RESPONSE_EXAMPLE``.
 """
 
