@@ -120,6 +120,31 @@ class TestGeoJsonPolygon:
             assert c[1] > 0
 
 
+class TestToPolygonParam:
+    def test_basic_format(self):
+        from app.services.search.helpers.geometry_helpers import to_polygon_param
+
+        ring = [
+            {"lat": 33.75, "lon": -84.40},
+            {"lat": 33.80, "lon": -84.40},
+            {"lat": 33.80, "lon": -84.30},
+            {"lat": 33.75, "lon": -84.30},
+        ]
+        out = to_polygon_param(ring)
+        assert out.startswith("-84.4")
+        assert "33.75" in out
+        # auto-closes
+        assert out.count(",") >= 4
+
+    def test_too_few_points(self):
+        import pytest
+
+        from app.services.search.helpers.geometry_helpers import to_polygon_param
+
+        with pytest.raises(ValueError, match="at least 3"):
+            to_polygon_param([{"lat": 33.0, "lon": -84.0}, {"lat": 34.0, "lon": -84.0}])
+
+
 # ---- Persistence field mapping ----
 
 

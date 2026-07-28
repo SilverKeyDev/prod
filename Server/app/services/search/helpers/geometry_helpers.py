@@ -71,6 +71,21 @@ def to_geojson_polygon(ring: list[dict[str, float]]) -> dict:
     return {"type": "Polygon", "coordinates": [coords]}
 
 
+def to_polygon_param(ring: list[dict[str, float]]) -> str:
+    """Convert polygon coords to RapidAPI ``propertyByPolygon`` format.
+    Input:  [{lat: 33.7, lon: -84.3}, ...]
+    Output: "-84.3 33.7, -84.2 33.7, ..."
+    """
+    if len(ring) < 3:
+        raise ValueError("Polygon needs at least 3 points")
+
+    # Ensure closed (do not mutate caller's list)
+    closed = list(ring)
+    if closed[0]["lon"] != closed[-1]["lon"] or closed[0]["lat"] != closed[-1]["lat"]:
+        closed = closed + [closed[0]]
+    return ", ".join(f"{p['lon']} {p['lat']}" for p in closed)
+
+
 def geocode_address_google(address: str) -> tuple[float, float] | None:
     """
     Geocode an address to lat/lon using Google Geocoding API.
