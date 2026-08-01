@@ -4,9 +4,11 @@
  * SIL-207: real API with fixture fallback + response adapter.
  */
 import { useQuery } from "@tanstack/react-query";
+
 import { fetchAncillaryAnalytics } from "packages/features/brokerage/api/analytics";
 import { buildAncillaryData } from "packages/features/brokerage/utils/analytics/ancillaryTransforms";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
+
 import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
 export { buildAncillaryData } from "packages/features/brokerage/utils/analytics/ancillaryTransforms";
@@ -31,16 +33,21 @@ function adaptAncillaryResponse(serverData: Record<string, unknown>, period: Tim
           return {
             ...fixtureSvc,
             ...svc,
-            industry_avg_percent: svc.industry_avg_percent ?? fixtureSvc?.industry_avg_percent ?? 55,
-            industry_high_percent: svc.industry_high_percent ?? fixtureSvc?.industry_high_percent ?? 75,
-            opportunity_vs_avg_dollars: svc.opportunity_vs_avg_dollars ?? fixtureSvc?.opportunity_vs_avg_dollars ?? 0,
-            opportunity_vs_high_dollars: svc.opportunity_vs_high_dollars ?? fixtureSvc?.opportunity_vs_high_dollars ?? 0,
+            industry_avg_percent:
+              svc.industry_avg_percent ?? fixtureSvc?.industry_avg_percent ?? 55,
+            industry_high_percent:
+              svc.industry_high_percent ?? fixtureSvc?.industry_high_percent ?? 75,
+            opportunity_vs_avg_dollars:
+              svc.opportunity_vs_avg_dollars ?? fixtureSvc?.opportunity_vs_avg_dollars ?? 0,
+            opportunity_vs_high_dollars:
+              svc.opportunity_vs_high_dollars ?? fixtureSvc?.opportunity_vs_high_dollars ?? 0,
           };
         })
       : fixture.by_service,
-    by_agent: Array.isArray(serverData.by_agent) && serverData.by_agent.length > 0
-      ? serverData.by_agent
-      : fixture.by_agent,
+    by_agent:
+      Array.isArray(serverData.by_agent) && serverData.by_agent.length > 0
+        ? serverData.by_agent
+        : fixture.by_agent,
   };
 }
 

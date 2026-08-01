@@ -6,7 +6,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 
 import Button from "@ui/button/Button";
-import { Icon } from "@ui/icons";
 import { Pressable, TextInput } from "react-native";
 
 import { useLocalization } from "packages/contexts";
@@ -80,7 +79,10 @@ export default function AgentSelectorNative({
 
       <BaseModal
         isOpen={isOpen}
-        onClose={() => { setIsOpen(false); setSearch(""); }}
+        onClose={() => {
+          setIsOpen(false);
+          setSearch("");
+        }}
         title={t("agent_selector.select_agent", { defaultValue: "Select agent" })}
         panelLayout="fixed"
       >
@@ -91,7 +93,6 @@ export default function AgentSelectorNative({
             onChangeText={setSearch}
             placeholder={t("agent_selector.search_agents", { defaultValue: "Search agents..." })}
             className="border-border rounded-lg border px-3 py-2 text-sm"
-            autoFocus
           />
 
           {/* All agents row */}

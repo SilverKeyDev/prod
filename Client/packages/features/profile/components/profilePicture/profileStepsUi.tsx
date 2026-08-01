@@ -1,5 +1,7 @@
 import React from "react";
+
 import { Icon } from "@ui/icons";
+
 import type { OnboardingData } from "packages/features/profile/types/onboarding/onboarding";
 import {
   getOnboardingSteps,
