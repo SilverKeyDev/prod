@@ -5,6 +5,7 @@
  * Consumed by brokerage library header (SIL-230).
  */
 import { useMemo, useState } from "react";
+
 import { Icon } from "@ui/icons";
 import BodyText from "@ui/text/BodyText";
 
@@ -13,6 +14,7 @@ import { useBrokerageOrgId } from "packages/features/brokerage/hooks/useBrokerag
 import { BROKERAGE_AGENTS_FIXTURE } from "packages/features/brokerage/utils/brokerageAnalyticsFixtures";
 import Button from "packages/ui/components/actions/button/core/Button";
 import { Box } from "packages/ui/components/structure/primitives";
+import Input from "packages/ui/components/structure/primitives/input/Input";
 import Popover from "packages/ui/components/surfaces/popover/Popover";
 import { HEADER_ROW_CONTROL_HEIGHT } from "packages/ui/constants/layout";
 
@@ -60,8 +62,8 @@ export default function AgentSelector({
   const triggerLabel =
     selectedAgentId === null
       ? t("agent_selector.all_agents", { defaultValue: "All agents" })
-      : agents.find((a) => a.id === selectedAgentId)?.name ??
-        t("agent_selector.select_agent", { defaultValue: "Select agent" });
+      : (agents.find((a) => a.id === selectedAgentId)?.name ??
+        t("agent_selector.select_agent", { defaultValue: "Select agent" }));
 
   return (
     <Popover
@@ -103,13 +105,17 @@ export default function AgentSelector({
           <Box className="flex flex-col gap-1 px-1">
             {/* Search input */}
             <Box className="px-2 py-1">
-              <input
+              <Input
                 type="text"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("agent_selector.search_agents", { defaultValue: "Search agents..." })}
+                onValueChange={setSearch}
+                label={t("agent_selector.search_agents", {
+                  defaultValue: "Search agents...",
+                })}
+                placeholder={t("agent_selector.search_agents", {
+                  defaultValue: "Search agents...",
+                })}
                 className="border-border w-full rounded-md border px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                autoFocus
               />
             </Box>
 
@@ -132,9 +138,7 @@ export default function AgentSelector({
               </BodyText>
             </Button>
 
-            {filtered.length > 0 && (
-              <Box className="border-border mx-1 my-1 border-t" />
-            )}
+            {filtered.length > 0 && <Box className="border-border mx-1 my-1 border-t" />}
 
             {isLoading ? (
               <Box className="text-text-secondary px-3 py-3 text-left text-sm">

@@ -21,7 +21,7 @@ function conversation(id: string, clientId: string): AgentConversation {
 }
 
 function submitFlowParams(
-  calendarEventRequest: CalendarEventRequestModalIntegration,
+  calendarEventRequest: CalendarEventRequestModalIntegration
 ): SubmitFlowParams {
   return {
     isCalendarEventRequestFlow: true,
@@ -65,8 +65,8 @@ describe("useCreateEventModalSubmitFlow", () => {
           activeConversationId: "conversation-2",
           sendMessageDirect: vi.fn(async () => undefined),
           sendCalendarEventMessage,
-        }),
-      ),
+        })
+      )
     );
 
     await act(async () => {
@@ -89,8 +89,8 @@ describe("useCreateEventModalSubmitFlow", () => {
           activeConversationId: "conversation-pending",
           sendMessageDirect: vi.fn(async () => undefined),
           sendCalendarEventMessage,
-        }),
-      ),
+        })
+      )
     );
 
     await act(async () => {

@@ -156,10 +156,7 @@ export function SavedPageLayout({
     isBrokerageWorkspace && onAgentChange ? (
       <AgentSelector selectedAgentId={selectedAgentId} onAgentChange={onAgentChange} />
     ) : isAgent ? (
-      <ClientSelector
-        selectedClientId={selectedClientId}
-        onClientChange={setSelectedClientId}
-      />
+      <ClientSelector selectedClientId={selectedClientId} onClientChange={setSelectedClientId} />
     ) : undefined;
 
   return (

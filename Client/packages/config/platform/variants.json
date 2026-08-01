@@ -588,6 +588,13 @@
     "reason": "Different dropdown implementations."
   },
   {
+    "id": "agent-selector",
+    "description": "Agent selector with platform-specific dropdown for brokerage library filtering.",
+    "webPath": "packages/ui/components/actions/button/propertyActions/AgentSelector.tsx",
+    "nativePath": "packages/ui/components/actions/button/propertyActions/AgentSelector.native.tsx",
+    "reason": "Web uses Popover + DOM input; native uses BaseModal + React Native TextInput/Pressable."
+  },
+  {
     "id": "heart-save",
     "description": "Heart save button with platform-specific touch.",
     "webPath": "packages/ui/components/actions/button/propertyActions/HeartSave.tsx",
