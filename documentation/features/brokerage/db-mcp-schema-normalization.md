@@ -4,7 +4,7 @@ As-built design note for the brokerage database query service (NL → read-only
 SQL → analytics UI). This is a **product data MCP / query service**, not Cursor
 editor MCP under `.cursor/mcp.example.json`.
 
-> **Last verified:** 2026-07-31  
+> **Last verified:** 2026-08-07  
 > **HTTP + Ask UX:** [brokerage-analytics.md](./brokerage-analytics.md#ask-tab--nl-query-sil-323)  
 > **Code:** `Server/app/services/brokerage_db_mcp/`
 
@@ -19,7 +19,7 @@ existing brokerage analytics charts/tables where possible.
 | Ticket | Boundary |
 | ------ | -------- |
 | **SIL-323** | Connector + introspection + NL→SQL guardrails + one NL UI path (Ask tab) |
-| **SIL-207** | Fixture → live overview/agents API swap (coordinate; do not replace wholesale) |
+| **SIL-207** | Live overview/agents + insight hooks (fixture merge); inventory/activity still fixtures |
 | **SIL-211** | Brokerage performance dashboard insights |
 | **SIL-285** | SkySlope demo dataset (mirror seed already shipped) |
 
@@ -114,7 +114,7 @@ brokerage org. No MCP wire protocol is exposed to clients — only the REST
 1. LLM can invent columns — executor rejects non-allowlisted tables; missing
    tenancy bind fails closed.
 2. `OPENAI_KEY` required for live planning; tests must inject `sql_generator`.
-3. Chart DTOs for overview/agents remain fixture-shaped until SIL-207; Ask results
-   are a separate response shape (`columns`/`rows`/`viz_hint`).
+3. Chart DTOs stay fixture-shaped even when SIL-207 hooks call live GETs (adapters
+   merge). Ask results are a separate response shape (`columns`/`rows`/`viz_hint`).
 4. Completing Shape B would need a real connector + column mapping layer — do not
    assume Ask works against an arbitrary CRM DSN today.

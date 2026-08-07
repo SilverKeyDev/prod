@@ -1,7 +1,7 @@
 # Messaging feature
 
 > **Status:** Shipped for buyer/seller/agent (agent–client stack) and brokerage/integrator/admin (workspace stack)  
-> **Last verified:** 2026-07-31  
+> **Last verified:** 2026-08-07  
 > **Code:** `Client/packages/features/messaging/`, `Server/app/routes/conversations/`, `Server/app/routes/agent/` (legacy chats)
 
 Unified messaging across two stacks:

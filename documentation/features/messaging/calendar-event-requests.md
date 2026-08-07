@@ -1,7 +1,7 @@
 # Calendar event requests (from messaging)
 
 > **Status:** Shipped (web + native messaging)  
-> **Last verified:** 2026-07-31  
+> **Last verified:** 2026-08-07  
 > **Code:** `Client/packages/features/agent/…/calendarEventRequest/`, `Client/packages/features/calendar/hooks/data/createEvent/`, `Client/packages/utils/comms/messaging/`, `Server/app/services/agent/conversation/event_requests.py`
 
 Agents and clients request a calendar event **as a structured chat message** from messaging. Accept/cancel updates a message status field; creating a Google Calendar event is a separate flow (calendar create modal without `calendarEventRequest`).
@@ -78,7 +78,9 @@ Rules:
 - **Cancel:** either party.
 - Statuses: `pending` \| `accepted` \| `cancelled` (`pending` is not set via this PATCH).
 
-Accepting does **not** create a Google Calendar event by itself — it updates message status for the card UI. Calendar creation remains the separate Google create path.
+**Server accept does not create a Google Calendar event** — `update_event_request_status` only updates message status. The messaging UI may then call client `createEvent` (via `useMessagingHandlers.handleAcceptEventRequest`) with the other party as attendee; that follow-up is client-side and can leave status `accepted` if Google create fails.
+
+Recipient-routing regression tests: `useCreateEventModalSubmitFlow.test.tsx` (active conversation id preferred over `conversations[0]`).
 
 ## Client-only vs server
 
@@ -89,16 +91,17 @@ Accepting does **not** create a Google Calendar event by itself — it updates m
 | Payload + `__EVENT_REQUEST__` message shape | Client utils; server only detects prefix / stores status |
 | Persist message + `event_request_status` | Server chats/messaging |
 | Status transitions | Server `event_requests.py` |
-| Google Calendar CRUD | Separate calendar APIs — not this request flow |
+| Google Calendar create after accept | Client `handleAcceptEventRequest` → `createEvent` (not the PATCH handler) |
 
 ## Developer pitfalls
 
 1. **Web ≠ native form:** Web reuses the full create-event modal (all-day, start/end, Meet toggle hidden for request flow). Native uses a simpler form and hardcodes end = start + 30 minutes.
 2. **Without `initialClientId`, agent web Send stays disabled** until Client is chosen again — always pass the open thread’s client id from messaging.
-3. **Do not import chat queries into calendar** unless using the injected `calendarEventRequest` bag — keeps calendar free of messaging subscriptions when unused.
-4. **Workspace messaging** (`/api/v1/conversations/*`) is a different stack; this event-request path is agent–client chats (`/api/v1/agent/chats/*`).
-5. **Prefix must stay on the first line** — parsers only inspect line 1; human text must follow after a newline.
-6. Duplicate builder entry: prefer `packages/utils/comms/messaging/buildEventRequestPayloadFromCreateFormState.ts`; feature folder re-exports it.
+3. **Native client send** needs a resolved conversation object; web submit can use `activeConversationId` alone even when the list is still loading.
+4. **Do not import chat queries into calendar** unless using the injected `calendarEventRequest` bag — keeps calendar free of messaging subscriptions when unused.
+5. **Workspace messaging** (`/api/v1/conversations/*`) is a different stack; this event-request path is agent–client chats (`/api/v1/agent/chats/*`).
+6. **Prefix must stay on the first line** — parsers only inspect line 1; human text must follow after a newline.
+7. Duplicate builder entry: prefer `packages/utils/comms/messaging/buildEventRequestPayloadFromCreateFormState.ts`; feature folder re-exports it.
 
 ## Related
 

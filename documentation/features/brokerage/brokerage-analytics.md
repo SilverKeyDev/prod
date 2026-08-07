@@ -1,14 +1,14 @@
 # Brokerage analytics and Market inventory
 
-> **Status:** Shipped (web; charts mostly fixture-backed; Ask tab is live NL HTTP)  
-> **Last verified:** 2026-07-31  
+> **Status:** Shipped (web; SIL-207 partial live GETs + Ask NL HTTP; inventory/activity still fixtures)  
+> **Last verified:** 2026-08-07  
 > **Code:** `Client/packages/features/brokerage/`, `Server/app/routes/brokerage_analytics/`, `Server/app/services/brokerage_db_mcp/`
 
 Brokerage workspace dashboard for team KPIs, leakage, agent detail, deal forensics, Market inventory, and natural-language Ask (SIL-323). Campaigns are **not** on main (archived on `archive/brokerage-campaigns`).
 
 ## Intent
 
-Give brokerage admins a single `/dashboard` shell with period/office controls and deep links into per-agent analytics. Most chart tabs are **fixture-first** today so demos work without a live OpenAPI swap; the **Ask** tab calls a real guarded NL→SQL endpoint. Server analytics GET routes exist and are scoped by brokerage membership.
+Give brokerage admins a single `/dashboard` shell with period/office controls and deep links into per-agent analytics. Overview/agents and several insight hooks call live analytics GETs when `brokerageOrgId` is set (merging into fixture-shaped DTOs); Market inventory and activity distribution remain fixture-only. The **Ask** tab calls a real guarded NL→SQL endpoint. Server analytics GET routes exist and are scoped by brokerage membership.
 
 ## Routes (web)
 
@@ -47,13 +47,15 @@ Agent row actions: public website (`/a/:slug` when slug exists) and analytics (`
 
 | Layer | Behavior |
 |-------|----------|
-| Hooks (`useBrokerageAnalytics`, inventory, ancillary, retention, engagement, forensics) | TanStack Query with **local fixture** `queryFn` / `initialData` until SIL-207 live swap |
-| `api/analytics.ts` | Typed client for `/api/v1/brokerage/analytics/*` GETs — **ready but unused by chart hooks** |
+| `useBrokerageAnalytics` | **Live** when `brokerageOrgId` set — `fetchBrokerageAnalyticsOverview` + `fetchAgentAnalytics`; merges into fixture-shaped DTOs; fixture-only when org id missing |
+| `useAncillaryAnalytics`, `useAgentRetentionRisk`, `useTargetedAgentEngagement`, `useDealFailureForensics` | **Live** + fixture merge when org id set (SIL-207 adapters) |
+| `useBrokerageInventory`, `useActivityDistribution` | **Still fixture-only** `queryFn` |
+| `api/analytics.ts` | Typed client used by the live hooks above |
 | `api/nlQuery.ts` + `useBrokerageNlQuery` | **Live** `POST` NL query (Ask tab) |
 | `useBrokerageOrgId` | Resolves org id for query keys / API calls; Ask falls back to demo org id if unset |
 | Server routes | `require_brokerage_scope` on every analytics handler |
 
-Do not assume the dashboard charts reflect live DB data until hooks call `api/analytics.ts`. Ask results **do** hit the DB via `brokerage_db_mcp`.
+Ask results hit the DB via `brokerage_db_mcp`. Chart tabs with live hooks still **merge** server fields into fixture shapes — treat missing server fields as demo defaults, not as proof the API returned them.
 
 ## Server API (GET analytics)
 
@@ -69,7 +71,7 @@ Listed in `Server/endpoints.json` under `GET /api/v1/brokerage/analytics/`:
 
 **Auth failures:** 401 unauthenticated; 403 when `user.brokerage_org_ids` is empty or org not allowed; 400 when `brokerage_org_id` missing.
 
-These GET paths are **not** in the OpenAPI spec yet — regenerate types after the contract lands (SIL-207).
+These GET paths are **not** in the OpenAPI spec yet — client hooks call them with hand-typed helpers in `api/analytics.ts`. Only Ask/`nl-query` has OpenAPI + generated types today.
 
 ### SIL-208 ML
 
@@ -169,8 +171,8 @@ Brokerage is **not** a placeholder workspace (`isPlaceholderWorkspace` is an emp
 
 ## Local demo
 
-1. Onboard as Brokerage, or set Admin → Dev persona to brokerage.
-2. Open `/dashboard` — fixtures render chart tabs without calling analytics GETs.
+1. Onboard as Brokerage, or set Admin → Dev persona to brokerage (user must have `brokerage_org_ids`).
+2. Open `/dashboard` — overview/agents/insight tabs call analytics GETs when org id is present; Market/activity stay on fixtures.
 3. Ask tab: needs auth, `brokerage_org_id` on the user, and `OPENAI_KEY` for live LLM planning; unit tests inject a fake `SqlGenerator`.
 4. Optional server demo data: `Server/scripts/skyslope/generate_demo_dataset.py`, `load_demo_to_skyslope.py`, `generate_inventory_fixtures.py`, `generate_agent_analytics_fixtures.py` under `Server/data/skyslope-demo/`.
 
@@ -184,11 +186,12 @@ Brokerage is **not** a placeholder workspace (`isPlaceholderWorkspace` is an emp
 ## Pitfalls
 
 1. `/analytics` and `/inventory` redirect to `/dashboard` (query params on `/analytics` are dropped).
-2. Client fixtures and server stubs can diverge — treat chart UI numbers as demo until SIL-207.
-3. Agent detail pages are slug/fixture-driven and auth-only on the client; do not assume membership scoping there yet.
-4. Ask is the only analytics path with OpenAPI coverage today; do not assume GETs are generated types.
-5. Guardrails fail closed on keyword token overlap (e.g. identifier named like a banned word).
-6. Keep new code under allowed feature folders (`api/`, `components/`, `hooks/`, `types/`, `utils/`, …) — package structure is lint-enforced.
+2. Live hooks merge into fixture DTOs — a populated UI field may still be fixture fallback when the server omitted it.
+3. `useBrokerageInventory` / `useActivityDistribution` ignore the server inventory GET until their `queryFn` is swapped.
+4. Agent detail pages are slug/fixture-driven and auth-only on the client; do not assume membership scoping there yet.
+5. Ask is the only analytics path with OpenAPI coverage today; do not assume GETs are generated types.
+6. Guardrails fail closed on keyword token overlap (e.g. identifier named like a banned word).
+7. Keep new code under allowed feature folders (`api/`, `components/`, `hooks/`, `types/`, `utils/`, …) — package structure is lint-enforced.
 
 ## Related
 
