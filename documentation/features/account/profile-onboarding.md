@@ -22,11 +22,31 @@ Do **not** add a fourth `switch (step.id)` in feature shells — wire through `r
 | `agent_onboarding` | Agent signup |
 | `seller_onboarding` | Seller signup: role + `seller_property`, `seller_address`, `seller_timeline`, `seller_motivation`, `seller_pricing`, `seller_demographics` |
 | `brokerage_onboarding` | Brokerage shell: role + `brokerage_shell_setup` (one test input) |
-| `integration_partner_onboarding` | Integration partner shell: role + `integration_partner_shell_setup` (one test input) |
+| `integration_partner_onboarding` | SIL-193: role → `ip_org_details` → `ip_integration_type` → `ip_point_of_contact` → `ip_service_area` → `ip_agreement` (web + native) |
 | `buyer_personalization` | Settings / profile preferences (buyer) |
 | `agent_personalization` | Settings / profile preferences (agent) |
 
-Shell setup steps bind `workspace_shell_test_input` on the client draft only; it is **stripped** from the preferences API payload until real product fields ship.
+Brokerage shell setup binds `workspace_shell_test_input` on the client draft only; it is **stripped** from the preferences API payload until real product fields ship.
+
+### Integration partner steps (SIL-193)
+
+Step UI: `Client/packages/features/profile/components/onboarding/ip/` (`IpOrgDetailsStep`, `IpIntegrationTypeStep`, `IpPointOfContactStep`, `IpServiceAreaStep`, `IpAgreementStep`), wired through `renderOnboardingStep.{web,native}.tsx`.
+
+| Step id | Title (registry) | Completion (`stepCompletion.ts`) |
+|---------|------------------|----------------------------------|
+| `ip_org_details` | Organization | Non-empty `ip_org_name` |
+| `ip_integration_type` | Service type | Non-empty `ip_integration_type` |
+| `ip_point_of_contact` | Contact | Non-empty `ip_contact_name` + `ip_contact_email` |
+| `ip_service_area` | Service area | Non-empty `ip_service_states` array |
+| `ip_agreement` | Agreement | `ip_agreement_acknowledged === true` |
+
+`integration_partner_shell_setup` remains a step id / title in the registry (and both renderers still have a case for it) but is **not** in `FLOW_TEMPLATE_STEP_IDS.integration_partner_onboarding` (replaced by the five IP steps). Dashboard for this workspace is still a placeholder — see [workspaces-placeholder-shells.md](../../architecture/workspaces-placeholder-shells.md).
+
+### Persistence caveat (as-built)
+
+- Client `OnboardingData` declares `ip_*` fields; `formDataToPreferencesPayload` does **not** strip them (unlike `workspace_shell_test_input`).
+- Server `write_preferences_from_payload` grants the `integration_partner` role from `primary_onboarding_role` but has **no** durable map for `ip_*` into preference tables.
+- `userPreferencesToOnboardingData` does **not** rehydrate `ip_*` on read. Treat IP step values as client-collected today; do not assume round-trip persistence until a write/read path lands.
 
 Post-onboarding navigation lands on `/dashboard` for all roles. Workspace selection after onboarding is centralized in [`onboardingToWorkspace.ts`](../../../Client/packages/features/profile/utils/onboarding/role/onboardingToWorkspace.ts) (`postOnboardingWorkspaceForPrimaryRole`).
 
@@ -40,3 +60,5 @@ Onboarding registry work does not decide dashboard UX. Brokerage dashboard analy
 
 - [`registry/onboardingFlowSnapshots.test.ts`](../../../Client/packages/features/profile/utils/onboarding/registry/onboardingFlowSnapshots.test.ts) — buyer/agent step order parity
 - [`registry/buildProfileFlow.test.ts`](../../../Client/packages/features/profile/utils/onboarding/registry/buildProfileFlow.test.ts) — template resolution
+
+**Drift:** several unit tests still expect integration-partner order `["onboarding_role", "integration_partner_shell_setup"]`. Live template is the five IP steps — update those tests in a code PR; do not “fix” docs back to the old shell-only order.

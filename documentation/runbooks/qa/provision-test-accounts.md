@@ -27,7 +27,7 @@ Use `sharedPassword` from `test-accounts.json` for every account. Display name s
 | **agent** | `silverkeyqa+agent@gmail.com` | Onboarding role **Agent** → brokerage / licensing / territory → **link buyer account** (`+buyer`) as a client |
 | **seller** | `silverkeyqa+seller@gmail.com` | Public `/signup` or onboarding role **Seller** → complete seller onboarding |
 | **brokerage** | `silverkeyqa+brokerage@gmail.com` | Full signup + brokerage onboarding → must land in **brokerage workspace** (not buyer/agent/seller). Requires `brokerage_org_ids` and/or `brokerage_admin` in `user_roles` — coordinate with a **super_admin** to attach org membership and **seed 1 linked agent** (`+agent`) |
-| **integration_partner** | `silverkeyqa+partner@gmail.com` | Sign up + verify; grant `integration_partner` via super_admin when the role exists (no in-repo onboarding yet) |
+| **integration_partner** | `silverkeyqa+partner@gmail.com` | Sign up + verify; complete SIL-193 IP onboarding (`ip_org_details` … `ip_agreement`) or grant `integration_partner` via super_admin. Dashboard remains placeholder — see [profile-onboarding.md](../../features/account/profile-onboarding.md) |
 | **disposable** | `silverkeyqa+signup{N}@gmail.com` | Fresh alias per one-time signup test; do not add to `accounts[]` unless promoting to a durable role |
 
 ### Signup → verify (all roles)
