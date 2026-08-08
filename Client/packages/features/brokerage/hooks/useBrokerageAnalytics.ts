@@ -4,6 +4,7 @@
  * SIL-207: adapters transform server envelope → UI DTOs.
  */
 import { useQuery } from "@tanstack/react-query";
+
 import {
   fetchAgentAnalytics,
   fetchBrokerageAnalyticsOverview,
@@ -13,6 +14,7 @@ import {
   buildBrokerageAnalyticsData,
 } from "packages/features/brokerage/utils/analytics/overviewTransforms";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
+
 import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
 export type { TimePeriod };
@@ -41,11 +43,18 @@ function adaptOverviewResponse(serverData: Record<string, unknown>, period: Time
     overview: {
       ...fixture.overview,
       activeAgents: (serverOverview.active_agents as number) ?? fixture.overview.activeAgents,
-      openTransactions: (serverOverview.open_transactions as number) ?? fixture.overview.openTransactions,
+      openTransactions:
+        (serverOverview.open_transactions as number) ?? fixture.overview.openTransactions,
       atRiskCount: (serverOverview.at_risk_agents as number) ?? fixture.overview.atRiskCount,
     },
     transactionFunnel: Array.isArray(serverData.transaction_funnel)
-      ? (serverData.transaction_funnel as { stage: string; count: number; drop_off_percent?: number }[]).map((s) => ({
+      ? (
+          serverData.transaction_funnel as {
+            stage: string;
+            count: number;
+            drop_off_percent?: number;
+          }[]
+        ).map((s) => ({
           stage: s.stage,
           count: s.count,
           dropOffPercent: s.drop_off_percent ?? 0,
@@ -64,20 +73,28 @@ function adaptAgentsResponse(serverData: Record<string, unknown>, period: TimePe
   if (!Array.isArray(serverData.agents) || serverData.agents.length === 0) {
     return fixtureAgents;
   }
-  return (serverData.agents as { agent_id: string; name: string; active_clients: number; closings: number }[]).map(
-    (a, i) => {
-      const fixture = fixtureAgents[i % fixtureAgents.length];
-      return {
-        ...fixture,
-        id: a.agent_id,
-        name: a.name,
-        activeClients: a.active_clients,
-        closings: a.closings,
-        status: (a.closings >= 30 ? "top" : a.closings <= 5 ? "at_risk" : "healthy") as "top" | "at_risk" | "healthy",
-        stall: fixture?.stall ?? null,
-      };
-    }
-  );
+  return (
+    serverData.agents as {
+      agent_id: string;
+      name: string;
+      active_clients: number;
+      closings: number;
+    }[]
+  ).map((a, i) => {
+    const fixture = fixtureAgents[i % fixtureAgents.length];
+    return {
+      ...fixture,
+      id: a.agent_id,
+      name: a.name,
+      activeClients: a.active_clients,
+      closings: a.closings,
+      status: (a.closings >= 30 ? "top" : a.closings <= 5 ? "at_risk" : "healthy") as
+        | "top"
+        | "at_risk"
+        | "healthy",
+      stall: fixture?.stall ?? null,
+    };
+  });
 }
 
 export function useBrokerageAnalytics(period: TimePeriod = "all") {

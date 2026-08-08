@@ -3,13 +3,6 @@ import React from "react";
 import { BrokerageShellSetupStep } from "packages/features/brokerage/components/onboarding/BrokerageShellSetupStep.web";
 import { INTEGRATION_PARTNER_TRANSLATIONS } from "packages/features/integrationPartner/types/translations";
 import {
-  IpAgreementStep,
-  IpIntegrationTypeStep,
-  IpOrgDetailsStep,
-  IpPointOfContactStep,
-  IpServiceAreaStep,
-} from "packages/features/profile/components/onboarding/ip";
-import {
   AgentBrokerageSection,
   AgentLicensingSection,
   AgentProfileServiceSection,
@@ -20,6 +13,13 @@ import {
   BuyerAboutMeStepContent,
   BuyerFinancingStepContent,
 } from "packages/features/profile/components/onboarding/buyer";
+import {
+  IpAgreementStep,
+  IpIntegrationTypeStep,
+  IpOrgDetailsStep,
+  IpPointOfContactStep,
+  IpServiceAreaStep,
+} from "packages/features/profile/components/onboarding/ip";
 import OnboardingRoleStep from "packages/features/profile/components/onboarding/OnboardingRoleStep.web";
 import {
   RenterAmenitiesStep,

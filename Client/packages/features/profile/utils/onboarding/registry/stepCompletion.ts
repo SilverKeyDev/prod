@@ -68,7 +68,9 @@ function isIpOrgDetailsComplete(formData: OnboardingData): boolean {
 }
 
 function isIpIntegrationTypeComplete(formData: OnboardingData): boolean {
-  return typeof formData.ip_integration_type === "string" && formData.ip_integration_type.trim() !== "";
+  return (
+    typeof formData.ip_integration_type === "string" && formData.ip_integration_type.trim() !== ""
+  );
 }
 
 function isIpPointOfContactComplete(formData: OnboardingData): boolean {
