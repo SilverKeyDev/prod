@@ -338,7 +338,8 @@ function customResolveRequestImpl(context, moduleName, platform) {
     typeof moduleName === "string" &&
     (moduleName === "lucide-react" || moduleName.startsWith("lucide-react/"))
   ) {
-    const iconSubpath = moduleName === "lucide-react" ? "" : moduleName.slice("lucide-react".length);
+    const iconSubpath =
+      moduleName === "lucide-react" ? "" : moduleName.slice("lucide-react".length);
     return customResolveRequestImpl(context, "lucide-react-native" + iconSubpath, platform);
   }
 

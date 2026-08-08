@@ -4,9 +4,11 @@
  * SIL-207: real API with fixture fallback + placeholderData fix.
  */
 import { useQuery } from "@tanstack/react-query";
+
 import { fetchAgentRetentionRisk } from "packages/features/brokerage/api/analytics";
 import { buildRetentionData } from "packages/features/brokerage/utils/analytics/engagementTransforms";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
+
 import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
 export { buildRetentionData } from "packages/features/brokerage/utils/analytics/engagementTransforms";
@@ -17,10 +19,14 @@ function adaptRetentionResponse(serverData: Record<string, unknown>, period: Tim
     ...fixture,
     ...(serverData as object),
     summary: { ...fixture.summary, ...((serverData.summary as object) ?? {}) },
-    agents: Array.isArray(serverData.agents) && serverData.agents.length > 0
-      ? serverData.agents : fixture.agents,
-    market_benchmarks: Array.isArray(serverData.market_benchmarks) && serverData.market_benchmarks.length > 0
-      ? serverData.market_benchmarks : fixture.market_benchmarks,
+    agents:
+      Array.isArray(serverData.agents) && serverData.agents.length > 0
+        ? serverData.agents
+        : fixture.agents,
+    market_benchmarks:
+      Array.isArray(serverData.market_benchmarks) && serverData.market_benchmarks.length > 0
+        ? serverData.market_benchmarks
+        : fixture.market_benchmarks,
     methodology: (serverData.methodology as string) ?? fixture.methodology,
   };
 }

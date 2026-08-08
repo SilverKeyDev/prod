@@ -4,9 +4,11 @@
  * SIL-207: real API with fixture fallback + placeholderData fix.
  */
 import { useQuery } from "@tanstack/react-query";
+
 import { fetchTargetedAgentEngagement } from "packages/features/brokerage/api/analytics";
 import { buildEngagementData } from "packages/features/brokerage/utils/analytics/engagementTransforms";
 import type { TimePeriod } from "packages/features/brokerage/utils/analyticsPeriod";
+
 import { useBrokerageOrgId } from "./useBrokerageOrgId";
 
 export { buildEngagementData } from "packages/features/brokerage/utils/analytics/engagementTransforms";
@@ -17,12 +19,14 @@ function adaptEngagementResponse(serverData: Record<string, unknown>, period: Ti
     ...fixture,
     ...(serverData as object),
     summary: { ...fixture.summary, ...((serverData.summary as object) ?? {}) },
-    flagged_agents: Array.isArray(serverData.flagged_agents) && serverData.flagged_agents.length > 0
-      ? serverData.flagged_agents
-      : fixture.flagged_agents,
-    by_service_gap: Array.isArray(serverData.by_service_gap) && serverData.by_service_gap.length > 0
-      ? serverData.by_service_gap
-      : fixture.by_service_gap,
+    flagged_agents:
+      Array.isArray(serverData.flagged_agents) && serverData.flagged_agents.length > 0
+        ? serverData.flagged_agents
+        : fixture.flagged_agents,
+    by_service_gap:
+      Array.isArray(serverData.by_service_gap) && serverData.by_service_gap.length > 0
+        ? serverData.by_service_gap
+        : fixture.by_service_gap,
   };
 }
 
